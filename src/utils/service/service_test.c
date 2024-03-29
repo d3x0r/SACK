@@ -191,7 +191,7 @@ int main( int argc, char **argv )
 				else if( ( p = StrChr( argv[argofs], '=' ) ) ){
 					char *tmpname = DupCStrLen( argv[argofs], p-argv[argofs] );
 					char *tmpval = DupCStr( p+1 );
-					lprintf( "Setting Environtment: %s = %s", tmpname, tmpval );
+					lprintf( "Setting Environment: %s = %s", tmpname, tmpval );
 					OSALOT_SetEnvironmentVariable( tmpname, tmpval );
 					Release( tmpname );
 					Release( tmpval );

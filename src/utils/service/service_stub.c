@@ -142,7 +142,7 @@ void SetupService( TEXTSTR name, void (CPROC*Start)( void ) )
 	ServiceTable[1].lpServiceProc = NULL;
 	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( "Startup monitor failed! %d", GetLastError() );
+		lprintf( "Startup monitor failed(1)! %d", GetLastError() );
 }
 
 void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), void (CPROC*Stop)( void ) )
@@ -157,7 +157,7 @@ void SetupServiceEx( TEXTSTR name, void (CPROC*Start)( void ), void (CPROC*Stop)
 	ServiceTable[1].lpServiceProc = NULL;
 	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( "Startup monitor failed! %d", GetLastError() );
+		lprintf( "Startup monitor failed(2)! %d", GetLastError() );
 }
 
 void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintptr_t psv )
@@ -172,7 +172,7 @@ void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( PTHREAD ), uintp
 	ServiceTable[1].lpServiceProc = NULL;
 	//lprintf( "Send to startup monitor.." );
 	if( !StartServiceCtrlDispatcher( ServiceTable ) )
-		lprintf( "Startup monitor failed! %d", GetLastError() );
+		lprintf( "Startup monitor failed(3)! %d", GetLastError() );
 
 }
 
