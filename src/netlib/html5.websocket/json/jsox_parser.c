@@ -1335,13 +1335,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				recoverIdent(state,output,c);
 				if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD )
 				{
-					if( state->val.stringLen == 0 ) {
-						// allow starting a new word
-						state->status = FALSE;
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "unquoted keyword used as object field name:parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-						break;
-					}
+					// 0 length strings are OK.
 					if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
 						if( GetLinkCount( state->current_class->fields ) == 0 ) {
 							DeleteLink( &state->classes, state->current_class );
