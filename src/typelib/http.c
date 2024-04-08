@@ -140,6 +140,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
 		pHttpState->content = pHttpState->partial;
+		pHttpState->content_length = GetTextSize( pHttpState->content );
 	}
 	unlockHttp( pHttpState );
 }
