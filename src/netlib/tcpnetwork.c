@@ -1359,19 +1359,21 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				uint32_t size = 0;
 				PendingBuffer *lpNext = pc->lpFirstPending;
 				// collapse all pending into first pending block.
-				while( lpNext ) { size += lpNext->dwAvail - lpNext->dwUsed; lpNext = lpNext->lpNext;}
+				while( lpNext ) { size += lpNext->dwAvail; lpNext = lpNext->lpNext;}
 				if( size > 0 ) {
 					POINTER newbuffer =  Allocate( size );
 					//
+					//lprintf( "Allocate total size:%d", size );
 					lpNext = pc->lpFirstPending;
 					size = 0;
 					while( lpNext ) {
+						//lprintf( "Copy:%d %d",size, lpNext->dwAvail );
 						MemCpy( ((uint8_t*)newbuffer) + size
 								, ((const uint8_t*)lpNext->buffer.c)+lpNext->dwUsed
-								, lpNext->dwAvail - lpNext->dwUsed );
+								, lpNext->dwAvail );
 						if( lpNext->s.bDynBuffer )
 							Release( lpNext->buffer.p );
-						size += lpNext->dwAvail - lpNext->dwUsed;
+						size += lpNext->dwAvail;
 						PendingBuffer *next = lpNext->lpNext;
 						if( lpNext != &pc->FirstWritePending )
 							Release( lpNext );
@@ -1554,7 +1556,15 @@ static void triggerWrite( uintptr_t psv ){
 		if( pc->dwFlags & CF_WRITEPENDING )
 		{
 			//lprintf( "Triggered write event..." );
-			TCPWrite( pc );
+			while( !NetworkLockEx( pc, 0 DBG_SRC ) )
+			{
+				if( (!(pc->dwFlags & CF_ACTIVE )) || (pc->dwFlags & CF_TOCLOSE) )
+					return;
+				Relinquish();
+			}
+			if( pc->dwFlags & CF_ACTIVE )
+					TCPWrite( pc );
+			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
 			lprintf( "Triggered write shouldn't hve no pending...%p", psv );
 		}
