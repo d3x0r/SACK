@@ -1355,6 +1355,35 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 		if( pc->lpFirstPending->dwAvail )
 		{
   			uint32_t dwError;
+			if( pc->flags.bAggregateOutput && pc->lpFirstPending->lpNext ){
+				uint32_t size = 0;
+				PendingBuffer *lpNext = pc->lpFirstPending;
+				// collapse all pending into first pending block.
+				while( lpNext ) size += lpNext->dwAvail - lpNext->dwUsed; lpNext = lpNext->lpNext;
+				if( size > 0 ) {
+					CPOINTER oldbuffer = pc->lpFirstPending->buffer.c;
+					POINTER newbuffer =  Allocate( size );
+					//
+					lpNext = pc->lpFirstPending;
+					size = 0;
+					while( lpNext ) {
+						MemCpy( ((uint8_t*)newbuffer) + size
+								, ((const uint8_t*)lpNext->buffer.c)+lpNext->dwUsed
+								, lpNext->dwAvail - lpNext->dwUsed );
+						if( lpNext->s.bDynBuffer )
+							Release( lpNext->buffer.p );
+						size += lpNext->dwAvail - lpNext->dwUsed;
+						PendingBuffer *next = lpNext->lpNext;
+						if( lpNext != &pc->FirstWritePending )
+							Release( lpNext );
+						lpNext = next;
+					}
+					pc->lpFirstPending->buffer.c = newbuffer;
+					pc->lpFirstPending->dwAvail = size;
+					pc->lpFirstPending->dwUsed = 0;
+					Release( oldbuffer );
+				}
+			}
 			if( globalNetworkData.flags.bLogSentData )
 			{
 				LogBinary( (uint8_t*)pc->lpFirstPending->buffer.c +
@@ -1494,6 +1523,25 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 
 //----------------------------------------------------------------------------
 
+void SetTCPWriteAggregation( PCLIENT pc, int bAggregate )
+{
+	pc->flags.bAggregateOutput = bAggregate;
+}
+
+static void triggerWrite( uintptr_t psv ){
+	PCLIENT pc = (PCLIENT)psv;
+	if( pc )
+	{
+		pc->writeTimer = 0;
+		if( pc->dwFlags & CF_WRITEPENDING )
+		{
+			//lprintf( "Triggered write event..." );
+			TCPWrite( pc );
+		}
+	}
+
+}
+
 LOGICAL doTCPWriteExx( PCLIENT lpClient
                      , CPOINTER pInBuffer
                      , size_t nInLen
@@ -1537,11 +1585,18 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #ifdef VERBOSE_DEBUG
 		_lprintf( DBG_RELAY )(  "Data already pending, pending buffer...%p %d", pInBuffer, nInLen );
 #endif
+		if( lpClient->flags.bAggregateOutput) 
+		{
+			if( lpClient->writeTimer ) {
+				RescheduleTimer( lpClient->writeTimer );
+			} else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+		}
 		if( !failpending )
 		{
 #ifdef VERBOSE_DEBUG
 			lprintf( "Queuing pending data anyhow..." );
 #endif
+			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
@@ -1571,6 +1626,21 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 
 		lpClient->lpLastPending =
 		lpClient->lpFirstPending = &lpClient->FirstWritePending;
+		if( lpClient->flags.bAggregateOutput) 
+		{
+			if( !bLongBuffer ) // caller will assume the buffer usable on return
+			{
+				lpClient->FirstWritePending.buffer.p = Allocate( nInLen );
+				MemCpy( lpClient->FirstWritePending.buffer.p, pInBuffer, nInLen );
+				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
+			}
+			if( lpClient->writeTimer ) {
+				RescheduleTimer( lpClient->writeTimer );
+			}else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+			lpClient->dwFlags |= CF_WRITEPENDING;
+			NetworkUnlockEx( lpClient, 0 DBG_SRC );
+			return TRUE;
+		}
 		if( TCPWriteEx( lpClient DBG_RELAY ) )
 		{
 #ifdef VERBOSE_DEBUG

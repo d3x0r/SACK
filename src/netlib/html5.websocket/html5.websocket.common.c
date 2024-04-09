@@ -17,6 +17,9 @@ int WebSocketSendSSL( uintptr_t psv, CPOINTER buffer, size_t length ) {
 	return ssl_Send( (PCLIENT)psv, buffer, length );
 }
 
+void WebSocketSetAggregration( PCLIENT pc, LOGICAL enable ) {
+	SetTCPWriteAggregation( pc, enable );
+}
 
 static void _SendWebSocketMessage( int (*sender)( uintptr_t target, CPOINTER buffer, size_t length )
 		, uintptr_t target

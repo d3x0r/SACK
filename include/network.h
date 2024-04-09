@@ -812,6 +812,9 @@ NETWORK_PROC( LOGICAL, doTCPWriteExx )( PCLIENT lpClient
 
    \ \                                                                                  */
 #define SendTCPLong(c,b,l) doTCPWriteExx(c,b,l, TRUE, FALSE DBG_SRC)
+
+NETWORK_PROC( void, SetTCPWriteAggregation )( PCLIENT pc, int bAggregate );
+
 _TCP_NAMESPACE_END
 
 
