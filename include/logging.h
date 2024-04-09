@@ -34,7 +34,7 @@
 #define LOGGING_NAMESPACE_END
 #endif
 #ifdef __cplusplus
-	namespace sack {
+	SACK_NAMESPACE
 /* Handles log output. Logs can be directed to UDP directed, or
    broadcast, or localhost, or to a file location, and under
    windows the debugging console log.

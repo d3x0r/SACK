@@ -341,11 +341,12 @@ enum BlotOperation {
    /* copy the pixels from one image to another with simple color inversion transform*/
  BLOT_INVERTED = 3,
  /* orientation blots for fonts to 3D and external displays */
- BLOT_ORIENT_NORMAL = 0x00,
- BLOT_ORIENT_INVERT = 0x04,
- BLOT_ORIENT_VERTICAL = 0x08,
- BLOT_ORIENT_VERTICAL_INVERT = 0x0C,
- BLOT_ORIENTATTION = 0x0C,
+ BLOT_ORIENT_NORMAL = 0x00, // no orientation difference - 0 value.
+ BLOT_ORIENT_INVERT = 0x04,   // flip image on blot.
+ BLOT_ORIENT_VERTICAL = 0x08,// when outputing image, put image vertical inverted (rotated 90 degrees)
+ BLOT_ORIENT_VERTICAL_INVERT = 0x0C, // when outputing image, put image vertical inverted (rotated 90 degrees)
+ BLOT_ORIENTATTION = 0x0C, /* Mask for BLOT_ORIENT_ flags for orientation information.*/
+ 
 };
 
 
@@ -1524,6 +1525,7 @@ IMAGE_PROC void IMAGE_API IMGVER(RotateImageAbout)( Image pImage, int edge_flag,
 IMAGE_PROC void IMAGE_API IMGVER(MarkImageDirty)( Image pImage );
 
 
+/* Defines the function interface for an image module. */
 _INTERFACE_NAMESPACE
 
 /* Defines a pointer member of the interface structure. */

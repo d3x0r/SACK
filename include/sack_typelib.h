@@ -751,6 +751,8 @@ TYPELIB_PROC POINTER TYPELIB_CALLTYPE  PeekDataInQueue    ( PDATAQUEUE *pplq );
 //---------------------------------------------------------------------------
 
 #ifdef __cplusplus
+/* This is a rough emulation of SYSv IPC Message Queue objects.
+*/
 namespace message {
 #endif
 
@@ -2899,6 +2901,8 @@ TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseIntVector( CTEXTSTR data, int **pData
 
 //--------------------------------------------------------------------------
 #ifdef __cplusplus
+/* Binary tree object; supports custom sort routines
+*/
 	namespace BinaryTree {
 #endif
 /* This type defines a specific node in the tree. It is entirely

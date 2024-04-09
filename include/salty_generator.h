@@ -2,6 +2,7 @@
 #ifdef SALTY_RANDOM_GENERATOR_SOURCE
 #define SRG_EXPORT EXPORT_METHOD
 #else
+/* Defines export method for SaltyRandomGenerator functions. */
 #define SRG_EXPORT IMPORT_METHOD
 #endif
 

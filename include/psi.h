@@ -24,6 +24,7 @@
 #include <procreg.h>
 #include <controls.h>
 
+/* wassa */
 PSI_NAMESPACE
 
 #ifdef __cplusplus
@@ -37,11 +38,11 @@ PSI_NAMESPACE
 #ifdef __cplusplus
 //	namespace registration {
 #endif
+
 /* Control Registration structure. Obsolete method of
    registering a control and the methods of a control. Internally
    these methods are just registered as they would with the
    procedure registration methods                                 */
-
 struct ControlRegistration_tag {
 	/* This is the name of this type of control. Future controls can
 	   be created using this name. The name may not contain slashes,

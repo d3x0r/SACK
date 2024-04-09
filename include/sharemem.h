@@ -179,7 +179,8 @@ using namespace sack::timers;
 #endif
 
 #ifdef __cplusplus
-namespace sack {
+SACK_NAMESPACE
+
 /* Memory namespace contains functions for allocating and
    releasing memory. Also contains methods for accessing shared
    memory (if available on the target platform).

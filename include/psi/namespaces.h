@@ -1,3 +1,6 @@
+
+/* Defintes control namespaces for C++ namespace organization purposes.  */
+
 #ifndef __panthers_slick_interface_namespace__
 #define __panthers_slick_interface_namespace__
 

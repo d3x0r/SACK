@@ -1,3 +1,6 @@
+/*   Header for sack::controls namespace
+*/
+
 #ifndef SOURCE_PSI2
 #define SOURCE_PSI2
 #endif
@@ -503,45 +506,48 @@ enum BorderOptionTypes {
  BORDER_CAPTION_CLOSE_IS_DONE   =  0x080000, //add a close button to the caption bar (has to have text, and a caption)
 };
 
+/* Opens for where border edges are anchored for dynamic border
+   stretching.                                                  */
 enum BorderAnchorFlags {
-	BORDER_ANCHOR_TOP_MIN    = 1,
-	BORDER_ANCHOR_TOP_CENTER = 2,
-	BORDER_ANCHOR_TOP_MAX    = 3,
-	BORDER_ANCHOR_TOP_MASK   = 3,
-	BORDER_ANCHOR_TOP_SHIFT  = 0,
-	BORDER_ANCHOR_LEFT_MIN    = 4,
-	BORDER_ANCHOR_LEFT_CENTER = 8,
-	BORDER_ANCHOR_LEFT_MAX    = 12,
-	BORDER_ANCHOR_LEFT_MASK   = 0x0c,
-	BORDER_ANCHOR_LEFT_SHIFT  = 2,
-	BORDER_ANCHOR_RIGHT_MIN    = 0x10,
-	BORDER_ANCHOR_RIGHT_CENTER = 0x20,
-	BORDER_ANCHOR_RIGHT_MAX    = 0x30,
-	BORDER_ANCHOR_RIGHT_MASK   = 0x30,
-	BORDER_ANCHOR_RIGHT_SHIFT  = 4,
-	BORDER_ANCHOR_BOTTOM_MIN    = 0x40,
-	BORDER_ANCHOR_BOTTOM_CENTER = 0x80,
-	BORDER_ANCHOR_BOTTOM_MAX    = 0xC0,
-	BORDER_ANCHOR_BOTTOM_MASK   = 0xC0,
-	BORDER_ANCHOR_BOTTOM_SHIFT  = 6
+	BORDER_ANCHOR_TOP_MIN    = 1, // anchor edge of top to left/min
+	BORDER_ANCHOR_TOP_CENTER = 2, // enchor edge to center and stretch to sides
+	BORDER_ANCHOR_TOP_MAX    = 3, // andhor edge to right side and stretch left
+	BORDER_ANCHOR_TOP_MASK   = 3, // mask top edge flags.
+	BORDER_ANCHOR_TOP_SHIFT  = 0,  // how far to shift flags for top to bias to 0.
+	BORDER_ANCHOR_LEFT_MIN    = 4,  // anchor left to top and stretch down
+	BORDER_ANCHOR_LEFT_CENTER = 8,  // anchor left to center and strech up and down
+	BORDER_ANCHOR_LEFT_MAX    = 12,  // anchor left to bottom and stretch up
+	BORDER_ANCHOR_LEFT_MASK   = 0x0c,  // mask left edge flags.
+	BORDER_ANCHOR_LEFT_SHIFT  = 2,    // how far to shift flags for left bias to 0
+	BORDER_ANCHOR_RIGHT_MIN    = 0x10, // anchor right to top and stretch down
+	BORDER_ANCHOR_RIGHT_CENTER = 0x20, // anchor right edge to center of edge and stretch up and down
+	BORDER_ANCHOR_RIGHT_MAX    = 0x30, // anchor right edge anchored to bottom stretching up
+	BORDER_ANCHOR_RIGHT_MASK   = 0x30,  // mask right edge flags.
+	BORDER_ANCHOR_RIGHT_SHIFT  = 4,   // how far to shift flags for right bias to 0
+	BORDER_ANCHOR_BOTTOM_MIN    = 0x40, // anchor bottom to left edge and stretch right
+	BORDER_ANCHOR_BOTTOM_CENTER = 0x80, // anchor bottom to center and stretch left and right
+	BORDER_ANCHOR_BOTTOM_MAX    = 0xC0, // anchor bottom ro right and stretch left
+	BORDER_ANCHOR_BOTTOM_MASK   = 0xC0,  // mask bottom edge flags.
+	BORDER_ANCHOR_BOTTOM_SHIFT  = 6   // how far to shift flags for bottom bias to 0
 };
 
-// these are the indexes for base color
+// these are the indexes for base color.  They resemble old windows colors
+// this finite list should by dynamic and extensible, and even support gradient specifications
 enum ControlColorTypes {
- HIGHLIGHT           = 0,
- NORMAL              = 1,
- SHADE               = 2,
- SHADOW              = 3,
- TEXTCOLOR           = 4,
- CAPTION             = 5,
- CAPTIONTEXTCOLOR    = 6,
- INACTIVECAPTION     = 7,
- INACTIVECAPTIONTEXTCOLOR = 8,
- SELECT_BACK         = 9,
- SELECT_TEXT         = 10,
- EDIT_BACKGROUND     = 11,
- EDIT_TEXT           = 12,
- SCROLLBAR_BACK      = 13
+ HIGHLIGHT           = 0, // default hightlight color for controls
+ NORMAL              = 1, // normal background color
+ SHADE               = 2, // darker than normal background color
+ SHADOW              = 3, // darkest normal background color
+ TEXTCOLOR           = 4, // default text color
+ CAPTION             = 5, // default color of the caption background
+ CAPTIONTEXTCOLOR    = 6, // caption text color on its background
+ INACTIVECAPTION     = 7, // inactive color of the caption background
+ INACTIVECAPTIONTEXTCOLOR = 8, // inactive text color for caption
+ SELECT_BACK         = 9,  // selected edit field background
+ SELECT_TEXT         = 10, // selected text background
+ EDIT_BACKGROUND     = 11, // background of edit fields 
+ EDIT_TEXT           = 12, // text of edit fields that is not selected.
+ SCROLLBAR_BACK      = 13  // scroll bar background, the thumb is button with normal and shadow clors.
 };
 // these IDs are used to designate default control IDs for
 // buttons...
@@ -565,6 +571,9 @@ enum ControlColorTypes {
 #endif
 
 #ifdef __cplusplus
+/* These constants exist for internal base registrations
+They were hard coded for a time, but are more dynamic now, hence
+'old'. */
 namespace old_constants {
 #endif
 // enumeration for control->nType                    

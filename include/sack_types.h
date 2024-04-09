@@ -459,6 +459,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define my_offsetof( ppstruc, member ) ((uintptr_t)&((*ppstruc)->member)) - ((uintptr_t)(*ppstruc))
 
 
+
 SACK_NAMESPACE
 
 
@@ -987,11 +988,13 @@ SACK_NAMESPACE
 #endif
 
 
-// cannot declare _0 since that overloads the
-// vector library definition for origin (0,0,0,0,...)
+/* cannot declare _0 since that overloads the
+   vector library definition for origin (0,0,0,0,...) */
 //typedef void             _0; // totally unusable to declare 0 size things.
+
 /* the only type other than when used in a function declaration that void is valid is as a pointer to void. no _0 type exists
-	 (it does, but it's in vectlib, and is an origin vector)*/
+ *  (it does, but it's in vectlib, and is an origin vector)
+*/
 typedef void             *P_0;
 
 /*

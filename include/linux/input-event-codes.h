@@ -61,6 +61,7 @@
 
 #define SYN_REPORT		0
 #define SYN_CONFIG		1
+/* Linux Event Code Synchronization Event */
 #define SYN_MT_REPORT		2
 #define SYN_DROPPED		3
 #define SYN_MAX			0xf

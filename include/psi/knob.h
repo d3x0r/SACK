@@ -1,3 +1,6 @@
+/* Header file defining specific Scroll Knob interface methods. These
+   work on the generic PSI_CONTROL that is a button, but do
+   expect specifically a control that is their type.             */
 
 #define CONTROL_SCROLL_KNOB_NAME "Scroll Knob"
 

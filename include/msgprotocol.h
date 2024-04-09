@@ -170,8 +170,14 @@ enum service_messages {
 
 #define LOWEST_BASE_MESSAGE 0x100
 
+/* Service route object that manages connection between service and client.
+*/
 typedef struct ServiceRoute_tag SERVICE_ROUTE;
+/* pointer to a service route, which is a pair of endpoints.
+*/
 typedef struct ServiceRoute_tag *PSERVICE_ROUTE;
+/*  This is a unique service address
+*/
 typedef struct ServiceEndPoint_tag SERVICE_ENDPOINT, *PSERVICE_ENDPOINT;
 // this is part of the message structure
 //

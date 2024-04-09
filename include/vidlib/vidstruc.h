@@ -286,28 +286,29 @@ typedef struct HVIDEO_tag
 	uintptr_t dwClipboardEventData;
 
 
+	/* Small boolean traits of the HVIDEO object. */
 	struct {
 		BIT_FIELD  bExternalImage:1; // locks the frame from being resized...
 		BIT_FIELD  bShown:1; // can keep the window invisible until we draw
 		BIT_FIELD  bFull:1;  // Use the full window space, otherwise use client space inside window.
 		BIT_FIELD  bReady:1; // this video structure is initialized and ready.
-		BIT_FIELD  bFocused : 1;
-		BIT_FIELD  bExclusive : 1;
-		BIT_FIELD bTopmost : 1;
-		BIT_FIELD bAbsoluteTopmost : 1;
-		BIT_FIELD mouse_pending : 1;
-		BIT_FIELD key_dispatched : 1;
+		BIT_FIELD  bFocused : 1; // currently is focused for keyboard events.
+		BIT_FIELD  bExclusive : 1; // old flag - maybe unused ( FIX DOC?) 
+		BIT_FIELD bTopmost : 1;  // is a top most window.
+		BIT_FIELD bAbsoluteTopmost : 1; // is a topmost window - shows over all other windows (will keep pushing itself forward too)
+		BIT_FIELD mouse_pending : 1;  // mouse is wiating for dispatch
+		BIT_FIELD key_dispatched : 1; // key event dispatched
 		BIT_FIELD bDestroy : 1; // set during destryction process...
-		BIT_FIELD bInDestroy : 1;
-		BIT_FIELD event_dispatched : 1;
-		BIT_FIELD bHidden : 1;
-		BIT_FIELD bCaptured : 1;
+		BIT_FIELD bInDestroy : 1; // destroying the window; prevent events that come in from interacting with this
+		BIT_FIELD event_dispatched : 1; // an event is currently already dispatched - prevent recursive event dispatch
+		BIT_FIELD bHidden : 1;  // is not showing on the display
+		BIT_FIELD bCaptured : 1; // has captured the mouse
 		//BIT_FIELD bShowing : 1;
-		BIT_FIELD bHiding : 1;
-		BIT_FIELD bHidden_while_showing : 1;
-		BIT_FIELD bShown_while_hiding : 1;
+		BIT_FIELD bHiding : 1; // is hiding - changing from showing to hidden.
+		BIT_FIELD bHidden_while_showing : 1; // a hide event came in while the window was showing.
+		BIT_FIELD bShown_while_hiding : 1; // event to show came in even while it was handling a hiding event.
 		BIT_FIELD bOpenGL : 1; // delay updates to video thread - just post invalidate...
-		BIT_FIELD bLayeredWindow : 1;
+		BIT_FIELD bLayeredWindow : 1; // is a layered window - that is a transparent window in Windows system. (background alpha transparent)
 		BIT_FIELD bChildWindow : 1; // when used with layered, also sets TOOLWINDOW so it's not a target for alt-tab, and no taskbar icon
 		BIT_FIELD bNoMouse : 1; // when used with bLayeredWindow, all mouse is passed to under form.
 		BIT_FIELD bAnchored : 1; // if anchored, ignore NC_MOUSEACTIVATE
@@ -321,19 +322,20 @@ typedef struct HVIDEO_tag
 		BIT_FIELD mouse_on : 1; // an indicator of whether we have set the mouse for this window yet (may have been set by forces outside)
 		BIT_FIELD bD3D : 1; // delay updates to video thread - just post invalidate...
 		BIT_FIELD bRestoring : 1; // set during SW_RESTORE operation (kills resizes, which happen when expanding the screen)
-		BIT_FIELD bUpdated : 1;
+		BIT_FIELD bUpdated : 1;  // background image has updated
 		BIT_FIELD bForceSurfaceUpdate : 1; // set when we change size.
 		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
 		BIT_FIELD bFullScreen : 1; // trigger full screen, don't resize internal surface.
 		BIT_FIELD bNotFullScreen : 1; // temporary override for internal mouse handling
 #if defined( __3D__ )
-		BIT_FIELD bAnchorWorld : 1;
-		BIT_FIELD bAnchorLocal : 1;
-		BIT_FIELD bAnchorView : 1;
+		BIT_FIELD bAnchorWorld : 1;  // anchored to world, vs anchored to local/camera
+		BIT_FIELD bAnchorLocal : 1;  // anchared to camera
+		BIT_FIELD bAnchorView : 1;  // cnahored to display
 #endif
 	} flags;
 
-	struct HVIDEO_tag *pNext, *pPrior;
+	struct HVIDEO_tag *pNext  // pointer to the next display panel
+			, *pPrior;   // pointer to a previous display panel
 	struct HVIDEO_tag *pAbove  // this is above specified window
 		, *pBelow;  // this is below specified window
 

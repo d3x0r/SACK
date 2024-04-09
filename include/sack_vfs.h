@@ -126,6 +126,7 @@ SACK_VFS_PROC uint64_t sack_vfs_find_get_wtime( struct sack_vfs_find_info *info 
 
 
 #ifdef __cplusplus
+/* virtual file system using file system IO instead of memory mapped IO */
 namespace fs {
 #endif
 	struct sack_vfs_fs_volume;
@@ -211,6 +212,9 @@ namespace fs {
 #endif
 
 #ifdef __cplusplus
+/* Object storage system, uses a optimized hash map to index unique identifiers and data associated with them.
+Timeline exists, Multi-versioning support possible using the same file and different timestamps with associated data.
+*/
 namespace objStore {
 #endif
 	struct sack_vfs_os_volume;

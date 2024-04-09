@@ -1,4 +1,6 @@
 #ifndef SQL_GET_OPTION_DEFINED
+/* Inclusion protection; used to prevent duplicate inclusion of
+   the same file.                                               */
 #define SQL_GET_OPTION_DEFINED
 #include <sack_types.h>
 #include <pssql.h>

@@ -194,75 +194,6 @@ typedef struct key_function  KEY_FUNCTION;
 typedef struct key_function *PKEY_FUNCTION;
 
 
-// disable this functionality, it was never fully implemented, and is a lot to document.
-#if ACTIVE_MESSAGE_IMPLEMENTED
-
-// Message IDs 0-99 are reserved for
-// very core level messages.
-// Message IDs 100-999 are for general purpose window input/output
-// Message ID 1000+ Usable by applications to transport messages via
-//                  the image's default message loop.
-enum active_msg_id {
-   ACTIVE_MSG_PING    // Message ID 0 - contains a active image to respond to
-   , ACTIVE_MSG_PONG    // Message ID 0 - contains a active image to respond to
-   , ACTIVE_MSG_MOUSE = 100
-   , ACTIVE_MSG_GAIN_FOCUS
-   , ACTIVE_MSG_LOSE_FOCUS
-   , ACTIVE_MSG_DRAG
-   , ACTIVE_MSG_KEY
-   , ACTIVE_MSG_DRAW
-   , ACTIVE_MSG_CREATE
-   , ACTIVE_MSG_DESTROY
-
-   , ACTIVE_MSG_USER = 1000
-};
-
-
-typedef struct {
-   enum active_msg_id ID;
-   uint32_t  size; // the size of the cargo potion of the message. (mostly data.raw)
-   union {
-  //--------------------
-      struct {
-         PRENDERER respondto;
-      } ping;
-  //--------------------
-      struct {
-         int x, y, b;
-      } mouse;
-  //--------------------
-      struct {
-         PRENDERER lose;
-      } gain_focus;
-  //--------------------
-      struct {
-         PRENDERER gain;
-      } lose_focus;
-  //--------------------
-      struct {
-         uint8_t no_informaiton;
-      } draw;
-  //--------------------
-      struct {
-         uint8_t no_informaiton;
-      } close;
-  //--------------------
-      struct {
-         uint8_t no_informaiton;
-      } create;
-  //--------------------
-      struct {
-         uint8_t no_informaiton;
-      } destroy;
-  //--------------------
-      struct {
-         uint32_t key;
-      } key;
-  //--------------------
-      uint8_t raw[1];
-   } data;
-} ACTIVEMESSAGE, *PACTIVEMESSAGE;
-#endif
 
 // Event Message ID's CANNOT be 0
 // Message Event ID (base+0) is when the
@@ -381,11 +312,6 @@ typedef void (CPROC*LoseFocusCallback)( uintptr_t dwUser, PRENDERER pGain );
 // priority is given to controls with focus that handle keys.
 typedef int (CPROC*KeyProc)( uintptr_t dwUser, uint32_t keycode );
 // without any other proc, you will get a general callback message.
-#if ACTIVE_MESSAGE_IMPLEMENTED
-typedef void (CPROC*GeneralCallback)( uintptr_t psvUser
-                                     , PRENDERER image
-												, PACTIVEMESSAGE msg );
-#endif
 typedef void (CPROC*RenderReadCallback)(uintptr_t psvUser, PRENDERER pRenderer, TEXTSTR buffer, INDEX len );
 // called before redraw callback to update the background on the scene...
 typedef void (CPROC*_3DUpdateCallback)( uintptr_t psvUser );

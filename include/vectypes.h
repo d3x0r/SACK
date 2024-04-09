@@ -37,13 +37,13 @@ typedef float RCOORD;
 typedef float *PRCOORD;
 #endif
 
-// these SHOULD be dimension relative, but we lack much code for that...
-typedef RCOORD MATRIX[4][4];
-typedef MATRIX *PMatrix;
-/* Describes the rotation matrix for a PTRANSFORM. */
-typedef RCOORD PMATRIX[][4];
-typedef RCOORD RQUATERNION[4];
-typedef RCOORD PRQUATERNION[4];
+
+typedef RCOORD MATRIX[4][4]; // these SHOULD be dimension relative, but we lack much code for that...
+typedef MATRIX *PMatrix;  // pointer to a matrix type, rather than the nestes arrays that look very similar
+
+typedef RCOORD PMATRIX[][4];  /* Describes the rotation matrix for a PTRANSFORM. */
+typedef RCOORD RQUATERNION[4]; // RCOORD 4 vector quaternion.
+typedef RCOORD PRQUATERNION[4]; // P RCOORD 4 vector quaternion.
 
 #ifdef RCOORD_IS_DOUBLE
 #define RCOORDBITS(v)  (*(uint64_t*)&(v))

@@ -1,3 +1,6 @@
+/* Header file defining specific console interface methods. These
+   work on the generic PSI_CONTROL that is a button, but do
+   expect specifically a control that is their type.             */
 
 #ifndef PSI_CONSOLE_INTERFACE_DEFINED
 #define PSI_CONSOLE_INTERFACE_DEFINED

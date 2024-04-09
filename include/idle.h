@@ -2,6 +2,7 @@
 #ifndef IDLE_FUNCTIONS_DEFINED
 #define IDLE_FUNCTIONS_DEFINED
 #include <sack_types.h>
+#include <timers.h>
 # ifdef IDLE_SOURCE
 #  define IDLE_PROC(type,name) EXPORT_METHOD type CPROC name
 # else
@@ -9,8 +10,8 @@
 # endif
 
 #ifdef __cplusplus
-namespace sack {
-	namespace timers {
+SACK_NAMESPACE 
+	_TIMER_NAMESPACE
 #endif
 // return -1 if not the correct thread
 // return 0 if no events processed
@@ -23,8 +24,8 @@ IDLE_PROC( int, RemoveIdleProc )( IdleProc Proc );
 IDLE_PROC( int, Idle )( void );
 IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds );
 #ifdef __cplusplus
-	}//	namespace timers {
-}//namespace sack {
+	_TIMER_NAMESPACE_END
+SACK_NAMESPACE_END
 using namespace sack::timers;
 #endif
 

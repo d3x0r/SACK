@@ -52,7 +52,9 @@
 #else
 #define _SQL_NAMESPACE   
 #define _SQL_NAMESPACE_END
+/* Marks the beginning of SQL Namespace. */
 #define SQL_NAMESPACE   
+/* Marks the end of SQL Namespace. */
 #define SQL_NAMESPACE_END 
 #endif
 
