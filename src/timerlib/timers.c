@@ -1771,6 +1771,7 @@ static PTIMER GrabTimer( PTIMER timer )
 		{
 			// if I had a next - his refernece of thing that points at him is mine.
 			timer->next->me = timer->me;
+			timer->next->delta += timer->delta;
 		}
 		timer->next = NULL;
 		timer->me = NULL;
@@ -2078,6 +2079,7 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 	{
 		//"Creating one shot timer %d long", start );
 	}
+	//lprintf( "----- First create timer %d %d %d", start, frequency, globalTimerData.timerID );
 	timer->delta     = (int32_t)start; // first time for timer to fire... may be 0
 	timer->frequency = frequency;
 	timer->callback  = callback;
@@ -2191,11 +2193,14 @@ void  RemoveTimer( uint32_t ID )
 
 static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 {
+	//lprintf( "Reschedule timer %p %p %d", timer, timer->userdata, delay);
 	if( timer )
 	{
 		PTIMER bGrabbed = GrabTimer( timer );
-		timer->flags.bRescheduled = 1;
+		if( globalTimerData.flags.away_in_timer && globalTimerData.CurrentTimerID == timer->ID )
+			timer->flags.bRescheduled = 1; // tracks reschedule during callback
 		timer->delta = (int32_t)delay;  // should never pass a negative value here, but delta can be negative.
+		//lprintf( "Set timer delta %d %d", timer->delta, timer->ID );
 #ifdef LOG_SLEEPS
 		lprintf( "Reschedule at %d  %p", timer->delta, bGrabbed );
 #endif
@@ -2258,7 +2263,7 @@ void  RescheduleTimer( uint32_t ID )
 	}
 	if( timer )
 	{
-		InternalRescheduleTimerEx( timer, timer->frequency );
+		InternalRescheduleTimerEx( timer, timer->frequency?timer->frequency:timer->delta );
 	}
 	LeaveCriticalSec( &globalTimerData.csGrab );
 }

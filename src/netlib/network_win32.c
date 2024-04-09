@@ -325,6 +325,7 @@ static void HandleEvent( PCLIENT pClient )
 						{
 							// got a network event, and won't get another until recv is called.
 							// mark that the socket has data, then the pend_read code will trigger the finishpendingread.
+							//lprintf( "FD_READ on %p (finishpendingread)", pClient );
 							if( FinishPendingRead( pClient DBG_SRC ) == 0 )
 							{
 								pClient->dwFlags |= CF_READREADY;
@@ -355,8 +356,12 @@ static void HandleEvent( PCLIENT pClient )
 						//	lprintf( "FD_Write" );
 #endif
 						// returns true while it wrote or there is data to write
-						if( pClient->lpFirstPending )
+						if( pClient->lpFirstPending && !pClient->flags.bAggregateOutput && !pClient->writeTimer ) {
+							lprintf( "TCPWrite on %p (no timer)", pClient );
 							TCPWrite(pClient);
+						} else {
+							pClient->dwFlags |= CF_WRITEREADY;
+						}
 						if( !pClient->lpFirstPending ) {
 							if( pClient->dwFlags & CF_TOCLOSE )
 							{

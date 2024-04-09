@@ -69,7 +69,7 @@ typedef struct PendingBuffer
    size_t dwUsed;                 // Number of bytes already read.
    size_t dwLastRead;             // number of bytes received on last read.
    struct {
-      int  bStream:1;    // is a stream request...
+      int  bStream:1;    // is a(read) stream request...
       int  bDynBuffer:1; // lpBuffer was malloced...
 	}s;
 	union {
@@ -121,6 +121,7 @@ enum NetworkConnectionFlags {
 	, CF_STATEFLAGS      = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
 	//, CF_WANTS_GLOBAL_LOCK = 0x10000000
 	, CF_PROCESSING      = 0x20000000
+	, CF_WRITEREADY 	= 0x00200000
 };
 
 #ifdef __cplusplus

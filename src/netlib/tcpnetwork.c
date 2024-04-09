@@ -1359,7 +1359,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				uint32_t size = 0;
 				PendingBuffer *lpNext = pc->lpFirstPending;
 				// collapse all pending into first pending block.
-				while( lpNext ) size += lpNext->dwAvail - lpNext->dwUsed; lpNext = lpNext->lpNext;
+				while( lpNext ) { size += lpNext->dwAvail - lpNext->dwUsed; lpNext = lpNext->lpNext;}
 				if( size > 0 ) {
 					CPOINTER oldbuffer = pc->lpFirstPending->buffer.c;
 					POINTER newbuffer =  Allocate( size );
@@ -1378,9 +1378,13 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							Release( lpNext );
 						lpNext = next;
 					}
-					pc->lpFirstPending->buffer.c = newbuffer;
-					pc->lpFirstPending->dwAvail = size;
-					pc->lpFirstPending->dwUsed = 0;
+					pc->FirstWritePending.buffer.c = newbuffer;
+					pc->FirstWritePending.dwAvail = size;
+					pc->FirstWritePending.dwUsed = 0;
+					pc->FirstWritePending.lpNext = NULL;
+					pc->FirstWritePending.s.bDynBuffer = TRUE;
+
+					pc->lpFirstPending = &pc->FirstWritePending;
 					Release( oldbuffer );
 				}
 			}
@@ -1408,6 +1412,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 #ifdef VERBOSE_DEBUG
 					lprintf( "Pending write..." );
 #endif
+					pc->dwFlags &= ~CF_WRITEREADY;
 					pc->dwFlags |= CF_WRITEPENDING;
 					return TRUE;
 				}
@@ -1418,6 +1423,14 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				}
 				if( dwError == ECONNREFUSED ) {
 					_lprintf(DBG_RELAY)( "ECONNREFUSED on send() to socket...");
+					pc->dwFlags |= CF_TOCLOSE;
+					return FALSE;
+				}
+				if( dwError == WSAESHUTDOWN) {
+					if( pc->dwFlags & CF_WANTCLOSE )
+						pc->dwFlags |= CF_TOCLOSE;
+					else
+						_lprintf(DBG_RELAY)( "WSAESHUTDOWN on send() to socket...");
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
@@ -1447,6 +1460,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
 			} else if( pc->lpFirstPending && ( nSent < (int)pc->lpFirstPending->dwAvail ) ) {
+				pc->dwFlags &= ~CF_WRITEREADY;
 				pc->dwFlags |= CF_WRITEPENDING;
 			}
 		}
@@ -1504,8 +1518,10 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 							pc->write.WriteComplete( pc, p, len );  // SOME WRITE!!!
 						pc->bWriteComplete = FALSE;
 					}
-					if( !pc->lpFirstPending )
+					if( !pc->lpFirstPending ) {
+						//lprintf( "nothing left pending.... %p", pc );
 						pc->dwFlags &= ~CF_WRITEPENDING;
+					}
 				}
 				else
 				{
@@ -1530,6 +1546,7 @@ void SetTCPWriteAggregation( PCLIENT pc, int bAggregate )
 
 static void triggerWrite( uintptr_t psv ){
 	PCLIENT pc = (PCLIENT)psv;
+	//lprintf( "Timer fired %p", psv );
 	if( pc )
 	{
 		pc->writeTimer = 0;
@@ -1537,6 +1554,8 @@ static void triggerWrite( uintptr_t psv ){
 		{
 			//lprintf( "Triggered write event..." );
 			TCPWrite( pc );
+		} else {
+			lprintf( "Triggered write shouldn't hve no pending...%p", psv );
 		}
 	}
 
@@ -1587,8 +1606,9 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 		if( lpClient->flags.bAggregateOutput) 
 		{
+			//lprintf( "Write with aggregate... %d %d %p", nInLen, lpClient->writeTimer, lpClient );
 			if( lpClient->writeTimer ) {
-				RescheduleTimer( lpClient->writeTimer );
+				RescheduleTimerEx( lpClient->writeTimer, 3 );
 			} else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 		}
 		if( !failpending )
@@ -1598,6 +1618,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
+			lpClient->dwFlags |= CF_WRITEPENDING;
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
@@ -1634,10 +1655,12 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 				MemCpy( lpClient->FirstWritePending.buffer.p, pInBuffer, nInLen );
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
+			int wasTimer = lpClient->writeTimer;
 			if( lpClient->writeTimer ) {
-				RescheduleTimer( lpClient->writeTimer );
+				RescheduleTimerEx( lpClient->writeTimer, 3 );
 			}else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 			lpClient->dwFlags |= CF_WRITEPENDING;
+			//lprintf( "First Write with aggregate... %d %d %d %p", nInLen, lpClient->writeTimer, wasTimer, lpClient );
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
 		}
