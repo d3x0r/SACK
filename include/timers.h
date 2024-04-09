@@ -26,12 +26,14 @@
 #ifndef _TIMER_NAMESPACE
 #ifdef __cplusplus
 #define _TIMER_NAMESPACE namespace timers {
+#define _TIMER_NAMESPACE_END }
 /* define a timer library namespace in C++. */
 #define TIMER_NAMESPACE SACK_NAMESPACE namespace timers {
 /* define a timer library namespace in C++ end. */
 #define TIMER_NAMESPACE_END } SACK_NAMESPACE_END
 #else
 #define _TIMER_NAMESPACE
+#define _TIMER_NAMESPACE_END
 #define TIMER_NAMESPACE 
 #define TIMER_NAMESPACE_END
 #endif
@@ -81,7 +83,9 @@ SACK_NAMESPACE
  EnterCriticalSecNoWait
    
    LeaveCriticalSec                                            */
-_TIMER_NAMESPACE
+#ifdef __cplusplus
+namespace timers {
+#endif 
 
 
 #ifdef TIMER_SOURCE 
@@ -503,6 +507,7 @@ TIMER_PROC( void, DeleteCriticalSec )( PCRITICALSECTION pcs );
 #endif
 
 TIMER_NAMESPACE_END
+
 #ifdef __cplusplus
 using namespace sack::timers;
 #endif

@@ -45,11 +45,14 @@
 #ifndef TIMER_NAMESPACE
 #ifdef __cplusplus
 #define _TIMER_NAMESPACE namespace timers {
+#define _TIMER_NAMESPACE_END }
 /* define a timer library namespace in C++. */
 #define TIMER_NAMESPACE SACK_NAMESPACE namespace timers {
 /* define a timer library namespace in C++ end. */
 #define TIMER_NAMESPACE_END } SACK_NAMESPACE_END
 #else
+#define _TIMER_NAMESPACE
+#define _TIMER_NAMESPACE_END
 #define TIMER_NAMESPACE 
 #define TIMER_NAMESPACE_END
 #endif
