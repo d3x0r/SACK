@@ -517,6 +517,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 				}
 				// many times a read event can cause the socket to close before write can complete.
 				if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) ) {
+					const PCLIENT pc = event_data->pc;
 					int locked;
 					locked = 1;
 					if( events[n].events & EPOLLOUT )
@@ -554,7 +555,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							event_data->pc->dwFlags &= ~CF_CONNECTING;
 
 							{
-								PCLIENT pc = event_data->pc;
 #ifdef __LINUX__
 								socklen_t
 #else
@@ -599,24 +599,28 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 #ifdef LOG_NOTICES
 									lprintf( "Read Complete" );
 #endif
-									if( event_data->pc->read.ReadComplete ) {
+									if( pc->read.ReadComplete ) {
 #ifdef LOG_NOTICES
 										lprintf( "Initial Read Complete" );
 #endif
-										event_data->pc->read.ReadComplete( event_data->pc, NULL, 0 );
+										pc->read.ReadComplete( pc, NULL, 0 );
 									}
-									if( event_data->pc->lpFirstPending ) {
+									if( pc->lpFirstPending 
+											&&( !pc->flags.bAggregateOutput 
+											|| !pc->writeTimer ) ) {
 										//lprintf( "Data was pending on a connecting socket, try sending it now" );
-										TCPWrite( event_data->pc );
+										TCPWrite( pc );
+									} else {
+										pc->dwFlags |= CF_WRITEREADY;
 									}
-									if( !event_data->pc->lpFirstPending ) {
-										if( event_data->pc->dwFlags & CF_TOCLOSE )
+									if( !pc->lpFirstPending ) {
+										if( pc->dwFlags & CF_TOCLOSE )
 										{
-											event_data->pc->dwFlags &= ~CF_TOCLOSE;
+											pc->dwFlags &= ~CF_TOCLOSE;
 											lprintf( "Pending write completed - and wants to close." );
 											EnterCriticalSec( &globalNetworkData.csNetwork );
-											InternalRemoveClientEx( event_data->pc, FALSE, TRUE );
-											TerminateClosedClient( event_data->pc );
+											InternalRemoveClientEx( pc, FALSE, TRUE );
+											TerminateClosedClient( pc );
 											LeaveCriticalSec( &globalNetworkData.csNetwork );
 										}
 									}
@@ -637,7 +641,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							// wait until it finished there?
 							// did this wake up because that wrote?
 							if( locked ) {
-								TCPWrite( event_data->pc );
+								if( pc->lpFirstPending 
+										&&( !pc->flags.bAggregateOutput 
+											|| !pc->writeTimer ) ) {
+									TCPWrite( pc );
+								}else {
+									pc->dwFlags |= CF_WRITEREADY;
+								}
 							} else {
 								// although this is only a few instructions down, this can still be a lost event that the other 
 								// lock has already ended, so this will get lost still...
