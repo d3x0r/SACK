@@ -159,6 +159,7 @@ struct thread_event
 
 struct timer_local_data {
 	uint32_t timerID;
+	LOGICAL wrappedTimerID;
 	PTIMERSET timer_pool;
 	PTIMER timers;
 	PTIMER add_timer; // this timer is scheduled to be added...
@@ -1757,7 +1758,7 @@ static void InsertTimer( PTIMER timer DBG_PASS )
 
 //--------------------------------------------------------------------------
 
-static PTIMER GrabTimer( PTIMER timer )
+static PTIMER GrabTimer( PTIMER timer, LOGICAL toProcess )
 {
 	// if a timer has been grabbed, it won't be grabbed...
 	// but if a timer is being grabbed, it might get grabbed twice.
@@ -1771,7 +1772,8 @@ static PTIMER GrabTimer( PTIMER timer )
 		{
 			// if I had a next - his refernece of thing that points at him is mine.
 			timer->next->me = timer->me;
-			timer->next->delta += timer->delta;
+			if( !toProcess )
+				timer->next->delta += timer->delta;
 		}
 		timer->next = NULL;
 		timer->me = NULL;
@@ -1875,7 +1877,8 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 #endif
 #endif
 			// also enters csGrab... should be ok.
-			GrabTimer( timer );
+			// grabbing the timer this way does not change the next's delta
+			GrabTimer( timer, TRUE );
 #ifdef ENABLE_CRITICALSEC_LOGGING
 			SetCriticalLogging( 0 );
 			globalTimerData.flags.bLogCriticalSections = 0;
@@ -2083,7 +2086,25 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 	timer->delta     = (int32_t)start; // first time for timer to fire... may be 0
 	timer->frequency = frequency;
 	timer->callback  = callback;
-	timer->ID        = globalTimerData.timerID++;
+	uint32_t thisTimer;
+	do {
+		thisTimer = globalTimerData.timerID++;
+		if( globalTimerData.timerID > 0x7FFFFFFF ) {
+			globalTimerData.timerID = 1000;
+			globalTimerData.wrappedTimerID = TRUE;
+		}
+		if( globalTimerData.wrappedTimerID ) {
+			PTIMER chk = globalTimerData.timers;
+			while( chk ) {
+				if( chk->ID == thisTimer ) {
+					thisTimer = 0;
+					break;
+				}
+				chk = chk->next;
+			}
+		}
+	} while( thisTimer == 0 );
+	timer->ID        = thisTimer;
 	timer->userdata  = user;
 #ifdef _DEBUG
 	timer->pFile = pFile;
@@ -2196,7 +2217,8 @@ static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 	//lprintf( "Reschedule timer %p %p %d", timer, timer->userdata, delay);
 	if( timer )
 	{
-		PTIMER bGrabbed = GrabTimer( timer );
+		// grabbing the timer this way should put its delta into the next.
+		PTIMER bGrabbed = GrabTimer( timer, FALSE );
 		if( globalTimerData.flags.away_in_timer && globalTimerData.CurrentTimerID == timer->ID )
 			timer->flags.bRescheduled = 1; // tracks reschedule during callback
 		timer->delta = (int32_t)delay;  // should never pass a negative value here, but delta can be negative.
