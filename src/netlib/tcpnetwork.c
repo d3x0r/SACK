@@ -1361,7 +1361,6 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				// collapse all pending into first pending block.
 				while( lpNext ) { size += lpNext->dwAvail - lpNext->dwUsed; lpNext = lpNext->lpNext;}
 				if( size > 0 ) {
-					CPOINTER oldbuffer = pc->lpFirstPending->buffer.c;
 					POINTER newbuffer =  Allocate( size );
 					//
 					lpNext = pc->lpFirstPending;
@@ -1384,8 +1383,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->FirstWritePending.lpNext = NULL;
 					pc->FirstWritePending.s.bDynBuffer = TRUE;
 
-					pc->lpFirstPending = &pc->FirstWritePending;
-					Release( oldbuffer );
+					pc->lpLastPending =	pc->lpFirstPending = &pc->FirstWritePending;
 				}
 			}
 			if( globalNetworkData.flags.bLogSentData )
@@ -1621,7 +1619,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
-			lpClient->dwFlags |= CF_WRITEPENDING;
+			lpClient->dwFlags |= CF_WRITEPENDING; // shouldn't have to do this - this there is a race condition somewhere...
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
@@ -1659,9 +1657,8 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
 			int wasTimer = lpClient->writeTimer;
-			if( lpClient->writeTimer ) {
-				RescheduleTimerEx( lpClient->writeTimer, 3 );
-			}else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+			if( lpClient->writeTimer ) RescheduleTimerEx( lpClient->writeTimer, 3 ); 
+			else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 			lpClient->dwFlags |= CF_WRITEPENDING;
 			//lprintf( "First Write with aggregate... %d %d %d %p", nInLen, lpClient->writeTimer, wasTimer, lpClient );
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
