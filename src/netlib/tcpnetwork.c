@@ -1426,6 +1426,8 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
+#ifdef _WIN32
+				// especially websockets that try to gracefully cloose
 				if( dwError == WSAESHUTDOWN) {
 					if( pc->dwFlags & CF_WANTCLOSE )
 						pc->dwFlags |= CF_TOCLOSE;
@@ -1434,6 +1436,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
+#endif
 				{
 					_lprintf(DBG_RELAY)(" Network Send Error: %5d(sock:%p, buffer:%p ofs: %" _size_f "  Len: %" _size_f ")",
 											  dwError,
