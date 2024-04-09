@@ -1,3 +1,9 @@
+/* Provide a mechanism to register idle() callbacks. These are
+   callbacks that might need to be called when a application is
+   waiting for a result. This is utilized by code that wants to
+   block its state, but requires other events on its own thread
+   to still be dispatched. This will only dispatch events to
+   proper threads to handle the idle callback.                  */
 
 #ifndef IDLE_FUNCTIONS_DEFINED
 #define IDLE_FUNCTIONS_DEFINED

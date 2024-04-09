@@ -1,3 +1,5 @@
+/* Set/Get Registry common library. Provides windows registry
+   interface.                                                 */
 #ifndef RCOM_LIBRARY_INCLUDED
 #define RCOM_LIBRARY_INCLUDED
 

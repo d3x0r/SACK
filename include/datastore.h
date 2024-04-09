@@ -1,3 +1,7 @@
+/* This is a generic caching interface that was added by a third
+   party. Looks like it can be replaced with more standard
+   containers; not sure what the special feature of this storage
+   system is.                                                    */
 
 #ifndef DATASTORE_DEFINED
 #define DATASTORE_DEFINED

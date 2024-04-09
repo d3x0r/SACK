@@ -1,3 +1,5 @@
+/* Defines ATEXIT priorities so the library can tear itself down
+   gracefully.                                                   */
 
 // the higher the number the earlier it is run
 

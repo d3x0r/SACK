@@ -1,3 +1,4 @@
+/* In theory - emits JSON, but isn't printf good enough? */
 #ifndef JSON_EMITTER_HEADER_INCLUDED
 #define JSON_EMITTER_HEADER_INCLUDED
 

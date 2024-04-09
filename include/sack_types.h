@@ -1,6 +1,3 @@
-#ifndef SACK_PRIMITIVE_TYPES_INCLUDED
-#define SACK_PRIMITIVE_TYPES_INCLUDED
-
 /* Define most of the sack core types on which everything else is
    based. Also defines some of the primitive container
    structures. We also handle a lot of platform/compiler
@@ -12,9 +9,12 @@
 But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 
 
-
    This is automatically included with stdhdrs.h; however, when
    including sack_types.h, the minimal headers are pulled. */
+
+#ifndef SACK_PRIMITIVE_TYPES_INCLUDED
+#define SACK_PRIMITIVE_TYPES_INCLUDED
+
 #define HAS_STDINT
 #include <stdint.h>
 
@@ -1085,7 +1085,12 @@ SACK_NAMESPACE_END
 #include <inttypes.h>
 #endif
 
-SACK_NAMESPACE
+/*
+   Top level namespace.  SACK Is the System Abstraction Componnet Kit.
+   With a little work subsets of this namesapce can be used.  Typrically
+   this is built as just one large c/c++ shared library.
+*/
+namespace sack {
 
 /* 16 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */

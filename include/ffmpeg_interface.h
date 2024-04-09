@@ -1,3 +1,6 @@
+/* A thin interface to FFMPEG library to handle loading a file
+   or data and displaying a video. Connects FFMPEG to Render
+   basically.                                                  */
 #ifndef INCLUDED_FFMPEG_INTERFACE
 #define INCLUDED_FFMPEG_INTERFACE
 

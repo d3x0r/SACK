@@ -1,3 +1,5 @@
+/* SQL Option Interface. Gets and sets options; option interface
+   resembles legacy windows INI interface.                       */
 #ifndef SQL_OPTIONS_DEFINED
 #define SQL_OPTIONS_DEFINED
 #include <pssql.h>

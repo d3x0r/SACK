@@ -1,3 +1,5 @@
+/* Deadstart interface. Deadstart is like bootstrap, and handles
+   code that runs before main(). See <link deadstart>            */
 #ifndef DEADSTART_DEFINED
 #define DEADSTART_DEFINED
 

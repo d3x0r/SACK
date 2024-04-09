@@ -1,3 +1,8 @@
+/* \Internal Image structure. Tracks an image, but can also have
+   sub-images allocated on the image. Performing image
+   operations to sub images are clipped to the region of the
+   board, and go directly to the image memory the sub image is
+   on. A image only has one data buffer.                         */
 #ifndef IMAGE_STRUCTURE_DEFINED
 #include <colordef.h>
 

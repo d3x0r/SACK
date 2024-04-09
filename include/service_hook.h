@@ -1,3 +1,6 @@
+/* Interface to windows system interface. Provides entry points
+   to service system when service is initialized. This allows
+   user to specify code to run when service is triggered.       */
 #ifndef SERVICE_HOOK_DEFINED
 #define SERVICE_HOOK_DEFINED
 

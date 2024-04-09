@@ -1,3 +1,4 @@
+/* Memory interface. see <link memory>, */
 
 #ifndef SHARED_MEM_DEFINED
 /* Multiple inclusion protection symbol. */

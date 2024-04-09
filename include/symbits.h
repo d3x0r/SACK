@@ -1,3 +1,6 @@
+/* Defines bit combinations with combinations of text; used in
+   font dump files to provide text visualizations of the font
+   characters.                                                 */
 #ifndef SYMBOLIC_BITS_DEFINED
 #define SYMBOLIC_BITS_DEFINED
 

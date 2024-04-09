@@ -1,3 +1,4 @@
+/* Provides Sack Virtual Filesystem interfaces. */
 
 #ifndef SACK_VFS_DEFINED
 /* Header multiple inclusion protection symbol. */

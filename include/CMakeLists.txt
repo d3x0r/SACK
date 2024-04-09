@@ -59,7 +59,7 @@ md5.h
 sharemem.h
 skelhdr.h
 spacetree.h
-sql_support.h
+#sql_support.h
 sqlgetoption.h
 sqloptint.h
 stdhdrs.h

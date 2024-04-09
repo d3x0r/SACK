@@ -1,3 +1,7 @@
+/* \Internal structures for Image interfaces. Images are
+   in-memory versions of data that can be rendered to a user
+   with the render.h interface. Fonts can be used to draw on
+   images in memory.                                         */
 #ifndef FONT_TYPES_DEFINED
 #define FONT_TYPES_DEFINED
 

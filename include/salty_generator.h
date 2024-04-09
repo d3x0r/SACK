@@ -1,3 +1,8 @@
+/* Salty Random Generator is a random bitstream generator. It
+   generates blobs
+   
+   of randomness, and provides an interface to get a number of
+   bits from 1 to N of the random stream.                      */
 #include <sack_types.h>
 #ifdef SALTY_RANDOM_GENERATOR_SOURCE
 #define SRG_EXPORT EXPORT_METHOD

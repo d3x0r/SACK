@@ -1,3 +1,4 @@
+/* Define websocket client interface methods. */
 #ifndef HTML5_WEBSOCKET_CLIENT_INCLUDED
 #define HTML5_WEBSOCKET_CLIENT_INCLUDED
 

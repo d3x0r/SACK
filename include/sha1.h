@@ -1,3 +1,4 @@
+/* SHA1 Standard library from somewhere... */
 
 /*
  *  sha1.h

@@ -1,3 +1,5 @@
+/* The render interface used to be called 'vidlib'. This remains
+   for some legacy code probably.                                */
 #ifndef VIDLIB2_INCLUDED
 #define VIDLIB2_INCLUDED
 

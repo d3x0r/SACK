@@ -1,3 +1,7 @@
+/* Images and image surfaces have extra handles attached for 3D.
+   Images themselves might be used in the 3D space as perhaps
+   sprite particles, so they can have positions, colors, lights,
+   etc.                                                          */
 #ifndef INCLUDED__IMAGE3D_EXTENSIONS_DEFINED__
 #define INCLUDED__IMAGE3D_EXTENSIONS_DEFINED__
 

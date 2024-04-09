@@ -1,3 +1,7 @@
+/* Defines events/interfaces for 3D render interfaces. 3d
+   Mouse/keyboard support to render surfaces is provided here; Also
+   provides generic interface between 3D rendering and
+   application layer.                                               */
 #ifndef INCLUDED__RENDER3D_EXTENSIONS_DEFINED__
 #define INCLUDED__RENDER3D_EXTENSIONS_DEFINED__
 

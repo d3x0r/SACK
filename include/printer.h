@@ -1,3 +1,7 @@
+/* Incomplete header; There is a printer lib, which is an
+   interface to win32 printers, which give back a device context
+   to draw into. There really isn't much in support in this
+   library for typesetting.                                      */
 #ifndef PRINTER_LIBRARY_DEFINED
 #define PRINTER_LIBRARY_DEFINED
 

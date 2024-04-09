@@ -1,3 +1,4 @@
+/* Define symbols for keyboard inputs on various systems. */
 #ifndef KEYBOARD_DEFINITION
 #  define KEYBOARD_DEFINITION
 

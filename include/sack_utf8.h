@@ -1,3 +1,4 @@
+/* Some macros for dealing with utf8 characters.  */
 
 /// Some notes for proper encoding
 //

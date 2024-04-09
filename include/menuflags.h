@@ -1,3 +1,5 @@
+/* Partially defined menu flags from windows to implement
+   popups. This provides a basis for popup interface.     */
 
 // copied from win.h distributed with lcc
 //#define MF_BITMAP	4

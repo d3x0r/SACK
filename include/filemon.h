@@ -1,3 +1,5 @@
+/* \File Monitor interfaces. This monitors the file system for
+   changes to files.                                           */
 #ifndef FILE_MONITOR_LIBRARY_DEFINED
 #define FILE_MONITOR_LIBRARY_DEFINED
 

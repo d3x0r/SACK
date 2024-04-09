@@ -1,3 +1,7 @@
+/* Renderer Video Structure. This tracks the interface between
+   application and visual display. This defines the specific
+   structures; but this is typically private to image and video
+   renderer.                                                    */
 #ifndef VIDEO_STRUCTURE_DEFINED
 #define VIDEO_STRUCTURE_DEFINED
 

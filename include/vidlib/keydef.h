@@ -1,3 +1,4 @@
+/* Defines keyboard structures for RENDER to use. */
 #ifndef KEY_STRUCTURE_DEFINED
 
 RENDER_NAMESPACE

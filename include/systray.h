@@ -1,3 +1,6 @@
+/* Provide System Tray interface for windows. (Those icons by
+   the clock). Provides a registration method with a simple menu
+   interface.                                                    */
 
 #include <sack_types.h>
 #ifndef __NO_MSGSVR__

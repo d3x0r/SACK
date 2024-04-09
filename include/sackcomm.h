@@ -1,3 +1,5 @@
+/* Provides COM device interface for windows/linux. Mostly
+   windows though.                                         */
 #ifndef SACKCOMM_PROTECT_ME_AGAINST_DOBULE_INCLUSION
 #define SACKCOMM_PROTECT_ME_AGAINST_DOBULE_INCLUSION
 #include <sack_types.h>

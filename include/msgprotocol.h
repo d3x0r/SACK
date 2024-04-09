@@ -1,3 +1,5 @@
+/* Common SYSVIPC Message Queue protocol for hosting shared
+   services over a few global pipes.                        */
 #ifndef MESSAGE_SERVICE_PROTOCOL
 #define MESSAGE_SERVICE_PROTOCOL
 

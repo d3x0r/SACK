@@ -1,3 +1,6 @@
+/* This is a basic network broadcast service discovery
+   subsystem. Uses UDP to establish location of desired
+   services.                                            */
 #ifndef NETWORK_SERVICE_RESPOND_DISCOVER
 #define NETWORK_SERVICE_RESPOND_DISCOVER
 

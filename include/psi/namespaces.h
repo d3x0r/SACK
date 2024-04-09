@@ -1,3 +1,5 @@
+/* Devices namespace symbols used for C++ compilation and
+   code/document organization                             */
 
 /* Defintes control namespaces for C++ namespace organization purposes.  */
 

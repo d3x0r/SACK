@@ -1,3 +1,7 @@
+/* Provides a client interface to SYSVIPC Message Queue
+   Services. This uses msgprotocol.h to talk to services and
+   have information done, and events from services notified back
+   to the client.                                                */
 #ifndef CLIENT_MESSAGE_INTERFACE
 #define CLIENT_MESSAGE_INTERFACE
 

@@ -1,3 +1,5 @@
+/* Optional interface; using SYSVIPC Message Queues, establish a
+   server/listener of events.                                    */
 #ifndef SERVER_MESSAGE_INTERFACE
 #define SERVER_MESSAGE_INTERFACE
 

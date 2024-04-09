@@ -1,3 +1,6 @@
+/* This is an incomplete/unstable project. This is to track 2D
+   mesh of points using a non-intersecting map of connections to
+   get from one part of the mesh to another.                     */
 #ifndef INCLUDED_SPACETREE_H_
 #define INCLUDED_SPACETREE_H_
 

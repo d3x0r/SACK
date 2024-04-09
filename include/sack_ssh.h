@@ -1,3 +1,4 @@
+/* Sack Layer on libssh2. This provides a event based interface. */
 #include <network.h>
 #include <html5.websocket.h>
 #include <html5.websocket.client.h>

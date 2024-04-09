@@ -1,3 +1,6 @@
+/* Provides a color picker interface. Draws a color in a spot,
+   when clicking the spot, launches the color picker, which can
+   \result with a new value in the color well.                  */
 
 
 PSI_NAMESPACE

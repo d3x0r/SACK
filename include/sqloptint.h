@@ -1,3 +1,6 @@
+/* Provies SQL Option Interface. Options are implemented as a
+   tree of nodes with names and values. Defines abstract
+   interface that can be filled by varying providers.         */
 #ifndef SQL_GET_OPTION_DEFINED
 /* Inclusion protection; used to prevent duplicate inclusion of
    the same file.                                               */

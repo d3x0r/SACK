@@ -1,3 +1,5 @@
+/* Networking interface to provide an event based dispatcher
+   over berkley polled sockets. See <link network>           */
 #ifndef NETWORK_HEADER_INCLUDED
 #define NETWORK_HEADER_INCLUDED
 #include "sack_types.h"

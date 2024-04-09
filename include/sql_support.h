@@ -1,3 +1,4 @@
+/* Unused; Delete. */
 #ifndef ADO_SQL_SUPPORT_MACROS
 #define ADO_SQL_SUPPORT_MACROS
 

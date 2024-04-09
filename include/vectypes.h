@@ -1,3 +1,8 @@
+/* Describes Vector types for Vector Library. Bases vectors on a
+   type RCOORD which is a real coordiante, that is either float
+   or double. This optimizes the vector libarary for a specific
+   type of value at a time, and compiles both. Functions of
+   specific types are indiciated with a suffix and/or namespace. */
 #ifndef VECTOR_TYPES_DEFINED
 #define VECTOR_TYPES_DEFINED
 // this file merely defines the basic calculation unit...
