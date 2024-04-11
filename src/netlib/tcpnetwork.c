@@ -1003,7 +1003,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
  			dwError = WSAGetLastError();
-			//lprintf( "Network receive %d %d %d", nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
+			//lprintf( "Network receive %p %d %d %d", lpClient, nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 			if (nRecv == SOCKET_ERROR)
 			{
 #ifdef DEBUG_SOCK_IO

@@ -604,7 +604,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										lprintf( "Initial Read Complete" );
 #endif
 										pc->read.ReadComplete( pc, NULL, 0 );
-									}
+									} 
+									else lprintf( "Initial read completed without read callback...");
+									// see if initial read generated any writes...
 									if( pc->lpFirstPending 
 											&&( !pc->flags.bAggregateOutput 
 											|| !pc->writeTimer ) ) {
@@ -644,11 +646,14 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								if( pc->lpFirstPending 
 										&&( !pc->flags.bAggregateOutput 
 											|| !pc->writeTimer ) ) {
+									//lprintf( "(2)Data was pending on a connected socket, try sending it now" );
+									// this is the normal large packet auto write....
 									TCPWrite( pc );
 								}else {
 									pc->dwFlags |= CF_WRITEREADY;
 								}
 							} else {
+								lprintf( "Read but lock wasn't enabled?" );
 								// although this is only a few instructions down, this can still be a lost event that the other 
 								// lock has already ended, so this will get lost still...
 								event_data->pc->flags.bWriteOnUnlock = 1;
