@@ -306,7 +306,8 @@ typedef int  (CPROC*TouchCallback)( uintptr_t psvUser, PINPUT_POINT pTouches, in
 
 #endif
 /* function signature for the close callback  which can be specified to handle events to redraw the display.  see SetLoseFocusHandler. */
-typedef void (CPROC*LoseFocusCallback)( uintptr_t dwUser, PRENDERER pGain );
+typedef void (CPROC*LoseFocusCallback)( /* Gain Var */
+uintptr_t dwUser, PRENDERER pGain );
 // without a keyproc, you will still get key notification in the mousecallback
 // if KeyProc returns 0 or is NULL, then bound keys are checked... otherwise
 // priority is given to controls with focus that handle keys.

@@ -147,7 +147,10 @@
        should be provided that can just open X displays directly to
        copy <link sack::image::Image, Images> to.
      * bag.psi &#45; provides the PSI namespace.                      */
-SACK_NAMESPACE
+#ifdef __cplusplus    
+namespace sack {
+#endif
+
 
 
 /* PSI is Panther's Slick Interface.
@@ -346,7 +349,9 @@ SACK_NAMESPACE
    \--- Much Less used
    
    OnEditFrame                                                                           */
-_PSI_NAMESPACE
+#ifdef __cplusplus
+namespace PSI {
+#endif
 
 
 // this was never implemented.
@@ -397,13 +402,9 @@ _PSI_NAMESPACE
 	/*, uintptr_t nID, ... );*/
 #endif
 
-enum {
-    COMMON_PROC_ANY
-     , COMMON_PROC_DRAW
-     , COMMON_PROC_MOUSE
-     , COMMON_PROC_KEY
-};
-
+/*
+Utility macro to register a control without a controlregistration structure.
+*/
 #define RegisterControl(name)  do { extern CTEXTSTR  ControlMakeProcName_##name, ControlLoadProcName_##name; \
     RegisterControlProcName( ControlMakeProcName_##name \
     , (POINTER)Make##name        \
@@ -411,11 +412,13 @@ enum {
     , (POINTER)Load##name );     \
 } while(0)
 
+/* 
+Utility macro to register a control with a frame.
+*/
 #define RegisterFrame(name)       RegisterControlProcName( FrameProcName_##name \
     , (POINTER)Make##name  \
     , (POINTER)Load##name )
 
-//PSI_PROC( int, RegisterControlProcName )( CTEXTSTR name, POINTER MakeProc, POINTER LoadProc );
 
 
 #ifndef CONTROL_SOURCE
@@ -444,8 +447,11 @@ typedef struct frame_border *PFrameBorder;
    </code>                                                       */
 typedef struct psi_common_control_frame *PSI_CONTROL;
 
+// default width of a 'common' button... these are for 'ok' 'cancel' default buttons
 #define COMMON_BUTTON_WIDTH 55
+// default height of a 'common' button... these are for 'ok' 'cancel' default buttons
 #define COMMON_BUTTON_HEIGHT 19
+// default padding of a 'common' button... Padding is the space between the buttons.  This is for 'ok' 'cancel' default buttons.
 #define COMMON_BUTTON_PAD 5
 
 /* This enumeration defines flags that can be used to specify
@@ -1498,6 +1504,7 @@ PSI_PROC( void, SetCheckState)( PSI_CONTROL pc, int nState );
 // set the button's background color...
 PSI_PROC( void, SetButtonColor )( PSI_CONTROL pc, CDATA color );
 
+/* Attributes for a text label control. */
 _BUTTON_NAMESPACE_END
 USE_BUTTON_NAMESPACE
 

@@ -291,69 +291,7 @@ typedef struct sprite_tag SPRITE;
 										)
 #endif
 
-#if 0
-#if defined( __arm__ ) && defined( IMAGE_LIBRARY_SOURCE ) && !defined( DISPLAY_SOURCE )
-extern unsigned char AlphaTable[256][256];
-
-static CDATA DOALPHA( CDATA over, CDATA in, uint8_t a )
-{
-	int r, g, b, aout;
-	if( !a )
-		return over;
-	if( a > 255 )
-		a = 255;
-	if( a == 255 )
-		return (in | 0xFF000000); // force alpha full on.
-	aout = AlphaTable[a][AlphaVal( over )] << 24;
-	r = ((((RedVal(in))  *(a+1)) + ((RedVal(over))  *(256-(a)))) >> 8 );
-	if( r > (255) ) r = (255);
-	g = (((GreenVal(in))*(a+1)) + ((GreenVal(over))*(256-(a)))) >> 8;
-	if( g > (255) ) g = (255);
-	b = ((((BlueVal(in)) *(a+1)) + ((BlueVal(over)) *(256-(a)))) >> 8 );
-	if( b > 255 ) b = 255;
-	return aout|(r<<16)|(g<<8)|b;
-	//return AColor( r, g, b, aout );
-}
-#endif
-#endif
 IMAGE_NAMESPACE_END
 // end if_not_included
 #endif
 
-// $Log: imagestruct.h,v $
-// Revision 1.2  2005/04/05 11:56:04  panther
-// Adding sprite support - might have added an extra draw callback...
-//
-// Revision 1.1  2004/06/21 07:38:39  d3x0r
-// Move structures into common...
-//
-// Revision 1.20  2003/10/14 20:48:55  panther
-// Tweak mmx a bit - no improvement visible but shorter
-//
-// Revision 1.19  2003/10/14 16:36:45  panther
-// Oops doalpha was outside of known inclusion frame
-//
-// Revision 1.18  2003/10/14 00:43:03  panther
-// Arm optimizations.  Looks like I'm about maxed.
-//
-// Revision 1.17  2003/09/15 17:06:37  panther
-// Fixed to image, display, controls, support user defined clipping , nearly clearing correct portions of frame when clearing hotspots...
-//
-// Revision 1.16  2003/04/25 08:33:09  panther
-// Okay move the -1's back out of IMG_ADDRESS
-//
-// Revision 1.15  2003/04/21 23:33:09  panther
-// fix certain image ops - should check blot direct...
-//
-// Revision 1.14  2003/03/30 18:39:03  panther
-// Update image blotters to use IMG_ADDRESS
-//
-// Revision 1.13  2003/03/30 16:11:03  panther
-// Clipping images works now... blat image untested
-//
-// Revision 1.12  2003/03/30 06:24:56  panther
-// Turns out I had badly implemented clipping...
-//
-// Revision 1.11  2003/03/25 08:45:51  panther
-// Added CVS logging tag
-//

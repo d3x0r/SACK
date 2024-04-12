@@ -37,8 +37,12 @@ typedef struct addrinfoW {
     struct addrinfoW    *ai_next;
 } ADDRINFOW;
 typedef ADDRINFOW   *PADDRINFOW;
+/* Compatibility declaration for MinGW (use MinGW64 to build now
+   please?)                                                      */
 typedef ADDRINFOA   ADDRINFOT;
 typedef ADDRINFOA   *PADDRINFOT;
+/* Compatibility declaration for MinGW (use MinGW64 to build now
+   please?)                                                      */
 typedef ADDRINFOA   ADDRINFO;
 typedef ADDRINFOA   *LPADDRINFO;
 

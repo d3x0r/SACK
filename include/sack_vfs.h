@@ -35,7 +35,13 @@
 /* define the file system namespace. */
 #define SACK_VFS_NAMESPACE SACK_NAMESPACE _SACK_VFS_NAMESPACE 
 
-SACK_VFS_NAMESPACE
+#ifdef __cplusplus
+/* virtual file system using file system IO instead of memory mapped IO */
+namespace sack {
+	/* Virtual File System interface/module. */
+	namespace SACK_VFS {
+#endif
+
 
 #if !defined( VIRTUAL_OBJECT_STORE ) && !defined( FILE_BASED_VFS )
 
@@ -499,6 +505,8 @@ SACK_VFS_PROC LOGICAL sack_vfs_os_analyze( struct sack_vfs_os_volume* volume );
 }
 #endif
 
+//DOM-IGNORE-BEGIN
+
 #if defined USE_VFS_FS_INTERFACE
 
 #define sack_vfs_volume sack_vfs_fs_volume
@@ -576,7 +584,7 @@ SACK_VFS_PROC LOGICAL sack_vfs_os_analyze( struct sack_vfs_os_volume* volume );
 
 #endif
 
-
+//DOM-IGNORE-END
 
 SACK_VFS_NAMESPACE_END
 #if defined( __cplusplus ) 

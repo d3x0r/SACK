@@ -30,6 +30,7 @@
 
 #ifdef __LINUX__
 typedef void DCB;
+/* Compatibility type for getting com port errors. */
 typedef void COMSTAT;
 #define STDPROC
 #endif

@@ -25,7 +25,11 @@
 #include <controls.h>
 
 /* wassa */
-PSI_NAMESPACE
+#ifdef __cplusplus
+/* virtual file system using file system IO instead of memory mapped IO */
+namespace sack {
+   namespace psi {
+#endif
 
 #ifdef __cplusplus
 #define PSI_ROOT_REGISTRY "psi++"
@@ -124,22 +128,64 @@ struct ControlRegistration_tag {
 	uint32_t TypeID; 
 };
 
+/* <combine ControlRegistration_tag>
+   
+   \ \                               */
 typedef struct ControlRegistration_tag CONTROL_REGISTRATION;
+/* <combine ControlRegistration_tag>
+   
+   \ \                               */
 typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 
+/* utility macro to paste two tokens */
 #define LinePaste(a,b) a##b
+/* A second level of line paste, resolves passed arguments into their defined values*/
 #define LinePaste2(a,b) LinePaste(a,b)
+/* resolve a symbol A into it's defined value */
 #define SYMVAL(a) a
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable '_MyControlID' 
+*/
 #define EasyRegisterControl( name, extra ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( LinePaste2(SimpleRegisterControl,__LINE__) ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static uint32_t* _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable 'reg_name'  which is the resulting registration.
+*/
 #define EasyRegisterControlEx( name, extra, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, BORDER_THINNER } }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable '_MyControlID' 
+*/
 #define EasyRegisterControlWithBorder( name, extra, border_flags ) static CONTROL_REGISTRATION LinePaste2(ControlType,SYMVAL(__LINE__))= { name, { 32, 32, extra, border_flags} }; PRELOAD( LinePaste2(SimpleRegisterControl,SYMVAL(__LINE__)) ){ DoRegisterControl( &LinePaste2(ControlType,SYMVAL(__LINE__)) ); } static uint32_t* _MyControlID = &LinePaste2(ControlType,SYMVAL(__LINE__)).TypeID;
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable 'reg_name' 
+*/
 #define EasyRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) static CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } static uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable '_MyControlID' 
+*/
 #define RegisterControlWithBorderEx( name, extra, border_flags, reg_name )  CONTROL_REGISTRATION reg_name= { name, { 32, 32, extra, border_flags} }; PRELOAD( SimpleRegisterControl##reg_name ){ DoRegisterControl( &reg_name ); } uint32_t* _MyControlID##reg_name = &reg_name.TypeID;
+/* Macro to declare a control type.
+   EasyRegisterControl( "control name", sizeof(myData) );
+   declares a variable '_MyControlID' 
+*/
 #define ExternRegisterControlWithBorderEx( name, extra, border_flags, reg_name ) extern CONTROL_REGISTRATION reg_name; extern uint32_t* _MyControlID##reg_name;
+/* Macro to get an easy registered control ID. Used by MyValidatedControlData macro to make sure
+   the data is of the correct type. */
 #define MyControlID (_MyControlID[0])
+/* Macro to get an easy registered Ex control ID(specified reg_name). Used by MyValidatedControlData macro to make sure
+   the data is of the correct type. */
 #define MyControlIDEx(n) (_MyControlID##n[0])
+/* Macro to build a declaration to get the extra data associated with a control.
+*/
 #define MyValidatedControlData( type, result, pc ) ValidatedControlData( type, MyControlID, result, pc )
+/* Macro to build a declaration to get the extra data associated with a control.
+*/
 #define MyValidatedControlDataEx( type, reg_name, result, pc ) ValidatedControlData( type, MyControlIDEx(reg_name), result, pc )
+
 //#define CONTROL_METHODS(draw,mouse,key,destroy) {{"draw",draw},{"mouse",mouse},{"key",key},{"destroy",destroy}}
 //---------------------------------------------------------------------------
 
@@ -152,8 +198,19 @@ typedef struct ControlRegistration_tag *PCONTROL_REGISTRATION;
 #define DoRegisterControl(pcr) DoRegisterControlEx( pcr, sizeof(*pcr) )
 //PSI_PROC( int, DoRegisterSubcontrol )( PSUBCONTROL_REGISTRATION pcr );
 
+/*
+ * Get the extra data associated with a control.
+*/
 #define ControlData(type,common) ((common)?(*((type*)(common))):NULL)
+/*
+ * Set the extra data associated with a control.
+*/
 #define SetControlData(type,common,pf) (*((type*)(common))) = (type)(pf)
+/*
+  Declaration to get the data for a control if the ID of the control is my registered control ID.
+  Makes sure, since all controls get passed as 'PSI_CONTROL' that someone isn't trying to use a button
+  and its extra data on something like a listbox or custom user control.
+*/
 #define ValidatedControlData(type,id,result,com) type result = (((com)&&(ControlType(com)==(id)))?ControlData(type,com):NULL)
 
 #ifdef __cplusplus

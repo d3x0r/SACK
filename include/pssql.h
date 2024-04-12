@@ -41,6 +41,7 @@
 #if defined( SQLSTUB_SOURCE ) || defined( SQLPROXY_LIBRARY_SOURCE )
 #define PSSQL_PROC(type,name) EXPORT_METHOD type CPROC name
 #else
+/* Macro declaring PSSQL procs. */
 #define PSSQL_PROC(type,name) IMPORT_METHOD type CPROC name
 #endif
 
@@ -1301,18 +1302,25 @@ PSSQL_PROC( int, PushSQLQueryEx )(PODBC);
 
 // no application support for username/password, sorry, trust thy odbc layer, please
 PSSQL_PROC( PODBC, ConnectToDatabase )( CTEXTSTR dsn );
+// get a connection to a database by name.
 PSSQL_PROC( PODBC, SQLGetODBC )( CTEXTSTR dsn );
+// get a connection to the database specifying user and password.
 PSSQL_PROC( PODBC, SQLGetODBCEx )( CTEXTSTR dsn, CTEXTSTR user, CTEXTSTR pass );
-
+// drop an interface (no longer in use/close); these are in a pool, and the underlaying connection might not close.
 PSSQL_PROC( void, SQLDropODBC )( PODBC odbc );
+// Drop the odbc instance, and close the connection.
 PSSQL_PROC( void, SQLDropAndCloseODBC )( CTEXTSTR dsn );
 
 #endif
 // default parameter to require is the global flag RequireConnection from sql.config....
 PSSQL_PROC( PODBC, ConnectToDatabaseExx )( CTEXTSTR DSN, LOGICAL bRequireConnection DBG_PASS );
+// default parameter to require is the global flag RequireConnection from sql.config....
+// the require connection parameter indicates the connection must connect, and will block until connected.
 PSSQL_PROC( PODBC, ConnectToDatabaseEx )( CTEXTSTR DSN, LOGICAL bRequireConnection );
 
+// default parameter to require is the global flag RequireConnection from sql.config....
 #define ConnectToDatabaseEx( dsn, required ) ConnectToDatabaseExx( dsn, required DBG_SRC )
+// default parameter to require is the global flag RequireConnection from sql.config....
 #define ConnectToDatabase( dsn ) ConnectToDatabaseExx( dsn, FALSE DBG_SRC )
 
 // Extended connect to database function; provides user and password separate from the DSN 
@@ -1588,6 +1596,9 @@ PSSQL_PROC( CTEXTSTR, GuidZero )( void );
 PSSQL_PROC( uint8_t*, GetGUIDBinaryEx )( CTEXTSTR guid, LOGICAL litte_endian );
 #define GetGUIDBinary(g) GetGUIDBinaryEx(g, TRUE )
 
+/* structure of a little endian UUID.  This allows formatting into the various
+ size fields of a uuid text string.
+ */
 struct guid_binary {
 	union {
 		struct {

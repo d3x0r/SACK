@@ -6,10 +6,7 @@
 #include <sack_types.h>
 
 
-	SACK_NAMESPACE
-	_CONTAINER_NAMESPACE
-
-#    define TYPELIB_CALLTYPE /*CPROC*/
+#  define TYPELIB_CALLTYPE /*CPROC*/
 #  if defined( _TYPELIBRARY_SOURCE_STEAL )
 #    define TYPELIB_PROC extern
 #  elif defined( NO_EXPORTS )
@@ -24,7 +21,19 @@
 #    define TYPELIB_PROC IMPORT_METHOD
 #  endif
 
-_LINKLIST_NAMESPACE
+#  ifdef __cplusplus
+	/* virtual file system using file system IO instead of memory mapped IO */
+	namespace sack {
+   /* Containers is a bunch of common types like lists, queues,
+      stacks.                                                   */
+   	namespace containers {
+#  endif
+
+
+#  ifdef __cplusplus
+/* virtual file system using file system IO instead of memory mapped IO */
+namespace list {
+#  endif
 
 //--------------------------------------------------------
 TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        CreateListEx   ( DBG_VOIDPASS );
@@ -283,7 +292,10 @@ TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForP
 	} //		namespace list;
 #endif
 //--------------------------------------------------------
-_DATALIST_NAMESPACE
+#ifdef __cplusplus
+/* virtual file system using file system IO instead of memory mapped IO */
+namespace data_list {
+#endif
 
 /* Creates a data list which hold data elements of the specified
    size.

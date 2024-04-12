@@ -1,3 +1,4 @@
+/* \ \  */
 #define RCOORD_IS_DOUBLE 1
 
 #define DOC_O_DOC 1
