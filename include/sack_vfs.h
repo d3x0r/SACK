@@ -36,7 +36,7 @@
 #define SACK_VFS_NAMESPACE SACK_NAMESPACE _SACK_VFS_NAMESPACE 
 
 #ifdef __cplusplus
-/* virtual file system using file system IO instead of memory mapped IO */
+
 namespace sack {
 	/* Virtual File System interface/module. */
 	namespace SACK_VFS {

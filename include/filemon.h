@@ -13,9 +13,14 @@
 // just sack_tyeps
 #include <stdhdrs.h>
 
-#include <filesys.h>  // for namespace nesting/definition
+// for namespace definitions
+#include <filesys.h>  
 
-FILEMON_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+	namespace filesys {
+		namespace monitor {
+#endif
 
 typedef struct monitor_tag *PMONITOR;
 typedef struct filechangecallback_tag *PCHANGEHANDLER;
@@ -82,24 +87,4 @@ using namespace sack::filesys::monitor;
 
 
 #endif
-//----------------------------------------------------------------------
-//
-// $Log: filemon.h,v $
-// Revision 1.6  2005/02/23 13:01:35  panther
-// Fix scrollbar definition.  Also update vc projects
-//
-// Revision 1.5  2004/12/01 23:15:58  panther
-// Extend file monitor to make forced scan timeout settable by the application
-//
-// Revision 1.4  2004/01/16 17:07:08  d3x0r
-// Header updates...
-//
-// Revision 1.3  2003/11/09 22:31:36  panther
-// Add extended monitor registration
-//
-// Revision 1.2  2003/11/04 11:39:15  panther
-// Modified interface to monitor files
-//
-// Revision 1.1  2003/11/03 23:01:49  panther
-// Initial commit of librarized filemonitor
-//
+

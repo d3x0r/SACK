@@ -19,7 +19,7 @@
 
 #  ifdef __cplusplus
 #    define _CLIENT_NAMESPACE namespace client {
-#    define MSGCLIENT_NAMESPACE SACK_NAMESPACE namespace msg { namespace client {
+#    define MSGCLIENT_NAMESPACE namespace sack { namespace msg { namespace client {
 #    define MSGCLIENT_NAMESPACE_END }} SACK_NAMESPACE_END
 #  else
 #    define _CLIENT_NAMESPACE
@@ -27,10 +27,12 @@
 #    define MSGCLIENT_NAMESPACE_END
 
 #  endif
-SACK_NAMESPACE
-   _MSG_NAMESPACE
-	/* Defines methods and macros for use as a client of a service. */
-	_CLIENT_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+	namespace msg {
+		/* Defines methods and macros for use as a client of a service. */
+		namespace client {
+#endif
 
 
 #define MSG_DEFAULT_RESULT_BUFFER_MAX (sizeof( uint32_t ) * 16384)

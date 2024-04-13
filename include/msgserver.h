@@ -31,11 +31,13 @@
 #define MSGSERVER_NAMESPACE_END
 #endif
 
-SACK_NAMESPACE
-   _MSG_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+   namespace msg {
 /* Defines methods and events that the service side might want
    to use.                                                     */
-	_SERVER_NAMESPACE
+	namespace server {
+#endif
 
 #ifdef _DEBUG
 #define CLIENT_TIMEOUT   120000 // 2 seconds

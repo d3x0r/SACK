@@ -138,7 +138,9 @@
 #  define IMGVER(n)   n
 #endif
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 /* Deals with images and image processing.
    
    
@@ -151,7 +153,9 @@ SACK_NAMESPACE
    
    render namespace is contained in image, because without
    image, there could be no render. see PRENDERER.         */
-	_IMAGE_NAMESPACE
+#ifdef __cplusplus
+    namespace image {
+#endif
 
 /* A fixed point decimal number (for freetype font rendering) */
 typedef int64_t fixed;

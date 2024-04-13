@@ -39,7 +39,9 @@
 #define SACK_NETWORK_UDP_NAMESPACE  SACK_NAMESPACE _NETWORK_NAMESPACE _UDP_NAMESPACE
 #define SACK_NETWORK_UDP_NAMESPACE_END _UDP_NAMESPACE_END _NETWORK_NAMESPACE_END SACK_NAMESPACE_END
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 	/* Event based networking interface.
 
 
@@ -171,20 +173,27 @@ SACK_NAMESPACE
 	   }
 
 	   </code>                                                                                    */
-	_NETWORK_NAMESPACE
+#ifdef __cplusplus
+	namespace network {
+#endif
 
-//#ifndef CLIENT_DEFINED
+/*
+  Opaque structure representing a network connection.
+*/
 typedef struct NetworkClient *PCLIENT;
-//typedef struct Client
-//{
-//   unsigned char Private_Structure_information_here;
-//}CLIENT, *PCLIENT;
-//#endif
 
-
+/*
+   Get the system name.
+*/
 NETWORK_PROC( CTEXTSTR, GetSystemName )( void );
 
+/*
+  Lock a network connection for read or for write.
+*/
 NETWORK_PROC( PCLIENT, NetworkLockEx )( PCLIENT pc, int readWrite DBG_PASS );
+/*
+  Unlock a network connection for read or for write.
+*/
 NETWORK_PROC( void, NetworkUnlockEx )( PCLIENT pc, int readWrite DBG_PASS );
 /* <combine sack::network::NetworkLockEx@PCLIENT pc>
 

@@ -26,16 +26,22 @@
 #endif
 
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 	/* Namespace of custom math routines.  Contains operators
 	 for Vectors and fractions. */
-	_MATH_NAMESPACE
+#ifdef __cplusplus
+	namespace math {
+#endif
 	/* Fraction namespace contains a PFRACTION type which is used to
    store integer fraction values. Provides for ration and
    proportion scaling. Can also represent fractions that contain
    a whole part and a fractional part (5 2/3 : five and
 	two-thirds).                                                  */
-	_FRACTION_NAMESPACE
+#ifdef __cplusplus
+	namespace fraction {
+#endif
 
 /* Define the call type of the function. */
 #define FRACTION_API CPROC

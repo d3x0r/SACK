@@ -44,7 +44,11 @@
 #endif
 
 #ifdef __cplusplus
-SACK_NAMESPACE namespace config {
+namespace sack {
+	/* <combinewith configscript.h>
+	   
+	   \ \                          */
+	namespace config {
 #endif
 
 typedef char *__arg_list[1];

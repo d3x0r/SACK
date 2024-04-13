@@ -65,7 +65,9 @@
 /* Defines the file montior namespace when compiling C++. */
 #define FILEMON_NAMESPACE SACK_NAMESPACE _FILESYS_NAMESPACE _FILEMON_NAMESPACE
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 
 /* \File system abstractions. A few things like get current path
    may or may not exist on a function.
@@ -84,7 +86,9 @@ SACK_NAMESPACE
    
    
                                                                  */
-_FILESYS_NAMESPACE
+#ifdef __cplusplus
+	namespace filesys {
+#endif
 
 	enum ScanFileFlags {
 SFF_DEFAULT = 0,

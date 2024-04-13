@@ -22,7 +22,6 @@
 #  endif
 
 #  ifdef __cplusplus
-	/* virtual file system using file system IO instead of memory mapped IO */
 	namespace sack {
    /* Containers is a bunch of common types like lists, queues,
       stacks.                                                   */

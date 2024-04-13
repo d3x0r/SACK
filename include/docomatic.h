@@ -16,9 +16,9 @@
 #define _DATALIST_NAMESPACE namespace data_list {
 #define _DATALIST_NAMESPACE_END }
 
+#define JSOX_PARSER_PROC( type, name ) type name
 
-
-#define INTERSHELL_PROC(type,name) IMPORT_METHOD type CPROC name
+#define INTERSHELL_PROC(type,name) type name
 #define INTERSHELL_PROC_PTR(type,name) type CPROC (*name)
 #define _DEFINE_INTERFACE
 
@@ -127,7 +127,8 @@
 #   define _TEXT_NAMESPACE namespace text {
 #   define _TEXT_NAMESPACE_END } 
 #   define TEXT_NAMESPACE namespace sack { namespace containers { namespace text {
-#   define TEXT_NAMESPACE_END }  } }
+#   define TEXT_NAMESPACE_END } 
+ } }
 #   define USE_TEXT_NAMESPACE using namespace text; 
 #   define USE_PSI_TEXT_NAMESPACE using namespace sack::PSI::text; 
 

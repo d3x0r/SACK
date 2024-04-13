@@ -20,7 +20,9 @@ using namespace sack;
 #define MSGPROTOCOL_NAMESPACE_END 
 #endif
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 	/* This namespace contains an implmentation of inter process
 	   communications using a set of message queues which result
 	   from 'msgget' 'msgsnd' and 'msgrcv'. This are services
@@ -36,11 +38,15 @@ SACK_NAMESPACE
 	   RegisterService
 	   
 	   LoadService                                                         */
-	_MSG_NAMESPACE
+#ifdef __cplusplus
+	namespace msg {
+#endif
 /* Defines structures and methods for receiving and sending
 	   messages. Also defines some utility macros for referencing
 		message ID from a user interface structure.                */
-	_PROTOCOL_NAMESPACE
+#ifdef __cplusplus
+		namespace protocol {
+#endif
 
 #define MSGQ_ID_BASE "Srvr"
 

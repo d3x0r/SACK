@@ -59,7 +59,9 @@
 #define SQL_NAMESPACE_END 
 #endif
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 /* SQL access library. This provides a simple access to ODBC
    connections, and to sqlite. If no database is specified,
    there is an internal database that can be used. These methods
@@ -95,7 +97,9 @@ SACK_NAMESPACE
    
    
    (Need to describe this sql.config file)                       */
-_SQL_NAMESPACE
+#ifdef __cplusplus
+    namespace sql {
+#endif
 
 
 /* <combine PSSQL_PROC>

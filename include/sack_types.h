@@ -459,8 +459,9 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 #define my_offsetof( ppstruc, member ) ((uintptr_t)&((*ppstruc)->member)) - ((uintptr_t)(*ppstruc))
 
 
-
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 
 
 
@@ -1090,7 +1091,9 @@ SACK_NAMESPACE_END
    With a little work subsets of this namesapce can be used.  Typrically
    this is built as just one large c/c++ shared library.
 */
+#ifdef __cplusplus
 namespace sack {
+#endif
 
 /* 16 bit unsigned decimal output printf format specifier. This would
    otherwise be defined in \<inttypes.h\>                */
@@ -1786,7 +1789,9 @@ SACK_NAMESPACE_END
 #include <sack_typelib.h>
 
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 
 #ifndef IS_DEADSTART
 // this is always statically linked with libraries, so they may contact their

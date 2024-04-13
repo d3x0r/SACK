@@ -16,7 +16,7 @@
 # endif
 
 #ifdef __cplusplus
-SACK_NAMESPACE 
+namespace sack { 
 	_TIMER_NAMESPACE
 #endif
 // return -1 if not the correct thread

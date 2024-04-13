@@ -10,7 +10,7 @@
 #endif
 
 #ifdef __cplusplus
-SACK_NAMESPACE namespace network { namespace json {
+namespace sack { namespace network { namespace json {
 #endif
 
 

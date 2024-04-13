@@ -32,8 +32,12 @@
 #define FFMPEG_INTERFACE_NAMESPACE_END _FFMPEG_INTERFACE_NAMESPACE_END TEXT_NAMESPACE_END
 
 
-SACK_NAMESPACE
-   _FFMPEG_INTERFACE_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+   namespace streamlib { 
+       //Interface with ffmpeg to images and renderers.
+       namespace ffmpeg {
+#endif
 
 
 struct ffmpeg_file;

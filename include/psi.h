@@ -24,11 +24,10 @@
 #include <procreg.h>
 #include <controls.h>
 
-/* wassa */
+
 #ifdef __cplusplus
-/* virtual file system using file system IO instead of memory mapped IO */
 namespace sack {
-   namespace psi {
+   _PSI_NAMESPACE
 #endif
 
 #ifdef __cplusplus

@@ -17,7 +17,7 @@
 #include <sack_types.h>
 
 #ifdef __cplusplus
-SACK_NAMESPACE
+namespace sack {
 	namespace image {
 #endif
 

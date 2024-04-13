@@ -174,18 +174,24 @@
 #           define RENDER_PROC(type,name) IMPORT_METHOD type CPROC PASTE(SECOND_RENDER_LEVEL,RVER(name))
 #        endif
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+   #endif
 /* <copy render.h>
 
    \ \             */
-BASE_IMAGE_NAMESPACE
+#ifdef __cplusplus
+namespace image {
+   #endif
 /* PRENDERER is the primary object this namespace deals with.
 
 
    See Also
    <link render.h>                                            */
 
-_RENDER_NAMESPACE
+#ifdef __cplusplus
+namespace render {
+   #endif
 
 /* Application layer abstract structure to handle displays. This
  is the type returned by OpenDisplay.                          */

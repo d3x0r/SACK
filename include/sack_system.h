@@ -44,8 +44,13 @@
 #define HAVE_ENVIRONMENT
 #endif
 
-SACK_NAMESPACE
-	_SYSTEM_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+  /*
+    System interface namespace has Tasks, Environment, and dynamic library loading.
+  */
+	namespace system {
+#endif  
 
 typedef struct task_info_tag *PTASK_INFO;
 typedef void (CPROC*TaskEnd)(uintptr_t, PTASK_INFO task_ended);

@@ -1,67 +1,77 @@
-/***************************************************************
- * JSOX Parser
- *
- * Parses JSOX (github.com/d3x0r/jsox)
- *
- * This function is meant for a simple utility to just take a known completed packet,
- * and get the values from it.  There may be mulitple top level values, although
- * the JSON standard will only supply a single object or array as the first value.
-
- * jsox_parse_message( "utf8 data", sizeof( "utf8 data" )-1, &pdlMessage );
- *
- *
- * Example :
-
- // call to parse a message... and iterate through each value.
- {
-parse_message
-    PDATALIST pdlMessage;
-    LOGICAL gotMessage;
-	 if( jsox_parse_message( "utf8 data", sizeof( "utf8 data" )-1, &pdlMessage ) ) {
-		  int index;
-        struct jsox_value_container *value;
-		  DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value ) {
-           // for each value in the result.... the first layer will
-           // always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
-           // then for each value->contains (as a datalist like above), process each of those values.
-		  }
-        jsox_dispose_mesage( &pdlMessage );
-    }
- }
-
-
- *  
- *  This is a streaming setup, where a data block can be added,
- *  and the stream of objects can be returned from it....
- *
- *  Example 2:
-
- // allocate a parser to keep track of the parsing state...
- struct jsox_parse_state *parser = jsox_begin_parse();
-
- // at some point later, add some data to it...
- jsox_parse_add_data( parser, "utf8-data", sizeof( "utf8-data" ) - 1 );
-
- // and then get any objects that have been parsed from the stream so far...
- {
-    PDATALIST pdlMessage;
-	 pdlMessage = jsox_parse_get_data( parser );
-    if( pdlMessage )
-	 {
-        int index;
-        struct jsox_value_container *value;
-        DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value ) {
-           // for each value in the result.... the first layer will
-           // always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
-           // then for each value->contains (as a datalist like above), process each of those values.
-        }
-        jsox_dispose_mesage( &pdlMessage );
-		  jsox_parse_add_data( parser, NULL, 0 ); // trigger parsing next message.
-	 }
- }
-
- *
- ***************************************************************/
+/* JSOX Parser
+   
+   
+   
+   Parses JSOX (github.com/d3x0r/jsox)
+   
+   
+   
+   This function is meant for a simple utility to just take a
+   known completed packet, and get the values from it. There may
+   be mulitple top level values, although the JSON standard will
+   only supply a single object or array as the first value.
+   
+   
+   
+   jsox_parse_message( "utf8 data", sizeof( "utf8 data" )-1,
+   &amp;pdlMessage );
+   
+   
+   
+   \Example :
+   
+   <code>
+   // call to parse a message... and iterate through each value
+   {
+     PDATALIST pdlMessage;
+     LOGICAL gotMessage;
+     if( jsox_parse_message( "utf8 data", sizeof( "utf8 data" )-1, &amp;pdlMessage ) )
+     {
+       int index;
+       struct jsox_value_container *value;
+       DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value )
+       {
+          // for each value in the result.... the first layer will 
+          // always be just one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which 
+		  // then for each value-\>contains (as a datalist like above),
+          // process each of those values.
+       }
+       jsox_dispose_mesage( &amp;pdlMessage );
+     }
+   }
+   </code>
+   
+   This is a streaming setup, where a data block can be added, and
+   the stream of objects can be returned from it....
+   
+   
+   
+   \Example 2:
+   
+   <code lang="c++">
+   // allocate a parser to keep track of the parsing state... struct jsox_parse_state *parser = jsox_begin_parse();
+   // at some point later, add some data to it... jsox_parse_add_data( parser, "utf8-data", sizeof( "utf8-data" ) - 1 );
+   // and then get any objects that have been parsed from the stream so far...
+   {
+     PDATALIST pdlMessage;
+     pdlMessage = jsox_parse_get_data( parser );
+     if( pdlMessage )
+     {
+       int index;
+       struct jsox_value_container *value;
+       DATALIST_FORALL( pdlMessage, index, struct jsox_value_container *. value )
+       {
+         // for each value in the result.... the first layer will
+         // always be just
+         // one element, either a simple type, or a VALUE_ARRAY or VALUE_OBJECT, which
+         // then for each value-\>contains (as a datalist like above), process each of those values.
+       }
+       jsox_dispose_mesage( &amp;pdlMessage );
+       jsox_parse_add_data( parser, NULL, 0 );
+       // trigger parsing next message.
+     }
+   }
+   </code>                                                                                                                                                                                                                    */
 
 #ifndef JSOX_PARSER_HEADER_INCLUDED
 #define JSOX_PARSER_HEADER_INCLUDED
@@ -73,7 +83,10 @@ parse_message
 
 
 #ifdef __cplusplus
-SACK_NAMESPACE namespace network {
+namespace sack { namespace network {
+	/* <combinewith jsox_parser.h>
+	   
+	   \ \                         */
 	namespace jsox {
 #endif
 

@@ -45,7 +45,9 @@
 #define PROCREG_NAMESPACE_END
 #endif
 
-SACK_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+#endif
 /* Deadstart is support which differs per compiler, but allows
    applications access a C++ feature - static classes with
    constructors that initialize at loadtime, but, have the

@@ -58,7 +58,13 @@
 #endif
 #endif
 
-	TIMER_NAMESPACE
+#ifdef __cplusplus
+namespace sack {
+/*
+   timer, timing, threading, and criticalsection.
+*/
+namespace timers {
+# endif
    // enables file/line monitoring of sections and a lot of debuglogging
 //#define DEBUG_CRITICAL_SECTIONS
    /* this symbol controls the logging in timers.c... (higher level interface to NoWait primatives)*/
@@ -183,7 +189,7 @@ using namespace sack::timers;
 #endif
 
 #ifdef __cplusplus
-SACK_NAMESPACE
+namespace sack {
 
 /* Memory namespace contains functions for allocating and
    releasing memory. Also contains methods for accessing shared
