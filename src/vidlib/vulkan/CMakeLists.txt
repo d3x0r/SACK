@@ -1,27 +1,27 @@
 
+
+
 if( WIN32 )
 	#GET_FILENAME_COMPONENT(VULKAN_API "[HKEY_LOCAL_MACHINE\\SOFTWARE\\LunarG\\VulkanSDK;VK_SDK_PATHs]" ABSOLUTE CACHE)
 	set( VULKAN_API $ENV{VULKAN_SDK} )
 	set( SHADERC_ENABLE_SHARED_CRT ON )
 	message( "VIDLIB VULKAN FROM ENVIRONMENT:" ${VULKAN_API} )
-	if( NOT VULKAN_API )
-		set( VULKAN_API c:/tools/vulkansdk/1.1.114.0 )
-	endif( NOT VULKAN_API )
-	STRING( REPLACE ";" "" VULKAN_API ${VULKAN_API})
-	if( NOT VULKAN_API )
-		message( FATAL_ERROR "Environment 'VULKAN_API' has not been set" )
-	endif( NOT VULKAN_API )
-	message( "Vulkan API found at ${VULKAN_API}" )
-        
-	INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
-	if( __64__ )
-	   LINK_DIRECTORIES( ${VULKAN_API}/lib )
+	if( VULKAN_API )
+		INCLUDE_DIRECTORIES( ${VULKAN_API}/Include )
+		if( __64__ )
+	   	LINK_DIRECTORIES( ${VULKAN_API}/lib )
+		else()
+		   LINK_DIRECTORIES( ${VULKAN_API}/lib32 )
+                endif()
 	else()
-	   LINK_DIRECTORIES( ${VULKAN_API}/lib32 )
-	endif()
+		message( "Environment 'VULKAN_API' has not been set; skipping vulkan parts" )
+	endif( VULKAN_API )
+	
 
 else(WIN32)
 endif( WIN32 )
+
+if( VULKAN_API ) 
 
 if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
    ADD_DEFINITIONS( -D__NO_OPTIONS__ )
@@ -73,3 +73,4 @@ endif()
 install_mode_dest( bag.video.vulkan )
 
 
+endif( VULKAN_API ) 

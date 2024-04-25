@@ -418,6 +418,8 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 		lprintf( "out of bounds" );
 		return;
 	}
+	bd.ws = ws;
+	bd.hs = hs;
 #ifdef _INVERT_IMAGE
 	// set pointer in to the starting x pixel
 	// on the last line of the image to be copied

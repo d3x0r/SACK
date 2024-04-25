@@ -1053,7 +1053,7 @@ void Render3dText( CTEXTSTR string, int characters, CDATA color, SFTFont font, P
 	scale( offset, offset, 1/tmp_del );
 	addscaled( o_tmp, offset, o, 1/(tmp_del) );
 	TranslateV( output.transform, o_tmp );
-	PutStringFontEx( &output, 0, 0, color, 0, string, characters, font );
+	PutStringFontEx( &output, 0, 0, output.real_height, color, 0, string, characters, font );
 }
 
 

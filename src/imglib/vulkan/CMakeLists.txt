@@ -50,7 +50,7 @@ if( WIN32 )
 	   LINK_DIRECTORIES( ${VULKAN_API}/lib32 )
 	endif()
 
-	add_subdirectory( ${VULKAN_API}/shaderc shaderc )
+	#add_subdirectory( ${VULKAN_API}/shaderc shaderc )
 else(WIN32)
 	set( VULKAN_API /usr/include )
 	add_subdirectory( ${CMAKE_SOURCE_DIR}/../shaderc shaderc )
@@ -71,7 +71,7 @@ sack_add_library( ${project} SHARED
   line.c interface.c sprite.c ${sprite_sources}
   ${loader_sources}
   ${font_sources}
-  shader simple_shader simple_texture_shader
+  shader.c simple_shader.c simple_texture_shader.c
   simple_multi_shaded_texture_shader.c
 )
 
@@ -89,7 +89,7 @@ else()
 endif()
 
 if( WIN32 )
-	my_target_link_libraries( ${project} vulkan-1.lib shaderc )
+	my_target_link_libraries( ${project} vulkan-1.lib shaderc shaderc_util glslang shaderc_combined )
 else()
 	my_target_link_libraries( ${project} vulkan google_shadercshaderc )
 endif()
