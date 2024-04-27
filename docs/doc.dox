@@ -24,7 +24,7 @@ Text8=This is constant %SYMBOLNAME%.
 Text9=This is macro %SYMBOLNAME%.
 
 [Class Hierarchy]
-Count=2
+Count=12
 Current=0
 
 [Class Hierarchy\0]
@@ -36,9 +36,9 @@ Count=0
 
 [Class Hierarchy\0\Node Positions]
 Count=1
-ID0000=iList
-X0000=20
-Y0000=74
+ID0000=STRING_CONVERSION
+X0000=22
+Y0000=21
 
 [Class Hierarchy\0\Options]
 Zoom=1
@@ -387,6 +387,712 @@ OffsetY=4
 Module=Base Headers
 Name=Base Headers
 
+[Class Hierarchy\10]
+Module=Utility
+Name=Utility
+
+[Class Hierarchy\10\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\10\Node Positions]
+Count=0
+
+[Class Hierarchy\10\Options]
+Zoom=1
+
+[Class Hierarchy\10\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\10\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\10\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\10\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\10\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\10\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\10\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\10\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\10\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\11]
+Module=User Image Interface
+Name=User Image Interface
+
+[Class Hierarchy\11\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\11\Node Positions]
+Count=0
+
+[Class Hierarchy\11\Options]
+Zoom=1
+
+[Class Hierarchy\11\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\11\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\11\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\11\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\11\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\11\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\11\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\11\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\11\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
 [Class Hierarchy\1\ExcludedClasses]
 Count=0
 
@@ -730,6 +1436,2833 @@ ShowMargins=0
 Zoom=1
 
 [Class Hierarchy\1\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\2]
+Module=Logging
+Name=Logging
+
+[Class Hierarchy\2\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\2\Node Positions]
+Count=0
+
+[Class Hierarchy\2\Options]
+Zoom=1
+
+[Class Hierarchy\2\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\2\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\2\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\2\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\2\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\2\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\2\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\2\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\2\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\3]
+Module=Networking
+Name=Networking
+
+[Class Hierarchy\3\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\3\Node Positions]
+Count=1
+ID0000=network
+X0000=18
+Y0000=30
+
+[Class Hierarchy\3\Options]
+Zoom=1
+
+[Class Hierarchy\3\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\3\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\3\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\3\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\3\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\3\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\3\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\3\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\3\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\4]
+Module=Database
+Name=Database
+
+[Class Hierarchy\4\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\4\Node Positions]
+Count=0
+
+[Class Hierarchy\4\Options]
+Zoom=1
+
+[Class Hierarchy\4\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\4\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\4\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\4\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\4\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\4\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\4\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\4\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\4\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\5]
+Module=Images
+Name=Images
+
+[Class Hierarchy\5\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\5\Node Positions]
+Count=0
+
+[Class Hierarchy\5\Options]
+Zoom=1
+
+[Class Hierarchy\5\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\5\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\5\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\5\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\5\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\5\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\5\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\5\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\5\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\6]
+Module=Memoriy
+Name=Memoriy
+
+[Class Hierarchy\6\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\6\Node Positions]
+Count=0
+
+[Class Hierarchy\6\Options]
+Zoom=1
+
+[Class Hierarchy\6\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\6\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\6\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\6\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\6\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\6\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\6\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\6\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\6\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\7]
+Module=Deadstart
+Name=Deadstart
+
+[Class Hierarchy\7\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\7\Node Positions]
+Count=0
+
+[Class Hierarchy\7\Options]
+Zoom=1
+
+[Class Hierarchy\7\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\7\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\7\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\7\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\7\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\7\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\7\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\7\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\7\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\8]
+Module=Message IPC Service
+Name=Message IPC Service
+
+[Class Hierarchy\8\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\8\Node Positions]
+Count=0
+
+[Class Hierarchy\8\Options]
+Zoom=1
+
+[Class Hierarchy\8\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\8\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\8\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\8\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\8\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\8\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\8\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\8\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\8\Options\Shadows]
+Color=10070188
+LineShadows=0
+NodeShadows=0
+OffsetX=4
+OffsetY=4
+
+[Class Hierarchy\9]
+Module=System
+Name=System
+
+[Class Hierarchy\9\ExcludedClasses]
+Count=0
+
+[Class Hierarchy\9\Node Positions]
+Count=0
+
+[Class Hierarchy\9\Options]
+Zoom=1
+
+[Class Hierarchy\9\Options\Animation]
+AnimInterval=25
+MaxAnimSteps=3000
+
+[Class Hierarchy\9\Options\Background]
+Color=16777215
+ImageFile=
+
+[Class Hierarchy\9\Options\Clusters]
+BackgroundColor=14215660
+Border=6
+BorderColor=0
+BuildClusters=0
+Threshold=0
+
+[Class Hierarchy\9\Options\Grid]
+Show=0
+Snap=0
+X=10
+Y=10
+
+[Class Hierarchy\9\Options\Layout]
+ControlPointSize=6
+GraphBorder=20
+LayoutDirection=1
+LevelSpacing=60
+MaxNodeWidth=350
+MinNodeHeight=15
+MinNodeWidth=30
+NodesAdjustWidthToGrid=0
+NodesAllSameWidth=0
+NodeSpacing=1
+Scale=1
+ShowControlPoints=0
+SubGraphSpacing=40
+
+[Class Hierarchy\9\Options\Lines]
+ArrowOptions=3
+Arrows=1
+Color=0
+PortOffset=15
+Reverse=0
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0000]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0000\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0000\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0001]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0001\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0001\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0002]
+BackgroundColor=13434829
+BorderColor=0
+GradientBaseColor=11197867
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0002\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0002\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0003]
+BackgroundColor=16764313
+BorderColor=0
+GradientBaseColor=14527351
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0003\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0003\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0004]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0004\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0004\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0005]
+BackgroundColor=131071
+BorderColor=0
+GradientBaseColor=56797
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=0
+Style=3
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0005\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0005\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0006]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0006\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0006\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0007]
+BackgroundColor=52479
+BorderColor=0
+GradientBaseColor=43741
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=2
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0007\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0007\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0008]
+BackgroundColor=3394407
+BorderColor=0
+GradientBaseColor=1157445
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0008\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0008\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\NodeOptionsList\0009]
+BackgroundColor=16777215
+BorderColor=0
+GradientBaseColor=10070188
+HighlightColor=-16777203
+HighlightFontColor=-16777202
+Show=1
+Style=0
+StyleOptions=3
+TextAlignment=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0009\Font]
+Charset=1
+Color=0
+Height=-13
+Name=Tahoma
+Orientation=0
+Pitch=0
+Quality=0
+Size=10
+Style=0
+
+[Class Hierarchy\9\Options\NodeOptionsList\0009\TextSpacing]
+Bottom=3
+Left=8
+Right=8
+Top=3
+
+[Class Hierarchy\9\Options\Print]
+CropRectangle=0
+MarginBottom=15
+MarginLeft=15
+MarginRight=15
+MarginTop=15
+ShowMargins=0
+Zoom=1
+
+[Class Hierarchy\9\Options\Shadows]
 Color=10070188
 LineShadows=0
 NodeShadows=0
@@ -62314,7 +65847,13 @@ UseInheritedTopics=1
 UseInheritedUseUsing=0
 
 [External Topic Properties]
-Count=0
+Count=1
+ID0=IMAGE_EXTENT
+
+[External Topic Properties\IMAGE_EXTENT]
+Count=1
+ETPCommand0=13
+ETPContentsEntry0=1
 
 [File Extensions]
 ID1=.cs
@@ -62375,17 +65914,141 @@ Count=0
 Count=0
 
 [Modules]
-Count=1
+Count=11
 
 [Modules\0]
 Name=Base Headers
 TopicID=SACK Foundations
 
 [Modules\0\Files]
-Count=3
-File0=..\..\sack\include\sack_types.h
-File1=..\..\sack\include\stdhdrs.h
-File2=..\..\sack\include\typelib.h
+Count=5
+File0=..\include\filedotnet.h
+File1=..\include\final_types.h
+File2=..\include\sack_typelib.h
+File3=..\include\sack_types.h
+File4=..\include\stdhdrs.h
+
+[Modules\1]
+Name=Database
+TopicID=
+
+[Modules\10]
+Name=Utility
+TopicID=
+
+[Modules\10\Files]
+Count=6
+File0=..\include\configscript.h
+File1=..\include\datastore.h
+File2=..\include\fractions.h
+File3=..\include\generic_cache.h
+File4=..\include\systray.h
+File5=..\include\translation.h
+
+[Modules\1\Files]
+Count=4
+File0=..\include\pssql.h
+File1=..\include\sql_support.h
+File2=..\include\sqlgetoption.h
+File3=..\include\sqloptint.h
+
+[Modules\2]
+Name=Deadstart
+TopicID=
+
+[Modules\2\Files]
+Count=1
+File0=..\include\deadstart.h
+
+[Modules\3]
+Name=Images
+TopicID=
+
+[Modules\3\Files]
+Count=7
+File0=..\include\colordef.h
+File1=..\include\image.h
+File2=..\include\image3d.h
+File3=..\include\render.h
+File4=..\include\render3d.h
+File5=..\include\vidlib.h
+File6=..\include\vidlib\vidstruc.h
+
+[Modules\4]
+Name=Logging
+TopicID=
+
+[Modules\4\Files]
+Count=2
+File0=..\include\Logging.H
+File1=..\include\logging.h
+
+[Modules\5]
+Name=Memoriy
+TopicID=
+
+[Modules\5\Files]
+Count=1
+File0=..\include\sharemem.h
+
+[Modules\6]
+Name=Message IPC Service
+TopicID=
+
+[Modules\6\Files]
+Count=6
+File0=..\include\construct.h
+File1=..\include\msgclient.h
+File2=..\include\msgprotocol.h
+File3=..\include\msgserver.h
+File4=..\include\sys.sack\ipc.h
+File5=..\include\sys.sack\msg.h
+
+[Modules\7]
+Name=Networking
+TopicID=
+
+[Modules\7\Files]
+Count=7
+File0=..\include\html5.websocket.client.h
+File1=..\include\html5.websocket.h
+File2=..\include\http.h
+File3=..\include\jsox_parser.h
+File4=..\include\loadsock.h
+File5=..\include\netservice.h
+File6=..\include\network.h
+
+[Modules\8]
+Name=System
+TopicID=
+
+[Modules\8\Files]
+Count=8
+File0=..\include\filesys.h
+File1=..\include\idle.h
+File2=..\include\printer.h
+File3=..\include\sack_system.h
+File4=..\include\sack_vfs.h
+File5=..\include\sackcomm.h
+File6=..\include\service_hook.h
+File7=..\include\timers.h
+
+[Modules\9]
+Name=User Image Interface
+TopicID=
+
+[Modules\9\Files]
+Count=10
+File0=..\include\controls.h
+File1=..\include\menuflags.h
+File2=..\include\psi.h
+File3=..\include\psi\buttons.h
+File4=..\include\psi\clock.h
+File5=..\include\psi\console.h
+File6=..\include\psi\edit.h
+File7=..\include\psi\knob.h
+File8=..\include\psi\shadewell.h
+File9=..\include\psi\slider.h
 
 [Parsing]
 AssignedCommentsToFollowingSymbols=1
@@ -63050,8 +66713,79 @@ ID9=9
 SavedValues=1
 
 [Source Files]
-Count=1
-File0=..\include\*.cs;*.cpp;*.c;*.cxx;*.cc;*.h;*.hpp;*.hxx;*.pas;*.inc;*.int;*.vb;*.bpr;*.bpk;*.csproj;*.dpr;*.dpk;*.dsp;*.mak;*makefile;*.lst;*.vbproj;*.vbdproj;*.vcproj;*.dtx;*.txt;*.html;*.htm;*.xml;*.dom-snippet;*.java;*.idl;*.jpx;*.bdsproj;*.sln;*.js;*.aspx;*.asp;*.jsp;*.jspx;*.m;*.php;*.dproj;*.cbproj;*.vcxproj
+Count=72
+File0=..\include\colordef.h
+File1=..\include\configscript.h
+File10=..\include\filesys.h
+File11=..\include\final_types.h
+File12=..\include\fractions.h
+File13=..\include\generic_cache.h
+File14=..\include\hidtables.h
+File15=..\include\html5.canvas.h
+File16=..\include\html5.websocket.client.h
+File17=..\include\html5.websocket.h
+File18=..\include\http.h
+File19=..\include\idle.h
+File2=..\include\construct.h
+File20=..\include\image.h
+File21=..\include\image3d.h
+File22=..\include\interface.h
+File23=..\include\json_emitter.h
+File24=..\include\jsox_parser.h
+File25=..\include\keybrd.h
+File26=..\include\listhids.h
+File27=..\include\listports.h
+File28=..\include\loadsock.h
+File29=..\include\logging.h
+File3=..\include\controls.h
+File30=..\include\md5.h
+File31=..\include\menuflags.h
+File32=..\include\msgclient.h
+File33=..\include\msgprotocol.h
+File34=..\include\msgserver.h
+File35=..\include\mt19937ar.h
+File36=..\include\netservice.h
+File37=..\include\network.h
+File38=..\include\printer.h
+File39=..\include\procreg.h
+File4=..\include\datastore.h
+File40=..\include\psi.h
+File41=..\include\pssql.h
+File42=..\include\rcomlib.h
+File43=..\include\render.h
+File44=..\include\render3d.h
+File45=..\include\sack_ssh.h
+File46=..\include\sack_system.h
+File47=..\include\sack_typelib.h
+File48=..\include\sack_types.h
+File49=..\include\sack_utf8.h
+File5=..\include\deadstart.h
+File50=..\include\sack_vfs.h
+File51=..\include\sackcomm.h
+File52=..\include\salty_generator.h
+File53=..\include\service_hook.h
+File54=..\include\sha1.h
+File55=..\include\sha2.h
+File56=..\include\sharemem.h
+File57=..\include\signed_unsigned_comparisons.h
+File58=..\include\skelhdr.h
+File59=..\include\spacetree.h
+File6=..\include\docomatic.h
+File60=..\include\sql_support.h
+File61=..\include\sqlgetoption.h
+File62=..\include\sqloptint.h
+File63=..\include\stdhdrs.h
+File64=..\include\strlib.hpp
+File65=..\include\systray.h
+File66=..\include\timers.h
+File67=..\include\translation.h
+File68=..\include\vectlib.h
+File69=..\include\vectypes.h
+File7=..\include\exit_priorities.h
+File70=..\include\vesl_emitter.h
+File71=..\include\vidlib.h
+File8=..\include\ffmpeg_interface.h
+File9=..\include\filemon.h
 
 [Source Include Directories]
 Count=0
