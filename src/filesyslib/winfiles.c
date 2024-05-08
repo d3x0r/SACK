@@ -547,8 +547,8 @@ static void squash_dotdot( TEXTSTR path ) {
 			if( out ) (out++)[0] = cur[0];
 			else if( cur[0] == '/' || cur[0] == '\\' ){
 				if( pathchar < 0 ) {
-					if( ((cur-path) > 2) && (cur[-1] !='.' || cur[-2]!='.') )
-					pathchar = (int)( cur - path ); // this will be a short diff
+					if( cur[1] !='.' || cur[2]!='.' || !( cur[3] == '\\' || cur[3] == '/' ) )
+						pathchar = (int)( cur - path );  // this will be a short diff (re int conversion)
 				}  else {
 					if( cur[1] ) {
 						if( cur[1] == '.' ) {
