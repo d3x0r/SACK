@@ -1,9 +1,9 @@
 #include <stdhdrs.h>
 #include <idle.h>
 #define SACK_WEBSOCKET_CLIENT_SOURCE
-#include <html5.websocket.client.h>
 #include <salty_generator.h>
 #include "../html5.websocket.common.h"
+#include <html5.websocket.client.h>
 
 #include "local.h"
 
