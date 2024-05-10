@@ -1,0 +1,48 @@
+pkgbase="sack"
+pkgname="sack-binary"
+pkgdesc="SACK System Abstraction Component Kit core libraries and utilities"
+pkgver=1.11.111
+pkgrel=1
+epoch=0
+depends=(
+ "sack"
+)
+
+# probably more?
+makedepends=('cmake' 'ninja' 'gcc' 'git' )
+md5sums=('SKIP')
+source=(".git/core-src::git+https://github.com/d3x0r/sack")
+url="https://github.com/d3x0r/sack"
+arch=('x86_64')
+license=('WTFPL')
+
+options=()
+
+
+prepare() {
+	echo $(pwd) with $pkgname $pkgname-src
+	cd "$srcdir/$pkgname-src"
+	echo $(pwd) with $pkgname $pkgname-src
+	echo $pkgdir  
+}
+
+build() {
+  [ -x build ] || mkdir "build" 
+  #[ -x $pkgdir ] || mkdir "$pkgdir" 
+
+}
+
+package() {
+  cd "build"
+  cmake ../sack/binary -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
+  ninja
+  ninja install
+#  cd "$srcdir/$pkgname-src"
+#  install -d "$pkgdir/usr/bin"
+#  install -D -m755 imapd/imapd "$pkgdir/usr/bin/imapd"
+#  install -D -m755 ipopd/ipop2d "$pkgdir/usr/bin/ipop2d"
+#  install -D -m755 ipopd/ipop3d "$pkgdir/usr/bin/ipop3d"
+
+
+	
+}
