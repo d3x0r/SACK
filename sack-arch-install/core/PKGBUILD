@@ -13,7 +13,7 @@ depends=(
 # probably more?
 makedepends=('cmake' 'unixodbc' 'ninja' 'gcc' 'git' )
 md5sums=('SKIP')
-source=(".git/core-src::git+https://github.com/d3x0r/sack")
+source=(".git/sack-src::git+https://github.com/d3x0r/sack")
 url="https://github.com/d3x0r/sack"
 arch=('x86_64')
 license=('WTFPL')
@@ -23,7 +23,7 @@ options=()
 
 prepare() {
 	echo $(pwd) with $pkgname $pkgname-src
-	cd "$srcdir/$pkgname-src"
+	cd $srcdir/$pkgname-src
 	echo $(pwd) with $pkgname $pkgname-src
 	echo $pkgdir  
 }
@@ -36,7 +36,7 @@ build() {
 
 package() {
   cd "build"
-  cmake ../sack -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
+  cmake $srcdir/$pkgname-src -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
   ninja
   ninja install
 #  cd "$srcdir/$pkgname-src"
