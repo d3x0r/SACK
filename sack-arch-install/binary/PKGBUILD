@@ -34,7 +34,7 @@ build() {
 
 package() {
   cd "build"
-  cmake ../sack/binary -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
+  cmake $srcdir/$pkgname-src/binary -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
   ninja
   ninja install
 #  cd "$srcdir/$pkgname-src"
