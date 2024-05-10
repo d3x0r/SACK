@@ -24,6 +24,8 @@ length, and what is received will be exactly like the block that was sent.
 #define WEBSOCKET_EXPORT IMPORT_METHOD
 #endif
 
+struct html5_web_socket;
+
 // the result returned from the web_socket_opened event will
 // become the new value used for future uintptr_t parameters to other events.
 typedef uintptr_t (*web_socket_opened)( PCLIENT pc, uintptr_t psv );
