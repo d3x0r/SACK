@@ -31,7 +31,11 @@ if( NOT TARGET_INSTALL_PREFIX )
 endif( NOT TARGET_INSTALL_PREFIX )
 
 # someday we can enable this by default....
+if( NOT $ENV{VULKAN_SDK} STREQUAL "" )
+SET( ENABLE_VULKAN ON )
+else()
 SET( ENABLE_VULKAN OFF )
+endif()
 
 if( NOT CMAKE_COMPILER_IS_GNUCC
   AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang"
@@ -40,6 +44,7 @@ if( NOT CMAKE_COMPILER_IS_GNUCC
   ADD_DEFINITIONS( -Wno-parentheses )
   ADD_DEFINITIONS( -Wno-null-dereference )
   set( GCC 1 )
+  ADD_DEFINITIONS( -D_GNU_SOURCE )
   set( CMAKE_COMPILER_IS_GNUCC 1 )
 endif()
 
@@ -82,7 +87,7 @@ include_directories(  ${SACK_BASE}/include )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 3.8.0 )
+set( LIBRESSL_VERSION 3.9.0 )
 
 
 include( DefaultInstall )
