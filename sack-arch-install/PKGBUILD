@@ -1,5 +1,5 @@
 pkgbase="sack"
-pkgname="core"
+pkgname="sack"
 pkgdesc="SACK System Abstraction Component Kit core libraries and utilities"
 pkgver=1.11.111
 pkgrel=1
@@ -23,7 +23,7 @@ options=()
 
 prepare() {
 	echo $(pwd) with $pkgname $pkgname-src
-  cd "$srcdir/$pkgname-src"
+	cd "$srcdir/$pkgname-src"
 	echo $(pwd) with $pkgname $pkgname-src
 	echo $pkgdir  
 }
