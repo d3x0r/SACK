@@ -9,6 +9,10 @@
 #    define strdup _strdup
 #  endif
 
+#if __GNUC_PREREQ(14,0)
+#  define stricmp strcasecmp
+#endif
+
 #include "./types.h"
 #include "fileio.h"
 
