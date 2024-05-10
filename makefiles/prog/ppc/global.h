@@ -46,8 +46,8 @@ typedef struct global_tag
 	FILE *output;
 
 	int bDebugLog;
-	char pExecPath[256];
-	char pExecName[256];
+	//char pExecPath[256];
+	//char pExecName[256];
 	char pWorkPath[256];
 	DECLTEXTSZ( pCurrentPath, 256 );
 	uint32_t ErrorCount;

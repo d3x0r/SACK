@@ -1750,6 +1750,8 @@ int processArguments( int argc, char **argv ) {
 int main( int argc, char **argv, char **env )
 {
 #ifdef __LINUX__
+#if 0
+	// don't need this fancy name stuff...
 	{
 		/* #include unistd.h, stdio.h, string.h */
 		{
@@ -1777,6 +1779,7 @@ int main( int argc, char **argv, char **env )
 			strcpy( g.pExecPath, buf );
 		}
 	}
+#endif
 	getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
 #elif defined( _WIN32 )
 	_getcwd( g.pWorkPath, sizeof( g.pWorkPath ) );
