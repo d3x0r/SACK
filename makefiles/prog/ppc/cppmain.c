@@ -1245,9 +1245,9 @@ void ReleaseIncludePaths( void )
 
 
 
-void usage( void )
+void usage( const char *progname )
 {
-	printf( "usage: %s (options) <files...>\n", g.pExecName );
+	printf( "usage: %s (options) <files...>\n", progname );
 	printf( "\toptions to include\n"
 			  "	------------------------------------------\n" );
 	printf( "\t -[Ii]<path(s)>      add include path to default\n" );
@@ -1288,10 +1288,10 @@ void usage( void )
    printf( " those defines will be kept.\n" );
 }
 
-void longusage( void )
+void longusage( const char *progname )
 {
 	printf( "Unimplemented yet... showing usage()\n" );
-	usage();
+	usage( progname );
 }
 
 int ispathchr( char c )
@@ -1520,7 +1520,7 @@ int processArguments( int argc, char **argv ) {
 							else
 							{
 								fprintf( stderr, "Argument error: %s\n", argv[i] );
-								usage();
+								usage( argv[0] );
 								return 1;
 							}
 						}
@@ -1713,14 +1713,14 @@ int processArguments( int argc, char **argv ) {
 						}
 						else if( ( argv[i][n] == '?' ) || ( argv[i][n] == 'h' ) )
 						{
-							longusage();
+							longusage( argv[0] );
 							return 0;
 						}
 						else
 						{
 						unknown_option:
 							fprintf( stderr, "unknown option: %s (+%d)\n", argv[i], n );
-							usage();
+							usage( argv[0] );
 							return 0;
 						}
 						done = 1;
@@ -1803,7 +1803,7 @@ int main( int argc, char **argv, char **env )
 	SetCurrentPath( "." );
 
 	if( argc == 1 ) {
-		usage(); return 0;
+		usage( argv[0] ); return 0;
 	}
 	InitDefines(); // set current date/time macros....
 	if( 0 && !g.flags.skip_define_processing )
