@@ -775,10 +775,11 @@ typedef png_row_info * * png_row_infopp;
 typedef PNG_CALLBACK(void, *png_error_ptr, (png_structp, png_const_charp));
 #ifdef PNG_GRACEFUL_ERRORS
 typedef PNG_CALLBACK(int, *png_rw_ptr, (png_structp, png_bytep, size_t));
+typedef PNG_CALLBACK(int, *png_flush_ptr, (png_structp));
 #else
 typedef PNG_CALLBACK(void, *png_rw_ptr, (png_structp, png_bytep, size_t));
-#endif
 typedef PNG_CALLBACK(void, *png_flush_ptr, (png_structp));
+#endif
 typedef PNG_CALLBACK(void, *png_read_status_ptr, (png_structp, png_uint_32,
     int));
 typedef PNG_CALLBACK(void, *png_write_status_ptr, (png_structp, png_uint_32,
