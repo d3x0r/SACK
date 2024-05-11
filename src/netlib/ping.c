@@ -38,7 +38,7 @@ uint16_t in_cksum(uint16_t *addr, int len);
 struct sockaddr_fake {
 	uintptr_t sockaddr_len;
 	CTEXTSTR sockaddr_name;
-	union sockaddr_un {
+	union my_sockaddr_un {
 		struct sockaddr_in v4;
 		struct sockaddr_in6 v6;
 	} ip;
