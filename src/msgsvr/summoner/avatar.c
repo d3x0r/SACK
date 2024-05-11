@@ -221,7 +221,7 @@ void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(204): Note! N2003: source conversion type is 'char **'
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(204): Note! N2004: target conversion type is 'char const *const *'
 //cpg27dec2006 c:\work\sack\src\msgsvr\summoner\avatar.c(204): Note! N2002: 'GetArgsString' defined in: c:\work\sack\include\system.h(60)
-		SetControlText( GetControl( frame, TXT_TASK_ARGS ), GetArgsString(pTask->pArgs) );
+		SetControlText( GetControl( frame, TXT_TASK_ARGS ), GetArgsString((const char *const*)pTask->pArgs) );
 		{
 			PSI_CONTROL list = GetControl( frame, LIST_TASKS );
 			if( list )
