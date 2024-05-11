@@ -72,7 +72,7 @@ SaneWinMain( argc, argv )
 #ifdef __LINUX__
 					:"bash", 
 #endif
-					".", argc>2?argv+2:(char**)NULL
+					".", argc>2?argv+2:(char const* const*)NULL
 		                        , LPP_OPTION_FIRST_ARG_IS_ARG /*LPP_OPTION_DO_NOT_HIDE*/
 		                         | LPP_OPTION_INTERACTIVE
 		                        , OutputHandle
