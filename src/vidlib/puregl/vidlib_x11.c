@@ -1857,7 +1857,7 @@ int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, R
 
 
 
- int CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC OpenGLMouse( uintptr_t psvMouse, int32_t x, int32_t y, uint32_t b )
 {
     int used = 0;
     PRENDERER check;
