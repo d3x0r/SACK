@@ -265,7 +265,7 @@ void EditTask( PSI_CONTROL parent_frame, PTASKINFO pTask )
 
 
 
-void CPROC SummonerReadComplete( PCLIENT pc, CPOINTER buffer, size_t nLen )
+void CPROC SummonerReadComplete( PCLIENT pc, POINTER buffer, size_t nLen )
 {
 	// always get this member...
 	// first read this should also be NULL like buffer
