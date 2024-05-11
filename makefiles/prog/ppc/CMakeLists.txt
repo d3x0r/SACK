@@ -43,6 +43,9 @@ set( MYSOURCES
 	fileio.c 
         expr.c )
 
+
+  ADD_DEFINITIONS( -D_GNU_SOURCE )
+
 add_executable( ppc ${MYSOURCES} )
 
 INSTALL( TARGETS ppc DESTINATION bin )
