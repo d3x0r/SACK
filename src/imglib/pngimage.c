@@ -317,10 +317,11 @@ static int CPROC ImagePngWrite(png_structp png,
 
 
 //--------------------------------------
-static void CPROC ImagePngFlush(png_structp png_ptr)
+static int CPROC ImagePngFlush(png_structp png_ptr)
 {
 	// not eally needed a flush here.
 	//
+	return 1;
 }
 
 
