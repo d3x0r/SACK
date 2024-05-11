@@ -848,25 +848,6 @@ static int EvalExcept( int n )
          // oh - opps, it's not allowed to draw.
 			return;
 		}
-		if( hVideo->flags.bOpenGL )
-		{
-#ifdef LOG_OPENGL_CONTEXT
-			lprintf( "Auto-enable window GL." );
-#endif
-			//if( hVideo->flags.event_dispatched )
-			{
-				//lprintf( "Fatality..." );
-				//Return 0;
-			}
-			//lprintf( "Allowed to draw..." );
-#ifdef _OPENGL_ENABLED
-			if( !SetActiveGLDisplay( hVideo ) )
-			{
-				// if the opengl failed, dont' let the application draw.
-				return;
-			}
-#endif
-		}
 		hVideo->flags.event_dispatched = 1;
 		//					lprintf( "Disaptched..." );
 #ifdef _MSC_VER
@@ -1275,7 +1256,7 @@ void RenderGL( struct display_camera *camera )
 	}
 
 	// do OpenGL Frame
-	SetActiveGLDisplay( camera->hVidCore );
+	SetActiveGLDisplay( camera );
 	InitGL( camera );
 
 	{
