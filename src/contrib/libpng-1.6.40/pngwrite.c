@@ -2224,6 +2224,9 @@ static
 image_memory_flush)(png_structp png_ptr)
 {
    PNG_UNUSED(png_ptr)
+#ifdef PNG_GRACEFUL_ERROR
+   return 1;
+#endif
 }
 
 static int
