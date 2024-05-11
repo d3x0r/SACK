@@ -29,6 +29,10 @@
 #include <time.h>
 
 #ifdef __LINUX__
+#ifndef _GNU_SOURCE
+// timegm - ISOC2X feature
+#  define _GNU_SOURCE
+#endif
 #include <unistd.h>
 #include <sys/time.h>
 #include <stdarg.h>
