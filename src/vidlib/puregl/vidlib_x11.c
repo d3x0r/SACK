@@ -1284,7 +1284,7 @@ void RenderGL( struct display_camera *camera )
 			break;
 		}
 
-		GetGLMatrix( camera->origin_camera, camera->hVidCore->fModelView );
+		GetGLMatrixf( camera->origin_camera, camera->hVidCore->fModelView );
 		glLoadMatrixf( (RCOORD*)camera->hVidCore->fModelView );
 
 		{
