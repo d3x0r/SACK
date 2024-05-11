@@ -5,6 +5,10 @@
 #  include <direct.h> // _getcwd
 #endif
 
+#if defined( __LINUX__ )
+#include "unistd.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "fileio.h"

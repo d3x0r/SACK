@@ -32,6 +32,10 @@ endforeach(flag_var)
 endif(MSVC)
 
 
+if( UNIX) 
+  ADD_DEFINITIONS( -D__LINUX__ )
+endif( UNIX) 
+
 set( MYSOURCES 
         args.c
 	define.c 
