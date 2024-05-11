@@ -375,6 +375,38 @@ if( NOT __NO_INSTALL__ )
   endif( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
 endif( NOT __NO_INSTALL__ )
 
+
+
+if( NEED_LIBRESSL )
+   if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
+	set( LIBRESSL_SKIP_INSTALL ON )
+   endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
+	set( LIBRESSL_APPS OFF )
+	set( LIBRESSL_TESTS OFF )
+   if( __LINUX__ )
+      set( OPENSSLDIR "/" )
+   endif( __LINUX__ )
+	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
+	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
+        include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
+        set( SSL_LIBS ssl tls crypto )
+
+if( OFF )
+   SET( LIBSSH_SKIP_INSTALL ON )
+   set( LIBSSH_BUILD_SHARED_LIBS OFF )
+   add_subdirectory( src/contrib/libssh )
+   set( SSH_LIBS ssh )
+endif( OFF )
+
+
+else( NEED_LIBRESSL )
+
+   set( SSL_LIBS ssl tls crypto )
+
+endif( NEED_LIBRESSL )
+
+
+
 if( APPLE )
    SET( ExtraFlags "${ExtraFlags} -Wno-parentheses -Wno-address-of-packed-member")
 else( APPLE )
@@ -703,6 +735,9 @@ endif( ${__ARM__} OR __BUILD_ARM_CE__ )
 
   set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -DCMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"  -DTARGET_INSTALL_PREFIX=\"${TARGET_INSTALL_PREFIX}\")
 
+# fix syntax highlight (FAR)
+#"
+
   if( ${__LINUX__} )
     set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -D__LINUX__ )
   endif( ${__LINUX__} )
@@ -759,33 +794,6 @@ set( ExtraDefinitions ${ExtraDefinitions};SACK_CORE_BUILD )
 ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 
 
-if( NEED_LIBRESSL )
-   if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
-	set( LIBRESSL_SKIP_INSTALL ON )
-   endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
-	set( LIBRESSL_APPS OFF )
-	set( LIBRESSL_TESTS OFF )
-   if( __LINUX__ )
-      set( OPENSSLDIR "/" )
-   endif( __LINUX__ )
-	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
-	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
-        include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
-        set( SSL_LIBS ssl tls crypto )
-
-if( OFF )
-   SET( LIBSSH_SKIP_INSTALL ON )
-   set( LIBSSH_BUILD_SHARED_LIBS OFF )
-   add_subdirectory( src/contrib/libssh )
-   set( SSH_LIBS ssh )
-endif( OFF )
-
-
-else( NEED_LIBRESSL )
-
-   set( SSL_LIBS ssl tls crypto )
-
-endif( NEED_LIBRESSL )
 
 if( INCLUDE_LIBSSH2 )
   SET( MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} ${SACK_BASE}/src/netlib/ssh_layer.c ${SACK_BASE}/src/netlib/ssh_layer.h )
