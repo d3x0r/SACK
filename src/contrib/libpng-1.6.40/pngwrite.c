@@ -2213,7 +2213,14 @@ image_memory_write)(png_structp png_ptr, png_bytep/*const*/ data, size_t size)
 #endif
 }
 
-static void (PNGCBAPI
+static
+#ifdef PNG_GRACEFUL_ERROR
+  int
+#else
+  void 
+#endif
+
+(PNGCBAPI
 image_memory_flush)(png_structp png_ptr)
 {
    PNG_UNUSED(png_ptr)
