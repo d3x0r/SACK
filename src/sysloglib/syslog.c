@@ -26,8 +26,6 @@
 #include <intrinsics.h>
 #endif
 
-#include <time.h>
-
 #ifdef __LINUX__
 #ifndef _GNU_SOURCE
 // timegm - ISOC2X feature
