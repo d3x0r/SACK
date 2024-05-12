@@ -21,6 +21,7 @@
 //#define USE_EDIT_GLARE
 
 #include <stdhdrs.h>
+#include <ctype.h>
 #include <deadstart.h>
 #include <filesys.h>
 #include <network.h>
