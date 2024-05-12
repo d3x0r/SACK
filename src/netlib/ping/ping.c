@@ -2,12 +2,12 @@
 #include <network.h>
 
 
-void PingResult( PSOCKADDR dwIP, CTEXTSTR name
+void PingResult( SOCKADDR* dwIP, CTEXTSTR name
 						, int min, int max, int avg
 						, int drop, int hops )
 {
 	if( dwIP ) { // else was a timeout.
-		CTEXTSTR str = AddrToString( name, dwIP );
+		CTEXTSTR str = GetAddrString( dwIP );
 		printf( "Result: %25s(%12s) %d %d %d\n", name, str
                  							, min, max, avg );
 		FreeAddrString( str );
