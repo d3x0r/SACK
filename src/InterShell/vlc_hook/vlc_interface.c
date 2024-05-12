@@ -1056,14 +1056,14 @@ static int EvalExcept( int n )
 }
 #endif
 
-void CPROC VLC_RedrawCallback( uintptr_t psvUser, PRENDERER self )
+int CPROC VLC_RedrawCallback( uintptr_t psvUser, PRENDERER self )
 {
 	// output to prenderer.
 	struct my_vlc_interface *pmyi;
 	pmyi = (struct my_vlc_interface*)psvUser;
 
-	OutputAvailableFrame( pmyi );
-
+	return OutputAvailableFrame( pmyi );
+	
 }
 
 struct my_vlc_interface *CreateInstanceOn( PRENDERER renderer, CTEXTSTR name, LOGICAL transparent, CTEXTSTR extra_opts )

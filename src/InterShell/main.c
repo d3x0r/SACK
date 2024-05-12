@@ -18,6 +18,7 @@
 
 #include <stdhdrs.h>
 #include <deadstart.h>
+#include <ctype.h>
 #include <filesys.h>
 #include <network.h>
 #include <idle.h>
