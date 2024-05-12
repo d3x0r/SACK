@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 
 
 // have to include this first to setup common image and render interface defines...
