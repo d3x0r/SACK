@@ -7,7 +7,9 @@ epoch=0
 depends=(
  "unixodbc"
  "linux-headers"
- "cmake"
+ "wayland-protocols"
+ "glew"
+ "mesa"
 )
 
 # probably more?
@@ -36,7 +38,7 @@ build() {
 
 package() {
   cd "build"
-  cmake $srcdir/$pkgname-src -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
+  cmake $srcdir/$pkgname-src -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/usr/ -DTARGET_INSTALL_PREFIX=/usr -DNEED_PNG=1 -G Ninja
   ninja
   ninja install
 #  cd "$srcdir/$pkgname-src"

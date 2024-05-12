@@ -1,6 +1,6 @@
-pkgbase="sack"
+pkgbase="sack-binary"
 pkgname="sack-binary"
-pkgdesc="SACK System Abstraction Component Kit core libraries and utilities"
+pkgdesc="Assorted Binary utilities based on SACK"
 pkgver=1.11.111
 pkgrel=1
 epoch=0
@@ -11,7 +11,7 @@ depends=(
 # probably more?
 makedepends=('cmake' 'ninja' 'gcc' 'git' )
 md5sums=('SKIP')
-source=(".git/core-src::git+https://github.com/d3x0r/sack")
+source=(".git/sack-binary-src::git+https://github.com/d3x0r/sack")
 url="https://github.com/d3x0r/sack"
 arch=('x86_64')
 license=('WTFPL')
@@ -34,7 +34,7 @@ build() {
 
 package() {
   cd "build"
-  cmake $srcdir/$pkgname-src/binary -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/ -DTARGET_INSTALL_PREFIX=/usr -G Ninja
+  cmake $srcdir/$pkgname-src/binary -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=$pkgdir/usr/ -DTARGET_INSTALL_PREFIX=/usr -DSACK_SDK_ROOT_PATH=/usr -DBUILD_INTO_SACK=ON -G Ninja
   ninja
   ninja install
 #  cd "$srcdir/$pkgname-src"
