@@ -8,11 +8,15 @@ endif( NOT SACK_SDK_ROOT_PATH )
 
 
 include( ${SACK_SDK_ROOT_PATH}/share/SACK/build/CMakePackage )
+
+if( OFF ) 
 if( __ANDROID__ )
     INSTALL_SACK( lib )
 else( __ANDROID__ )
     INSTALL_SACK( bin )
 endif( __ANDROID__ )
+endif()
+
 include_directories( ${SACK_INCLUDE_DIR} )
 LINK_DIRECTORIES( ${SACK_LIBRARY_DIR} )
 

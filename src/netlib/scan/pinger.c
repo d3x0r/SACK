@@ -3,12 +3,12 @@
 #include <network.h>
 
 
-void PingResult( uint32_t dwIP, CTEXTSTR name
+void PingResult( SOCKADDR* dwIP, CTEXTSTR name
 						, int min, int max, int avg
 						, int drop, int hops )
 {
 	if( dwIP ) // else was a timeout.
-	printf( "Result: %25s(%12s) %d %d %d\n", name, inet_ntoa( *(struct in_addr*)&dwIP )
+	printf( "Result: %25s(%12s) %d %d %d\n", name, GetAddrString( dwIP )
                  							, min, max, avg );
 }
 

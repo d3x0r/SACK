@@ -456,7 +456,7 @@ static uintptr_t TestSecurityContext( "SQL Password" )( uintptr_t button )
 		if( pls && pls->nTokens )
 		{
 			struct password_info *pi;
-			pi = PromptForPassword( &g.current_user, &g.current_user_login_id, NULL, pls->pTokens, pls->nTokens, pls );
+			pi = PromptForPassword( &g.current_user, &g.current_user_login_id, NULL, (char const**)pls->pTokens, pls->nTokens, pls );
 			if( !pi || pi->login_id == INVALID_INDEX )
 				return INVALID_INDEX;
 

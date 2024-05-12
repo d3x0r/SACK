@@ -4022,7 +4022,7 @@ TEXTSTR getCurrentUser( void )
 
 //--------------------------------------------------------------------------------
 // Returns Current User if there is one
-INDEX getCurrSystemID( void )
+CTEXTSTR getCurrSystemID( void )
 {	
 	return g.system_id;	
 }

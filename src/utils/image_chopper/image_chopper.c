@@ -9,7 +9,7 @@ static struct {
    PIMAGE_INTERFACE pii;
 } l;
 
-void CPROC Process( uintptr_t psvUser, CTEXTSTR file, int flags )
+void CPROC Process( uintptr_t psvUser, CTEXTSTR file, enum ScanFileProcessFlags flags )
 {
 	TEXTCHAR buf[256];
    TEXTSTR dup = StrDup( file );

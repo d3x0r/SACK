@@ -210,7 +210,7 @@ TARGET_ADDRESS CreateTarget( CTEXTSTR address )
 
 
 
-void PingResult( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
+void PingResult( uintptr_t psv, SOCKADDR* dwIP, CTEXTSTR name, int min, int max, int avg, int drop, int hops )
 {
    static int dropped;
 	PPING_DATA_COLLECTOR ppdc = (PPING_DATA_COLLECTOR)psv;
@@ -218,7 +218,8 @@ void PingResult( uintptr_t psv, uint32_t dwIP, CTEXTSTR name, int min, int max, 
 	if( max )
 	{
 		PPING_RESULT result = GetFromSet( PING_RESULT, &ppdc->samples );
-		result->dwIP = dwIP;
+		lprintf( "Need to converet this address for ping result..." );
+		result->dwIP = (uint32_t)dwIP;
 		//result->name = StrDup( name );
 		result->min = min;
 		result->max = max;

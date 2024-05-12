@@ -206,10 +206,11 @@ static void drawImages( Image dest, int drawpart, int rem, int hr, int xofs, int
 	}
 }
 
-static void CPROC MyDraw( uintptr_t psv, PRENDERER r ) {
+static int CPROC MyDraw( uintptr_t psv, PRENDERER r ) {
 	Image surface = GetDisplayImage( r );
 	drawImages( surface, 0, 1, 0, 0, 0 );
 	UpdateDisplay(r);
+	return 1;
 }
 
 

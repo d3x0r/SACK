@@ -47,7 +47,7 @@ TEXTCHAR linebuffer[1024 * 64];
 #define KEEP_CASE TRUE
 #endif
 
-void CPROC process( uintptr_t psv, CTEXTSTR file, int flags )
+void CPROC process( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFlags flags )
 {
 	static int count; // used for fix_double processing.
 	TEXTCHAR outfile[256];

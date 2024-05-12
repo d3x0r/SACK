@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include <filesys.h>
 
 
 // have to include this first to setup common image and render interface defines...
@@ -206,8 +207,8 @@ static struct my_button * PlayVideo( CTEXTSTR name )
 		params.media = me;
 
 		me->file = ffmpeg_LoadFile( name, GetDisplay, (uintptr_t)&params
-			, NULL, 0
 			, NULL
+			, NULL, 0
 			, VideoEndedCallback, (uintptr_t)me
 			, VideoPlayError );
 		if( me->file )

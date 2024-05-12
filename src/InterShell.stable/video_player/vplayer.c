@@ -310,7 +310,7 @@ static uintptr_t OnCreateMenuButton( "Video Playlist Manager/Test" )( PMENU_BUTT
 }
 
 
-void CPROC AddFile( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC AddFile( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	if( ( StrCaseCmp( name, "PlayList.m3u" ) == 0 )
 	  ||( StrCaseCmp( name, "PlayTest.m3u" ) == 0 )
@@ -711,7 +711,7 @@ static void copy( CTEXTSTR src, CTEXTSTR dst )
 	SetFileWriteTime( dst, filetime );
 }
 
-static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
+static LOGICAL CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t y )
 {
 	if( !l.base_video_path )
 	{
@@ -750,6 +750,7 @@ static void CPROC AcceptFile( PSI_CONTROL pc, CTEXTSTR file, int32_t x, int32_t 
 			RefillListbox( list );
 		}
 	}
+	return TRUE;
 }
 
 static uintptr_t OnCreateMenuButton( "Video Playlist Manager/Accept Files" )( PMENU_BUTTON button )
