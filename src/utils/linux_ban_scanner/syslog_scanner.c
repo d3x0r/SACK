@@ -31,7 +31,7 @@ static void AddBan( const char *IP )
 		static char query[256];
 		TEXTSTR* result = NULL;
 		snprintf( query, 256, "select id from banlist where IP=`%s`", IP );
-		if( SQLQuery( lbs.db, query, &result ) ) {
+		if( SQLQuery( lbs.db, query, (char const***)&result ) ) {
 			if( result && result[0] ) {
 				SQLEndQuery( lbs.db );
 				printf( "already banned %s\n", IP );

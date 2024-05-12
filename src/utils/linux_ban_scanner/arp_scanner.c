@@ -26,7 +26,7 @@ static void add_router( CTEXTSTR addr, CTEXTSTR router )
 {
    struct address_minmax *router_mm;
 	if( !lbs.addressTree )
-		lbs.addressTree = CreateBinaryTreeEx( StrCmp, NULL );
+		lbs.addressTree = CreateBinaryTreeEx( (GenericCompare)StrCmp, NULL );
 	router_mm = FindInBinaryTree( lbs.addressTree, (uintptr_t)router );
 	if( !router_mm ) {
 		router_mm = New( struct address_minmax );
