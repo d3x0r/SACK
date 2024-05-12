@@ -125,7 +125,7 @@ PRELOAD( RegisterReel)
 
 static uintptr_t OnCreateControl( "Games/Slots/Slot Reel")(PSI_CONTROL parent,int32_t x,int32_t y,uint32_t w,uint32_t h)
 {
-	return MakeNamedControl( parent, reel_control.name, x, y, w, h, reel_local.ID++ );
+	return (uintptr_t)MakeNamedControl( parent, reel_control.name, x, y, w, h, reel_local.ID++ );
 }
 
  static PSI_CONTROL OnGetControl("Games/Slots/Slot Reel")(uintptr_t psvInit)

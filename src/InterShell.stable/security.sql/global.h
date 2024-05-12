@@ -96,7 +96,7 @@ struct _global_sql_password global_sql_password;
 
 TEXTSTR getCurrentUser( void );
 
-INDEX getCurrSystemID( void );
+CTEXTSTR getCurrSystemID( void );
 
 PSQL_PASSWORD GetButtonSecurity( uintptr_t button, int bCreate );
 
