@@ -31,3 +31,9 @@ amalgamate/
 *.wasm
 *.so
 *.map
+sack-arch-install/*/pkg
+sack-arch-install/*/src
+sack-arch-install/*/*.zst
+include/*/*.bak
+include/*.bak
+
