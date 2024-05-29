@@ -581,6 +581,7 @@ SET_SOURCE_FILES_PROPERTIES( ${MD5_SOURCES} PROPERTIES
 if( NOT __NO_NETWORK__ )
 set( NETWORK_HEADERS
      ${SOURCES_ROOT}src/netlib/netstruc.h
+     ${SOURCES_ROOT}src/netlib/ssh_layer.h
      ${SOURCES_ROOT}src/netlib/ping.h
     )
 endif( NOT __NO_NETWORK__ )
