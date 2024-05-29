@@ -1170,7 +1170,7 @@ PSSQL_PROC( int, SQLRecordQuery_js )( PODBC odbc
 /* 
 	this properly releases the list and all allocated strings within the entires 
  */
-void ReleaseSQLResults( PDATALIST *ppdlResults );
+PSSQL_PROC( void, ReleaseSQLResults )( PDATALIST *ppdlResults );
 
 /* Do a SQL query on the default odbc connection. The first
    record results immediately if there are any records. Returns
