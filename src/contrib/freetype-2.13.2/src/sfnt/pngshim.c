@@ -221,7 +221,12 @@
   }
 
 
-  static void
+  static
+#ifdef PNG_GRACEFUL_ERRORS
+      int
+#else
+      void
+#endif
   read_data_from_FT_Stream( png_structp  png,
                             png_bytep    data,
                             png_size_t   length )
@@ -245,6 +250,7 @@
     ft_memcpy( data, stream->cursor, length );
 
     FT_FRAME_EXIT();
+    return 1;
   }
 
 
