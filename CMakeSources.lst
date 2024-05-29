@@ -156,6 +156,12 @@ set( NETWORK_SOURCES ${NETWORK_SOURCES}
 )
 endif( NOT NO_SSL )
 
+if( NOT NO_SSH )
+set( NETWORK_SOURCES ${NETWORK_SOURCES}
+  ${SOURCES_ROOT}src/netlib/ssh_layer.c
+)
+endif( NOT NO_SSH )
+
 SET_SOURCE_FILES_PROPERTIES( ${NETWORK_SOURCES} PROPERTIES
 		FOLDER "Source Files\\Network Library" )
 endif( NOT __NO_NETWORK__ )
