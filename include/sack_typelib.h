@@ -129,7 +129,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE         EmptyList      ( PLIST *pList );
 typedef class iList
 {
 public:
-	PLIST list;
+	volatile PLIST list;
 	INDEX idx;
 	inline iList() { list = CreateListEx( DBG_VOIDSRC ); }
 	inline ~iList() { DeleteListEx( &list DBG_SRC ); }
@@ -292,7 +292,7 @@ TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForP
 #endif
 //--------------------------------------------------------
 #ifdef __cplusplus
-/* virtual file system using file system IO instead of memory mapped IO */
+/* A type of dynamic array that contains the data of the elements and not just pointers like PLIST. */
 namespace data_list {
 #endif
 
