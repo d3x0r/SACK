@@ -234,7 +234,7 @@ int CheckUAC( void )
 		unlink( "tmp.reg" ); \
 	} \
 	else \
-		SetRegistryItem( HKEY_LOCAL_MACHINE, "SOFTWARE", "\\Freedom Collective\\" program, "Install_Dir", REG_SZ, (BYTE*)path, strlen(path));
+		SetRegistryItem( HKEY_LOCAL_MACHINE, "SOFTWARE", "\\Freedom Collective\\" program, "Install_Dir", REG_SZ, (BYTE*)path, (int)strlen(path));
 
 #endif
 
@@ -307,7 +307,7 @@ int main( int argc, char **argv )
 			replace_start = strstr( package, "@@@" );
 			if( replace_start )
 			{
-				fprintf( out, "%*.*s", replace_start - package, replace_start - package, package );
+				fprintf( out, "%*.*s", (int)(replace_start - package), (int)(replace_start - package), package );
 				fprintf( out, "%s", SlashFix( path ) );
 				fprintf( out, "%s", replace_start + 3 );
 			}
