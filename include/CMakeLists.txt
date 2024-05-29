@@ -38,6 +38,7 @@ image.h image3d.h
 interface.h
 keybrd.h
 loadsock.h
+sack_ssh.h
 logging.h
 menuflags.h
 msgclient.h
