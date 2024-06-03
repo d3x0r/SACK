@@ -1,7 +1,9 @@
 #define FIX_RELEASE_COM_COLLISION
 
 
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #include <stdhdrs.h>
 #include <stdio.h>
 #include <string.h>

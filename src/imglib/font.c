@@ -11,7 +11,9 @@
 #define FORCE_COLOR_MACROS
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #include <imglib/fontstruct.h>
 #include <imglib/imagestruct.h>
 #include <image.h>
