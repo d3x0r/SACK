@@ -387,15 +387,17 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
-                                                                                        pHttpState->method = SegBreak( request );
-                                                                                        pHttpState->flags.no_content_length = 0;
+											pHttpState->method = SegBreak( request );
+											//GET will never have a body?
+											pHttpState->flags.no_content_length = 0;
 										}
 										else if( TextSimilar( request, "POST" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 											pHttpState->method = SegBreak( request );
-											pHttpState->flags.no_content_length = 0;
+											// a post could have a body, and we should wait for it?
+											//pHttpState->flags.no_content_length = 0;
 										}
 										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
@@ -443,6 +445,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 										}
 										for( tmp = request; tmp; tmp = next )
 										{
+											// this describes a GET or POST request; an HTTP response would be handled above, and would be before or equal to 'request'
 											//lprintf( "word %s", GetText( tmp ) );
 											next = NEXTLINE( tmp );
 											//lprintf( "Line : %s", GetText( pLine ) );
@@ -579,6 +582,10 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 					if( StrCaseStr( GetText( field->value ), "upgrade" ) ) {
 						pHttpState->flags.upgrade = 1;
 					}
+					else if( StrCaseStr( GetText( field->value ), "close" ) ) {
+						// the close defines the length of content...
+						pHttpState->flags.no_content_length = 1;
+					}
 				}
 				else if( TextLike( field->name, "Transfer-Encoding" ) )
 				{
@@ -616,7 +623,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 			) )
 	{
 		pHttpState->returned_status = 1;
-		//lprintf( "return http %d",pHttpState->numeric_code );
+		lprintf( "return http %d",pHttpState->numeric_code );
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
 		if( pHttpState->content && (pHttpState->numeric_code == 200) ) {
@@ -1348,6 +1355,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		if( pc )
 		{
 			char* header;
+			LOGICAL skipLength = FALSE;
 			INDEX idx;
 			LOGICAL hadUserAgent = FALSE;
 			const char* resource = GetText( url );
@@ -1365,14 +1373,19 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.0" );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			if( options->content && options->contentLen ) {
-				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
-			}
 			vtprintf( state->pvtOut, "Host:%s\r\n", GetText( address ) );
 			
 			LIST_FORALL( options->headers, idx, char*, header ) {
 				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
+				if( !skipLength   && ( StrCaseCmpEx( header, "Content-Length", 15 ) == 0 ) ) {
+					skipLength = TRUE;
+					if( header[15] == '~' ) // force content length to get hidden; should be ':' to be valid
+						continue;
+				}				
 				vtprintf( state->pvtOut, "%s\r\n", header );
+			}
+			if( !skipLength && options->content && options->contentLen ) {
+				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
 			if( !hadUserAgent )
 				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
