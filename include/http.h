@@ -126,7 +126,7 @@ LOGICAL HTTPAPI AddHttpData( HTTPState pHttpState, CPOINTER buffer, size_t size 
             to 'content\-length' meta tag.
    FALSE :  Still collecting full packet                           */
 //HTTP_EXPORT int HTTPAPI ProcessHttp( HTTPState pHttpState );
-HTTP_EXPORT int HTTPAPI ProcessHttp( HTTPState pHttpState, int (*send)(uintptr_t psv, CPOINTER buf, size_t len), uintptr_t psv );
+HTTP_EXPORT enum ProcessHttpResult HTTPAPI ProcessHttp( HTTPState pHttpState, int (*send)(uintptr_t psv, CPOINTER buf, size_t len), uintptr_t psv );
 
 HTTP_EXPORT /* Gets the specific result code at the header of the packet -
    http 2.0 OK sort of thing.                                  */
