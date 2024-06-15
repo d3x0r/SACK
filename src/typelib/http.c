@@ -139,8 +139,10 @@ void GatherHttpData( struct HttpState *pHttpState )
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 		LineRelease( pNewLine );
 		pHttpState->partial = pMergedLine;
-		pHttpState->content = pHttpState->partial;
-		pHttpState->content_length = GetTextSize( pHttpState->content );
+		if( !pHttpState->flags.no_content_length ) {
+			pHttpState->content = pHttpState->partial;
+			pHttpState->content_length = GetTextSize( pHttpState->content );
+		}
 	}
 	unlockHttp( pHttpState );
 }
@@ -236,11 +238,12 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT *ppar
 }
 
 //int ProcessHttp( struct HttpState *pHttpState )
-int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPOINTER buf, size_t len ), uintptr_t psv )
+enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPOINTER buf, size_t len ), uintptr_t psv )
 {
 	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
+		//lprintf( "Process HTTP in final..." );
 		//if( !pHttpState->method )
 		{
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
@@ -251,7 +254,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 				if( pHttpState->flags.success && !pHttpState->returned_status ) {
 					unlockHttp( pHttpState );
 					pHttpState->returned_status = 1;
-					return pHttpState->numeric_code;
+					return (enum ProcessHttpResult)pHttpState->numeric_code;
 				}
 			}
 			else {
@@ -269,7 +272,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 			}
 		}
 		unlockHttp( pHttpState );
-
+		//lprintf( "return http nothing  %d %d %d", pHttpState->content_length, pHttpState->flags.success, pHttpState->returned_status );
 		return HTTP_STATE_RESULT_NOTHING;
 	}
 	else
@@ -371,7 +374,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 							}
 							else
 							{
-			//lprintf( "Parsing http state content for something.." );
+								//lprintf( "Parsing http state request for something.." );
 								pLine = SegCreate( pos - start - pHttpState->bLine );
 								MemCpy( line = GetText( pLine ), c + start, (pos - start - pHttpState->bLine)*sizeof(TEXTCHAR));
 								line[pos-start- pHttpState->bLine] = 0;
@@ -387,15 +390,17 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
-                                                                                        pHttpState->method = SegBreak( request );
-                                                                                        pHttpState->flags.no_content_length = 0;
+											pHttpState->method = SegBreak( request );
+											//GET will never have a body?
+											pHttpState->flags.no_content_length = 0;
 										}
 										else if( TextSimilar( request, "POST" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
 											pHttpState->method = SegBreak( request );
-											pHttpState->flags.no_content_length = 0;
+											// a post could have a body, and we should wait for it?
+											//pHttpState->flags.no_content_length = 0;
 										}
 										// this loop is used for both client and server http requests...
 										// this will be the first part of a HTTP response (this one will have a result code, the other is just version)
@@ -443,6 +448,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 										}
 										for( tmp = request; tmp; tmp = next )
 										{
+											// this describes a GET or POST request; an HTTP response would be handled above, and would be before or equal to 'request'
 											//lprintf( "word %s", GetText( tmp ) );
 											next = NEXTLINE( tmp );
 											//lprintf( "Line : %s", GetText( pLine ) );
@@ -579,6 +585,10 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 					if( StrCaseStr( GetText( field->value ), "upgrade" ) ) {
 						pHttpState->flags.upgrade = 1;
 					}
+					else if( StrCaseStr( GetText( field->value ), "close" ) ) {
+						// the close defines the length of content...
+						pHttpState->flags.no_content_length = 1;
+					}
 				}
 				else if( TextLike( field->name, "Transfer-Encoding" ) )
 				{
@@ -616,7 +626,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 			) )
 	{
 		pHttpState->returned_status = 1;
-		//lprintf( "return http %d",pHttpState->numeric_code );
+		//lprintf( "return http %d l:%d nl:%d",pHttpState->numeric_code, pHttpState->content_length, pHttpState->flags.no_content_length );
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
 		if( pHttpState->content && (pHttpState->numeric_code == 200) ) {
@@ -628,7 +638,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 			return HTTP_STATE_RESOURCE_NOT_FOUND;
 		if( pHttpState->numeric_code == 400 )
 			return HTTP_STATE_BAD_REQUEST;
-		return pHttpState->numeric_code;
+		return (enum ProcessHttpResult)pHttpState->numeric_code;
 	}
 	//lprintf( "return http nothing" );
 	return HTTP_STATE_RESULT_NOTHING;
@@ -637,6 +647,7 @@ int ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPO
 LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size )
 {
 	lockHttp( pHttpState );
+	//lprintf( "AddHttpData:%d", size );
 	pHttpState->last_read_tick = timeGetTime();
 	if( pHttpState->read_chunks )
 	{
@@ -766,7 +777,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size 
 		unlockHttp( pHttpState );
 		if( pHttpState->final ) {
 			// this will cause it to wait until 'endhttp' to process next block.
-			//lprintf( "still handling a previous requet in add data", pHttpState->pc[0] );
+			//lprintf( "still handling a previous request in add data", pHttpState->pc[0] );
 			return FALSE;
 		}
 		return TRUE;
@@ -794,7 +805,7 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->bLine = 0;
 	pHttpState->final = 0;
 	pHttpState->response_version = 0;
-	pHttpState->flags.no_content_length = 0;
+	pHttpState->flags.no_content_length = 1;
 	pHttpState->content_length = 0;
 	LineRelease( pHttpState->method );
 	pHttpState->method = NULL;
@@ -1062,17 +1073,18 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 			LogBinary( (const uint8_t*) buffer, size );
 		}
 #endif
-		//lprintf( "adding data:%d", size );
-		if( AddHttpData( state, buffer, size ) )
-			if( ProcessHttp( state, NULL, 0 ) ) // this shouldn't cause any auto send?
+		if( AddHttpData( state, buffer, size ) ) {
+			enum ProcessHttpResult r;
+			if( r = ProcessHttp( state, NULL, 0 ) ) // this shouldn't cause any auto send?
 			{
-				//lprintf( "this is where we should close and not end... %d %d",state->flags.close , !state->flags.keep_alive );
+				//lprintf( "this is where we should close and not end...%d %d %d",r, state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
 					RemoveClient( state->pc[0]);
 					return;
 				} else
 					EndHttp( state );
 			}
+		}
 	}
 
 	// read is handled by the SSL layer instead of here.  Just trust that someone will give us data later
@@ -1087,7 +1099,9 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
+	//lprintf( "HTTP Close Event" );
 	if( data->flags.no_content_length ) { // data is collected into 'partial' until close
+		//lprintf( "HTTP Close event... collecting data...");
 		GatherHttpData( data );
 		data->content_length = GetTextSize( data->partial );
 		//lprintf( "at close what is content length? %d", data->content_length );
@@ -1348,6 +1362,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		if( pc )
 		{
 			char* header;
+			LOGICAL skipLength = FALSE;
 			INDEX idx;
 			LOGICAL hadUserAgent = FALSE;
 			const char* resource = GetText( url );
@@ -1365,14 +1380,19 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.0" );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			if( options->content && options->contentLen ) {
-				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
-			}
 			vtprintf( state->pvtOut, "Host:%s\r\n", GetText( address ) );
 			
 			LIST_FORALL( options->headers, idx, char*, header ) {
 				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
+				if( !skipLength   && ( StrCaseCmpEx( header, "Content-Length", 15 ) == 0 ) ) {
+					skipLength = TRUE;
+					if( header[15] == '~' ) // force content length to get hidden; should be ':' to be valid
+						continue;
+				}				
 				vtprintf( state->pvtOut, "%s\r\n", header );
+			}
+			if( !skipLength && options->content && options->contentLen ) {
+				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
 			if( !hadUserAgent )
 				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
@@ -1414,10 +1434,12 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			// wait for response.
 			while( state->request_socket && !state->closed
 				&& ( state->last_read_tick > ( timeGetTime() - options->timeout ) ) ) {
+				//lprintf( "waiting for response 1000 second %d", options->timeout );
 				WakeableSleep( 1000 );
 			}
 			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
 			if( state->request_socket && !state->closed ) {
+				//lprintf( "Closing in got response?" );
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
 			}
 

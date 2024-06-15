@@ -1,7 +1,9 @@
 /// This font cache keeps fonts in char format.
 
 //#define DEBUG_OPENFONTFILE
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 
 #ifdef _PSI_INCLUSION_
 //#line 2 "../imglib/psi_fntcache.c"

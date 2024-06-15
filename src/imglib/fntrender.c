@@ -4,7 +4,9 @@
 
 #include <stdhdrs.h>
 #include <idle.h>
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #include <ft2build.h>
 #include <../src/contrib/freetype-2.13.2/include/freetype/tttables.h>
 //#include <tttags.h>

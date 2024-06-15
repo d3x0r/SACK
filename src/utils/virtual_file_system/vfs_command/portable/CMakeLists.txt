@@ -144,6 +144,13 @@ set( project sack_vfs_command.portable )
 sack_add_executable(${project} ${PROG_SOURCES} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=size_t" )
+# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+if( MSVC )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
@@ -159,11 +166,11 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_H
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint32_t" )
 # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
 # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
-if( WIN32 )
+if( MSVC )
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
     SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
-endif( WIN32 )
+endif( MSVC )
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
@@ -177,6 +184,13 @@ set( project sack_vfs_command.64.portable )
 sack_add_executable(${project} ${PROG_SOURCES} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "VFS_DISK_DATATYPE=uint64_t" )
+# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+if( MSVC )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 
 
 SET_TARGET_PROPERTIES(${project} PROPERTIES
@@ -193,6 +207,15 @@ set( project sack_vfs_fs_command.portable )
 sack_add_executable(${project} ${PROG2_SOURCES} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=size_t" )
+# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+if( MSVC )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
+
+
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
@@ -205,13 +228,13 @@ set( project sack_vfs_fs_command.32.portable )
 sack_add_executable(${project} ${PROG2_SOURCES} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=uint32_t" )
-# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
-# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
-if( WIN32 )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
     SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
-endif( WIN32 )
+endif( MSVC )
     
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
@@ -225,6 +248,14 @@ set( project sack_vfs_fs_command.64.portable )
 sack_add_executable(${project} ${PROG2_SOURCES} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_FS_INTERFACE;VFS_DISK_DATATYPE=uint64_t" )
+# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+if( MSVC )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
+
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
@@ -239,6 +270,14 @@ set( project sack_vfs_os_command.portable )
 sack_add_executable(${project} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_OS_INTERFACE;VFS_DISK_DATATYPE=size_t" )
+# 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+# 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+if( MSVC )
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
+
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
@@ -251,13 +290,13 @@ set( project sack_vfs_os_command.32.portable )
 sack_add_executable(${project} ${PROG3_SOURCES} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;__NO_IDLE__;__NO_INTERFACE_SUPPORT__;__STATIC__;__STATIC_GLOBALS__;SACK_BAG_EXPORTS;__NO_OPTIONS__;__NO_DEFAULT_INTERFACES__;__NO_NETWORK__;__DISABLE_UDP_SYSLOG__;NO_DEADSTART_DLLMAIN" )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_OS_INTERFACE;VFS_DISK_DATATYPE=uint32_t" )
-if( WIN32 )
+if( MSVC )
     # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
     # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
     SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
-endif( WIN32 )
+endif( MSVC )
     
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
@@ -275,13 +314,13 @@ SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "USE_VFS_OS_I
 SET_TARGET_PROPERTIES(${project} PROPERTIES
       FOLDER utils/vfs
 )
-if( WIN32 )
+if( MSVC )
     # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
     # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
     SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
-endif( WIN32 )
+endif( MSVC )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 

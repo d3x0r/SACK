@@ -29,7 +29,9 @@
 
 #include <stdhdrs.h>
 #include <signed_unsigned_comparisons.h>
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #include <imglib/imagestruct.h>
 #include <image.h>
 #include <logging.h>

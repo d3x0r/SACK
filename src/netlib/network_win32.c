@@ -357,7 +357,7 @@ static void HandleEvent( PCLIENT pClient )
 #endif
 						// returns true while it wrote or there is data to write
 						if( pClient->lpFirstPending && !pClient->flags.bAggregateOutput && !pClient->writeTimer ) {
-							lprintf( "TCPWrite on %p (no timer)", pClient );
+							//lprintf( "TCPWrite on %p (no timer)", pClient );
 							TCPWrite(pClient);
 						} else {
 							pClient->dwFlags |= CF_WRITEREADY;

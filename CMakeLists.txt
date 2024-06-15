@@ -346,7 +346,7 @@ OPTION( NEED_FREETYPE "Build internal freetype lib (with suitable exports to lin
 OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link against)" ${NEED_ZLIB} )
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
 OPTION( NEED_LIBRESSL "Build internal libressl library" ON )
-OPTION( INCLUDE_LIBSSH2 "Include libssh2 interfaces" OFF )
+OPTION( INCLUDE_LIBSSH2 "Include libssh2 interfaces" ON )
 OPTION( NEED_LIBSSH2 "Build internal libssh2 library" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )

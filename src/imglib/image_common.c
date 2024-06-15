@@ -2,7 +2,9 @@
 #define IMAGE_LIBRARY_SOURCE_MAIN
 #define IMAGE_LIBRARY_COMMON_SOURCE
 #define FIX_RELEASE_COM_COLLISION
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #ifdef _MSC_VER
 #ifndef UNDER_CE
 #include <emmintrin.h>

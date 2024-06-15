@@ -19,7 +19,9 @@
 #include <stdhdrs.h>
 #include <stddef.h>
 
-#define IMAGE_LIBRARY_SOURCE
+#ifndef IMAGE_LIBRARY_SOURCE
+#  define IMAGE_LIBRARY_SOURCE
+#endif
 #define IMAGE_LIBRARY_SOURCE_MAIN
 
 #include <imglib/imagestruct.h>

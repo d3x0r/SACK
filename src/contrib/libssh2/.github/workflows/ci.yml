@@ -26,6 +26,14 @@ jobs:
       - name: 'checksrc'
         run: ./ci/checksrc.sh
 
+  shellcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'shellcheck'
+        run: ./ci/shellcheck.sh
+
   spellcheck:
     runs-on: ubuntu-latest
     steps:
@@ -77,6 +85,12 @@ jobs:
             build: autotools
             zlib: 'ON'
             target: 'distcheck'
+          - compiler: clang
+            arch: amd64
+            crypto: OpenSSL
+            build: autotools
+            zlib: 'ON'
+            target: 'maketgz'
           - compiler: gcc
             arch: i386
             crypto: mbedTLS
@@ -176,13 +190,13 @@ jobs:
         if: ${{ matrix.build == 'autotools' }}
         run: autoreconf -fi
       - name: 'autotools configure'
-        if: ${{ matrix.build == 'autotools' }}
+        if: ${{ matrix.build == 'autotools' && matrix.target != 'maketgz' }}
         run: |
           if [ '${{ matrix.arch }}' = 'i386' ]; then
             crossoptions='--host=i686-pc-linux-gnu'
             export CFLAGS=-m32
           fi
-          mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
+          mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
             ${crossoptions} ${{ matrix.options }}
 
       - name: 'autotools build'
@@ -191,11 +205,36 @@ jobs:
       - name: 'autotools tests'
         if: ${{ matrix.build == 'autotools' && !matrix.target }}
         timeout-minutes: 10
-        run: make -C bld check VERBOSE=1
+        run: make -C bld check V=1 || { cat bld/tests/*.log; false; }
       - name: 'autotools distcheck'
         if: ${{ matrix.target == 'distcheck' }}
         timeout-minutes: 10
-        run: make -C bld -j3 distcheck
+        run: make -C bld distcheck
+      - name: 'maketgz'
+        if: ${{ matrix.target == 'maketgz' }}
+        timeout-minutes: 10
+        run: |
+          export SOURCE_DATE_EPOCH=1711526400
+          ./configure --disable-dependency-tracking --enable-werror --disable-debug ${{ matrix.options }}
+          ./maketgz 99.98.97
+          # Test reproducibility
+          mkdir run1; mv ./libssh2-99.98.97.* run1/
+          make clean
+          ./maketgz 99.98.97
+          mkdir run2; cp -p ./libssh2-99.98.97.* run2/
+          diff run1 run2
+          # Test build from tarball
+          tar -xvf libssh2-99.98.97.tar.gz
+          cd libssh2-99.98.97
+          ./configure --disable-dependency-tracking "--prefix=${HOME}/temp" --enable-werror --enable-debug \
+            ${{ matrix.options }}
+          make -j3 install
+          cd ..
+          # Verify install
+          diff -u <(find docs    -name '*.3' -printf '%f\n' | grep -v template | sort) <(find "${HOME}/temp/share/man/man3" -name '*.3' -printf '%f\n' | sort)
+          diff -u <(find include -name '*.h' -printf '%f\n'                    | sort) <(find "${HOME}/temp/include"        -name '*.h' -printf '%f\n' | sort)
+          rm -rf libssh2-99.98.97
+
       - name: 'cmake configure'
         if: ${{ matrix.build == 'cmake' }}
         run: |
@@ -207,6 +246,7 @@ jobs:
           fi
           [ '${{ matrix.arch }}' = 'i386' ] && crossoptions='-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_VERSION=1 -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} -DCMAKE_C_FLAGS=-m32'
           cmake -B bld ${crossoptions} $TOOLCHAIN_OPTION \
+            -DCMAKE_UNITY_BUILD=ON \
             -DENABLE_WERROR=ON \
             -DCRYPTO_BACKEND=${crypto} \
             -DENABLE_ZLIB_COMPRESSION=${{ matrix.zlib }}
@@ -241,7 +281,7 @@ jobs:
         run: autoreconf -fi
       - name: 'autotools configure'
         if: ${{ matrix.build == 'autotools' }}
-        run: mkdir bld && cd bld && ../configure --enable-werror --enable-debug --host=${TRIPLET}
+        run: mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug --host=${TRIPLET}
       - name: 'autotools build'
         if: ${{ matrix.build == 'autotools' }}
         run: make -C bld -j3
@@ -252,6 +292,7 @@ jobs:
             -DCMAKE_SYSTEM_NAME=Windows \
             -DCMAKE_C_COMPILER_TARGET=${TRIPLET} \
             -DCMAKE_C_COMPILER=${TRIPLET}-gcc \
+            -DCMAKE_UNITY_BUILD=ON \
             -DENABLE_WERROR=ON
 
       - name: 'cmake build'
@@ -286,11 +327,11 @@ jobs:
         run: |
           export PATH="/usr/bin:$(cygpath ${SYSTEMROOT})/system32"
           autoreconf -fi
-          mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
+          mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
             --with-crypto=openssl \
             --disable-docker-tests
           make -j3
-          make check VERBOSE=1
+          make check V=1 || { cat tests/*.log; false; }
 
       - name: 'cmake'
         if: ${{ matrix.build == 'cmake' }}
@@ -299,6 +340,7 @@ jobs:
         run: |
           export PATH="/usr/bin:$(cygpath ${SYSTEMROOT})/system32"
           cmake -B bld \
+            -DCMAKE_UNITY_BUILD=ON \
             -DENABLE_WERROR=ON \
             -DENABLE_DEBUG_LOGGING=ON \
             -DCRYPTO_BACKEND=OpenSSL \
@@ -316,16 +358,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - { build: 'autotools', sys: msys   , env: x86_64 }
-          - { build: 'cmake'    , sys: msys   , env: x86_64 }
-          - { build: 'autotools', sys: mingw64, env: x86_64 }
-          - { build: 'autotools', sys: mingw32, env: i686 }
-          - { build: 'autotools', sys: ucrt64,  env: ucrt-x86_64 }
-          - { build: 'autotools', sys: clang64, env: clang-x86_64 }
-          - { build: 'cmake'    , sys: ucrt64,  env: ucrt-x86_64 }
-          - { build: 'cmake'    , sys: clang64, env: clang-x86_64 }
-          - { build: 'cmake'    , sys: mingw64, env: x86_64, test: 'uwp' }
-          - { build: 'cmake'    , sys: mingw64, env: x86_64, test: 'no-options' }
+          - { build: 'autotools', sys: msys   , crypto: openssl, env: x86_64 }
+          - { build: 'cmake'    , sys: msys   , crypto: OpenSSL, env: x86_64 }
+          - { build: 'autotools', sys: mingw64, crypto: wincng , env: x86_64 }
+          - { build: 'autotools', sys: mingw64, crypto: openssl, env: x86_64 }
+          - { build: 'autotools', sys: mingw32, crypto: openssl, env: i686 }
+          - { build: 'autotools', sys: ucrt64 , crypto: openssl, env: ucrt-x86_64 }
+          - { build: 'autotools', sys: clang64, crypto: openssl, env: clang-x86_64 }
+          - { build: 'autotools', sys: clang64, crypto: wincng , env: clang-x86_64 }
+          - { build: 'cmake'    , sys: ucrt64 , crypto: OpenSSL, env: ucrt-x86_64 }
+          - { build: 'cmake'    , sys: clang64, crypto: OpenSSL, env: clang-x86_64 }
+          - { build: 'cmake'    , sys: mingw64, crypto: OpenSSL, env: x86_64, test: 'uwp' }
+          - { build: 'cmake'    , sys: mingw64, crypto: OpenSSL, env: x86_64, test: 'no-options' }
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -353,11 +397,15 @@ jobs:
           SSHD: 'C:/Program Files/Git/usr/bin/sshd.exe'
         shell: msys2 {0}
         run: |
+          if [ '${{ matrix.crypto }}' = 'wincng' ] && [[ '${{ matrix.env }}' = 'clang'* ]]; then
+            options='--enable-ecdsa-wincng'
+          fi
           # sshd tests sometimes hang
-          mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
-            --with-crypto=openssl \
+          mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
+            --with-crypto=${{ matrix.crypto }} \
             --disable-docker-tests \
-            --disable-sshd-tests
+            --disable-sshd-tests \
+            ${options}
 
       - name: 'autotools build'
         if: ${{ matrix.build == 'autotools' }}
@@ -367,18 +415,18 @@ jobs:
         if: ${{ matrix.build == 'autotools' }}
         timeout-minutes: 10
         shell: msys2 {0}
-        run: make -C bld check VERBOSE=1
+        run: make -C bld check V=1 || { cat bld/tests/*.log; false; }
       - name: 'cmake configure'
         if: ${{ matrix.build == 'cmake' }}
         shell: msys2 {0}
         run: |
           if [[ '${{ matrix.env }}' = 'clang'* ]]; then
-            options='-DCMAKE_C_COMPILER=clang -DCMAKE_UNITY_BUILD=ON'
+            options='-DCMAKE_C_COMPILER=clang'
           else
             options='-DCMAKE_C_COMPILER=gcc'
           fi
           if [ '${{ matrix.test }}' = 'uwp' ]; then
-            options="${options} -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0"
+            options+=' -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0'
             pacman --noconfirm --ask 20 --noprogressbar --sync --needed 'mingw-w64-${{ matrix.env }}-winstorecompat-git'
             specs="$(realpath gcc-specs-uwp)"
             gcc -dumpspecs | sed -e 's/-lmingwex/-lwindowsapp -lmingwex -lwindowsapp -lwindowsappcompat/' -e 's/-lmsvcrt/-lmsvcr120_app/' > "${specs}"
@@ -387,7 +435,7 @@ jobs:
             # template to windres. Reset it to the windres template manually:
             rcopts='<CMAKE_RC_COMPILER> -O coff <DEFINES> <INCLUDES> <FLAGS> <SOURCE> <OBJECT>'
           elif [ '${{ matrix.test }}' = 'no-options' ]; then
-            options="${options} -DLIBSSH2_NO_DEPRECATED=ON"
+            options+=' -DLIBSSH2_NO_DEPRECATED=ON'
             cflags='-DLIBSSH2_NO_MD5 -DLIBSSH2_NO_MD5_PEM -DLIBSSH2_NO_HMAC_RIPEMD -DLIBSSH2_NO_DSA -DLIBSSH2_NO_AES_CBC -DLIBSSH2_NO_AES_CTR -DLIBSSH2_NO_BLOWFISH -DLIBSSH2_NO_RC4 -DLIBSSH2_NO_CAST -DLIBSSH2_NO_3DES'
           else
             cflags=''
@@ -396,9 +444,10 @@ jobs:
           cmake -B bld ${options} \
             "-DCMAKE_C_FLAGS=${cflags}" \
             "-DCMAKE_RC_COMPILE_OBJECT=${rcopts}" \
+            -DCMAKE_UNITY_BUILD=ON \
             -DENABLE_WERROR=ON \
             -DENABLE_DEBUG_LOGGING=ON \
-            -DCRYPTO_BACKEND=OpenSSL \
+            -DCRYPTO_BACKEND=${{ matrix.crypto }} \
             -DENABLE_ZLIB_COMPRESSION=ON \
             -DRUN_DOCKER_TESTS=OFF \
             -DRUN_SSHD_TESTS=OFF \
@@ -422,13 +471,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - { arch: x64  , plat: windows, crypto: WinCNG , log: 'OFF', shared: 'OFF', zlib: 'OFF', unity: 'OFF' }
-          - { arch: x64  , plat: windows, crypto: WinCNG , log: 'ON' , shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
-          - { arch: x64  , plat: windows, crypto: OpenSSL, log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
-          - { arch: x64  , plat: uwp    , crypto: WinCNG , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
-          - { arch: arm64, plat: windows, crypto: WinCNG , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
-          - { arch: arm64, plat: uwp    , crypto: WinCNG , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'ON' }
-          - { arch: x86  , plat: windows, crypto: WinCNG , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
+          - { arch: x64  , plat: windows, crypto: WinCNG , wincng_ecdsa: 'OFF', log: 'OFF', shared: 'OFF', zlib: 'OFF', unity: 'ON' }
+          - { arch: x64  , plat: windows, crypto: WinCNG , wincng_ecdsa: 'ON' , log: 'ON' , shared: 'ON' , zlib: 'OFF', unity: 'ON' }
+          - { arch: x64  , plat: windows, crypto: OpenSSL, wincng_ecdsa: 'OFF', log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'ON' }
+          - { arch: x64  , plat: uwp    , crypto: WinCNG , wincng_ecdsa: 'OFF', log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'ON' }
+          - { arch: arm64, plat: windows, crypto: WinCNG , wincng_ecdsa: 'ON' , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'ON' }
+          - { arch: arm64, plat: uwp    , crypto: WinCNG , wincng_ecdsa: 'ON' , log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'OFF' }
+          - { arch: x86  , plat: windows, crypto: WinCNG , wincng_ecdsa: 'OFF', log: 'OFF', shared: 'ON' , zlib: 'OFF', unity: 'ON' }
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -453,6 +502,7 @@ jobs:
             -DENABLE_DEBUG_LOGGING=${{ matrix.log }} \
             -DBUILD_SHARED_LIBS=${{ matrix.shared }} \
             -DCRYPTO_BACKEND=${{ matrix.crypto }} \
+            -DENABLE_ECDSA_WINCNG=${{ matrix.wincng_ecdsa }} \
             -DENABLE_ZLIB_COMPRESSION=${{ matrix.zlib }} \
             -DRUN_DOCKER_TESTS=OFF \
             -DRUN_SSHD_TESTS=OFF
@@ -476,31 +526,31 @@ jobs:
         crypto:
           - name: 'OpenSSL 3'
             install: openssl
-            configure: --with-crypto=openssl --with-libssl-prefix=/usr/local/opt/openssl
-            cmake: -DCRYPTO_BACKEND=OpenSSL -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+            configure: --with-crypto=openssl "--with-libssl-prefix=$(brew --prefix)/opt/openssl"
+            cmake: -DCRYPTO_BACKEND=OpenSSL "-DOPENSSL_ROOT_DIR=$(brew --prefix)/opt/openssl"
           - name: 'OpenSSL 1.1'
             install: openssl@1.1
-            configure: --with-crypto=openssl --with-libssl-prefix=/usr/local/opt/openssl@1.1
-            cmake: -DCRYPTO_BACKEND=OpenSSL -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+            configure: --with-crypto=openssl "--with-libssl-prefix=$(brew --prefix)/opt/openssl@1.1"
+            cmake: -DCRYPTO_BACKEND=OpenSSL "-DOPENSSL_ROOT_DIR=$(brew --prefix)/opt/openssl@1.1"
           - name: 'LibreSSL'
             install: libressl
-            configure: --with-crypto=openssl --with-libssl-prefix=/usr/local/opt/libressl
-            cmake: -DCRYPTO_BACKEND=OpenSSL -DOPENSSL_ROOT_DIR=/usr/local/opt/libressl
+            configure: --with-crypto=openssl "--with-libssl-prefix=$(brew --prefix)/opt/libressl"
+            cmake: -DCRYPTO_BACKEND=OpenSSL "-DOPENSSL_ROOT_DIR=$(brew --prefix)/opt/libressl"
           - name: 'wolfSSL'
             install: wolfssl
-            configure: --with-crypto=wolfssl --with-libwolfssl-prefix=/usr/local/opt/wolfssl
+            configure: --with-crypto=wolfssl "--with-libwolfssl-prefix=$(brew --prefix)"
             cmake: -DCRYPTO_BACKEND=wolfSSL
           - name: 'libgcrypt'
             install: libgcrypt
-            configure: --with-crypto=libgcrypt --with-libgcrypt-prefix=/usr/local/opt/libgcrypt
+            configure: --with-crypto=libgcrypt "--with-libgcrypt-prefix=$(brew --prefix)"
             cmake: -DCRYPTO_BACKEND=Libgcrypt
           - name: 'mbedTLS'
             install: mbedtls
-            configure: --with-crypto=mbedtls --with-libmbedcrypto-prefix=/usr/local/opt/mbedtls
-            cmake: -DCRYPTO_BACKEND=mbedTLS -DMBEDTLS_INCLUDE_DIR=/usr/local/opt/mbedtls/include -DMBEDCRYPTO_LIBRARY=/usr/local/opt/mbedtls/lib/libmbedcrypto.a
+            configure: --with-crypto=mbedtls "--with-libmbedcrypto-prefix=$(brew --prefix)"
+            cmake: -DCRYPTO_BACKEND=mbedTLS "-DMBEDTLS_INCLUDE_DIR=$(brew --prefix)/opt/mbedtls/include" "-DMBEDCRYPTO_LIBRARY=$(brew --prefix)/opt/mbedtls/lib/libmbedcrypto.a" -DCMAKE_C_FLAGS=-D_LIBSSH2_DISABLE_MBEDTLS36_PK_LOAD_FILE
     steps:
       - name: 'install packages'
-        run: brew install automake ${{ matrix.crypto.install }}
+        run: brew install automake libtool ${{ matrix.crypto.install }}
       - uses: actions/checkout@v4
       - name: 'autotools autoreconf'
         if: ${{ matrix.build == 'autotools' }}
@@ -508,18 +558,20 @@ jobs:
       - name: 'autotools configure'
         if: ${{ matrix.build == 'autotools' }}
         run: |
-          mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
+          [ '${{ matrix.crypto.name }}' = 'mbedTLS' ] && export CPPFLAGS=-D_LIBSSH2_DISABLE_MBEDTLS36_PK_LOAD_FILE
+          mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
             --with-libz ${{ matrix.crypto.configure }} \
             --disable-docker-tests \
-            --disable-sshd-tests
+            --disable-sshd-tests \
+            || { tail -n 1000 config.log; false; }
 
       - name: 'autotools build'
         if: ${{ matrix.build == 'autotools' }}
-        run: make -C bld -j3
+        run: make -C bld -j3 V=1
       - name: 'autotools tests'
         if: ${{ matrix.build == 'autotools' }}
         timeout-minutes: 10
-        run: make -C bld check VERBOSE=1
+        run: make -C bld check V=1 || { cat bld/tests/*.log; false; }
       - name: 'cmake configure'
         if: ${{ matrix.build == 'cmake' }}
         run: |
@@ -539,65 +591,26 @@ jobs:
         timeout-minutes: 10
         run: cd bld && ctest -VV --output-on-failure
 
-  build_freebsd:
-    name: 'FreeBSD (autotools, openssl, clang, amd64)'
-    runs-on: macos-12
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - name: 'autotools'
-        uses: cross-platform-actions/action@v0.21.1
-        with:
-          operating_system: "freebsd"
-          version: "13.2"
-          architecture: "x86_64"
-          run: |
-            # https://ports.freebsd.org/
-            sudo pkg install -y autoconf automake libtool
-            setenv CC clang
-            autoreconf -fi
-            mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
-              --with-crypto=openssl \
-              --disable-docker-tests
-            make -j3
-            make check VERBOSE=1
-
-  build_freebsd_new:
-    name: 'FreeBSD 14 (autotools, openssl, clang, amd64)'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - name: 'autotools'
-        uses: vmactions/freebsd-vm@v1
-        with:
-          # https://ports.freebsd.org/
-          prepare: pkg install -y autoconf automake libtool bash
-          run: |
-            setenv CC clang
-            autoreconf -fi
-            mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
-              --with-crypto=openssl \
-              --disable-docker-tests
-            make -j3
-            make check VERBOSE=1
-
   build_netbsd:
-    name: 'NetBSD (cmake, openssl, clang, amd64)'
-    runs-on: macos-12
+    name: 'NetBSD (cmake, openssl, clang)'
+    runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      matrix:
+        arch: ['x86_64', 'arm64']
     steps:
       - uses: actions/checkout@v4
       - name: 'cmake'
-        uses: cross-platform-actions/action@v0.21.1
+        uses: cross-platform-actions/action@v0.24.0
         with:
-          operating_system: "netbsd"
-          version: "9.3"
-          architecture: "x86_64"
+          operating_system: 'netbsd'
+          version: '10.0'
+          architecture: ${{ matrix.arch }}
           run: |
             # https://pkgsrc.se/
             sudo pkgin -y install cmake
             cmake -B bld \
+              -DCMAKE_UNITY_BUILD=ON \
               -DENABLE_WERROR=ON \
               -DENABLE_DEBUG_LOGGING=ON \
               -DCRYPTO_BACKEND=OpenSSL \
@@ -607,21 +620,25 @@ jobs:
             cmake --build bld --parallel 3
 
   build_openbsd:
-    name: 'OpenBSD (cmake, libressl, clang, amd64)'
-    runs-on: macos-12
+    name: 'OpenBSD (cmake, libressl, clang)'
+    runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      matrix:
+        arch: ['x86_64']
     steps:
       - uses: actions/checkout@v4
       - name: 'cmake'
-        uses: cross-platform-actions/action@v0.21.1
+        uses: cross-platform-actions/action@v0.24.0
         with:
-          operating_system: "openbsd"
-          version: "7.4"
-          architecture: "x86_64"
+          operating_system: 'openbsd'
+          version: '7.5'
+          architecture: ${{ matrix.arch }}
           run: |
             # https://openbsd.app/
             sudo pkg_add cmake
             cmake -B bld \
+              -DCMAKE_UNITY_BUILD=ON \
               -DENABLE_WERROR=ON \
               -DENABLE_DEBUG_LOGGING=ON \
               -DCRYPTO_BACKEND=OpenSSL \
@@ -630,9 +647,37 @@ jobs:
               -DRUN_SSHD_TESTS=OFF
             cmake --build bld --parallel 3
 
+  build_freebsd:
+    name: 'FreeBSD (autotools, openssl, clang)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CC: clang
+    strategy:
+      matrix:
+        arch: ['x86_64', 'arm64']
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'autotools'
+        uses: cross-platform-actions/action@v0.24.0
+        with:
+          operating_system: 'freebsd'
+          version: '14.0'
+          architecture: ${{ matrix.arch }}
+          environment_variables: 'CC'
+          run: |
+            # https://ports.freebsd.org/
+            sudo pkg install -y autoconf automake libtool
+            autoreconf -fi
+            mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
+              --with-crypto=openssl \
+              --disable-docker-tests
+            make -j3
+            make check V=1 || { cat tests/*.log; false; }
+
   build_omnios:
     name: 'OmniOS (autotools, openssl, gcc, amd64)'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -640,12 +685,12 @@ jobs:
         uses: vmactions/omnios-vm@v1
         with:
           usesh: true
-          # https://pkg.omnios.org/r151048/core/en/index.shtml
+          # https://pkg.omnios.org/r151050/core/en/index.shtml
           prepare: pkg install build-essential libtool
           run: |
             autoreconf -fi
-            mkdir bld && cd bld && ../configure --enable-werror --enable-debug \
+            mkdir bld && cd bld && ../configure --disable-dependency-tracking --enable-werror --enable-debug \
               --with-crypto=openssl \
               --disable-docker-tests
             gmake -j3
-            gmake check VERBOSE=1
+            gmake check V=1 || { cat tests/*.log; false; }

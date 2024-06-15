@@ -131,6 +131,13 @@ set( project sack_vfs_extracter_sfx )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS}" )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
+endif( MSVC )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
@@ -157,7 +164,7 @@ add_custom_command(TARGET
                    COMMAND
                      "mt.exe" -manifest \"${MT_EXTRACTER_MORE_SOURCES}\" -outputresource:\"${THISDIR}\\${project}.exe\"\;\#1
                    COMMENT
-                     "Adding custom manifest containing MSVCRT80 dependency..." 
+                     "Adding custom manifest containing MSVCRT80 dependency..."
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
@@ -168,15 +175,17 @@ set( project sack_vfs_extracter_sfx_win )
 
 sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS}" )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS " -wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
+endif( MSVC )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
-    # 4197 - top-level volatile in cast is ignored (so?)
-    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -197,15 +206,17 @@ set( project sack_vfs_extracter_min )
 
 sack_add_executable(${project} ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS}" )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
+endif( MSVC )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
-    # 4197 - top-level volatile in cast is ignored (so?)
-    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -227,15 +238,17 @@ set( project sack_vfs_extracter_min_win )
 
 sack_add_executable(${project} WIN32 ${BASE_SOURCES} )
 SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "${FLAGS}" )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090 -wd4197" )
+endif( MSVC )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
-    # 4197 - top-level volatile in cast is ignored (so?)
-    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -262,11 +275,13 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -304,11 +319,13 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -333,11 +350,13 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
@@ -363,11 +382,13 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
 		LINK_FLAGS "${EXTRACTER_LINK_FLAGS}"
       FOLDER utils/vfs
 )
-if( WIN32 )
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
     # 4197 - top-level volatile in cast is ignored (so?)
     # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
-    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4197 -wd4090" )
-endif( WIN32 )
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
 target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
 install_default_dest( ${project} )
 
