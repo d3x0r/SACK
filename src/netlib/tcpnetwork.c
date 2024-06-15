@@ -1552,6 +1552,8 @@ static void triggerWrite( uintptr_t psv ){
 	//lprintf( "Timer fired %p", psv );
 	if( pc )
 	{
+		if( !pc->writeTimer ) { lprintf( "Timer fired with no timer...%p", psv ); }
+		int32_t timer = pc->writeTimer;
 		pc->writeTimer = 0;
 		if( pc->dwFlags & CF_WRITEPENDING )
 		{
@@ -1566,7 +1568,9 @@ static void triggerWrite( uintptr_t psv ){
 					TCPWrite( pc );
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
-			lprintf( "Triggered write shouldn't hve no pending...%p", psv );
+			lprintf( "Triggered write shouldn't hve no pending...%p (Try Again?)", psv );
+			RescheduleTimerEx( timer, 3 );
+			lpClient->writeTimer = timer;
 		}
 	}
 
