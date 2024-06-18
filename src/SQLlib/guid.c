@@ -215,12 +215,12 @@ uint8_t* GetGUIDBinaryEx( CTEXTSTR guid, LOGICAL little_endian )
 	}
 	for( b = n = 0; guid[n]; n++ )
 	{
-		if( char_lookup[(int)guid[n]] < 0 )
+		if( char_lookup[((unsigned char*)guid)[n]] < 0 )
 			continue;
       if( !( b & 1 ) )
-			buf[b / 2] = char_lookup[guid[n]] << 4;
+			buf[b / 2] = char_lookup[((unsigned char*)guid)[n]] << 4;
       else
-			buf[b / 2] |= char_lookup[guid[n]];
+			buf[b / 2] |= char_lookup[((unsigned char*)guid)[n]];
       b++;
 	}
 	if( little_endian )

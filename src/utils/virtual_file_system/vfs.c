@@ -95,7 +95,7 @@ static int  PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int MaskStrCmp( struct sack_vfs_volume *vol, const char * filename, FPI name_offset, int path_match ) {
+static int MaskStrCmp( struct sack_vfs_volume *vol, CTEXTSTR filename, FPI name_offset, int path_match ) {
 	if( vol->key ) {
 		int c;
 		while(  ( c = ( ((uint8_t*)vol->disk)[name_offset] ^ vol->usekey[BC(NAMES)][name_offset&BLOCK_MASK] ) )
@@ -119,7 +119,7 @@ static int MaskStrCmp( struct sack_vfs_volume *vol, const char * filename, FPI n
 		//LoG( "doesn't volume always have a key?" );
 		if( path_match ) {
 			size_t l;
-			int r = PathCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
+			int r = PathCaseCmpEx( filename, (CTEXTSTR)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
 			if( !r )
 				if( ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '/' || ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '\\' )
 					return 0;
@@ -128,7 +128,7 @@ static int MaskStrCmp( struct sack_vfs_volume *vol, const char * filename, FPI n
 			return r;
 		}
 		else
-			return PathCaseCmpEx( filename, (const char *)(((uint8_t*)vol->disk) + name_offset), strlen(filename) );
+			return PathCaseCmpEx( filename, (CTEXTSTR)(((uint8_t*)vol->disk) + name_offset), strlen(filename) );
 	}
 }
 

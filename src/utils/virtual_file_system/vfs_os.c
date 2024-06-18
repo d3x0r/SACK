@@ -1134,7 +1134,7 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int _os_MaskStrCmp( struct sack_vfs_os_volume *vol, const char * filename, BLOCKINDEX nameBlock, FPI name_offset, int path_match ) {
+static int _os_MaskStrCmp( struct sack_vfs_os_volume *vol, CTEXTSTR filename, BLOCKINDEX nameBlock, FPI name_offset, int path_match ) {
 	enum block_cache_entries cache = BC(NAMES);
 	const char *dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache, NAME_BLOCK_SIZE DBG_SRC );
 	const char *prior_dirname = dirname;

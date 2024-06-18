@@ -63,6 +63,14 @@ SACK_NETWORK_NAMESPACE
 // not sure if this is used anywhere....
 #define HOSTNAME_LEN 50      // maximum length of a host's text name...
 
+typedef struct PendingWrite {
+	PCLIENT pc;
+	POINTER buffer;
+	size_t len;
+	int bLong;
+	int failpending;
+};
+
 typedef struct PendingBuffer
 {
    size_t dwAvail;                // number of bytes to be read yet
@@ -217,7 +225,10 @@ struct NetworkClient
 	SOCKET      Socket;
 	SOCKET      SocketBroadcast; // okay keep both...
 	struct interfaceAddress* interfaceAddress;
-	enum NetworkConnectionFlags dwFlags; // CF_
+	#ifdef MSVC
+	[Flags]
+	#endif
+	volatile int/*enum NetworkConnectionFlags*/ dwFlags; // CF_
 	uintptr_t        *lpUserData;
 
 	union {
@@ -265,7 +276,7 @@ struct NetworkClient
 	uint32_t    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcOther; // listeners opened with port only have two connections, one IPV4 one IPV6
-	struct network_client_flags {
+	volatile struct network_client_flags {
 		BIT_FIELD bAddedToEvents : 1;
 		BIT_FIELD bRemoveFromEvents : 1;
 		BIT_FIELD bSecure : 1;
@@ -275,6 +286,7 @@ struct NetworkClient
 		BIT_FIELD bInUse : 1; // has work outstanding; wait for close until release
 		BIT_FIELD bAggregateOutput : 1;
 	} flags;
+	PTHREAD wakeOnUnlock;
 	uint32_t writeTimer;
 	PLIST psvInUse; // we have the ability to save outstatnding UID locks...
 

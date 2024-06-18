@@ -92,6 +92,7 @@ struct timer_tag
 	};
 	struct {
 		BIT_FIELD bRescheduled : 1;
+		BIT_FIELD bRemoved : 1;
 	} flags;
 	uint32_t frequency;
 	int32_t delta;
@@ -176,7 +177,7 @@ struct timer_local_data {
 		BIT_FIELD bLogThreadCreate : 1;
 		BIT_FIELD bHaltTimers : 1;
 	} flags;
-	uint32_t del_timer; // this timer is scheduled to be removed...
+	volatile uint32_t del_timer; // this timer is scheduled to be removed...
 	uint32_t tick_bias; // should somehow end up equating to sleep overhead...
 	uint32_t last_tick; // last known time that a timer could have fired...
 	uint32_t this_tick; // the current moment up to which we fire all timers.
@@ -187,7 +188,7 @@ struct timer_local_data {
 	CRITICALSECTION cs_timer_change;
 	//uint32_t pending_timer_change;
 	uint32_t remove_timer;
-	uint32_t CurrentTimerID;
+	volatile uint32_t CurrentTimerID;
 	int32_t last_sleep;
 	PLIST onThreadCreate;
 	PLIST onThreadExit;
@@ -1946,7 +1947,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			//  of processing this timer.
 			// this point should be optioned whether the timer is
 			// a guaranteed tick, or whether it's sloppy.
-			if( timer->frequency || timer->flags.bRescheduled )
+			if( !timer->flags.bRemoved && ( timer->frequency || timer->flags.bRescheduled ) )
 			{
 				if( timer->flags.bRescheduled )
 				{
@@ -2148,12 +2149,17 @@ uint32_t  AddTimerEx( uint32_t start, uint32_t frequency, void (CPROC*callback)(
 void  RemoveTimerEx( uint32_t ID DBG_PASS )
 {
 	// Lockout multiple changes at a time...
-	if( !NotTimerThread() && // IS timer thread..
-		( ID != globalTimerData.CurrentTimerID ) ) // and not in THIS timer...
-	{
-		// is timer thread itself... safe to remove the timer....
-		DoRemoveTimer( ID DBG_SRC );
-		return;
+	if( !NotTimerThread() ){ // IS timer thread..
+		if( ID != globalTimerData.CurrentTimerID ) // and not in THIS timer...
+		{
+			// is timer thread itself... safe to remove the timer....
+			DoRemoveTimer( ID DBG_SRC );
+			return;
+		}
+		else { // current timer is trying to remove itself while it is running; the timer will be removed after the callback.
+			globalTimerData.current_timer->flags.bRemoved = 1;
+			return;
+		}
 	}
 	EnterCriticalSec( &globalTimerData.cs_timer_change );
 	// only allow one delete at a time...

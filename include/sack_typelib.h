@@ -405,7 +405,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE       EmptyDataList ( PDATALIST *ppdl );
 #define DATA_NEXTALL( l, i, t, v )  if(((v)=(t)NULL),(l))   \
 	for( ((i)++);                         \
 	((i) < (l)->Cnt)                                    \
-         ?((v)=(t)((l)->data + (((l)->Size) * (i))))   \
+         ?(((v)=(t)((l)->data + (((l)->Size) * (i)))),1)   \
 	      :(((v)=(t)NULL),0); (i)++ )
 
 /* <combine sack::containers::data_list::CreateDataListEx@uintptr_t nSize>

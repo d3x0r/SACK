@@ -127,7 +127,7 @@ static int  _fs_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 
 // read the byte from namespace at offset; decrypt byte in-register
 // compare against the filename bytes.
-static int _fs_MaskStrCmp( struct sack_vfs_fs_volume *vol, const char * filename, FPI name_offset, int path_match ) {
+static int _fs_MaskStrCmp( struct sack_vfs_fs_volume *vol, CTEXTSTR filename, FPI name_offset, int path_match ) {
 	const char *dirname = (const char*)(vol->usekey_buffer[BC(NAMES)] + (name_offset&BLOCK_MASK));
 
 	if( vol->key ) {

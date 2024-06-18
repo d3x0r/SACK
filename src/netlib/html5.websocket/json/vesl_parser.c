@@ -555,7 +555,7 @@ static void InitOperatorSyms( void ) {
 	int m;
 	for( n = 0; ops[n]; n++ ) {
 		SETFLAG( isOp, ops[n] );
-		if( op2[n] ) for( m = 0; op2[n][m]; m++ ) SETFLAG( isOp2[ops[n]], op2[n][m] );
+		if( op2[n] ) for( m = 0; op2[n][m]; m++ ) SETFLAG( isOp2[((unsigned char*)ops)[n]], ((unsigned char**)op2)[n][m] );
 	}
 }
 

@@ -1132,10 +1132,15 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 	{
 		if( !readWrite ) // is write and not read
 		{
+			//lprintf( "Unlocking write... %p (WOU?)%d", lpClient, lpClient->flags.bWriteOnUnlock );
+			if( lpClient->wakeOnUnlock ){
+				WakeThread( lpClient->wakeOnUnlock );
+				lpClient->wakeOnUnlock = NULL;
+			}
 			if( lpClient->flags.bWriteOnUnlock ) {
 				lpClient->flags.bWriteOnUnlock = 0;
 				//lprintf( "Caught unlock..." );
-				TCPWrite( lpClient );
+				TCPWriteEx( lpClient DBG_RELAY );
 			}
 		}
 #ifdef LOG_NETWORK_LOCKING
