@@ -64,9 +64,9 @@
 #endif
 #ifdef __cplusplus
 #include <cstdio>
-LOGGING_NAMESPACE
 #endif
 
+LOGGING_NAMESPACE
 
 #ifndef _SH_DENYWR
 #  define _SH_COMPAT 0x00
@@ -718,60 +718,6 @@ int GetTimeZone( void ){
 		return sign * (((seconds / 60 / 60) * 100) + ((seconds / 60) % 60));
 	}
 }
-
-#if 0
-#ifdef _WIN32
-	{
-		static int isSet;
-		static int tz;
-		if( isSet ) return tz;
-		// Get the local system time.
-
-		{
-			DWORD dwType;
-			DWORD dwValue;
-			DWORD dwSize = sizeof( dwValue );
-			HKEY hTemp;
-			DWORD dwStatus;
-
-			dwStatus = RegOpenKeyEx( HKEY_LOCAL_MACHINE
-			                       , "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0
-			                       , KEY_READ, &hTemp );
-
-			if( (dwStatus == ERROR_SUCCESS) && hTemp )
-			{
-				dwSize = sizeof( dwValue );
-				dwStatus = RegQueryValueEx(hTemp, "ActiveTimeBias", 0
-				                          , &dwType
-				                          , (PBYTE)&dwValue
-				                          , &dwSize );
-
-				RegCloseKey( hTemp );
-			}
-			else
-				dwValue = 0;
-			//HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation
-			// Get the timezone info.
-			//TIME_ZONE_INFORMATION TimeZoneInfo;
-			//GetTimeZoneInformation( &TimeZoneInfo );
-
-			// Convert local time to UTC.
-			//TzSpecificLocalTimeToSystemTime( &TimeZoneInfo,
-			//								 &LocalTime,
-			//								 &GmtTime );
-			// Local time expressed in terms of GMT bias.
-			{
-				timebuf->zhr = (int8_t)( -( (int)dwValue/60 ) ) ;
-				timebuf->zmn = (dwValue>0)?( dwValue % 60 ):((-dwValue)%60);
-			}
-			tz = (int)dwValue;
-			isSet = TRUE;
-			return tz;
-		}
-	}
-#endif
-}
-#endif
 
 void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	int8_t tz = (int8_t)tick;
@@ -1509,11 +1455,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 		return;
 	if( !(*syslog_local).flags.group_ok && openLock )
 		return;
-#ifdef WIN32
-	while( InterlockedExchange( (long volatile*)&lowLevelLock, 1 ) ) Relinquish();
-#else
 	while( LockedExchange( &lowLevelLock, 1 ) ) Relinquish();
-#endif
 	logtime = GetLogTime();
 	if( (*syslog_local).flags.bLogSourceFile && pFile )
 	{
@@ -1557,53 +1499,38 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 	lowLevelLock = 0;
 }
 
-#undef SystemLogEx
-void SystemLogEx ( const TEXTCHAR *message DBG_PASS )
-{
-#ifdef _DEBUG
-	SystemLogFL( message DBG_RELAY );
-#else
-	SystemLogFL( message FILELINE_NULL );
-#endif
-}
 
-#undef SystemLog
- void  SystemLog ( const TEXTCHAR *message )
-{
-	SystemLogFL( message, NULL, 0 );
-}
+void BinaryToString( PVARTEXT pvt, const uint8_t* buffer, size_t size DBG_PASS ) {
 
- void BinaryToString( PVARTEXT pvt, const uint8_t* buffer, size_t size DBG_PASS ) {
-
-	 size_t nOut = size;
-	 const uint8_t* data = buffer;
-	 // should make this expression something in signed_usigned_comparison...
-	 while( nOut && !( nOut & ( ( (size_t)1 ) << ( ( sizeof( nOut ) * CHAR_BIT ) - 1 ) ) ) ) {
-		 TEXTCHAR cOut[96];
-		 size_t ofs = 0;
-		 size_t x;
-		 ofs = 0;
-		 for( x = 0; x < nOut && x < 16; x++ )
+	size_t nOut = size;
+	const uint8_t* data = buffer;
+	// should make this expression something in signed_usigned_comparison...
+	while( nOut && !( nOut & ( ( (size_t)1 ) << ( ( sizeof( nOut ) * CHAR_BIT ) - 1 ) ) ) ) {
+		TEXTCHAR cOut[96];
+		size_t ofs = 0;
+		size_t x;
+		ofs = 0;
+		for( x = 0; x < nOut && x < 16; x++ )
 			 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "%02X ", (unsigned char)data[x] );
-		 // space fill last partial buffer
-		 for( ; x < 16; x++ )
+		// space fill last partial buffer
+		for( ; x < 16; x++ )
 			 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "   " );
 
-		 for( x = 0; x < nOut && x < 16; x++ ) {
+		for( x = 0; x < nOut && x < 16; x++ ) {
 			 if( data[x] >= 32 && data[x] < 127 )
 				 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "%c", (unsigned char)data[x] );
 			 else
 				 ofs += tnprintf( cOut + ofs, sizeof( cOut ) / sizeof( TEXTCHAR ) - ofs, "." );
-		 }
-		 VarTextAddDataEx( pvt, cOut, ofs DBG_RELAY );
-		 VarTextAddCharacterEx( pvt, '\n' DBG_RELAY);
-		 nOut -= x;
-		 data += x;
-	 }
+		}
+		VarTextAddDataEx( pvt, cOut, ofs DBG_RELAY );
+		VarTextAddCharacterEx( pvt, '\n' DBG_RELAY);
+		nOut -= x;
+		data += x;
+	}
 
- }
+}
 
- void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
+void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
 {
 	size_t nOut = size;
 	const uint8_t* data = buffer;
@@ -1830,16 +1757,8 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		cannot_log = 0;
 
 		if( logtime[0] )
-#ifdef UNDER_CE
-		{
-			StringCbPrintf( buffer, 4096, "%s|"
-							  , logtime );
-			ofs = StrLen( buffer );
-		}
-#else
 			ofs = tnprintf( buffer, 4095, "%s|"
 							  , logtime );
-#endif
 		else
 			ofs = 0;
 		// argsize - the program's giving us file and line
@@ -1886,22 +1805,12 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 					}
 #   endif
 				nLine = next_lprintf.nLine;
-#   ifdef UNDER_CE
 				tnprintf( buffer + ofs, 4095 - ofs, "%s(%" _32f "):"
 									, pFile, nLine );
 				ofs += StrLen( buffer + ofs );
-#   else
-				tnprintf( buffer + ofs, 4095 - ofs, "%s(%" _32f "):"
-									, pFile, nLine );
-				ofs += StrLen( buffer + ofs );
-#   endif
 			}
 #endif
-#ifdef UNICODE
-			vswprintf( buffer + ofs, 4095 - ofs, format, args );
-#else
 			vsnprintf( buffer + ofs, 4095 - ofs, format, args );
-#endif
 			// okay, so even the above is unsafe, because Micro$oft has
 			// decreed to be stupid.
 			buffer[4095] = 0;
@@ -2039,24 +1948,7 @@ void SetSyslogOptions( FLAGSETTYPE *options )
 	(*syslog_local).flags.bLogSourceFile = TESTFLAG( options, SYSLOG_OPT_LOG_SOURCE_FILE )?1:0; // open for append, else open for write
 }
 
-#ifdef __cplusplus_cli
-
-static public ref class Log
-{
-public:
-	static void log( System::String^ ouptut )
-	{
-				pin_ptr<const WCHAR> _output = PtrToStringChars(ouptut);
-				TEXTSTR __ouptut = DupWideToText( _output );
-		lprintf( "%s", __ouptut );
-		Release( __ouptut );
-	}
-};
-#endif
-
-#ifdef __cplusplus
 LOGGING_NAMESPACE_END
-#endif
 
 
 //---------------------------------------------------------------------------
