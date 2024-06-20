@@ -555,14 +555,14 @@ void InitSyslog( int ignore_options )
 				logtype = SYSLOG_AUTO_FILE;
 				(*syslog_local).flags.bLogOpenBackup = 1;
 			}
-#      else
-#        if defined( DEFAULT_OUTPUT_STDERR )
-			(*syslog_local).file = stderr;
-#        else
-			(*syslog_local).file = stdout;
-#        endif
-
 #      endif
+#        if defined( DEFAULT_OUTPUT_STDERR ) 
+		( *syslog_local ).file = stderr;
+		logtype = SYSLOG_FILE;
+#        else
+		( *syslog_local ).file = stdout;
+		logtype = SYSLOG_FILE;
+#        endif
 			(*syslog_local).flags.bUseDeltaTime = 1;
 			(*syslog_local).flags.bLogCPUTime = 1;
 			(*syslog_local).flags.bUseDeltaTime = 1;
