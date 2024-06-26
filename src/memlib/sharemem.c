@@ -196,7 +196,12 @@ struct global_memory_tag {
 };
 
 #ifdef __STATIC__
-static struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1, 1
+static struct global_memory_tag global_memory_data = { 0x10000 * 0x08
+#  ifdef _DEBUG
+                                                     , 0, 0
+#else
+                                                     , 1, 1
+#  endif
 													, 0 /* log criticalsec */
 													, 0 /* min alloc */
 													, 0 /* pagesize */
@@ -1826,13 +1831,13 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		pMem = GrabMem( pHeap );
 		dwPad = dwAlignPad;
 #ifdef __64__
-		//dwPad = (uint32_t)( (((dwSize + 7) & 0xFFFFFFFFFFFFFFF8) - dwSize) );
-		//dwSize += 7; // fix size to allocate at least _32s which
-		//dwSize &= 0xFFFFFFFFFFFFFFF8;
+		dwPad += (uint32_t)( (((dwSize + 7) & 0xFFFFFFFFFFFFFFF8) - dwSize) );
+		dwSize += 7; // fix size to allocate at least _32s which
+		dwSize &= 0xFFFFFFFFFFFFFFF8;
 #else
-		//dwPad = (((dwSize + 3) & 0xFFFFFFFC) -dwSize);
-		//dwSize += 3; // fix size to allocate at least _32s which
-		//dwSize &= 0xFFFFFFFC;
+		dwPad += (((dwSize + 3) & 0xFFFFFFFC) -dwSize);
+		dwSize += 3; // fix size to allocate at least _32s which
+		dwSize &= 0xFFFFFFFC;
 #endif
 
 #ifdef _DEBUG
@@ -2931,7 +2936,10 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 								if( IsBadReadPtr( file, 4 ) )
 									file = "(corrupt)";
 #  endif
-								_xlprintf( 2, file, BLOCK_LINE(pc) )( "Application overflowed allocated memory." );
+								if( g.deadstart_finished )
+									_xlprintf( 2, file, BLOCK_LINE(pc) )( "Application overflowed allocated memory." );
+								else
+									ODS( "Application overflowed allocated memory." );
 							}
 							else
 								ODS( "Application overflowed allocated memory." );
