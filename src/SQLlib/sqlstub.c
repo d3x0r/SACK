@@ -4241,7 +4241,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	//	odbc->nProtect--;
 	//	LeaveCriticalSec( &odbc->cs );
 	//}
-	return 0;
+	return retry;
 }
 
 int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
@@ -4402,6 +4402,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 		//}
 		switch( val->value_type ) {
 		default:
+			rc = 1;
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
