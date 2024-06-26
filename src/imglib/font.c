@@ -1308,7 +1308,7 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 void PutStringVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _y = y;
-   uint32_t _x = x;
+	//uint32_t _x = x;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
@@ -1345,7 +1345,7 @@ void PutStringVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 void PutStringInvertVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _y = y;
-   uint32_t _x = x;
+	//uint32_t _x = x;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
@@ -1428,7 +1428,7 @@ void PutStringFontExx( ImageFile *pImage
 {
 	uint32_t length = 0;
 	uint32_t _x = x;
-	uint32_t _y = y;
+	//uint32_t _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	CTEXTSTR start = pc;
@@ -1500,7 +1500,7 @@ void PutStringFontExx( ImageFile *pImage
 void PutStringInvertFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT font )
 {
 	uint32_t _x = x;
-	uint32_t _y = y;
+	//uint32_t _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;
@@ -1536,8 +1536,8 @@ void PutStringInvertFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t hei
 
 uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, PFONT UseFont )
 {
-	uint32_t _x = x;
-	uint32_t _y = y;
+	//uint32_t _x = x;
+	//uint32_t _y = y;
 	int bUnderline;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;

@@ -48,7 +48,7 @@ void CPROC SpriteDrawProc( uintptr_t psv, PRENDERER renderer, int32_t x, int32_t
 
 }
 
-void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
+int CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 {
 	int n;
    lprintf( "uhmm nothing I guess" );
@@ -63,6 +63,7 @@ void CPROC DrawProc( uintptr_t psv, PRENDERER renderer )
 		//BlotImage( GetDisplayImage( renderer ), sprite[n]->image, sprite[n]->curx, sprite[n]->cury );
 	}
 	lprintf( "done" );
+	return 1;
 }
 
 void CPROC Tick( uintptr_t psv )
