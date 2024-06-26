@@ -42,9 +42,9 @@ struct task_info_tag {
 	volatile PTHREAD pOutputThread;
 	volatile PTHREAD pOutputThread2;
 	struct taskOutputStruct args1;
-   struct taskOutputStruct args2;
+	struct taskOutputStruct args2;
+	int spawn_flags; // flags passed to create the process
 #if defined(WIN32)
-	int spawn_flags;
 	int launch_flags;
 	char name[256]; // used for event to shutdown a task
 	HANDLE hReadOut, hWriteOut;

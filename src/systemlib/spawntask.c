@@ -68,9 +68,9 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 		{
 			PHANDLEINFO phi = taskParams->stdErr?&task->hStdErr:&task->hStdOut;
 			PTEXT pInput = SegCreate( 4096 );
-			int done, lastloop;
+			int lastloop;
 			size_t offset = 0;
-			done = lastloop = FALSE;
+			lastloop = FALSE;
 			do
 			{
 				DWORD dwRead;
@@ -178,38 +178,29 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 		{
 			PHANDLEINFO phi = taskParams->stdErr ? &task->hStdErr : &task->hStdOut;
 			PTEXT pInput = SegCreate( 4096 );
-			int done, lastloop;
-			done = lastloop = FALSE;
+			int lastloop;
+			lastloop = FALSE;
 			do {
-				uint32_t dwRead;
-				if( done )
-					lastloop = TRUE;
+				int32_t dwRead;
 				{
 					if( task->flags.log_input )
-						lprintf( "Go to read task's stdout." );
-#ifdef _WIN32
-					if( //!task->flags.process_ended &&
-						ReadFile( phi->handle
-							, GetText( pInput ), (DWORD)( GetTextSize( pInput ) - 1 )
-							, (LPDWORD)&dwRead, NULL ) )  //read the  pipe
-					{
-#else
+						lprintf( "Go to read task's %s.", taskParams->stdErr?"stderr":"stdout" );
 					dwRead = read( phi->handle
 						, GetText( pInput )
 						, GetTextSize( pInput ) - 1 );
-					if( !dwRead ) {
+					if( !dwRead || (dwRead < 0) ) {
+						const int err = errno;
+						if( err == EIO ){
+							lastloop = 1;
+							break;
+						}
 #  ifdef _DEBUG
 						//lprintf( "Ending system thread because of broke pipe! %d", errno );
 #  endif
-#  ifdef WIN32
-						continue;
-#  else
-												//lprintf( "0 read = pipe failure." );
+						lprintf( "%d read = pipe failure. %d", dwRead, err );
 						break;
-#  endif
 					}
-#endif
-					if( task->flags.log_input )
+					//if( task->flags.log_input )
 						lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
 					if( task->flags.bSentIoTerminator ) {
 						if( dwRead > 1 )
@@ -238,57 +229,18 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 
 						pInput->data.size = 4096;
 					}
-#ifdef _WIN32
-					} else {
-					DWORD dwError = GetLastError();
-					int32_t dwAvail;
-					//lprintf( "Thread Read was 0? %d", taskParams->stdErr );
-
-					if( ( dwError == ERROR_OPERATION_ABORTED ) && task->flags.process_ended ) {
-						if( PeekNamedPipe( phi->handle, NULL, 0, NULL, (LPDWORD)&dwAvail, NULL ) ) {
-							if( dwAvail > 0 ) {
-								lprintf( "caught data" );
-								// there is still data in the pipe, just that the process closed
-								// and we got the sync even before getting the data.
-							} else
-								break;
-						}
-					}
-				}
-#endif
 				}
 			//allow a minor time for output to be gathered before sending
 			// partial gathers...
-#ifndef _WIN32
-			if( task->flags.process_ended ) {
-				// Ending system thread because of process exit!
-				done = TRUE; // do one pass to make sure we completed read
-			}
-#endif
 			} while( !lastloop );
 
 			LineRelease( pInput );
-#ifdef _WIN32
-			/*
-			CloseHandle( task->hReadIn );
-			CloseHandle( task->hReadOut );
-			CloseHandle( task->hReadErr );
-			CloseHandle( task->hWriteIn );
-			CloseHandle( task->hWriteOut );
-			CloseHandle( task->hWriteErr );
-			*/
-			//lprintf( "Closing process handle %p", task->pi.hProcess );
-			phi->hThread = 0;
-#else
-			//close( phi->handle );
-			close( task->hStdIn.pair[1] );
-			close( task->hStdOut.pair[0] );
-			close( task->hStdErr.pair[0] );
-#define INVALID_HANDLE_VALUE -1
-#endif
-			if( phi->handle == task->hStdIn.handle )
-				task->hStdIn.handle = INVALID_HANDLE_VALUE;
-			phi->handle = INVALID_HANDLE_VALUE;
+			if( phi->handle > 0 && !(task->spawn_flags & LPP_OPTION_INTERACTIVE ) ) {
+				close( phi->handle );
+				phi->handle = -1;
+			}
+			//if( phi->handle == task->hStdIn.handle )
+			//	task->hStdIn.handle = -1;
 			if( taskParams->stdErr ) {
 				task->pOutputThread2 = NULL;
 				task->OutputEvent2 = NULL; // this is no longer a valid thing - shutdown output pipe
@@ -914,6 +866,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
 			//task->flags.log_input = TRUE;
+			task->spawn_flags = flags;
 			task->psvEnd = psv;
 			task->EndNotice = EndNotice;
 			task->OutputEvent = OutputHandler;

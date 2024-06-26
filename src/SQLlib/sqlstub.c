@@ -2975,7 +2975,7 @@ retry:
 									 , &collection->hstmt );
 			if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 			{
-				lprintf( "Failed to open ODBC statement handle...." );
+				lprintf( "(1)Failed to open ODBC statement handle...." );
 				retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
 				
 				if( EnsureLogOpen( odbc ) )
@@ -3157,7 +3157,7 @@ void __GetSQLTypes( PODBC odbc, PCOLLECT collection )
 								 , &collection->hstmt );
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
-			lprintf( "Failed to open ODBC statement handle...." );
+			lprintf( "(2)Failed to open ODBC statement handle...." );
 			GenerateResponce( collection, WM_SQL_RESULT_ERROR );
 			return;
 		}
@@ -4406,9 +4406,9 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			lprintf( "Failed to handline binding for type: %d", val->value_type );
 			DebugBreak();
 			break;
-        case JSOX_VALUE_NULL:
-            {
-                static SQLLEN iVal = SQL_NULL_DATA;
+		case JSOX_VALUE_NULL:
+			{
+				static SQLLEN iVal = SQL_NULL_DATA;
 				rc = SQLBindParameter( hstmt
 										  , useIndex  // parameter number
 										  , SQL_PARAM_INPUT // inputoutputtype
@@ -4419,7 +4419,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , NULL   // pointer value
 										  , 0 // bufferlength
 										  , &iVal // StrOrInd
-                                     );
+				);
             }
                     break;
 		case JSOX_VALUE_TRUE:
@@ -4717,7 +4717,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 								 , &collection->hstmt );
 		if( rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO )
 		{
-			xlprintf(LOG_ALWAYS)( "Failed to open ODBC statement handle...." );
+			xlprintf(LOG_ALWAYS)( "(3)Failed to open ODBC statement handle...." );
 			/*
 			if( odbc->flags.bThreadProtect )
 			{
@@ -4725,7 +4725,14 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 				LeaveCriticalSec( &odbc->cs );
 			}
 			*/
-			return FALSE;
+#ifdef USE_ODBC
+		{
+			retry = DumpInfo( odbc, collection->pvt_errorinfo, SQL_HANDLE_STMT, &collection->hstmt, odbc->flags.bNoLogging );
+		}
+#endif
+			CloseDatabaseEx( odbc, FALSE ); // close database, keep odbc active so it can reopen?
+			// return retry... 
+			return TRUE;
 		}
 #ifdef LOG_EVERYTHING
 		lprintf( "new handle... %p", collection->hstmt );

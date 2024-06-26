@@ -748,7 +748,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root, PCTREEDEF _name_class, PTREEDEF alias, 
 									continue;
 								}
 #ifndef NO_LOGGING
-								SystemLog( "Failed to register..." );
+								SystemLogFL( "Failed to register..." FILELINE_SRC );
 								lprintf( "name not found, adding.. [%s] %s", start, class_root->self?class_root->self->name:"." );
 #endif
 								return NULL;

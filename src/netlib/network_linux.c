@@ -272,7 +272,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 			int err = errno;
 			if( err == EINTR )
 				return 1;
-			Log1( "Sorry epoll_pwait/kevent call failed... %d", err );
+			if( err == EINVAL ) {
+
+			}
+			lprintf( "Sorry epoll_pwait/kevent call failed... %d %d %m", cnt, err );
 			return 1;
 		}
 		else if( cnt > 0 )

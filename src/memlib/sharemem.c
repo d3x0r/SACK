@@ -125,8 +125,8 @@ static uintptr_t masks[33] = { makeULong(0), makeULong(0), makeULong(1), 0
 #    define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, FILELINE_FILELINEFMT f,_pFile,_nLine,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
 #    define ll__lprintf( a ) {const TEXTCHAR *_pFile = pFile; int _nLine = nLine; _lprintf2
 #  else
-#    define ll_lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf, NULL, 0 ); }
-#    define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf, NULL, 0 ); } }
+#    define ll_lprintf( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); }
+#    define _lprintf2( f, ... ) { TEXTCHAR buf[256]; tnprintf( buf, 256, f,##__VA_ARGS__ ); SystemLogFL( buf FILELINE_SRC ); } }
 #    define ll__lprintf( a ) { _lprintf2
 #  endif
 #else
@@ -273,7 +273,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifndef NO_LOGGING
 #  define ODSEx(s,pFile,nLine) SystemLogFL( s DBG_RELAY )
 //#define ODSEx(s,pFile,nLine) SystemLog( s )
-#  define ODS(s)  SystemLog(s)
+#  define ODS(s)  SystemLogFL(s FILELINE_SRC )
 #else
 #  define ODSEx(s,file,line)
 #  define ODS(s)

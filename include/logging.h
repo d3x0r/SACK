@@ -408,11 +408,11 @@ SYSLOG_PROC void SYSLOG_API SystemLogTime( uint32_t enable );
 
 #ifndef NO_LOGGING
 
-#define OutputLogString(s) SystemLog(s)
+#define OutputLogString(s) SystemLogFL(s FILELINE_SRC )
 /* Depricated. Logs a format string that takes 0 parameters.
    See Also
    <link sack::logging::lprintf, lprintf>                    */
-#define Log(s)                                   SystemLog( s )
+#define Log(s)                                   SystemLogFL( s FILELINE_SRC )
 #else
 #define OutputLogString(s) 
 /* Depricated. Logs a format string that takes 0 parameters.
