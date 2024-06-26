@@ -6,6 +6,8 @@ if( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 	#MESSAGE( "POLICY IS SET!" )
 endif( ${CMAKE_VERSION} VERSION_GREATER "3.12.0" )
 
+project( SACK )
+
 enable_language( C )
 enable_language( ASM )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
@@ -14,7 +16,6 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 
 
 
-project( SACK )
 
 
 #set_property(GLOBAL PROPERTY BUILD_WITH_INSTALL_RPATH ${BUILD_WITH_INSTALL_RPATH} )
@@ -45,7 +46,7 @@ if( NOT CMAKE_COMPILER_IS_GNUCC
   ADD_DEFINITIONS( -Wno-null-dereference )
   set( GCC 1 )
   ADD_DEFINITIONS( -D_GNU_SOURCE )
-  set( CMAKE_COMPILER_IS_GNUCC 1 )
+  set( CMAKE_COMPILER_IS_GNUCC 0 )
 endif()
 
 if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
@@ -60,6 +61,13 @@ if( CMAKE_C_COMPILER_ID MATCHES "MSVC" )
    set( __COMPILER_GNU 0 )
 
 endif()
+
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+   add_definitions( -Wno-parentheses )
+   add_definitions( -Wno-single-bit-bitfield-constant-conversion )
+endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+   
+
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -87,7 +95,7 @@ include_directories(  ${SACK_BASE}/include )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 3.8.0 )
+set( LIBRESSL_VERSION 3.9.0 )
 
 
 include( DefaultInstall )
@@ -210,7 +218,8 @@ else( __ANDROID__ )
 	       set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed" )
       endif( NOT APPLE )
        if( CMAKE_C_COMPILER_ID STREQUAL "GNU"  )
-           add_definitions( -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L )
+           # Really GNU_SOURCE should be the same as DEFAULT_SOURCE
+           add_definitions( -D_DEFAULT_SOURCE )
            if( __64__ )
                ADD_DEFINITIONS( -m64 )
            endif( __64__ )
@@ -529,6 +538,10 @@ if( __LINUX__ )
    add_definitions( -D__LINUX__ )
    set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ )
 endif( __LINUX__ )
+
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+   set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -Wno-parentheses )
+endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
 
 
 if( __64__ )
@@ -1555,6 +1568,7 @@ endif( WIN32 )
 if( BUILD_TESTS )
    add_subdirectory( src/streamlib/ffmpeg/audio_test )
    add_subdirectory( src/filesyslib/test_file_scan )
+   add_subdirectory( src/netlib/tests/test_read_ready )
 
    add_subdirectory( src/bench/http )
    add_subdirectory( src/utils/http_server )
