@@ -23,9 +23,10 @@
 //#define LOG_STARTUP_SHUTDOWN
 // Define this symbol to use Log( ghLog, "" ) to log pending
 // write status...
-//#define LOG_PENDING
+#define LOG_PENDING
 // for windows - this will log all FD_XXXX notifications processed...
 //#define LOG_NOTICES
+#define LOG_WRITE_NOTICES
 //#define LOG_CLIENT_LISTS
 //#define LOG_NETWORK_LOCKING
 /// for windows - this logs detailed info about the new threaded events

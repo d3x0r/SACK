@@ -105,8 +105,8 @@ PRELOAD( InitNetworkGlobalOptions )
 		globalNetworkData.flags.bShortLogReceivedData = SACK_GetProfileIntEx( "SACK", "Network/Log Network Received Data(64 byte max)", 0, TRUE );
 		globalNetworkData.flags.bLogReceivedData = SACK_GetProfileIntEx( "SACK", "Network/Log Network Received Data", 0, TRUE );
 		globalNetworkData.flags.bLogSentData = SACK_GetProfileIntEx( "SACK", "Network/Log Network Sent Data", globalNetworkData.flags.bLogReceivedData, TRUE );
-#  ifdef LOG_NOTICES
-		globalNetworkData.flags.bLogNotices = SACK_GetProfileIntEx( "SACK", "Network/Log Network Notifications", 0, TRUE );
+#  if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
+		globalNetworkData.flags.bLogNotices = 1 || SACK_GetProfileIntEx( "SACK", "Network/Log Network Notifications", 0, TRUE );
 #  endif
 		globalNetworkData.dwReadTimeout = SACK_GetProfileIntEx( "SACK", "Network/Read wait timeout", 5000, TRUE );
 		globalNetworkData.dwConnectTimeout = SACK_GetProfileIntEx( "SACK", "Network/Connect timeout", 10000, TRUE );
@@ -291,7 +291,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	CRITICALSECTION csr;
 	CRITICALSECTION csw;
 	// keep the closing flag until it's really been closed. (getfreeclient will try to nab it)
-	enum NetworkConnectionFlags  dwFlags = pc->dwFlags & (CF_STATEFLAGS | CF_CLOSING | CF_CONNECT_WAITING | CF_CONNECT_CLOSED);
+	int /*enum NetworkConnectionFlags*/  dwFlags = pc->dwFlags & (CF_STATEFLAGS | CF_CLOSING | CF_CONNECT_WAITING | CF_CONNECT_CLOSED);
 #ifdef VERBOSE_DEBUG
 	lprintf( "CLEAR CLIENT!" );
 #endif

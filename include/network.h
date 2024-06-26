@@ -807,22 +807,61 @@ NETWORK_PROC( LOGICAL, doTCPWriteExx )( PCLIENT lpClient
                                    , int failpending
                                    DBG_PASS
                                   );
+
+/* \#The buffer will be sent in the order of the writes to the
+   socket, and released when empty. If the socket is immediatly
+   able to write, the buffer will be sent, and any remai
+   Parameters
+   lpClient :     network connection to write to
+   pInBuffer :    buffer to write
+   nInLen :       Length of the buffer to send
+   bLongBuffer :  if TRUE, then the buffer written is maintained
+				  exactly by the network layer. A WriteComplete
+				  callback will be invoked when the buffer has
+				  been sent so the application might delete the
+				  buffer.
+   failpending :  Uhmm... maybe if it goes to pending, fail?
+   pend_on_fail : True/false - if the write fails, should it be
+				  pending until it can be sent.
+
+   Remarks
+   If bLongBuffer is not set, then if the write cannot
+   immediately complete, then a new buffer is allocated
+   internally, and unsent data is buffered by the network
+   collection. This allows the user to not worry about slowdowns
+   due to blocking writes. Often writes complete immediately,
+   and are not buffered other than in the user's own buffer
+   passed to this write.                                         */
+
+NETWORK_PROC( LOGICAL,  doTCPWriteV2 )( PCLIENT lpClient
+                     , CPOINTER pInBuffer
+                     , size_t nInLen
+                     , int bLongBuffer
+                     , int failpending
+                     , int pend_on_fail
+                     DBG_PASS
+                     );
+
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
 
    \ \                                                                                  */
-#define doTCPWriteEx( c,b,l,f1,f2) doTCPWriteExx( (c),(b),(l),(f1),(f2) DBG_SRC )
+#define doTCPWriteExx( c,b,l,f1,f2,fop,...) doTCPWriteV2( (c),(b),(l),(f1),(f2),(fop),##__VA_ARGS__ )
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
 
    \ \                                                                                  */
-#define SendTCPEx( c,b,l,p) doTCPWriteExx( c,b,l,FALSE,p DBG_SRC)
+#define doTCPWriteEx( c,b,l,f1,f2) doTCPWriteV2( (c),(b),(l),(f1),(f2),TRUE DBG_SRC )
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
 
    \ \                                                                                  */
-#define SendTCP(c,b,l) doTCPWriteExx(c,b,l, FALSE, FALSE DBG_SRC)
+#define SendTCPEx( c,b,l,p) doTCPWriteV2( c,b,l,FALSE,p,TRUE DBG_SRC)
 /* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
 
    \ \                                                                                  */
-#define SendTCPLong(c,b,l) doTCPWriteExx(c,b,l, TRUE, FALSE DBG_SRC)
+#define SendTCP(c,b,l) doTCPWriteV2(c,b,l, FALSE, FALSE,TRUE DBG_SRC)
+/* <combine sack::network::tcp::doTCPWriteExx@PCLIENT@CPOINTER@int@int@int failpending>
+
+   \ \                                                                                  */
+#define SendTCPLong(c,b,l) doTCPWriteV2(c,b,l, TRUE, FALSE,TRUE DBG_SRC)
 
 NETWORK_PROC( void, SetTCPWriteAggregation )( PCLIENT pc, int bAggregate );
 

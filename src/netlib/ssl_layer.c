@@ -1074,7 +1074,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		// default to what? the client IP as a hostname?
 	}
 	struct ssl_hostContext* hostctx;
-	struct ssl_hostContext* defaultHostctx;
+	struct ssl_hostContext* defaultHostctx = NULL;
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 		char const* checkName;
 		char const* nextName;
@@ -1842,7 +1842,8 @@ lprintf( "Loading System Certs");
 		x509 = d2i_X509(NULL, &encoded_cert, pContext->cbCertEncoded);
 		if (x509)
 		{
-			int i = X509_STORE_add_cert(store, x509);
+			//int i = 
+			X509_STORE_add_cert(store, x509);
 
 			//if (i == 1)
 			//	std::cout << "certificate added" << std::endl;

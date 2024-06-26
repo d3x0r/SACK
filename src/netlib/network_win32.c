@@ -224,7 +224,7 @@ static void HandleEvent( PCLIENT pClient )
 				{
 					{
 						uint16_t wError = networkEvents.iErrorCode[FD_CONNECT_BIT];
-#ifdef LOG_NOTICES
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "FD_CONNECT on %p", pClient );
 #endif
@@ -232,7 +232,7 @@ static void HandleEvent( PCLIENT pClient )
 							pClient->dwFlags |= CF_CONNECTED;
 						else
 						{
-#ifdef LOG_NOTICES
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connect error: %d", wError );
 #endif
@@ -269,7 +269,7 @@ static void HandleEvent( PCLIENT pClient )
 												? IN_SOCKADDR_LENGTH 
 												: IN6_SOCKADDR_LENGTH );
 							}
-#ifdef LOG_NOTICES
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Post connect to application %p  error:%d", pClient, wError );
 #endif
@@ -292,7 +292,7 @@ static void HandleEvent( PCLIENT pClient )
 						}
 						if( pClient->pWaiting )
 							WakeThread( pClient->pWaiting );
-#ifdef LOG_NOTICES
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "FD_CONNECT Completed" );
 #endif
@@ -310,9 +310,9 @@ static void HandleEvent( PCLIENT pClient )
 						}
 						Relinquish();
 					}
-#ifdef LOG_NOTICES
-					//if( globalNetworkData.flags.bLogNotices )
-					//	lprintf( "FD_READ" );
+#if defined( LOG_NOTICES ) || defined( LOG_READ_NOTICES )
+					if( globalNetworkData.flags.bLogNotices )
+						lprintf( "FD_READ" );
 #endif
   					if( ( pClient->dwFlags & CF_ACTIVE ) ) {
 #if 0 && !DrainSupportDeprecated
@@ -351,13 +351,15 @@ static void HandleEvent( PCLIENT pClient )
 						Relinquish();
 					}
 					if( pClient->dwFlags & CF_ACTIVE ) {
-#ifdef LOG_NOTICES
-						//if( globalNetworkData.flags.bLogNotices )
-						//	lprintf( "FD_Write" );
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
+						if( globalNetworkData.flags.bLogNotices )
+							lprintf( "FD_Write %p", pClient );
 #endif
 						// returns true while it wrote or there is data to write
 						if( pClient->lpFirstPending && !pClient->flags.bAggregateOutput && !pClient->writeTimer ) {
-							//lprintf( "TCPWrite(and pending first pending?) is ready on %p (no timer)", pClient );
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
+							lprintf( "TCPWrite(and pending first pending?) is ready on %p (no timer)", pClient );
+#endif
 							TCPWrite(pClient);
 						} else {
 							pClient->dwFlags |= CF_WRITEREADY;
@@ -374,6 +376,10 @@ static void HandleEvent( PCLIENT pClient )
 							}
 						}
 						NetworkUnlock( pClient, 0 );
+#if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
+						if( globalNetworkData.flags.bLogNotices )
+							lprintf( "FD_Write(done, to unlock) %p", pClient );
+#endif
 					}
 				}
 

@@ -865,28 +865,28 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 	PCLIENT pClient;
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
-	if( lpName &&
-	   (lpsaDest = CreateSockAddress(lpName,wPort) ) )
-	{
-		pClient = CPPOpenTCPClientAddrExxx( lpsaDest
-		                                  , pReadComplete
-		                                  , psvRead
-		                                  , CloseCallback
-		                                  , psvClose
-		                                  , WriteComplete
-		                                  , psvWrite
-		                                  , pConnectComplete
-		                                  , psvConnect
-		                                  , flags
-		                                    DBG_RELAY
-		                                  );
-		ReleaseAddress( lpsaDest );
-	} else if( !lpsaDest && pConnectComplete ) {
+	if( lpName ) {
+		if(lpsaDest = CreateSockAddress(lpName,wPort) ) {
+			pClient = CPPOpenTCPClientAddrExxx( lpsaDest
+			                                  , pReadComplete
+			                                  , psvRead
+			                                  , CloseCallback
+			                                  , psvClose
+			                                  , WriteComplete
+			                                  , psvWrite
+			                                  , pConnectComplete
+			                                  , psvConnect
+			                                  , flags
+			                                    DBG_RELAY
+			                                  );
+			ReleaseAddress( lpsaDest );
+		} else if( pConnectComplete ) {
 #ifdef WIN32
-		pConnectComplete( psvConnect, globalNetworkData.lastAddressError );
+			pConnectComplete( psvConnect, globalNetworkData.lastAddressError );
 #else
-		pConnectComplete( psvConnect, errno );
+			pConnectComplete( psvConnect, errno );
 #endif
+		}
 	}
 	return pClient;
 }
@@ -904,18 +904,16 @@ PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
 	PCLIENT pClient;
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
-	if( lpName &&
-		(lpsaDest = CreateSockAddress(lpName,wPort) ) )
-	{
-		pClient = OpenTCPClientAddrExxx( lpsaDest
-		                               , pReadComplete
-		                               , CloseCallback
-		                               , WriteComplete
-		                               , pConnectComplete
-		                               , flags DBG_RELAY );
-		ReleaseAddress( lpsaDest );
-	} else {
-		if( !lpsaDest && pConnectComplete ) {
+	if( lpName ) {
+		if(lpsaDest = CreateSockAddress(lpName,wPort) ) {
+			pClient = OpenTCPClientAddrExxx( lpsaDest
+			                               , pReadComplete
+			                               , CloseCallback
+			                               , WriteComplete
+			                               , pConnectComplete
+			                               , flags DBG_RELAY );
+			ReleaseAddress( lpsaDest );
+		} else if( pConnectComplete ) {
 #ifdef WIN32
 			pConnectComplete( NULL, globalNetworkData.lastAddressError );
 #else
@@ -1099,7 +1097,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					size_t length = lpClient->RecvPending.dwUsed;
 					lpClient->RecvPending.dwUsed = 0;
 #ifdef LOG_PENDING
-					lprintf( "Send to application...." );
+					//lprintf( "Send to application...." );
 #endif
 					if( lpClient->dwFlags & CF_CPPREAD )
 					{
@@ -1116,7 +1114,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					if( !IsValid( lpClient->Socket ) ) // closed
 						return -1;
 #ifdef LOG_PENDING
-					lprintf( "back from applciation... (loop to next)" ); // new read probably pending ehre...
+					//lprintf( "back from applciation... (loop to next)" ); // new read probably pending ehre...
 #endif
 					continue;
 				}
@@ -1309,11 +1307,9 @@ static void PendWrite( PCLIENT pClient
                      , size_t nLen, int bLongBuffer )
 {
 	PendingBuffer *lpPend;
-#ifdef LOG_PENDING
-	{
-		lprintf( "Pending %d Bytes to network..." , nLen );
-	}
-#endif
+//#ifdef LOG_PENDING
+	lprintf( "Pending %d Bytes to network... %p" , nLen, pClient );
+//#endif
 	lpPend = New( PendingBuffer );
 	//lprintf( "Write pend %d", nLen );
 	lpPend->dwAvail = nLen;
@@ -1344,17 +1340,17 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 	int nSent;
 	PendingBuffer *lpNext;
 	if( !pc || !(pc->dwFlags & CF_CONNECTED ) )
-		return TRUE;
+		return 1;
 	while (pc->lpFirstPending)
 	{
-#ifdef VERBOSE_DEBUG
-		if( pc->dwFlags & CF_CONNECTING )
+//#ifdef VERBOSE_DEBUG
+//		if( pc->dwFlags & CF_CONNECTING )
 			lprintf( "Sending previously queued data." );
-#endif
+//#endif
 
 		if( pc->lpFirstPending->dwAvail )
 		{
-  			uint32_t dwError;
+			uint32_t dwError;
 			if( pc->flags.bAggregateOutput && pc->lpFirstPending->lpNext ){
 				uint32_t size = 0;
 				uint32_t blocks = 0;
@@ -1385,7 +1381,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->FirstWritePending.dwUsed = 0;
 					pc->FirstWritePending.lpNext = NULL;
 					pc->FirstWritePending.s.bDynBuffer = TRUE;
-
+					lprintf( "Aggregated %d bytes into single buffer %p", size, pc );
 					pc->lpLastPending =	pc->lpFirstPending = &pc->FirstWritePending;
 				}
 			}
@@ -1410,9 +1406,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			if (nSent == SOCKET_ERROR) {
 				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
-#ifdef VERBOSE_DEBUG
-					lprintf( "Pending write..." );
-#endif
+//#ifdef VERBOSE_DEBUG
+					lprintf( "Pending write...(EBLOCK) %p", pc );
+//#endif
 					pc->dwFlags &= ~CF_WRITEREADY;
 					pc->dwFlags |= CF_WRITEPENDING;
 					return TRUE;
@@ -1454,7 +1450,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					{
 						pc->dwFlags |= CF_TOCLOSE;
 					}
-					return FALSE; // get out of here!
+					return FALSE; // get out of here! (say we sent whatever was pending...; don't repend long buffers)
 				}
 			} else if (!nSent) { // other side closed.
 				//lprintf( "sent zero bytes - assume it was closed - and HOPE there's an event..." );
@@ -1467,9 +1463,16 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 				pc->dwFlags &= ~CF_WRITEREADY;
 				pc->dwFlags |= CF_WRITEPENDING;
 			}
+#ifdef _WIN32
+			// windows only gives a FD_WRITE when a send gets an ewouldblock...
+			else
+				pc->dwFlags |= CF_WRITEREADY;
+#endif
 		}
-		else
+		else {
+			lprintf( "nothing was pending??" );
 			nSent = 0;
+		}
 
 #ifdef DEBUG_SOCK_IO
 		lprintf( "sent... %d %d %d", nSent, pc->lpFirstPending?pc->lpFirstPending->dwUsed:0, pc->lpFirstPending?pc->lpFirstPending->dwAvail:0 );
@@ -1541,6 +1544,8 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			}
 		}
 	}
+	lprintf( "everything is written. %p", pc );
+
 	return FALSE; // 0 = everything sent / nothing left to send...
 }
 
@@ -1553,7 +1558,7 @@ void SetTCPWriteAggregation( PCLIENT pc, int bAggregate )
 
 static void triggerWrite( uintptr_t psv ){
 	PCLIENT pc = (PCLIENT)psv;
-	//lprintf( "Timer fired %p", psv );
+	lprintf( "Timer fired %p  %d", psv, pc->writeTimer );
 	if( pc )
 	{
 		int32_t timer = pc->writeTimer;
@@ -1573,8 +1578,11 @@ static void triggerWrite( uintptr_t psv ){
 				pc->flags.bWriteOnUnlock = 1;
 				return;
 			}
-			if( pc->dwFlags & CF_ACTIVE )
-					TCPWrite( pc );
+			if( pc->dwFlags & CF_ACTIVE ) {
+				lprintf( "locked and can write: %p", pc );
+				TCPWrite( pc );
+			}
+			lprintf( "Unlocking after write... %p", pc );
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
 			lprintf( "Triggered write shouldn't hve no pending...%p (Try Again?)", psv );
@@ -1584,49 +1592,87 @@ static void triggerWrite( uintptr_t psv ){
 	}
 }
 
-
 static PDATAQUEUE pdqPendingWrites = NULL;
 static PTHREAD writeWaitThread = NULL;
 
+static LOGICAL hasPending( PCLIENT pc ) {
+	INDEX i;
+	struct PendingWrite pending;
+	i = 0;
+	while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i++ ) ){
+		if( pending.pc == pc ) {
+			lprintf( "Might have still been able to get the lock...");
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 uintptr_t WaitToWrite( PTHREAD thread ) {
-	PLIST requeued = NULL;
+	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
 	if( !pdqPendingWrites )
 		pdqPendingWrites = CreateDataQueue( sizeof( struct PendingWrite ) );
 	while( 1 ) {
-		WakeableSleep( 100 );
+		WakeableSleep( 10000 );
 		struct PendingWrite pending;
 		struct PendingWrite *lpPending = &pending;
-		INDEX i;
-		i = 0;
-		while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i ) ){
-			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
-				if( !requeued || !FindLink( &requeued, pending.pc ) ) {
-					AddLink( &requeued, pending.pc );
+		while( DequeData( &pdqPendingWrites, &pending ) ) {
+			lprintf( "Handling pending writes... %p", pending.pc );
+			if( requeued ) {
+				INDEX idx;
+				struct PendingWrite* lpPending;
+				DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
+					if( lpPending->pc == pending.pc ) {
+						AddDataItem( &requeued, &pending );
+						DequeData( &pdqPendingWrites, &pending );
+						break;
+					}
 				}
-				i++;
-				continue;
+				if( lpPending ) {
+					continue;
+				}
 			}
-			LOGICAL stillPend = doTCPWriteExx( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending DBG_SRC );
-			if( stillPend == -1 ) {
-				lprintf( "--- This should not happen - have the lock already..." );
-				AddLink( &requeued, lpPending->pc );
-				break;  // this might have beeen await for another write?
+			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
+				if( !requeued ) {
+					AddDataItem( &requeued, lpPending );
+				}
+			} else {
+
+				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
+				if( stillPend == -1 ) {
+					lprintf( "--- This should not happen - have the lock already..." );
+					AddDataItem( &requeued, lpPending );
+				} else {
+					lpPending->pc->wakeOnUnlock = NULL;
+				}
+				NetworkUnlockEx( lpPending->pc, 0 DBG_SRC );
 			}
-			else 
-				lpPending->pc->wakeOnUnlock = NULL;
-			NetworkUnlockEx( lpPending->pc, 0 DBG_SRC );
-			DequeData( &pdqPendingWrites, &pending );
-			i++;
+			;
+			//i++;
 		}
-		EmptyList( &requeued );
+
+		if( requeued ) {
+			INDEX idx;
+			struct PendingWrite* lpPending;
+			DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
+				if( lpPending->pc == pending.pc ) {
+					EnqueData( &pdqPendingWrites, lpPending );
+					pending.pc->wakeOnUnlock = thread;
+				}
+			}
+		}
+
+		EmptyDataList( &requeued );
 	}
 }
 
-LOGICAL doTCPWriteExx( PCLIENT lpClient
+
+LOGICAL doTCPWriteV2( PCLIENT lpClient
                      , CPOINTER pInBuffer
                      , size_t nInLen
                      , int bLongBuffer
                      , int failpending
+                     , int pend_on_fail
                      DBG_PASS
                      )
 {
@@ -1648,25 +1694,27 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 			return FALSE;
 		}
-		if( !writeWaitThread) 
-			writeWaitThread = ThreadTo( WaitToWrite, 0 );
+
+		if( pend_on_fail ) {
+			if( !writeWaitThread )
+				writeWaitThread = ThreadTo( WaitToWrite, 0 );
 
 
-		struct PendingWrite pw;
-		pw.pc = lpClient;
-		if( bLongBuffer )
-			pw.buffer = (POINTER)pInBuffer;
-		else {
-			pw.buffer = Allocate( nInLen );
-			MemCpy( pw.buffer, pInBuffer, nInLen );
+			struct PendingWrite pw;
+			pw.pc = lpClient;
+			if( bLongBuffer )
+				pw.buffer = (POINTER)pInBuffer;
+			else {
+				pw.buffer = Allocate( nInLen );
+				MemCpy( pw.buffer, pInBuffer, nInLen );
+			}
+			pw.len = nInLen;
+			pw.bLong = bLongBuffer;
+			pw.failpending = failpending;
+			EnqueData( &pdqPendingWrites, &pw );
+			lpClient->wakeOnUnlock = writeWaitThread;
 		}
-		pw.len = nInLen;
-		pw.bLong = bLongBuffer;
-		pw.failpending = failpending;
-		EnqueData( &pdqPendingWrites, &pw );
-		lpClient->wakeOnUnlock = writeWaitThread;
 		return -1;
-		Relinquish();
 	}
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
 	{
@@ -1685,17 +1733,18 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 #endif
 		if( !failpending )
 		{
-#ifdef VERBOSE_DEBUG
+//#ifdef VERBOSE_DEBUG
 			lprintf( "Queuing pending data anyhow..." );
-#endif
+//#endif
 			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			if( lpClient->flags.bAggregateOutput) 
 			{
-				//_lprintf(DBG_RELAY)( "Write with aggregate... %d %d %p", nInLen, lpClient->writeTimer, lpClient );
+				_lprintf(DBG_RELAY)( "Write with aggregate... %d (timer?)%d %p", nInLen, lpClient->writeTimer, lpClient );
 				if( lpClient->writeTimer ) {
 					RescheduleTimerEx( lpClient->writeTimer, 3 );
 				} else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+				_lprintf( DBG_RELAY )( "Write with aggregate... (timer?)%d", lpClient->writeTimer );
 			}
 			lpClient->dwFlags |= CF_WRITEPENDING; // shouldn't have to do this - this there is a race condition somewhere...
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
@@ -1714,7 +1763,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 	else
 	{
 		// have to steal the buffer - :(
-
+		
 		lpClient->FirstWritePending.buffer.c   = pInBuffer;
 		//lprintf( "First pending Write set to %d", nInLen );
 		lpClient->FirstWritePending.dwAvail    = nInLen;
@@ -1735,7 +1784,7 @@ LOGICAL doTCPWriteExx( PCLIENT lpClient
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
 			int wasTimer = lpClient->writeTimer;
-			//_lprintf(DBG_RELAY)( "Write with aggregate... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient );
+			_lprintf(DBG_RELAY)( "Write with aggregate (firstpending forced)... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient );
 			if( lpClient->writeTimer ) RescheduleTimerEx( lpClient->writeTimer, 3 ); 
 			else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 			lpClient->dwFlags |= CF_WRITEPENDING;
@@ -1890,5 +1939,18 @@ void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 #ifndef __LINUX__
 #  undef ioctl 
 #endif
+
+#undef doTCPWriteExx
+LOGICAL doTCPWriteExx( PCLIENT lpClient
+	, CPOINTER pInBuffer
+	, size_t nInLen
+	, int bLongBuffer
+	, int failpending
+	DBG_PASS
+) {
+	return doTCPWriteV2( lpClient, pInBuffer, nInLen, bLongBuffer, failpending, 1 DBG_SRC );
+}
+#define doTCPWriteExx( c,b,l,f1,f2,fop,...) doTCPWriteV2( (c),(b),(l),(f1),(f2),(fop),##__VA_ARGS__ )
+
 
 SACK_NETWORK_TCP_NAMESPACE_END

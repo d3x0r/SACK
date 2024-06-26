@@ -2346,11 +2346,7 @@ static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
 	return 0;
 }
 
-static PLINKQUEUE dispose_queue
-#ifdef __cplusplus
-   = CreateLinkQueue()
-#endif
-	;
+static PLINKQUEUE dispose_queue;
 static PTHREAD dispose_thread = NULL;
 static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 	PDATALIST msg_data;
@@ -2377,9 +2373,8 @@ static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 
 
 void jsox_dispose_message( PDATALIST *msg_data ) {
-#ifndef __cplusplus
+	MakeThread();
 	if( !dispose_queue ) dispose_queue = CreateLinkQueue();
-#endif
 	EnqueLink( &dispose_queue, (POINTER)(msg_data[0]) );
 	if( !dispose_thread ) dispose_thread = ThreadTo( jsox_dispose_thread, 0 );
 	else                  WakeThread( dispose_thread );

@@ -636,7 +636,7 @@ ssh_auth_cb sack_ssh_set_auth_complete( struct ssh_session*session, void(*auth_c
 	return cb;
 }
 
-ssh_open_cb sack_ssh_set_channel_open( struct ssh_session*session, uintptr_t(*channel_open)(uintptr_t,struct ssh_channel*) ){
+ssh_open_cb sack_ssh_set_channel_open( struct ssh_session*session, ssh_open_cb channel_open ){
 	ssh_open_cb cb = session->channel_open;
 	session->channel_open = channel_open;
 	return cb;
@@ -673,13 +673,13 @@ ssh_forward_listen_accept_cb sack_ssh_set_forward_listen_accept( struct ssh_list
 	return cb;
 }
 
-ssh_pty_cb sack_ssh_set_pty_open( struct ssh_channel*channel, void(*pty_open)(uintptr_t,LOGICAL) ){
+ssh_pty_cb sack_ssh_set_pty_open( struct ssh_channel*channel, ssh_pty_cb pty_open ){
 	ssh_pty_cb cb = channel->pty_open;
 	channel->pty_open = pty_open;
 	return cb;
 }
 
-ssh_shell_cb sack_ssh_set_shell_open( struct ssh_channel*channel, void(*shell_open)(uintptr_t,LOGICAL) ){
+ssh_shell_cb sack_ssh_set_shell_open( struct ssh_channel*channel, ssh_shell_cb shell_open ){
 	ssh_shell_cb cb = channel->shell_open;
 	channel->shell_open = shell_open;
 	return cb;
@@ -746,8 +746,6 @@ ssh_sftp_open_cb sack_ssh_set_sftp_open( struct ssh_session* session, ssh_sftp_o
 
 static struct keyparts* CertToBinary( const char* cert, size_t* result ) {
 	char* outbuf = NewArray( char, StrLen( cert ) );
-	int nibble = 0;
-	int byte = 0;
 	size_t bytes = 0;
 	int line_eol = 0;
 	int skip_to_end = 0;
@@ -816,8 +814,8 @@ static struct keyparts* CertToBinary( const char* cert, size_t* result ) {
 			data.keys[p].privkey = (uint8_t*)( data.leadin + ofs + 4 );
 			ofs += data.keys[p].privkeylen + 4;
 
-			uint32_t rand1 = ( (uint32_t*)data.keys[p].privkey )[0];
-			uint32_t rand2 = ( (uint32_t*)data.keys[p].privkey )[1];
+			//uint32_t rand1 = ( (uint32_t*)data.keys[p].privkey )[0];
+			//uint32_t rand2 = ( (uint32_t*)data.keys[p].privkey )[1];
 			data.keys[p].privkey += 8;
 			/* pubkey parts
 
@@ -1172,10 +1170,12 @@ static void websocketCloseSSH( uintptr_t psv ) {
 	sack_ssh_channel_close( ws->channel );
 }
 
+/*
 static void ssh_ws_open( uintptr_t psv ) {
-	struct ssh_websocket* ws = (struct ssh_websocket*)psv;
+	//struct ssh_websocket* ws = (struct ssh_websocket*)psv;
 	
 }
+*/
 
 static void ssh_ws_eof( uintptr_t psv ) {
 	struct ssh_websocket* ws = (struct ssh_websocket*)psv;
@@ -1185,7 +1185,7 @@ static void ssh_ws_eof( uintptr_t psv ) {
 }
 
 static void ssh_ws_close( uintptr_t psv ) {
-
+	// close has already happened, turns out to be a noop?
 }
 
 /*
