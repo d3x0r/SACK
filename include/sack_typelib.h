@@ -292,7 +292,7 @@ TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE     ForAllLinks    ( PLIST *pList, ForP
 #endif
 //--------------------------------------------------------
 #ifdef __cplusplus
-/* A type of dynamic array that contains the data of the elements and not just pointers like PLIST. */
+/* A type of dynamic array that contains the data of the elements and not just pointers like PLIST. Has no locks builtin. */
 namespace data_list {
 #endif
 

@@ -1659,7 +1659,7 @@ typedef struct DataBlock volatile * volatile PDATALIST;
 /* Data Blocks are like LinkBlocks, and store blocks of data in
    slab format. If the count of elements exceeds available, the
    structure is grown, to always contain a continuous array of
-   structures of Size size.
+   structures of Size size. No locking is provided.
    Remarks
    When blocks are deleted, all subsequent blocks are shifted
    down in the array. So the free blocks are always at the end. */

@@ -186,8 +186,8 @@ SYSLOG_PROC  void SYSLOG_API  SetSystemLog ( enum syslog_types type, const void 
 SYSLOG_PROC  void SYSLOG_API  ProtectLoggedFilenames ( LOGICAL bEnable );
 
 SYSLOG_PROC  void SYSLOG_API  SystemLogFL ( CTEXTSTR FILELINE_PASS );
-SYSLOG_PROC  void SYSLOG_API  SystemLogEx ( CTEXTSTR DBG_PASS );
-SYSLOG_PROC  void SYSLOG_API  SystemLog ( CTEXTSTR );
+//SYSLOG_PROC  void SYSLOG_API  SystemLogEx ( CTEXTSTR DBG_PASS );
+//SYSLOG_PROC  void SYSLOG_API  SystemLog ( CTEXTSTR );
 SYSLOG_PROC  void SYSLOG_API  BinaryToString( PVARTEXT pvt, const uint8_t* buffer, size_t size DBG_PASS );
 
 SYSLOG_PROC  void SYSLOG_API  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS );
@@ -219,12 +219,14 @@ SYSLOG_PROC  void SYSLOG_API  SetSystemLoggingLevel ( uint32_t nLevel );
    The '.' at the end of 'sample string' is a non printable
    character. characters 0-31 and 127+ are printed as '.'.       */
 #define LogBinary(buf,sz) LogBinaryFL((uint8_t*)(buf),sz DBG_SRC )
+#define SystemLogEx(buf,...) SystemLogFL(buf,##__VA_ARGS__)
 #define SystemLog(buf)    SystemLogFL(buf DBG_SRC )
 #else
 // need to include the typecast... binary logging doesn't really care what sort of pointer it gets.
 #define LogBinary(buf,sz) LogBinary((uint8_t*)(buf),sz )
 //#define LogBinaryEx(buf,sz,...) LogBinaryFL(buf,sz FILELINE_NULL)
-//#define SystemLogEx(buf,...) SystemLogFL(buf FILELINE_NULL )
+#define SystemLogEx(buf,...) SystemLogFL(buf FILELINE_NULL )
+#define SystemLog(buf)    SystemLogFL(buf FILELINE_NULL )
 #endif
 
 // int result is useless... but allows this to be

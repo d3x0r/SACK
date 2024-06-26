@@ -40,6 +40,9 @@ typedef struct render_3d_interface_tag
 
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
+struct SwapChain;
+
+
 #ifdef _VULKAN_DRIVER
 RENDER_PROC( void, createCommandBuffers )( struct SwapChain* chain, VkCommandBuffer* buffers, uint32_t count, LOGICAL primary );
 #endif

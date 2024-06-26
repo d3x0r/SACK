@@ -9,6 +9,10 @@ namespace ssh {
 #endif
 
 
+struct ssh_channel;
+struct ssh_listener;
+struct ssh_sftp;
+
 typedef void ( *ssh_handshake_cb )( uintptr_t psv, const uint8_t* fingerprint );
 
 // ----------------- SESSIONS ---------------------

@@ -13,7 +13,7 @@
 #if !defined(__STATIC__) && !defined(__LINUX__)
 #  ifdef VECTOR_LIBRARY_SOURCE
 #    define MATHLIB_EXPORT EXPORT_METHOD
-#    if defined( __WATCOMC__ ) || defined( _MSC_VER )
+#    if defined( __WATCOMC__ ) || defined( _MSC_VER ) && !defined( __clang__ )
 // data requires an extra extern to generate the correct code *boggle*
 #      define MATHLIB_DEXPORT extern EXPORT_METHOD
 #    else
