@@ -49,13 +49,13 @@ void CPROC ReadCallback2( PCLIENT pc, POINTER buffer, size_t len )
 	ReadTCP( pc, buffer, 256 );
 }
 
-void CPROC WriteCallback( PCLIENT pc )
+void CPROC WriteCallback( PCLIENT pc, CPOINTER buffer, size_t len )
 {
 	lprintf( "disconnect client after write" );
 	RemoveClient( pc );
 }
 
-void CPROC WriteCallback2( PCLIENT pc )
+void CPROC WriteCallback2( PCLIENT pc, CPOINTER buffer, size_t len )
 {
 	lprintf( "disconnect client after write" );
 	RemoveClient( pc );
