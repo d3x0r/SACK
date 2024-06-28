@@ -232,6 +232,9 @@ DeclareThreadLocal  struct my_thread_info _MyThreadInfo;
 
 #ifdef _WIN32
 #else
+
+//https://godbolt.org/z/Kx8cP68E8
+
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
@@ -1280,13 +1283,13 @@ PTHREAD  MakeThread( void )
 		if( !(pThread = FindThread( thread_ident ) ) )
 		{
 			THREAD_ID oldval;
-			LOGICAL dontUnlock = FALSE;
+			//LOGICAL dontUnlock = FALSE;
 			while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) /*&& ( oldval != thread_ident )*/ )
 			{
 				//globalTimerData.lock_thread_create = oldval;
 				Relinquish();
 			}
-			dontUnlock = TRUE;
+			//dontUnlock = TRUE;
 			pThread = GetFromSet( THREAD, &globalTimerData.threadset ); /*Allocate( sizeof( THREAD ) )*/;
 			//lprintf( "Get Thread %p", pThread );
 			MemSet( pThread, 0, sizeof( THREAD ) );
@@ -1602,6 +1605,8 @@ static void DoInsertTimer( PTIMER timer )
 			timer->next = check;
 			(*(timer->me = check->me))=timer;
 			check->me = &timer->next;
+			if( timer->next == timer || check->next == check ) DebugBreak();
+
 			break;
 		}
 		else
@@ -2335,7 +2340,7 @@ void  ChangeTimerEx( uint32_t ID, uint32_t initial, uint32_t frequency )
 //--------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-#ifdef _MSC_VER
+#if defined( _MSC_VER ) && !defined( __clang__ )
 // reordering instructions in this is not allowed...
 // since MSVC ends up reversing unlocks before other code that should run first.
 #  pragma optimize( "st", off )
@@ -2404,7 +2409,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 //-------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-#ifdef _MSC_VER
+#if defined( _MSC_VER ) && !defined( __clang__ )
 #  pragma optimize( "st", off )
 #endif
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
@@ -2490,7 +2495,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			THREAD_ID dwWaiting = pcs->dwThreadWaiting;
 			pcs->dwThreadID = 0;
 			pcs->dwLocks = 0;
-			pcs->dwUpdating = pcs->dwLocks;
+			pcs->dwUpdating = 0;
 
 			// wake the prior (if there is one sleeping)
 			if( dwWaiting )

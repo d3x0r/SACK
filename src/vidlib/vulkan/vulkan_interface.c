@@ -44,7 +44,7 @@ void createSemaphores( struct display_camera *camera ) {
 
 	if( vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.imageAvailableSemaphore ) != VK_SUCCESS ||
 		vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.renderFinishedSemaphore ) != VK_SUCCESS ) {
-		return FALSE;
+		return;// FALSE;
 		//throw std::runtime_error( "failed to create semaphores!" );
 	}
 }

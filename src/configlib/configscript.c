@@ -1694,7 +1694,6 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	int matched = 1;
 	int matches = 0;
 	PTEXT pWords = NULL;
-	PTEXT original_start = *start;
 	INDEX idx;
 	struct config_element_tag *default_EOL = NULL;
 	if( pce->type != CONFIG_MULTI_WORD )

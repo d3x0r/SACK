@@ -16061,7 +16061,11 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 		}
 	}
 	if( node->parent->lesser != node && node->parent->greater != node ) {
-		*(int*)0 = 0;
+#ifdef __clang__
+		__builtin_trap();
+#else
+		( *(int*)0 ) = 0;
+#endif
 	}
 	AVLbalancer( root, node );
 #ifdef DEBUG_AVL_VALIDATION
@@ -16109,7 +16113,11 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		if( !node->parent->flags.bRoot
 			&& node->parent->lesser != node
 			&& node->parent->greater != node ) {
-			*(int*)0=0;
+#ifdef __clang__
+			__builtin_trap();
+#else
+			( *(int*)0 ) = 0;
+#endif
 		}
 		PTREENODE least = NULL;
 		PTREENODE backtrack;
@@ -56950,12 +56958,6 @@ int  sack_fclose( FILE* file_file )
 	return fclose( file_file );
 }
 //----------------------------------------------------------------------------
-static void transcodeOutputText( struct file* file, POINTER buffer, size_t size, POINTER* outbuf, size_t* outsize ) {
-}
-//----------------------------------------------------------------------------
-static void transcodeInputText( struct file* file, POINTER buffer, size_t size, POINTER* outbuf, size_t* outsize ) {
-}
-//----------------------------------------------------------------------------
 size_t  sack_fread( POINTER buffer, size_t size, int count, FILE* file_file )
 {
 	struct file* file;
@@ -71439,8 +71441,8 @@ RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,
  // time of intersection
 	RCOORD a,b,c,cosPhi, t;
 	// intersect a line with a plane.
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2)
-//  (v € w)/(|v| |w|) = cos ß
+//   v ï¿½ w = (1/2)(|v + w|2 - |v|2 - |w|2)
+//  (v ï¿½ w)/(|v| |w|) = cos ï¿½
 	//cosPhi = CosAngle( Slope, n );
 	a = ( Slope[0] * n[0] +
 			Slope[1] * n[1] +

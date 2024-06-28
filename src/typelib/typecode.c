@@ -48,12 +48,14 @@ namespace sack {
 			static struct list_local_data
 			{
 				volatile uint32_t lock;
-			} s_list_local, * _list_local;
+			} 
 
 #ifdef __STATIC_GLOBALS__
+	s_list_local;
 #  define list_local  (s_list_local)
 #  define list_local_lock (&s_list_local.lock)
 #else
+ 	* _list_local, s_list_local;
 #  define list_local  ((_list_local)?(*_list_local):(s_list_local))
 #  define list_local_lock ((_list_local)?(&_list_local->lock):(&s_list_local.lock))
 #endif
@@ -341,7 +343,8 @@ namespace sack {
 		};//		namespace list {
 		namespace data_list {
 #endif
-
+#if 0
+// data list blocks were never auto-locked?
 			static struct data_list_local_data
 			{
 				uint32_t lock;
@@ -353,7 +356,7 @@ namespace sack {
 #  define data_list_local  ((_data_list_local)?(*_data_list_local):(s_data_list_local))
 #  define data_list_local_lock  ((_data_list_local)?(&_data_list_local->lock):(&s_data_list_local.lock))
 #endif
-
+#endif
 			//--------------------------------------------------------------------------
 
 			PDATALIST ExpandDataListEx( PDATALIST* ppdl, INDEX entries DBG_PASS )
@@ -1505,13 +1508,13 @@ namespace sack {
 		{
 #  ifdef __cplusplus
 			RegisterAndCreateGlobal( (POINTER*)&list::_list_local, sizeof( *list::_list_local ), "_list_local" );
-			RegisterAndCreateGlobal( (POINTER*)&data_list::_data_list_local, sizeof( *data_list::_data_list_local ), "_data_list_local" );
+			//RegisterAndCreateGlobal( (POINTER*)&data_list::_data_list_local, sizeof( *data_list::_data_list_local ), "_data_list_local" );
 			RegisterAndCreateGlobal( (POINTER*)&queue::_link_queue_local, sizeof( *queue::_link_queue_local ), "_link_queue_local" );
 			RegisterAndCreateGlobal( (POINTER*)&data_queue::_data_queue_local, sizeof( *data_queue::_data_queue_local ), "_data_queue_local" );
 
 #  else
 			SimpleRegisterAndCreateGlobal( _list_local );
-			SimpleRegisterAndCreateGlobal( _data_list_local );
+			//SimpleRegisterAndCreateGlobal( _data_list_local );
 			SimpleRegisterAndCreateGlobal( _link_queue_local );
 			SimpleRegisterAndCreateGlobal( _data_queue_local );
 #  endif

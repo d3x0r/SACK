@@ -603,22 +603,22 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                              ,{KEYDATA}
                                              ,{KEYDATA}} }
                       , NONAMES, NONAMES
-                      , {"shift",0,0, {{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}
-                                                 ,{CONTROLKEY,(PTEXT)KeyShift}} } // 0x10
+                      , {"shift",0,0, {{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyShift}}} } // 0x10
                       , {"control",0,0, {{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}
-                                                 ,{CONTROLKEY,(PTEXT)KeyControl}} }
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyControl}}} }
                       , {"menu",0,0, {{CONTROLKEY,(PTEXT)KeyAlt}
                                                  ,{CONTROLKEY,(PTEXT)KeyAlt}
                                                  ,{CONTROLKEY,(PTEXT)KeyAlt}

@@ -1908,7 +1908,8 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIn
 	CTEXTSTR pCurrentCharacter = NULL;
 	PTEXT pBegin;
 	PTEXT pText = *ppText;
-	int decimal_count, s, begin = TRUE, digits;
+	int decimal_count, begin = TRUE, digits;
+	// int s;  // used to count negative signs... but this doesn't do a conversion so it's not needed.
 	// remember where we started...
 
 	// if the first segment is indirect, collect it and only it
@@ -1934,7 +1935,7 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIn
 	}
 	pBegin = pText;
 	decimal_count = 0;
-	s = 0;
+	//s = 0;
 	digits = 0;
 	while( pText )
 	{
@@ -1964,7 +1965,7 @@ int IsSegAnyNumberEx( PTEXT *ppText, double *fNumber, int64_t *iNumber, int *bIn
 			}
 			else if( ((*pCurrentCharacter) == '-') && begin)
 			{
-				s++;
+				//s++;
 			}
 			else if( ((*pCurrentCharacter) < '0') || ((*pCurrentCharacter) > '9') )
 			{
@@ -3586,7 +3587,11 @@ PRELOAD( initTables ) {
 			u8xor_table2[n][(uint8_t)encodings2[m]] = (TEXTCHAR)(n^m);
 	}
 	//LogBinary( (uint8_t*)u8xor_table[0], sizeof( u8xor_table ) );
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
 	b64xor_table['=']['='] = '=';
+#pragma clang diagnostic pop
+	
 }
 
 char * b64xor( const char *a, const char *b ) {
@@ -3628,7 +3633,10 @@ char * u8xor( const char *a, size_t alen, const char *b, size_t blen, int *ofs )
 
 		// B is a base64 key; it would never be > 128 so char index is OK.
 		char bchar = b[(n+o)%(keylen)]&0x7f;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
 		(*out) = (v & ~mask ) | ( u8xor_table[v & mask ][bchar] & mask );
+#pragma clang diagnostic pop
 		out++;
 	}
 	(*out) = 0;
@@ -3648,6 +3656,8 @@ static void encodeblock( unsigned char in[3], TEXTCHAR out[4], size_t len, const
 	out[2] = (len > 1 ? base64[ ((in[1] & 0x0f) << 2) | ( ( len > 2 ) ? ((in[2] & 0xc0) >> 6) : 0 ) ] : base64[64]);
 	out[3] = (len > 2 ? base64[ in[2] & 0x3f ] : base64[64]);
 }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
 
 static void decodeblock( const char in[4], uint8_t out[3], size_t len, const char *base64 )
 {
@@ -3667,7 +3677,7 @@ static void decodeblock( const char in[4], uint8_t out[3], size_t len, const cha
 	out[2] = (char)(( index[2] ) << 6 | ( ( index[3] ) & 0x3F ));
 	//out[] = (len > 2 ? base64[ in[2] & 0x3f ] : 0);
 }
-
+#pragma clang diagnostic pop
 TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, const char *base64 )
 {
 	size_t fake_outsize;
@@ -3693,6 +3703,10 @@ TEXTCHAR *EncodeBase64Ex( const uint8_t* buf, size_t length, size_t *outsize, co
 	}
 	return real_output;
 }
+
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wchar-subscripts"
 
 static void setupDecodeBytes( const char *code ) {
 	int n = 0;
@@ -3727,6 +3741,9 @@ static void setupDecodeBytes( const char *code ) {
                 }
         }
 }
+
+#pragma clang diagnostic pop
+
 uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const char *base64 )
 {
 	static const char *useBase64;

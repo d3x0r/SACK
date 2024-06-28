@@ -710,7 +710,11 @@ uintptr_t vfs_BSEEK( struct sack_vfs_volume *vol, BLOCKINDEX block, enum block_c
 			if( (cache_index[0] == BC(FILE))
 				&& (seg < 3) ) {
 				lprintf( "CRITICAL FAILURE, SEEK OUT OF DISK %d", (int)seg );
-				(*(int*)0) = 0;
+#ifdef __clang__
+				__builtin_trap();
+#else
+				( *(int*)0 ) = 0;
+#endif
 			}
 			cache_index[0] = UpdateSegmentKey( vol, cache_index[0], seg );
 		}
@@ -817,7 +821,11 @@ static BLOCKINDEX vfs_GetNextBlock( struct sack_vfs_volume *vol, BLOCKINDEX bloc
 	check_val = (this_BAT[block & (BLOCKS_PER_BAT - 1)]) ^ ((BLOCKINDEX*)vol->usekey[cache])[block & (BLOCKS_PER_BAT-1)];
 	if( check_val == EOBBLOCK ) {
 		lprintf( "the file itself should never get a EOBBLOCK in it. %d  %d", (int)block, (int)sector );
-		(*(int*)0) = 0;
+#ifdef __clang__
+		__builtin_trap();
+#else
+		( *(int*)0 ) = 0;
+#endif
 		// the file itself should never get a EOBBLOCK in it.
 		//(this_BAT[block & (BLOCKS_PER_BAT-1)]) = EOFBLOCK^((BLOCKINDEX*)vol->usekey[BC(BAT)])[block & (BLOCKS_PER_BAT-1)];
 		//(this_BAT[1+block & (BLOCKS_PER_BAT-1)]) = EOBBLOCK^((BLOCKINDEX*)vol->usekey[BC(BAT)])[1+block & (BLOCKS_PER_BAT-1)];

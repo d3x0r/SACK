@@ -271,6 +271,7 @@ RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
 }
 
 //----------------------------------------------------------------
+#if 0
 #undef LogVector
 
  static void LogVector( char *lpName, VECTOR v )
@@ -279,6 +280,7 @@ RCOORD EXTERNAL_NAME(DirectedDistance)( PC_POINT pvOn, PC_POINT pvOf )
    Log4( "Vector %s = <%lg, %lg, %lg>",
             lpName, v[0], v[1], v[2] );
 }
+#endif
 
 RCOORD EXTERNAL_NAME(CosAngle)( PC_POINT pv1, PC_POINT pv2 )
 {
@@ -989,9 +991,11 @@ LOGICAL EXTERNAL_NAME(MoveEx)( PTRANSFORM pt, struct motion_frame_tag *motion)
 #endif
 	{
 		{
+#if HAVE_CHEAP_CPU_FREQUENCY
 			static uint64_t tick_freq_cpu;
 			static uint64_t last_tick_cpu;
 			static uint32_t tick_cpu;
+#endif
 			if( motion->last_tick )
 			{
 				// how much time passed between then and no

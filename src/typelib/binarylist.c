@@ -588,7 +588,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 						if( backtrack->lesser )
 							if( backtrack->greater ) {
 								int tmp1, tmp2;
-								PTREENODE z_, y_, x_;
+								PTREENODE z_, y_/*, x_*/;
 
 								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) ) {
 									if( backtrack->depth != ( tmp1 + 1 ) ) 
@@ -603,12 +603,12 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 										z_ = backtrack;
 										y_ = backtrack->lesser;
 										if( tmp3 > tmp4 ) {
-											x_ = backtrack->lesser->lesser; 
+											//x_ = backtrack->lesser->lesser; 
 											// left-left Rotate Right(Z)
 											AVL_RotateToRight( z_ );
 										} else {
 											// left-right
-											x_ = backtrack->lesser->greater; 
+											//x_ = backtrack->lesser->greater; 
 											AVL_RotateToLeft( y_ );
 											AVL_RotateToRight( z_ );
 										}
@@ -626,12 +626,12 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 										z_ = backtrack;
 										y_ = backtrack->greater;
 										if( tmp4 > tmp3 ) {
-											x_ = y_->greater; 
+											//x_ = y_->greater; 
 											// right-right Rotate Right(Z)
 											AVL_RotateToLeft( y_ );
 										} else {
 											// right-left
-											x_ = y_->lesser; 
+											//x_ = y_->lesser; 
 											AVL_RotateToRight( y_ );
 											AVL_RotateToLeft( z_ );
 										}

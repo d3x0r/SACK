@@ -1985,7 +1985,7 @@ static LOGICAL OnKey3d( "Video Render Common" )( uintptr_t psv, uint32_t key )
 	return 0;
 }
 
-static uintptr_t OnInit3d( "Video Render Common" )(VkDevice device, PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+static uintptr_t OnInit3d( "Video Render Common" )(struct SwapChain* chain, PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
 {
 	// provide one of these so key can get called.
 	return 1;
