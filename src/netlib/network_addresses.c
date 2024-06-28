@@ -1478,7 +1478,7 @@ SOCKADDR *CreateLocal(uint16_t nMyPort)
 	{
 		return(NULL);
 	}
-	return CreateRemote( "0.0.0.0", nMyPort );
+	return CreateRemote( "::0", nMyPort );
 }
 
 //----------------------------------------------------------------------------

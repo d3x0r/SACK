@@ -23,10 +23,10 @@
 //#define LOG_STARTUP_SHUTDOWN
 // Define this symbol to use Log( ghLog, "" ) to log pending
 // write status...
-#define LOG_PENDING
+//#define LOG_PENDING
 // for windows - this will log all FD_XXXX notifications processed...
 //#define LOG_NOTICES
-#define LOG_WRITE_NOTICES
+//#define LOG_WRITE_NOTICES
 //#define LOG_CLIENT_LISTS
 //#define LOG_NETWORK_LOCKING
 /// for windows - this logs detailed info about the new threaded events
@@ -273,7 +273,7 @@ struct NetworkClient
 	CRITICALSECTION csLockWrite;   // per client lock.
 	PTHREAD pWaiting; // Thread which is waiting for a result...
 	PendingBuffer RecvPending, FirstWritePending; // current incoming buffer
-	PendingBuffer *lpFirstPending,*lpLastPending; // outgoing buffers
+	PendingBuffer *volatile lpFirstPending,*volatile lpLastPending; // outgoing buffers
 	uint32_t    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcOther; // listeners opened with port only have two connections, one IPV4 one IPV6

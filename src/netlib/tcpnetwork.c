@@ -419,6 +419,7 @@ PCLIENT CPPOpenTCPListenerExx( uint16_t wPort
 	SOCKADDR *lpMyAddr = CreateLocal(wPort);
 	PCLIENT pc = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 	ReleaseAddress( lpMyAddr );
+	/*
 	if( pc )
 	{
 		// have to have the base one open or pcOther cannot be set.
@@ -426,6 +427,7 @@ PCLIENT CPPOpenTCPListenerExx( uint16_t wPort
 		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
 		ReleaseAddress( lpMyAddr );
 	}
+	*/
 	return pc;
 }
 
@@ -1343,10 +1345,10 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 		return 1;
 	while (pc->lpFirstPending)
 	{
-//#ifdef VERBOSE_DEBUG
+#ifdef VERBOSE_DEBUG
 //		if( pc->dwFlags & CF_CONNECTING )
 			lprintf( "Sending previously queued data." );
-//#endif
+#endif
 
 		if( pc->lpFirstPending->dwAvail )
 		{
@@ -1544,7 +1546,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			}
 		}
 	}
+#ifdef LOG_WRITE_NOTICES
 	lprintf( "everything is written. %p", pc );
+#endif	
 
 	return FALSE; // 0 = everything sent / nothing left to send...
 }
@@ -1558,7 +1562,9 @@ void SetTCPWriteAggregation( PCLIENT pc, int bAggregate )
 
 static void triggerWrite( uintptr_t psv ){
 	PCLIENT pc = (PCLIENT)psv;
+#ifdef LOG_WRITE_AGGREGATION
 	lprintf( "Timer fired %p  %d", psv, pc->writeTimer );
+#endif	
 	if( pc )
 	{
 		int32_t timer = pc->writeTimer;
@@ -1579,10 +1585,14 @@ static void triggerWrite( uintptr_t psv ){
 				return;
 			}
 			if( pc->dwFlags & CF_ACTIVE ) {
+#ifdef LOG_WRITE_AGGREGATION
 				lprintf( "locked and can write: %p", pc );
+#endif				
 				TCPWrite( pc );
 			}
+#ifdef LOG_WRITE_AGGREGATION
 			lprintf( "Unlocking after write... %p", pc );
+#endif			
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
 			lprintf( "Triggered write shouldn't hve no pending...%p (Try Again?)", psv );
@@ -1740,11 +1750,15 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			if( lpClient->flags.bAggregateOutput) 
 			{
+#ifdef LOG_WRITE_AGGREGATION
 				_lprintf(DBG_RELAY)( "Write with aggregate... %d (timer?)%d %p", nInLen, lpClient->writeTimer, lpClient );
+#endif				
 				if( lpClient->writeTimer ) {
 					RescheduleTimerEx( lpClient->writeTimer, 3 );
 				} else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+#ifdef LOG_WRITE_AGGREGATION
 				_lprintf( DBG_RELAY )( "Write with aggregate... (timer?)%d", lpClient->writeTimer );
+#endif				
 			}
 			lpClient->dwFlags |= CF_WRITEPENDING; // shouldn't have to do this - this there is a race condition somewhere...
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
@@ -1784,7 +1798,9 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
 			int wasTimer = lpClient->writeTimer;
+#ifdef LOG_WRITE_AGGREGATION
 			_lprintf(DBG_RELAY)( "Write with aggregate (firstpending forced)... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient );
+#endif			
 			if( lpClient->writeTimer ) RescheduleTimerEx( lpClient->writeTimer, 3 ); 
 			else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 			lpClient->dwFlags |= CF_WRITEPENDING;

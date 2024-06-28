@@ -23,6 +23,7 @@ static void serverWrite( PCLIENT pc, CPOINTER buffer, size_t length ) {
 }
 
 static void connected( PCLIENT pcServer, PCLIENT pcNew ) {
+	SetTCPWriteAggregation( pcNew, 1 );
 	l.connected = pcNew;
 	SetNetworkReadComplete( pcNew, serverRead );
 	SetNetworkWriteComplete( pcNew, serverWrite );
@@ -40,16 +41,21 @@ static void clientRead( PCLIENT pc, POINTER buffer, size_t length ) {
 
 void Init( void ) {
 	NetworkStart();
+	//lprintf( "open Server...");
 	l.server = OpenTCPListenerEx( 4321, connected );
+	//lprintf( "open Client...");
 	l.client = OpenTCPClient( "localhost", 4321, clientRead );
+	SetTCPWriteAggregation( l.client, 1 );
+	//lprintf( "ready for tests...");
 }
 
 
 void Test1( void ) {
 	int i;
 	for( i = 0; i < 10; i++ ) {
+		lprintf( "Client Send...");
 		SendTCP( l.client, "1234", 4 );
-		WakeableSleep( 1000 );
+		WakeableSleep( 1 );
 	}
 }
 
@@ -57,8 +63,9 @@ void Test1( void ) {
 void Test2( void ) {
 	int i;
 	for( i = 0; i < 10; i++ ) {
+		lprintf( "Server Send...");
 		SendTCP( l.connected, "1234", 4 );
-		WakeableSleep( 1000 );
+		WakeableSleep( 1 );
 	}
 }
 
@@ -66,5 +73,5 @@ int main( void ) {
 	Init();
 	Test1();
 	Test2();
-	WakeableSleep( SLEEP_FOREVER );
+	//WakeableSleep( SLEEP_FOREVER );
 }

@@ -525,16 +525,16 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 					locked = 1;
 					if( events[n].events & EPOLLOUT )
 					{
-#  ifdef LOG_NETWORK_EVENT_THREAD
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 						lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING ) ? "connecting"
 							: ( !( event_data->pc->dwFlags & CF_ACTIVE ) ) ? "closed" : "writing" );
 #  endif
 
-						if( !NetworkLock( event_data->pc, 0 ) ) {
+						if( !NetworkLock( event_data->pc, 0 ) ) {							
 							locked = 0;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
-#  ifdef LOG_NETWORK_EVENT_THREAD
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 							lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
 							continue;
@@ -550,8 +550,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
 							// change to inactive status by the time we got here...
 						} else if( event_data->pc->dwFlags & CF_CONNECTING ) {
-#ifdef LOG_NOTICES
-							if( globalNetworkData.flags.bLogNotices )
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
+							//if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connected!" );
 #endif
 							event_data->pc->dwFlags |= CF_CONNECTED;
@@ -603,7 +603,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									lprintf( "Read Complete" );
 #endif
 									if( pc->read.ReadComplete ) {
-#ifdef LOG_NOTICES
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 										lprintf( "Initial Read Complete" );
 #endif
 										pc->read.ReadComplete( pc, NULL, 0 );
@@ -616,6 +616,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										//lprintf( "Data was pending on a connecting socket, try sending it now" );
 										TCPWrite( pc );
 									} else {
+										//lprintf( "No data pending on a connecting socket; setting write ready" );
 										pc->dwFlags |= CF_WRITEREADY;
 									}
 									if( !pc->lpFirstPending ) {
@@ -638,8 +639,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							// udp write event complete....
 							// do we ever care? probably sometime...
 						} else {
-#ifdef LOG_NOTICES
-							if( globalNetworkData.flags.bLogNotices )
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
+							//if( globalNetworkData.flags.bLogNotices )
 								lprintf( "TCP Write Event..." );
 #endif
 							// if write did not get locked, a write is in progress
@@ -656,7 +657,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									pc->dwFlags |= CF_WRITEREADY;
 								}
 							} else {
-								lprintf( "Read but lock wasn't enabled?" );
+								lprintf( "Write but lock wasn't enabled?" );
 								// although this is only a few instructions down, this can still be a lost event that the other 
 								// lock has already ended, so this will get lost still...
 								event_data->pc->flags.bWriteOnUnlock = 1;
