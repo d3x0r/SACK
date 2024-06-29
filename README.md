@@ -121,10 +121,11 @@ to disable the dependancy of the odbc libraries... many more.
  
  - OpenSSL/LibreSSL  (has LibreSSL 3.2.1 included)
 
- - Gui Parts
+ - Gui Parts (Ubuntu package names, may differ for other systems)
     - (opt) system freetype-dev, png, jpeg, zlib (has latest versions included)
     - wayland-protocols
     - libwayland-dev
+    - libwayland-bin 
     - libxkbcommon-dev 
     - libgl1-mesa-dev 
     - libglew-dev  
