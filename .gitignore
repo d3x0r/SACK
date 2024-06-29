@@ -36,4 +36,4 @@ sack-arch-install/*/src
 sack-arch-install/*/*.zst
 include/*/*.bak
 include/*.bak
-
+test/test_thread_local

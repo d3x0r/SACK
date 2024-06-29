@@ -95,7 +95,7 @@ include_directories(  ${SACK_BASE}/include )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 3.8.0 )
+set( LIBRESSL_VERSION 3.9.2 )
 
 
 include( DefaultInstall )

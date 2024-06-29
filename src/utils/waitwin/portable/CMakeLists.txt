@@ -169,7 +169,7 @@ elseif( UNIX )
    endif( MAC )
 endif( WIN32 )
 
-set( LIBRESSL_VERSION 3.8.0 )
+set( LIBRESSL_VERSION 3.9.2 )
 
 set( LIBRESSL_SKIP_INSTALL ON )
 set( LIBRESSL_APPS OFF )
