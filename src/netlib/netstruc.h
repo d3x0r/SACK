@@ -26,6 +26,7 @@
 //#define LOG_PENDING
 // for windows - this will log all FD_XXXX notifications processed...
 //#define LOG_NOTICES
+//#define LOG_WRITE_AGGREGATION
 //#define LOG_WRITE_NOTICES
 //#define LOG_CLIENT_LISTS
 //#define LOG_NETWORK_LOCKING
@@ -70,7 +71,7 @@ typedef struct PendingWrite {
 	size_t len;
 	int bLong;
 	int failpending;
-};
+} PendingWrite;
 
 typedef struct PendingBuffer
 {
