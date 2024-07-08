@@ -1309,9 +1309,9 @@ static void PendWrite( PCLIENT pClient
                      , size_t nLen, int bLongBuffer )
 {
 	PendingBuffer *lpPend;
-//#ifdef LOG_PENDING
+#if defined( LOG_PENDING ) || defined( LOG_WRITE_NOTICES )
 	lprintf( "Pending %d Bytes to network... %p" , nLen, pClient );
-//#endif
+#endif
 	lpPend = New( PendingBuffer );
 	//lprintf( "Write pend %d", nLen );
 	lpPend->dwAvail = nLen;
@@ -1383,7 +1383,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->FirstWritePending.dwUsed = 0;
 					pc->FirstWritePending.lpNext = NULL;
 					pc->FirstWritePending.s.bDynBuffer = TRUE;
+#ifdef LOG_WRITE_AGGREGATION
 					lprintf( "Aggregated %d bytes into single buffer %p", size, pc );
+#endif
 					pc->lpLastPending =	pc->lpFirstPending = &pc->FirstWritePending;
 				}
 			}
@@ -1743,9 +1745,9 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 #endif
 		if( !failpending )
 		{
-//#ifdef VERBOSE_DEBUG
+#ifdef VERBOSE_DEBUG
 			lprintf( "Queuing pending data anyhow..." );
-//#endif
+#endif
 			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
 			PendWrite( lpClient, pInBuffer, nInLen, bLongBuffer );
 			if( lpClient->flags.bAggregateOutput) 
