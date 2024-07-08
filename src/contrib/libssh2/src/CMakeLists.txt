@@ -129,7 +129,7 @@ if(LIBSSH2_BUILD_STATIC_LIBS)
     add_library(${LIB_STATIC} STATIC ${SOURCES})
   endif()
   add_library(${PROJECT_NAME}::${LIB_STATIC} ALIAS ${LIB_STATIC})
-  target_compile_definitions(${LIB_STATIC} PRIVATE ${PRIVATE_COMPILE_DEFINITIONS} ${libssh2_DEFINITIONS})
+  target_compile_definitions(${LIB_STATIC} PRIVATE ${PRIVATE_COMPILE_DEFINITIONS} ${libssh2_DEFINITIONS} ${LIB_SHARED_DEFINITIONS})
   target_compile_options(${LIB_STATIC} PRIVATE ${LIB_SHARED_C_FLAGS})
   target_link_libraries(${LIB_STATIC} PRIVATE ${LIBRARIES})
   set_target_properties(${LIB_STATIC} PROPERTIES
