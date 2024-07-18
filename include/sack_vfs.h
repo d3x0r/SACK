@@ -586,8 +586,8 @@ SACK_VFS_PROC LOGICAL sack_vfs_os_analyze( struct sack_vfs_os_volume* volume );
 
 //DOM-IGNORE-END
 
-SACK_VFS_NAMESPACE_END
 #if defined( __cplusplus ) 
+} } //SACK_VFS_NAMESPACE_END
 using namespace sack::SACK_VFS;
 using namespace sack::SACK_VFS::fs;
 using namespace sack::SACK_VFS::objStore;

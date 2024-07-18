@@ -461,8 +461,9 @@ SYSLOG_PROC void SYSLOG_API SystemLogTime( uint32_t enable );
    <link sack::logging::lprintf, lprintf>                    */
 #define Log10(s,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10)  lprintf( s, p1, p2, p3,p4,p5,p6,p7,p8,p9,p10 )
 
-LOGGING_NAMESPACE_END
+
 #ifdef __cplusplus
+} } //LOGGING_NAMESPACE_END
 using namespace sack::logging;
 #endif
 

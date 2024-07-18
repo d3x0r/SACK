@@ -31,7 +31,7 @@ IDLE_PROC( int, Idle )( void );
 IDLE_PROC( int, IdleFor )( uint32_t dwMilliseconds );
 #ifdef __cplusplus
 	_TIMER_NAMESPACE_END
-SACK_NAMESPACE_END
+} //SACK_NAMESPACE_END
 using namespace sack::timers;
 #endif
 

@@ -27,7 +27,9 @@
 #define VIDLIB_NAMESPACE_END
 #endif
 
-VIDLIB_NAMESPACE
+#ifdef __cplusplus
+RENDER_NAMESPACE namespace vidlib {
+#endif
 
 #define WD_HVIDEO   0   // WindowData_HVIDEO
 
@@ -40,8 +42,9 @@ RENDER_PROC( PKEYBOARD, GetDisplayKeyboard )( PRENDERER hVideo );
 #define HICON int
 #endif
 
-VIDLIB_NAMESPACE_END
 # ifdef __cplusplus
+} } //VIDLIB_NAMESPACE_END
+
 	using namespace sack::image::render;
 #ifdef _D3D_DRIVER
 using namespace sack::image::render::d3d::vidlib;

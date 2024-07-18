@@ -119,14 +119,17 @@
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d {
 #define _RENDER_NAMESPACE namespace render { namespace d3d {
 #define RENDER_NAMESPACE_END }}}}
+#define RENDER_EXTRA_CLOSE
 #elif defined( _D3D10_DRIVER )
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d10 {
 #define _RENDER_NAMESPACE namespace render { namespace d3d10 {
 #define RENDER_NAMESPACE_END }}}}
+#define RENDER_EXTRA_CLOSE
 #elif defined( _D3D11_DRIVER )
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render { namespace d3d11 {
 #define _RENDER_NAMESPACE namespace render { namespace d3d11 {
 #define RENDER_NAMESPACE_END }}}}
+#define RENDER_EXTRA_CLOSE
 #else
 #define RENDER_NAMESPACE namespace sack { namespace image { namespace render {
 /* <copy render.h>
@@ -1853,8 +1856,11 @@ typedef int check_this_variable;
 	DefineRegistryMethod("/sack/render/remote display",OnDisplayConnect,"connect",name,"new_display_connected",void,(struct display_app*app),__LINE__)
 
 
-RENDER_NAMESPACE_END
 #ifdef __cplusplus
+#ifdef RENDER_EXTRA_CLOSE
+}
+#endif
+} } } //RENDER_NAMESPACE_END
 #ifdef _D3D_DRIVER
 	using namespace sack::image::render::d3d;
 #elif defined( _D3D10_DRIVER )

@@ -222,7 +222,7 @@ JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_array_value )(s
 
 
 #ifdef __cplusplus
-} } SACK_NAMESPACE_END
+} } }//SACK_NAMESPACE_END
 using namespace sack::network::jsox;
 #endif
 

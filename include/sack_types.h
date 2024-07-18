@@ -1075,7 +1075,10 @@ typedef P_0 POINTER;
    with things like char const *.                               */
 typedef const void *CPOINTER;
 
-SACK_NAMESPACE_END
+#ifdef __cplusplus
+} //SACK_NAMESPACE_END // namespace sack {
+#endif
+
 
 //------------------------------------------------------
 // formatting macro defintions for [vsf]printf output of the above types
@@ -1784,7 +1787,10 @@ typedef struct DataQueue volatile* volatile PDATAQUEUE;
    maybe whether we are not complete, and are processing
    startups)                                                   */
 _CONTAINER_NAMESPACE_END
-SACK_NAMESPACE_END
+#ifdef __cplusplus
+} //SACK_NAMESPACE_END // namespace sack {
+#endif
+
 
 #include <sack_typelib.h>
 
@@ -1855,7 +1861,9 @@ IMPORT_METHOD
 #define exit(n) BAG_Exit(n)
 #endif
 
-SACK_NAMESPACE_END // namespace sack {
+#ifdef __cplusplus
+} //SACK_NAMESPACE_END // namespace sack {
+#endif
 
 // this should become common to all libraries and programs...
 //#include <construct.h> // pronounced 'kahn-struct'

@@ -296,8 +296,8 @@ PREFIX_PACKED struct MsgSrv_ReplyServiceLoad_msg
 #pragma pack (pop)
 #endif
 
-MSGPROTOCOL_NAMESPACE_END
 #ifdef __cplusplus
+} } } //MSGPROTOCOL_NAMESPACE_END
 using namespace sack::msg::protocol;
 #endif
 

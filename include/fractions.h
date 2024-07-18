@@ -190,9 +190,9 @@ FRACTION_PROC  uint32_t FRACTION_API  ScaleValue ( PFRACTION f, int32_t value );
    the value of ( value * 1/ f )               */
 FRACTION_PROC  uint32_t FRACTION_API  InverseScaleValue ( PFRACTION f, int32_t value );
 
-	SACK_MATH_FRACTION_NAMESPACE_END
 
 #ifdef __cplusplus
+} } } //	SACK_MATH_FRACTION_NAMESPACE_END
 using namespace sack::math::fraction;
 #endif
 

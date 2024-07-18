@@ -77,6 +77,7 @@
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
 #  define IMAGE_NAMESPACE_END }}}
+#define IMAGE_EXTRA_CLOSE
 #elif defined( _D3D10_DRIVER )
 #  define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d10 {
 #  define _IMAGE_NAMESPACE namespace image { namespace d3d10 {
@@ -84,6 +85,7 @@
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
 #  define IMAGE_NAMESPACE_END }}}
+#define IMAGE_EXTRA_CLOSE
 #elif defined( _D3D11_DRIVER )
 #  define IMAGE_NAMESPACE namespace sack { namespace image { namespace d3d11 {
 #  define _IMAGE_NAMESPACE namespace image { namespace d3d11 {
@@ -91,6 +93,7 @@
 /* Define the namespace of image routines, when building under
    C++. This ends a namespace.                                 */
 #  define IMAGE_NAMESPACE_END }}}
+#define IMAGE_EXTRA_CLOSE
 #else
 #  define BASE_IMAGE_NAMESPACE namespace image {
 #  define IMAGE_NAMESPACE namespace sack { namespace image {
@@ -2605,7 +2608,11 @@ IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
 #define GetStringSizeFont(s,pw,ph,f) GetStringSizeFontEx( (s),StrLen(s),pw,ph,f )
 
 #ifdef __cplusplus
-IMAGE_NAMESPACE_END
+#ifdef IMAGE_EXTRA_CLOSE
+    }
+#endif
+} } // IMAGE_NAMESPACE_END
+
 #ifdef _D3D_DRIVER
 using namespace sack::image::d3d;
 #elif defined( _D3D10_DRIVER )

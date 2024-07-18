@@ -384,8 +384,9 @@ SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
 SYSTEM_PROC( int, GetTaskPTY )( PTASK_INFO task );
 #endif
 
-SACK_SYSTEM_NAMESPACE_END
+
 #ifdef __cplusplus
+} } // SACK_SYSTEM_NAMESPACE_END
 using namespace sack::system;
 #endif
 #endif
