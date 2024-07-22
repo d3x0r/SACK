@@ -39,6 +39,9 @@
 
 #include <sha2.h>
 
+#ifdef __cplusplus 
+extern "C"{
+#endif
 
 #define SHFR(x, n)    (x >> n)
 #define ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
@@ -948,3 +951,6 @@ int main(void)
 
 #endif /* TEST_VECTORS */
 
+#ifdef __cplusplus 
+}
+#endif
