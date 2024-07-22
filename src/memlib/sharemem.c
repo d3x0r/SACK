@@ -325,7 +325,8 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 }
 
 #if __GNUC__
-//#  pragma message( "GNUC COMPILER")
+#pragma GCC warning "C Preprocessor got here!"
+#  pragma message( "GNUC COMPILER")
 #  ifndef __ATOMIC_RELAXED
 #    define __ATOMIC_RELAXED 0
 #  endif
@@ -333,11 +334,16 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 #    define __GNUC_VERSION ( __GNUC__ * 10000 ) + ( __GNUC_MINOR__ * 100 )
 #  endif
 #  if  ( __GNUC_VERSION >= 40800 ) || defined(__MAC__) || defined( __EMSCRIPTEN__ )
+#    pragma GCC warning "gcc is going to use __atomic_exchange_n"
+#    pragma message( "gcc is going to use __atomic_exchange_n");
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 ///  for some reason __GNUC_VERSION doesn't exist from android ?
 #  elif defined __ARM__ || defined __ANDROID__
+#    pragma GCC warning "gcc is going to use __atomic_exchange_n(2)"
+#    pragma message( "gcc is going to use __atomic_exchange_n");
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
+#    pragma GCC warning "gcc is a version without __atomic_exchange_n"
 #    pragma message( "gcc is a version without __atomic_exchange_n" )
 inline uint32_t DoXchg( volatile uint32_t* p, uint32_t val ) { __asm__( "lock xchg (%2),%0" :"=a"(val) : "0"(val), "c"(p) ); return val; }
 inline uint64_t DoXchg64( volatile int64_t* p, uint64_t val ) { __asm__( "lock xchg (%2),%0" :"=a"(val) : "0"(val), "c"(p) ); return val; }
@@ -512,6 +518,21 @@ static void DumpSection( PCRITICALSECTION pcs )
 					}
 					//ll_lprintf( "Claimed critical section." );
 				}
+
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+		pcs->pFile[pcs->nPrior] = pFile;
+		pcs->nLine[pcs->nPrior] = nLine;
+#  else
+		pcs->pFile[pcs->nPrior] = __FILE__;
+		pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+		pcs->nLineCS[pcs->nPrior] = __LINE__;
+		pcs->isLock[pcs->nPrior] = 11;
+		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
+
 				pcs->dwThreadID = dwCurProc; // claim the section and return success
 				pcs->dwLocks = 1;
 				pcs->dwUpdating = 0;
@@ -520,6 +541,20 @@ static void DumpSection( PCRITICALSECTION pcs )
 			else if( dwCurProc == pcs->dwThreadID )
 			{
 				// otherwise 1) I won the thread already... (threadID == me )
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+		pcs->pFile[pcs->nPrior] = pFile;
+		pcs->nLine[pcs->nPrior] = nLine;
+#  else
+		pcs->pFile[pcs->nPrior] = __FILE__;
+		pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+		pcs->nLineCS[pcs->nPrior] = __LINE__;
+		pcs->isLock[pcs->nPrior] = 11;
+		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
+
 				pcs->dwLocks++;
 				pcs->dwUpdating = 0;
 				return 1;
@@ -586,6 +621,19 @@ static void DumpSection( PCRITICALSECTION pcs )
 			}
 			if( pcs->dwThreadID == dwCurProc )
 			{
+#ifdef DEBUG_CRITICAL_SECTIONS
+#  ifdef _DEBUG
+		pcs->pFile[pcs->nPrior] = pFile;
+		pcs->nLine[pcs->nPrior] = nLine;
+#  else
+		pcs->pFile[pcs->nPrior] = __FILE__;
+		pcs->nLine[pcs->nPrior] = __LINE__;
+#  endif
+		pcs->nLineCS[pcs->nPrior] = __LINE__;
+		pcs->isLock[pcs->nPrior] = 10;
+		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
+		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
+#endif
 				pcs->dwLocks--;
 				if( !pcs->dwLocks )
 				{
@@ -885,10 +933,15 @@ PSPACE FindSpace( POINTER pMem )
 {
 	PSPACEPOOL psp;
 	INDEX idx;
-	for( psp = g.pSpacePool;psp; psp = psp->next)
-		for( idx = 0; idx < MAX_PER_BLOCK; idx++ )
+	for( psp = g.pSpacePool;psp; psp = psp->next) 
+		for( idx = 0; idx < MAX_PER_BLOCK; idx++ ) {
+			//if( g.bLogAllocate)
+			//	lprintf( "Finding space %p %p", pMem, psp->spaces[idx].pMem);
 			if( psp->spaces[idx].pMem == pMem )
 				return psp->spaces + idx;
+		}
+	//if( g.bLogAllocate)
+	//	lprintf( "Failed to find space %p", pMem );
 	return NULL;
 }
 
@@ -2193,7 +2246,17 @@ uint16_t  AlignOfMemBlock( CPOINTER pData )
 
 POINTER ReleaseEx ( POINTER pData DBG_PASS )
 {
-	//if( !g.bInit ) return NULL;
+	if( !g.bInit ) {
+#ifndef NO_LOGGING
+#  ifdef _DEBUG
+		if( g.bLogAllocate )
+		{
+			ll__lprintf(DBG_RELAY)( "Skip Release - already shutdown %p", pData );
+		}
+#  endif
+#endif
+		return NULL;
+	}
 	if( pData )
 	{
 #ifndef __NO_MMAP__
@@ -2289,6 +2352,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			pMemSpace = FindSpace( pMem );
 
 #ifdef _DEBUG
+			//if( g.bLogAllocate )
+			//	lprintf( "Got space back:%p", pMemSpace );
 			while( pMemSpace && ( ( pCurMem = (PMEM)pMemSpace->pMem ),
 										(	( (uintptr_t)pData < (uintptr_t)pCurMem )
 										||  ( (uintptr_t)pData > ( (uintptr_t)pCurMem + pCurMem->dwSize ) ) )
@@ -2544,7 +2609,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 #endif
 			if( !pc->info.dwOwners )
 			{
-				ll_lprintf( "Held block has already been released!  too late to hold it!" );
+				_xlprintf( 2 DBG_RELAY)( "Held block has already been released!  too late to hold it!" );
 				DebugBreak();
 				DropMem( pMem );
 				return pData;
