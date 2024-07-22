@@ -200,7 +200,7 @@ static uintptr_t CPROC HandleTaskOutput( PTHREAD thread ) {
 						lprintf( "%d read = pipe failure. %d", dwRead, err );
 						break;
 					}
-					//if( task->flags.log_input )
+					if( task->flags.log_input )
 						lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
 					if( task->flags.bSentIoTerminator ) {
 						if( dwRead > 1 )
@@ -512,6 +512,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	}
 	if( path ) {
 		path = ExpandPath( path );
+
 		if( IsAbsolutePath( program ) ) {
 			expanded_path = ExpandPath( program );
 		}
@@ -862,7 +863,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 #ifdef __LINUX__
 		{
 			pid_t newpid;
-			TEXTCHAR saved_path[256];
+			//TEXTCHAR saved_path[256];
 			task = (PTASK_INFO)Allocate( sizeof( TASK_INFO ) );
 			MemSet( task, 0, sizeof( TASK_INFO ) );
 			//task->flags.log_input = TRUE;
@@ -912,9 +913,16 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 			// always have to thread to taskend so waitpid can clean zombies.
 			ThreadTo( WaitForTaskEnd, (uintptr_t)task );
+
+			int waitPipe[2];
+			pipe(waitPipe);
 			if( ( !( flags & LPP_OPTION_INTERACTIVE ) )? !( newpid = fork() ) 
 			   : !( newpid = forkpty( &task->pty, NULL, NULL, NULL ) ) )
 			{
+				write( waitPipe[1], "", 1 );
+				close( waitPipe[0] );
+				close( waitPipe[1] );
+			
 				// after fork; check that args has a space for
 				// the program name to get filled into.
 				// this memory doesn't leak; it's squashed by exec.
@@ -936,8 +944,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					newArgs[0] = (char*)program;
 					args = (PCTEXTSTR)newArgs;
 				}
-				if( path )
+
+				if( expanded_working_path ) {
 					chdir( expanded_working_path );
+					//Release( expanded_working_path );
+				}
 
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
@@ -1013,7 +1024,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				}
 				Release( (POINTER)path );
 			}
-
+			char buf;
+			int rc = read( waitPipe[0], &buf, 1 );
+			close( waitPipe[0] );
+			close( waitPipe[1] );
+			
 			if( OutputHandler )
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args1 );
 			if( OutputHandler2 ) { // only if it was opened as a separate handle...
