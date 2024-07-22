@@ -4458,8 +4458,11 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 			}
 			break;
 		case JSOX_VALUE_TYPED_ARRAY:
-			rc = 1;
-			lprintf( "Typed array (blob) not supported for ODBC (yet)" );
+			//rc = 1;
+			//lprintf( "Typed array (blob) not supported for ODBC (yet)" );
+			rc = SQLBindParameter( hstmt, useIndex, SQL_PARAM_INPUT
+				, SQL_C_BINARY, SQL_BINARY, val->stringLen, 0
+				, val->string, val->stringLen, NULL );
 			//rc = sqlite3_bind_blob( db, useIndex, val->string, val->stringLen, NULL );
 			break;
 		case JSOX_VALUE_STRING:
