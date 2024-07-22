@@ -3766,7 +3766,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 											 , NULL // decimal digits short int
 											 , NULL // nullable ptr ?
 											 );
-					if( colsize != 0xFFFFFFFF ) {
+					if( colsize < 0xFFFFFF ) {
 						colsize = (colsize * 2) + 1;
 						if( colsize >= sizeof( collection->byResultStatic ) )
 						{
