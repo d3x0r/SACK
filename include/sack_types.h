@@ -107,6 +107,7 @@ But WHO doesn't have stdint?  BTW is sizeof( size_t ) == sizeof( void* )
 //#endif
 
 #    define MD5_SOURCE
+#    define SHA2_SOURCE
 
 #    define USE_SACK_FILE_IO
 /* Defined when SACK_BAG_EXPORTS is defined. This was an
