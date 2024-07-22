@@ -58,7 +58,7 @@ void NeedBits( struct random_context *ctx )
 		if( ctx->f.K12i.phase == ABSORBING || ctx->total_bits_used >= K12_SQUEEZE_LENGTH ) {
 			if( ctx->f.K12i.phase == SQUEEZING ) {
 				KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
-				KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
+				KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, 200 /* 1600/8 */ );
 			}
 			if( ctx->getsalt ) {
 				ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
@@ -68,8 +68,9 @@ void NeedBits( struct random_context *ctx )
 			ctx->total_bits_used = 0;
 		}
 		if( ctx->f.K12i.phase == SQUEEZING )
-			KangarooTwelve_Squeeze( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE ); // customization is a final pad string.
+			KangarooTwelve_Squeeze( &ctx->f.K12i, ctx->s.entropy4, K12_SQUEEZE_LENGTH>>3 ); // customization is a final pad string.
 #else
+		lprintf( "Use Long Squeeze instead!" );
 		if( ctx->getsalt ) {
 			ctx->getsalt( ctx->psv_user, &ctx->salt, &ctx->salt_size );
 			KangarooTwelve_Update( &ctx->f.K12i, (const uint8_t*)ctx->salt, (unsigned int)ctx->salt_size );
@@ -148,7 +149,7 @@ struct random_context *SRG_CreateEntropyInternal( void (*getsalt)( uintptr_t, PO
 	ctx->use_version2_256 = version2_256;
 	ctx->use_version2 = version2;
 	if( ctx->use_versionK12 )
-		KangarooTwelve_Initialize( &ctx->f.K12i, USE_K12_LONG_SQUEEZE ?0: K12_DIGEST_SIZE );
+		KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
 	if( ctx->use_version3 )
 		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
 	else if( ctx->use_version2_256 )
@@ -303,7 +304,7 @@ void SRG_ResetEntropy( struct random_context *ctx )
 {
 	ctx->total_bits_used = 0;
 	if( ctx->use_versionK12 )
-		KangarooTwelve_Initialize( &ctx->f.K12i, USE_K12_LONG_SQUEEZE ? 0:K12_DIGEST_SIZE  );
+		KangarooTwelve_Initialize( &ctx->f.K12i, 0 );
 	else if( ctx->use_version3 )
 		sha3_init( &ctx->f.sha3, SHA3_DIGEST_SIZE );
 	else if( ctx->use_version2_256 )
@@ -319,7 +320,7 @@ void SRG_ResetEntropy( struct random_context *ctx )
 void SRG_StreamEntropy( struct random_context *ctx )
 {
 	if( ctx->use_versionK12 )
-		KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, K12_DIGEST_SIZE );
+		KangarooTwelve_Update( &ctx->f.K12i, ctx->s.entropy4, 200 /* 1600/8 */ );
 	else if( ctx->use_version3 )
 		sha3_update( &ctx->f.sha3, ctx->s.entropy4, SHA3_DIGEST_SIZE );
 	else if( ctx->use_version2_256 )
@@ -453,9 +454,9 @@ char *SRG_ID_Generator4( void ) {
 	usingCtx = 0;
 	ctx = getGenerator( _ctx, used, SRG_CreateEntropy4, &usingCtx );
 
-	do {
-		SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
-	} while( (buf[0] & 0x3f) < 10 );
+	//do {
+	SRG_GetEntropyBuffer( ctx, buf, 8 * (16 + 16) );
+	//} while( (buf[0] & 0x3f) < 10 );
 	used[usingCtx] = 0;
 	return EncodeBase64Ex( (uint8*)buf, (16 + 16), &outlen, (const char *)1 );
 }

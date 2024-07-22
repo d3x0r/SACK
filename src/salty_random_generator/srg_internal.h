@@ -35,8 +35,9 @@ struct random_context {
 		uint8_t entropy2_256[SHA256_DIGEST_SIZE];
 #define SHA3_DIGEST_SIZE 64 // 512 bits
 		uint8_t entropy3[SHA3_DIGEST_SIZE];
-#define K12_DIGEST_SIZE 64  // 512 bits
-		uint8_t entropy4[K12_DIGEST_SIZE];
+#define K12_SQUEEZE_LENGTH 32768  // 4096 bytes
+#define K12_DIGEST_SIZE    64  // used for re-seeding
+		uint8_t entropy4[K12_SQUEEZE_LENGTH >> 3];
 	} s;
 	size_t bits_used;
 	size_t bits_avail;
