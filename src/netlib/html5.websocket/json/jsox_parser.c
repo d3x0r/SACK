@@ -1069,6 +1069,7 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	val->classNameLen = 0;
 }
 
+/*
 static LOGICAL isNonIdentifier( TEXTRUNE c ) {
 	if( c < 0xFF ) {
 		if( nonIdentifiers8[c] ) {
@@ -1086,6 +1087,7 @@ static LOGICAL isNonIdentifier( TEXTRUNE c ) {
 	}
 	return FALSE;
 }
+*/
 
 int jsox_parse_add_data( struct jsox_parse_state *state
                             , const char * msg

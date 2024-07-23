@@ -559,10 +559,11 @@ static void InitOperatorSyms( void ) {
 	}
 }
 
+/*
 static void setOperator( struct vesl_parse_state *state, TEXTRUNE c ) {
 
 }
-
+*/
 
 PRELOAD( InitVESLOpSyms ) {
 	InitOperatorSyms();

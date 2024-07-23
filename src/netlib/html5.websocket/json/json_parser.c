@@ -994,6 +994,7 @@ void json_dispose_message( PDATALIST *msg_data ) {
 
 
 // puts the current collected value into the element; assumes conversion was correct
+/*
 static void FillDataToElement( struct json_context_object_element *element
 							    , size_t object_offset
 								, struct json_value_container *val
@@ -1214,7 +1215,7 @@ static void FillDataToElement( struct json_context_object_element *element
       break;
 	}
 }
-
+*/
 
 LOGICAL json_decode_message( struct json_context *format
 								, PDATALIST msg_data
