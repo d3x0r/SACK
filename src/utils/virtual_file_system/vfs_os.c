@@ -1913,7 +1913,7 @@ const uint8_t *sack_vfs_os_get_signature2( POINTER disk, POINTER diskReal ) {
 // add some space to the volume....
 LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, int size ) {
 	LOGICAL created = FALSE;
-	LOGICAL path_checked = FALSE;
+	//LOGICAL path_checked = FALSE;
 	int n;
 	LoG( "Expand Volume: %d %d", fromBlock, size ); 
 	size_t oldsize = vol->dwSize;

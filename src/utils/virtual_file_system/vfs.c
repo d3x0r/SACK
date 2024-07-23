@@ -193,7 +193,7 @@ static enum block_cache_entries UpdateSegmentKey( struct sack_vfs_volume *vol, e
 	if( cache_idx == BC(FILE) ) {
 		int n, m;
 		int nLeast;
-		uint8_t next = 0;
+		//uint8_t next = 0;
 		for( n = 0; n < (BC(FILE_LAST) - BC(FILE)); n++ ) {
 			if( vol->segment[cache_idx + n] == segment ) {
 				cache_idx = (enum block_cache_entries)((cache_idx)+n);
@@ -308,8 +308,8 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 						if( block == EOFBLOCK )
 							SETFLAG( usedSectors, blockIndex );
 						else {
-							BLOCKINDEX chainLen = 0;
-							enum block_cache_entries cache = BC( FILE );
+							//BLOCKINDEX chainLen = 0;
+							//enum block_cache_entries cache = BC( FILE );
 							BLOCKINDEX nextBlock = block;
 							BLOCKINDEX nextBlock_;
 							SETFLAG( usedSectors, blockIndex );
@@ -379,7 +379,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 									LogBinary( (uint8_t*)usedSectors, size * sizeof( FLAGSETTYPE ) );
 									DebugBreak();
 								}
-								chainLen++;
+								//chainLen++;
 							}
 						}
 					}
@@ -491,7 +491,7 @@ const uint8_t *sack_vfs_get_signature2( POINTER disk, POINTER diskReal ) {
 // add some space to the volume....
 static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 	LOGICAL created;
-	LOGICAL path_checked = FALSE;
+	//LOGICAL path_checked = FALSE;
 	struct sack_vfs_disk* new_disk;
 	BLOCKINDEX oldsize = (BLOCKINDEX)vol->dwSize;
 	if( vol->read_only ) return TRUE;
@@ -571,7 +571,8 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 			vol->disk = new_disk;
 			if( created && vol->disk == vol->diskReal ) {
 				enum block_cache_entries cache = BC(DIRECTORY);
-				struct directory_entry *next_entries = BTSEEK( struct directory_entry *, vol, 0, cache );
+				//struct directory_entry *next_entries = 
+					BTSEEK( struct directory_entry *, vol, 0, cache );
 				struct directory_entry *entkey = (vol->key) ? ((struct directory_entry *)vol->usekey[cache]) : &l.zero_entkey;
 				// initialize directory list.
 				((struct directory_entry*)(((uintptr_t)vol->disk) + BLOCK_SIZE))->first_block = EODMARK ^ entkey->first_block;

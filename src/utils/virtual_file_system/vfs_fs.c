@@ -407,8 +407,8 @@ const uint8_t *sack_vfs_fs_get_signature2( POINTER disk, POINTER diskReal ) {
 // add some space to the volume....
 static LOGICAL _fs_ExpandVolume( struct sack_vfs_fs_volume *vol ) {
 	LOGICAL created = FALSE;
-	LOGICAL path_checked = FALSE;
-	size_t oldsize = vol->dwSize;
+	//LOGICAL path_checked = FALSE;
+	//size_t oldsize = vol->dwSize;
 	if( vol->file && vol->read_only ) return TRUE;
 	if( !vol->file ) {
 		{
@@ -508,8 +508,8 @@ static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 	int b = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
-	FPI start_POS = sack_ftell( vol->file );
-	BLOCKINDEX *start_BAT = current_BAT;
+	//FPI start_POS = sack_ftell( vol->file );
+	//BLOCKINDEX *start_BAT = current_BAT;
 	if( !current_BAT ) return 0;
 	do
 	{
@@ -571,7 +571,7 @@ static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 		}
 		b++;
 		current_BAT = TSEEK( BLOCKINDEX*, vol, b * ( BLOCKS_PER_SECTOR*BLOCK_SIZE), cache );
-		start_POS = sack_ftell( vol->file );
+		//start_POS = sack_ftell( vol->file );
 	}while( 1 );
 }
 
@@ -791,8 +791,8 @@ void sack_vfs_fs_shrink_volume( struct sack_vfs_fs_volume * vol ) {
 	size_t n;
 	unsigned int b = 0;
 	//int found_free; // this block has free data; should be last BAT?
-	BLOCKINDEX last_block = 0;
-	unsigned int last_bat = 0;
+	//BLOCKINDEX last_block = 0;
+	//unsigned int last_bat = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = TSEEK( BLOCKINDEX*, vol, 0, cache );
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
@@ -804,8 +804,8 @@ void sack_vfs_fs_shrink_volume( struct sack_vfs_fs_volume * vol ) {
 			check_val = *(current_BAT++);
 			if( vol->key )	check_val ^= *(blockKey++);
 			if( check_val ) {
-				last_bat = b;
-				last_block = n;
+				//last_bat = b;
+				//last_block = n;
 			}
 		}
 		b++;
