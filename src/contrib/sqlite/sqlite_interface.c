@@ -943,6 +943,7 @@ static int SimpleSize( POINTER p )
 	return (int)SizeOfMemBlock( p );
 }
 
+/*
 static int SimpleRound( int size )
 {
 	return size;
@@ -955,6 +956,7 @@ static int SimpleInit( POINTER p )
 static void SimpleShutdown( POINTER p )
 {
 }
+*/
 
 static void DoInitVFS( void )
 {
