@@ -1597,7 +1597,7 @@ static void triggerWrite( uintptr_t psv ){
 #endif			
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
-			lprintf( "Triggered write shouldn't hve no pending...%p (Try Again?)", psv );
+			lprintf( "Triggered write shouldn't have no pending...%p (Try Again?) %s", psv, NetworkExpandFlags(pc) );
 			//RescheduleTimerEx( timer, 3 );
 			//pc->writeTimer = timer;
 		}
@@ -1606,7 +1606,7 @@ static void triggerWrite( uintptr_t psv ){
 
 static PDATAQUEUE pdqPendingWrites = NULL;
 static PTHREAD writeWaitThread = NULL;
-
+/*
 static LOGICAL hasPending( PCLIENT pc ) {
 	INDEX i;
 	struct PendingWrite pending;
@@ -1619,7 +1619,7 @@ static LOGICAL hasPending( PCLIENT pc ) {
 	}
 	return FALSE;
 }
-
+*/
 uintptr_t WaitToWrite( PTHREAD thread ) {
 	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
 	if( !pdqPendingWrites )

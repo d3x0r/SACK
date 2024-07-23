@@ -87,7 +87,7 @@ SACK_NETWORK_NAMESPACE_END
 SACK_NETWORK_NAMESPACE
 
 //#define RSA_KEY_SIZE (1024)
-const int serverKBits = 4096;
+//const int serverKBits = 4096;
 const int kBits = 1024;// 4096;
 const int kExp = RSA_F4;
 

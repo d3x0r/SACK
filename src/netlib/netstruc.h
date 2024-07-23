@@ -451,6 +451,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info* thread, uintptr_t unu
 uintptr_t CPROC NetworkThreadProc( PTHREAD thread );
 int CPROC IdleProcessNetworkMessages( uintptr_t quick_check );
 
+char *NetworkExpandFlags( PCLIENT pc );
 
 //----------------------------
 // ssl_close - redirected removeClient from network..

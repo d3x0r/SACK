@@ -191,6 +191,50 @@ void DumpLists( void )
 
 //----------------------------------------------------------------------------
 
+static char flag_buf[16][1024];
+static int flag_bufidx;
+
+#define NETWORK_FLAG_DEF(a,b)   \
+		if (pc->dwFlags&b) { if( f ) { out[0] = ' '; out++; f = 0; } strcpy( out, #b ); out += sizeof(#b)-1; f = 1; }
+
+
+char *NetworkExpandFlags( PCLIENT pc ) {
+	char *buf = flag_buf[flag_bufidx++];
+	char *out = buf;
+	uint32_t f = 0;
+	if( flag_bufidx >= 16 ) flag_bufidx = 0;
+	
+		NETWORK_FLAG_DEF( 0, CF_UDP )
+		NETWORK_FLAG_DEF( CF_UDP, CF_TCP )
+		NETWORK_FLAG_DEF( CF_TCP, CF_LISTEN )
+		NETWORK_FLAG_DEF( CF_LISTEN, CF_WRITEPENDING )
+		NETWORK_FLAG_DEF( CF_WRITEPENDING, CF_READPENDING )
+		NETWORK_FLAG_DEF( CF_READPENDING, CF_READREADY )
+		NETWORK_FLAG_DEF( CF_READREADY, CF_READWAITING )
+		NETWORK_FLAG_DEF( CF_READWAITING, CF_CONNECTED )
+		NETWORK_FLAG_DEF( CF_CONNECTED, CF_CONNECTERROR )
+		NETWORK_FLAG_DEF( CF_CONNECTERROR, CF_CONNECTING )
+		NETWORK_FLAG_DEF( CF_CONNECTING, CF_CONNECT_WAITING )
+		NETWORK_FLAG_DEF( CF_CONNECT_WAITING, CF_CONNECT_CLOSED )
+		NETWORK_FLAG_DEF( CF_CONNECT_CLOSED, CF_TOCLOSE )
+		NETWORK_FLAG_DEF( CF_TOCLOSE, CF_WANTCLOSE )
+		NETWORK_FLAG_DEF( CF_WANTCLOSE, CF_CLOSING )
+		NETWORK_FLAG_DEF( CF_CLOSING, CF_DRAINING )
+		NETWORK_FLAG_DEF( CF_DRAINING, CF_CLOSED )
+		NETWORK_FLAG_DEF( CF_CLOSED, CF_ACTIVE )
+		NETWORK_FLAG_DEF( CF_ACTIVE, CF_AVAILABLE )
+		NETWORK_FLAG_DEF( CF_AVAILABLE, CF_CPPCONNECT )
+		NETWORK_FLAG_DEF( CF_CPPCONNECT, CF_CPPREAD )
+		NETWORK_FLAG_DEF( CF_CPPREAD, CF_CPPCLOSE )
+		NETWORK_FLAG_DEF( CF_CPPCLOSE, CF_CPPWRITE )
+		NETWORK_FLAG_DEF( CF_CPPWRITE, CF_PROCESSING )
+		NETWORK_FLAG_DEF( CF_PROCESSING, CF_WRITEREADY )
+
+	return buf;
+}
+
+//----------------------------------------------------------------------------
+
 PCLIENT GrabClientEx( PCLIENT pClient DBG_PASS )
 #define GrabClient(pc) GrabClientEx( pc DBG_SRC )
 {
