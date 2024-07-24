@@ -758,7 +758,8 @@ static void handleStatus( uintptr_t psv, PSI_CONTROL pc, int done, int okay ) {
 
 	DestroyFrame( &fdData.pFrame );
 	UnloadAllFonts();
-	fdData.Update( fdData.psvUpdate, fdData.pFont );
+	if( fdData.Update )
+		fdData.Update( fdData.psvUpdate, fdData.pFont );
 	Release( fdData_ );
 	#undef fdData
 
