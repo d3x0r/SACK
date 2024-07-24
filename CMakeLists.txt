@@ -1178,7 +1178,7 @@ add_library( bag.externals ${CORE_LINKMODE}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 
-target_link_libraries( bag.externals LINK_PUBLIC  ${SSH_LIBS} )
+target_link_libraries( bag.externals ${SSH_LIBS} )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
