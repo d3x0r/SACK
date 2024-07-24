@@ -234,7 +234,7 @@ void LoadTranslationDataFromMemory( POINTER input, size_t length )
 						DATA_FORALL( val->contains, idx2, struct json_value_container *, val2 ) {
 							if( val2->value_type != VALUE_STRING ) continue;
 							CTEXTSTR index_text = SaveString( &translate_local.index_strings, (uint32_t)IntCreateFromText( val2->name ), val2->string );
-							PLIST list = SetLink( &translate_local.index_list, translate_local.string_count, index_text );
+							SetLink( &translate_local.index_list, translate_local.string_count, index_text );
 							AddBinaryNode( translate_local.index, (CPOINTER)((uintptr_t)translate_local.string_count+1), (uintptr_t)index_text );
 							translate_local.string_count++;
 						}

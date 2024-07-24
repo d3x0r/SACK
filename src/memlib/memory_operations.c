@@ -187,7 +187,9 @@ CTEXTSTR StrRChr( CTEXTSTR s1, TEXTRUNE c )
 	TEXTRUNE c1;
 	CTEXTSTR  p1 = s1;
 	if( !p1 ) return NULL;
-	while( GetUtfChar( &p1 ) ); p1--; // go back to \0
+	while( GetUtfChar( &p1 ) )
+		; 
+	p1--; // go back to \0
 	if( s1 == p1 ) return NULL; // not a string, can't have a char in it.
 	while( p1 != s1 && ( c1 = GetPriorUtfChar( s1, &p1 ) ) != c );
 	if( c1 == c )
@@ -199,7 +201,9 @@ const wchar_t* StrRChrW( const wchar_t* s1, TEXTRUNE c ) {
 	TEXTRUNE c1;
 	const wchar_t* p1 = s1;
 	if( !p1 ) return NULL;
-	while( GetUtfCharW( &p1 ) ); p1--; // go back to \0
+	while( GetUtfCharW( &p1 ) )
+		;
+	p1--; // go back to \0
 	while( p1 != s1 && ( c1 = GetPriorUtfCharW( s1, &p1 ) ) != c );
 	if( c1 == c )
 		return p1;

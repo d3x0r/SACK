@@ -1448,7 +1448,8 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 
-	LOGICAL status = ssl_BeginClientSession_( ses, client_keypair, client_keypairlen, keypass, keypasslen, rootCert, rootCertLen );
+	//LOGICAL status = 
+	ssl_BeginClientSession_( ses, client_keypair, client_keypairlen, keypass, keypasslen, rootCert, rootCertLen );
 
 	{
 		const char *addr = GetAddrName( pc->saClient );

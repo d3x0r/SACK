@@ -290,7 +290,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 	GENERICSET *pSet = ppSet?*ppSet:NULL;
 	uintptr_t nUnit = (uintptr_t)unit;
 	int ofs = ( ( max + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE) * (FLAGSET_MIN_SIZE/8);
-	int base = 0;
+	//int base = 0;
 	while( pSet )
 	{
 		if( nUnit >= ((uintptr_t)(pSet->bUsed) + ofs ) &&
@@ -306,7 +306,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 			n /= unitsize;
 			return (INDEX)(n + pSet->nBias);
 		}
-		base += max;
+		//base += max;
 		pSet = pSet->next;
 	}
 	return INVALID_INDEX;

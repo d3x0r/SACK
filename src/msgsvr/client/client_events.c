@@ -128,7 +128,7 @@ uintptr_t CPROC HandleEventMessages( PTHREAD thread )
 	//g.my_message_id = g.my_message_id; //(uint32_t)( thread->ThreadID & 0xFFFFFFFF );
 	while( !g.flags.disconnected )
 	{
-		int r;
+		int r = 0;
 		if( thread == g.pEventThread )
 		{
 			static uint32_t MessageEvent[2048]; // 8192 bytes

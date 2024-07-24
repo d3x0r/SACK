@@ -44,6 +44,7 @@ if( NOT CMAKE_COMPILER_IS_GNUCC
   # MESSAGE( "THIS FIXES COMPILER IS GNUCC - ${CMAKE_CXX_COMPILER_ID}" )
   ADD_DEFINITIONS( -Wno-parentheses )
   ADD_DEFINITIONS( -Wno-null-dereference )
+  ADD_DEFINITIONS( -Wno-self-assign ) # so what if a variable is assigned to itself - that's what optimizers are for?
   set( GCC 1 )
   ADD_DEFINITIONS( -D_GNU_SOURCE )
   set( CMAKE_COMPILER_IS_GNUCC 0 )

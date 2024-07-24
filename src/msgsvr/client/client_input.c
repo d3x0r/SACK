@@ -32,7 +32,6 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 	//int bLog = 0;
 	if( IsThisThread( g.pThread ) )
 	{
-		int logged = 0;
 		PQMSG MessageIn = GetMessageBuffer();
 		int MessageLen;
 		

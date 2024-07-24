@@ -1569,7 +1569,9 @@ static void triggerWrite( uintptr_t psv ){
 #endif	
 	if( pc )
 	{
+#ifdef LOG_WRITE_AGGREGATION
 		int32_t timer = pc->writeTimer;
+#endif
 		pc->writeTimer = 0;
 		if( pc->dwFlags & CF_WRITEPENDING )
 		{
@@ -1805,7 +1807,9 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 				MemCpy( lpClient->FirstWritePending.buffer.p, pInBuffer, nInLen );
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
+#ifdef LOG_WRITE_AGGREGATION
 			int wasTimer = lpClient->writeTimer;
+#endif
 			if( lpClient->writeTimer ) RescheduleTimerEx( lpClient->writeTimer, 3 ); 
 			else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
 #ifdef LOG_WRITE_AGGREGATION

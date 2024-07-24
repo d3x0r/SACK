@@ -1226,7 +1226,9 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 #define DBG_LEVEL DBG_SRC
 {
 	PSPACENODE here, dup;
+#ifdef HANG_DEBUG
 	static int levels;
+#endif
 	if( !space || !root )
 		return;
 	//EnterCriticalSec( &csSpace );
@@ -1545,7 +1547,9 @@ static void HangSpaceNodeExx( PSPACENODE *root, PSPACENODE parent, PSPACENODE sp
 		*root = space;
 		space->me = root;
 	}
+#ifdef HANG_DEBUG
 	levels--;
+#endif
 	//LeaveCriticalSec( &csSpace );
 }
 
@@ -2085,10 +2089,10 @@ void GlobTableGrid( PIMAGE_TABLE table )
 	PLIST *_cell_row = NULL;
 	PSPACENODE _cell;
 	PSPACENODE cell;
-	int matched;
+	//int matched;
 	//do
 	{
-		matched = 0;
+		//matched = 0;
 		for( row = 0; row < table->rows; row++ )
 		{
 			int matched2;
@@ -2111,7 +2115,7 @@ void GlobTableGrid( PIMAGE_TABLE table )
 								{
 									_cell->row_span += cell->row_span;
 									SetLink( cell_row, col, NULL );
-									matched++;
+									//matched++;
 									matched2++;
 								}
 						}

@@ -16,8 +16,8 @@ FILESYS_NAMESPACE
 // have to include this in-namespace
 #include "filesys_local.h"
 
-	static char *currentPath
 #ifdef __EMSCRIPTEN__
+static char *currentPath
        = "/home/web_user"
 #endif
 	;

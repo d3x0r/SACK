@@ -887,7 +887,7 @@ TEXTSTR sack_prepend_path( INDEX group, CTEXTSTR filename )
 #define INVALID_HANDLE_VALUE -1
 #endif
 
-static void DetectUnicodeBOM( FILE* file ) {
+void DetectUnicodeBOM( FILE* file ) {
 	//00 00 FE FF     UTF-32, big-endian
 	//FF FE 00 00     UTF-32, little-endian
 	//FE FF           UTF-16, big-endian
@@ -2064,7 +2064,7 @@ int  sack_fclose( FILE* file_file )
 }
 
 //----------------------------------------------------------------------------
-
+/*
 static void transcodeOutputText( struct file* file, POINTER buffer, size_t size, POINTER* outbuf, size_t* outsize ) {
 }
 
@@ -2072,7 +2072,7 @@ static void transcodeOutputText( struct file* file, POINTER buffer, size_t size,
 
 static void transcodeInputText( struct file* file, POINTER buffer, size_t size, POINTER* outbuf, size_t* outsize ) {
 }
-
+*/
 //----------------------------------------------------------------------------
 
 size_t  sack_fread( POINTER buffer, size_t size, int count, FILE* file_file )

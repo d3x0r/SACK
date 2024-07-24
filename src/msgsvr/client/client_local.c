@@ -15,7 +15,7 @@ uintptr_t CPROC HandleLocalEventMessages( PTHREAD thread )
 	//g.my_message_id = getpid(); //(uint32_t)( thread->ThreadID & 0xFFFFFFFF );
 	while( !g.flags.disconnected )
 	{
-		int r;
+		int r = 0;
 		if( thread == g.pLocalEventThread )
 		{
 			// thread local storage :)

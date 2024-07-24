@@ -39,7 +39,7 @@ static void free_callback( void *data, void** abstract ) {
 	ReleaseEx( data DBG_SRC );
 }
 static void* realloc_callback( void* p, size_t size, void** abstract ) {
-	return Reallocate( p, size DBG_SRC );
+	return ReallocateEx( p, size DBG_SRC );
 }
 
 static LIBSSH2_SEND_FUNC( SendCallback ) {

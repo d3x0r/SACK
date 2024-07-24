@@ -280,7 +280,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		PTEXT pCurrent;//, pStart;
 		PTEXT pLine = NULL;
 		TEXTCHAR *c, *line;
-		size_t size, pos, len;
+		size_t size, pos;
 		INDEX start = 0;
 		PTEXT pMergedLine;
 		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
@@ -292,7 +292,6 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		//pStart = pCurrent; // at lest is this block....
 		//lprintf( "ND THIS IS WHAT WE PROCESSL:" );
 		//LogBinary( (const uint8_t*)GetText( pInput ), GetTextSize( pInput ) );
-		len = 0;
 
 		// we always start without having a line yet, because all input is already merged
 		{
@@ -525,7 +524,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 							// end of header
 							// copy the previous line out...
 							//pStart = pCurrent;
-							len = size - pos; // remaing size
+							//len = size - pos; // remaing size
 							break;
 						}
 					}
@@ -544,8 +543,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 					goto FinalCheck;
 				}
 			}
-			else
-				len += size;
+			//else
+			//	len += size;
 			//pCurrent = NEXTLINE( pCurrent );
 			/* Move the remaining data into a single binary data packet...*/
 		}

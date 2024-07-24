@@ -409,8 +409,12 @@ static wchar_t* ConvertEnvironment( char* env ) {
 		int valLen = 0;
 		wchar_t* tmp = CharWConvert( value );
 		int len = 0;
-		for( len = 0; tmp[len]; len++ ); len++;
-		for( valLen = 0; value[valLen]; valLen++ ); valLen++;
+		for( len = 0; tmp[len]; len++ )
+			;
+		len++;
+		for( valLen = 0; value[valLen]; valLen++ )
+			;
+		valLen++;
 		
 		while( ( used_chars + len ) >= avail_chars ) {
 			avail_chars *= 2;

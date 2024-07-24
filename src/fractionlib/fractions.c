@@ -288,8 +288,8 @@ static void NormalizeFraction( PFRACTION f )
  uint32_t  InverseScaleValue ( PFRACTION f, int32_t value )
 {
 	int32_t result =0;
-if( f->numerator )
-	result = ( value * f->denominator ) / f->numerator;
+	if( f->numerator )
+		result = ( value * f->denominator ) / f->numerator;
 	return result;
 }
 

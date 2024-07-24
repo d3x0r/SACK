@@ -302,33 +302,33 @@ static PTEXT GatherLineEx( PTEXT *pOutput, INDEX *pIndex, int bInsert, int bSave
 				/* perhaps consider using split for backspace in a line...*/
 				if( !bInsert )
 				{
-					PTEXT pNext;
-				INDEX maxlen;
+					//PTEXT pNext;
+					INDEX maxlen;
 					// this will slide from the middle to the end...
-				// if bInsert - then prior to entrying this switch
-				// the data was split and THIS segment is set to zero.
-				pNext = *pOutput;
-				maxlen = GetTextSize( *pOutput );
-				while( !maxlen && PRIORLINE( *pOutput ) )
-				{
-					*pOutput = PRIORLINE( *pOutput );
-					len = maxlen = GetTextSize( *pOutput );
-				}
-				if( maxlen )
-				{
-					if( len != maxlen )
+					// if bInsert - then prior to entrying this switch
+					// the data was split and THIS segment is set to zero.
+					//pNext = *pOutput;
+					maxlen = GetTextSize( *pOutput );
+					while( !maxlen && PRIORLINE( *pOutput ) )
 					{
-						INDEX sz;
-						sz = maxlen - len;
-								MemCpy( output + len - 1, output + len, sz );
-						SetTextSize( *pOutput, maxlen - 1 );
-						len--;
+						*pOutput = PRIORLINE( *pOutput );
+						len = maxlen = GetTextSize( *pOutput );
 					}
-					else
+					if( maxlen )
 					{
-						SetTextSize( *pOutput, --len );
+						if( len != maxlen )
+						{
+							INDEX sz;
+							sz = maxlen - len;
+									MemCpy( output + len - 1, output + len, sz );
+							SetTextSize( *pOutput, maxlen - 1 );
+							len--;
+						}
+						else
+						{
+							SetTextSize( *pOutput, --len );
+						}
 					}
-				}
 				}
 				else // was insert is either at end....
 				{

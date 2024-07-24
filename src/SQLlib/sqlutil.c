@@ -769,7 +769,6 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 			TEXTCHAR *buf;
 			TEXTCHAR fgets_buf[1024];
 			PVARTEXT pvt_cmd = VarTextCreate();
-			INDEX nOfs = 0;
 			if( !odbc->flags.bNoLogging )
 				lprintf( "Opened %s to read for table %s(%s)", sec_file[0]?sec_file:filename, tablename,templatename );
 			while( sack_fgets( fgets_buf, sizeof( fgets_buf ), file ) )
@@ -841,7 +840,7 @@ TEXTSTR RevertEscapeString( CTEXTSTR name )
 					}
 					if( gathering )
 					{
-						nOfs += vtprintf( pvt_cmd, "%s ", p );
+						vtprintf( pvt_cmd, "%s ", p );
 						if( done )
 						{
 							if( options & CTO_DROP )

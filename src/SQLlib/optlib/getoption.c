@@ -1420,7 +1420,7 @@ ATEXIT( CommitOptions )
 
 static void CloseAllODBC( CTEXTSTR dsn ) {
 	INDEX idx;
-	LOGICAL new_tracker = FALSE;
+	//LOGICAL new_tracker = FALSE;
 	struct option_odbc_tracker *tracker;
 	if( !dsn )
 		dsn = GetDefaultOptionDatabaseDSN();

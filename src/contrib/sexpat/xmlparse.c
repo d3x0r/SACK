@@ -1490,6 +1490,9 @@ XML_Parse(XML_Parser parser, const char *s, int len, int isFinal)
     }
     else {
       switch (ps_parsing) {
+      default:
+          fprintf( stderr, "xmlparse.c: XML_Parse: unexpected case (XML_FINISHED?) %d\n", ps_parsing );
+          break;
       case XML_SUSPENDED:
         result = XML_STATUS_SUSPENDED;
         break;

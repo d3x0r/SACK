@@ -935,7 +935,7 @@ void ProcIdFromParentProcId( DWORD dwProcessId, PDATALIST *ppdlProcs ) {
 	struct process_id_pair pair = { GetCurrentProcessId(), dwProcessId };
 	DWORD dwMe = GetCurrentProcessId();
 	PDATALIST pdlProcs = CreateDataList( sizeof( struct process_id_pair ) );// vector<PROCID> vec;
-	int i = 0;
+	//int i = 0;
 	INDEX maxId = 1;
 	INDEX minId = 0;
 	HANDLE hp = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
@@ -1057,7 +1057,7 @@ HWND find_main_window( unsigned long process_id ) {
 }
 
 static BOOL WINAPI CtrlC( DWORD dwCtrlType ) {
-	fprintf( stderr, "Received ctrlC Event %d\n", dwCtrlType );
+	fprintf( stderr, "Received ctrlC Event %u\n", dwCtrlType );
 	return TRUE; // return handled?
 }
 struct move_window {
@@ -1098,7 +1098,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 			//lprintf( "move window(time): %d", timeGetTime() - time );
 			{
 				RECT rect;
-				BOOL a = GetWindowRect( hWndProc, &rect );
+				GetWindowRect( hWndProc, &rect );
 				atx = rect.left;
 				aty = rect.top;
 				atw = rect.right - rect.left;
@@ -1249,7 +1249,6 @@ static BOOL addMonitor( HMONITOR hMonitor,
 static int _GetDisplaySizeEx ( int nDisplay, int monitor
 	, int* x, int* y
 	, int* width, int* height ) {
-	int found = 0;
 
 	{
 		struct find_monitor_data data;

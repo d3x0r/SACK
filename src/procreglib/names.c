@@ -2110,7 +2110,7 @@ static uintptr_t CPROC SetTrace( uintptr_t psv, arg_list args )
 
 static uintptr_t CPROC IncludeAdditional( uintptr_t psv, arg_list args )
 {
-	int skipResume = 0;
+	//int skipResume = 0;
 	PARAM( args, CTEXTSTR, path );
 	TEXTSTR old_configname = l.config_filename;
 	l.config_filename = ExpandPath( path );

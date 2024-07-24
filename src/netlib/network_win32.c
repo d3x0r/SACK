@@ -202,7 +202,6 @@ static void HandleEvent( PCLIENT pClient )
 			}
 			else
 			{
-				THREAD_ID prior = 0;
 #ifdef LOG_CLIENT_LISTS
 				lprintf( "client lists Ac:%p(%p(%d)) Av:%p(%p(%d)) Cl:%p(%p(%d))"
 						 , &globalNetworkData.ActiveClients, globalNetworkData.ActiveClients, globalNetworkData.ActiveClients?globalNetworkData.ActiveClients->Socket:0

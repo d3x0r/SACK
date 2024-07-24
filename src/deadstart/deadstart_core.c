@@ -331,7 +331,7 @@ void InvokeDeadstart( void )
 #  ifndef UNDER_CE
 		if( GetConsoleWindow() )
 		{
-			if( !SetConsoleCtrlHandler( CtrlC, TRUE ) ) fprintf( stderr, "failed to SetConsoleCtrlHandler? %d\n", GetLastError() );
+			if( !SetConsoleCtrlHandler( CtrlC, TRUE ) ) fprintf( stderr, "failed to SetConsoleCtrlHandler? %u\n", GetLastError() );
 		}
 		else
 		{

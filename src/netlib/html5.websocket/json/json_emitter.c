@@ -831,6 +831,9 @@ struct json_context_object *json_add_object_member_array( struct json_context_ob
 	member->count_offset = count_offset;
 	switch( type )
 	{
+	default:
+		lprintf( "Unfinished storing of JSON data..." );
+		break;
 	case JSON_Element_Object:
 	case JSON_Element_ObjectPointer:
 		member->object = json_create_object( context, object_size );
@@ -988,7 +991,7 @@ struct json_context_object * json_add_object_member_array_pointer( struct json_c
 													  , size_t offset, enum JSON_ObjectElementTypes type
 													  , size_t count_offset )
 {
-	struct json_context *context = object->context;
+	//struct json_context *context = object->context;
 	struct json_context_object_element *member = New( struct json_context_object_element );
 	MemSet( member, 0, sizeof( struct json_context_object_element ) );
 	member->name = StrDup( name );

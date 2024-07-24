@@ -290,7 +290,8 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 static void computeSha1(sqlite3_context*onwhat,int argc,sqlite3_value**argv)
 {
 	PVARTEXT pvt = VarTextCreate();
-	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
+	//PODBC odbc = (PODBC)
+	sqlite3_user_data(onwhat);
 	const unsigned char *val = sqlite3_value_text( argv[0] );
 	SHA1Context sha;
 	uint8_t digest[SHA1HashSize];
@@ -3874,7 +3875,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								if( rc == SQL_SUCCESS_WITH_INFO ) {
 									SQLINTEGER nativeError;
 									SQLCHAR state[6];
-									RETCODE rc = SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
+									//RETCODE rc = 
+									SQLGetDiagRec( SQL_HANDLE_STMT, collection->hstmt, 1, state, &nativeError, NULL, 0, NULL );
 									if( strcmp( (const char *)state, "01004" ) == 0 ){
 										useCollector = TRUE;
 										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
