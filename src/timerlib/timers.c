@@ -179,8 +179,8 @@ struct timer_local_data {
 	} flags;
 	volatile uint32_t del_timer; // this timer is scheduled to be removed...
 	uint32_t tick_bias; // should somehow end up equating to sleep overhead...
-	uint32_t last_tick; // last known time that a timer could have fired...
-	uint32_t this_tick; // the current moment up to which we fire all timers.
+	uint64_t last_tick; // last known time that a timer could have fired...
+	uint64_t this_tick; // the current moment up to which we fire all timers.
 	PTHREAD pTimerThread;
 	PTHREADSET threadset;
 	PTHREAD threads;
@@ -1567,6 +1567,9 @@ static void DoInsertTimer( PTIMER timer )
 	globalTimerData.flags.bLogCriticalSections = bLock;
 	SetCriticalLogging( bLock );
 #endif
+	uint64_t newtick = timeGetTime64();//GetTickCount();
+//	lprintf("Add to timer %d delta %d %lld", timer->ID, timer->delta, newtick - globalTimerData.last_tick);
+	timer->delta += newtick - globalTimerData.last_tick;
 	if( !(check = globalTimerData.timers) )
 	{
 #ifdef LOG_INSERTS
@@ -1807,6 +1810,10 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 		//Log( "Unknown thread attempting to process timers..." );
 		return -1;
 	}
+	if (globalTimerData.current_timer) {
+		lprintf(" !!!!!!!!!!!!!!!!!!!! Recursing timer is a bad idea...");
+		return 1;
+	}
 #ifndef _WIN32
 	//nice( -3 ); // allow ourselves a bit more priority...
 #endif
@@ -1831,7 +1838,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 #ifdef LOG_LATENCY
 			Log( "Re-synch first tick..." );
 #endif
-			globalTimerData.last_tick = timeGetTime();//GetTickCount();
+			globalTimerData.last_tick = timeGetTime64();//GetTickCount();
 		}
 		// add and delete new/old timers here...
 		// should be the next event after sleeping (low var-sleep top const-sleep)
@@ -1852,9 +1859,9 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			globalTimerData.del_timer = 0;
 		}
 		// get the time now....
-		newtick = globalTimerData.this_tick = timeGetTime();//GetTickCount();
+		newtick = globalTimerData.this_tick = timeGetTime64();//GetTickCount();
 #ifdef LOG_LATENCY
-		Log3( "total - Tick: %u Last: %u  delta: %u", globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick );
+		lprintf( "total - %d Tick: %llu Last: %llu  delta: %llu", globalTimerData.timers?globalTimerData.timers->ID:-1, globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick );
 #endif
 		//if( globalTimerData.timers )
 		//	 delay_skew = globalTimerData.this_tick-globalTimerData.last_tick - globalTimerData.timers->delta;
@@ -2059,7 +2066,7 @@ uintptr_t CPROC ThreadProc( PTHREAD pThread )
 	//Log( "Permanently lock timers - indicates that thread is running..." );
 	globalTimerData.lock_timers = 1;
 	//Log( "Get first tick" );
-	globalTimerData.last_tick = timeGetTime();//GetTickCount();
+	globalTimerData.last_tick = timeGetTime64();//GetTickCount();
 	while( ProcessTimers( 1 ) > 0 );
 	//Log( "Timer thread is exiting..." );
 	globalTimerData.pTimerThread = NULL;
@@ -2088,7 +2095,7 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 	{
 		//"Creating one shot timer %d long", start );
 	}
-	//lprintf( "----- First create timer %d %d %d", start, frequency, globalTimerData.timerID );
+	//_lprintf( DBG_RELAY )( "----- First create timer %d %d %d", start, frequency, globalTimerData.timerID );
 	timer->delta     = (int32_t)start; // first time for timer to fire... may be 0
 	timer->frequency = frequency;
 	timer->callback  = callback;
@@ -2230,10 +2237,13 @@ static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 	{
 		// grabbing the timer this way should put its delta into the next.
 		PTIMER bGrabbed = GrabTimer( timer, FALSE );
-		if( globalTimerData.flags.away_in_timer && globalTimerData.CurrentTimerID == timer->ID )
+		if (globalTimerData.flags.away_in_timer && globalTimerData.CurrentTimerID == timer->ID) {
+			lprintf("Timer is dispatched/close to being dispatched. %d", timer->ID);
 			timer->flags.bRescheduled = 1; // tracks reschedule during callback
+		}
 		timer->delta = (int32_t)delay;  // should never pass a negative value here, but delta can be negative.
-		//lprintf( "Set timer delta %d %d", timer->delta, timer->ID );
+
+//		lprintf( "Set timer delta %d %d", timer->delta, timer->ID );
 #ifdef LOG_SLEEPS
 		lprintf( "Reschedule at %d  %p", timer->delta, bGrabbed );
 #endif
@@ -2262,6 +2272,7 @@ void  RescheduleTimerEx( uint32_t ID, uint32_t delay )
 	if( !ID )
 	{
 		timer =globalTimerData.current_timer;
+		lprintf("timer 0 specified - use current timer (if there is one?) %d", timer ? timer->ID : -1);
 	}
 	else
 	{
@@ -2275,6 +2286,10 @@ void  RescheduleTimerEx( uint32_t ID, uint32_t delay )
 			// dispatched and we get here (timer itself rescheduling itself)
 			if( globalTimerData.current_timer && globalTimerData.current_timer->ID == ID )
 				timer = globalTimerData.current_timer;
+			lprintf("timer is processing? %d %d", ID, timer ? timer->ID : -1);
+		}
+		else {
+			lprintf("timer  found to reschedule %d", timer ? timer->ID : -1);
 		}
 	}
 	InternalRescheduleTimerEx( timer, delay );
@@ -2416,11 +2431,11 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc;
 #ifdef _DEBUG
-	uint32_t curtick;
+	uint64_t curtick;
 #endif
 	while( 1 ) {
 #ifdef _DEBUG
-		curtick = timeGetTime();
+		curtick = timeGetTime64();
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
@@ -2429,7 +2444,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		while( LockedExchange( &pcs->dwUpdating, 1 )
 #ifdef _DEBUG
 			//GetTickCount() )
-			&& ( ( curtick + 2000 ) > timeGetTime() )
+			&& ( ( curtick + 2000 ) > timeGetTime64() )
 #endif
 			) {
 #ifdef ENABLE_CRITICALSEC_LOGGING
@@ -2441,7 +2456,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		dwCurProc = GetThisThreadID();
 #ifdef _DEBUG
 		//GetTickCount() )
-		if( ( curtick + 2000 ) <= timeGetTime() ) {
+		if( ( curtick + 2000 ) <= timeGetTime64() ) {
 #ifdef DEBUG_CRITICAL_SECTIONS
 			lprintf( "FROM: %s(%d)  %s(%d) %s(%d)"
 					  , pcs->pFile[(pcs->nPrior+(MAX_SECTION_LOG_QUEUE-1))%MAX_SECTION_LOG_QUEUE]
