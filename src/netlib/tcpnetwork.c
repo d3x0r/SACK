@@ -1576,6 +1576,7 @@ static void triggerWrite( uintptr_t psv ){
 			int tries = 0;
 			//lprintf( "Triggered write event..." );
 			while( tries++ < 20 && !NetworkLockEx( pc, 0 DBG_SRC ) ) {
+				if( pc->writeTimer ) return; // while waiting to write, got more to aggregate.
 				Relinquish();
 			}
 			if( tries >= 20 ){
@@ -1588,8 +1589,12 @@ static void triggerWrite( uintptr_t psv ){
 			}
 			if( pc->dwFlags & CF_ACTIVE ) {
 #ifdef LOG_WRITE_AGGREGATION
-				lprintf( "locked and can write: %p", pc );
+				lprintf( "locked and can write: %p %d %d", pc, timer, pc->writeTimer );
 #endif				
+				if( pc->writeTimer ) {
+					NetworkUnlockEx( pc, 0 DBG_SRC );
+					return;
+				}
 				TCPWrite( pc );
 			}
 #ifdef LOG_WRITE_AGGREGATION
@@ -1606,7 +1611,7 @@ static void triggerWrite( uintptr_t psv ){
 
 static PDATAQUEUE pdqPendingWrites = NULL;
 static PTHREAD writeWaitThread = NULL;
-/*
+
 static LOGICAL hasPending( PCLIENT pc ) {
 	INDEX i;
 	struct PendingWrite pending;
@@ -1619,7 +1624,7 @@ static LOGICAL hasPending( PCLIENT pc ) {
 	}
 	return FALSE;
 }
-*/
+
 uintptr_t WaitToWrite( PTHREAD thread ) {
 	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
 	if( !pdqPendingWrites )
@@ -1690,20 +1695,20 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 {
 	if( !lpClient )
 	{
-#ifdef VERBOSE_DEBUG
+//#ifdef VERBOSE_DEBUG
 		lprintf( "TCP Write failed - invalid client." );
-#endif
+//#endif
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
 
-	while( !NetworkLockEx( lpClient, 0 DBG_SRC ) )
+	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 	{
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
-#ifdef LOG_NETWORK_LOCKING
+//#ifdef LOG_NETWORK_LOCKING
 			_lprintf(DBG_RELAY)( "Failing send... inactive or closing" );
 			LogBinary( (uint8_t*)pInBuffer, nInLen );
-#endif
+//#endif
 			return FALSE;
 		}
 
@@ -1725,14 +1730,15 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			pw.failpending = failpending;
 			EnqueData( &pdqPendingWrites, &pw );
 			lpClient->wakeOnUnlock = writeWaitThread;
+			lprintf( "pend on fail - queued buffer as pending... " );
 		}
 		return -1;
 	}
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
 	{
-#ifdef VERBOSE_DEBUG
+//#ifdef VERBOSE_DEBUG
 		lprintf( "TCP Write failed - client is inactive" );
-#endif
+//#endif
 		// change to inactive status by the time we got here...
 		NetworkUnlockEx( lpClient, 0 DBG_SRC );
 		return FALSE;
@@ -1740,9 +1746,9 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 
 	if( lpClient->lpFirstPending ) // will already be in a wait on network state...
 	{
-#ifdef VERBOSE_DEBUG
+//#ifdef VERBOSE_DEBUG
 		_lprintf( DBG_RELAY )(  "Data already pending, pending buffer...%p %d", pInBuffer, nInLen );
-#endif
+//#endif
 		if( !failpending )
 		{
 #ifdef VERBOSE_DEBUG
@@ -1800,16 +1806,17 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
 			}
 			int wasTimer = lpClient->writeTimer;
-#ifdef LOG_WRITE_AGGREGATION
-			_lprintf(DBG_RELAY)( "Write with aggregate (firstpending forced)... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient );
-#endif			
 			if( lpClient->writeTimer ) RescheduleTimerEx( lpClient->writeTimer, 3 ); 
 			else lpClient->writeTimer = AddTimerExx( 3, 0, triggerWrite, (uintptr_t)lpClient DBG_SRC );
+#ifdef LOG_WRITE_AGGREGATION
+			_lprintf(DBG_RELAY)("Write with aggregate (firstpending forced)... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient);
+#endif			
 			lpClient->dwFlags |= CF_WRITEPENDING;
 			//lprintf( "First Write with aggregate... %d %d %d %p", nInLen, lpClient->writeTimer, wasTimer, lpClient );
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
 		}
+		//lprintf("Sending immediate?? %p", lpClient);
 		if( TCPWriteEx( lpClient DBG_RELAY ) )
 		{
 #ifdef VERBOSE_DEBUG

@@ -289,7 +289,7 @@ struct NetworkClient
 		BIT_FIELD bAggregateOutput : 1;
 	} flags;
 	PTHREAD wakeOnUnlock;
-	uint32_t writeTimer;
+	volatile uint32_t writeTimer;
 	PLIST psvInUse; // we have the ability to save outstatnding UID locks...
 
 	// this is set to what the thread that's waiting for this event is.

@@ -312,7 +312,7 @@ static void HandleEvent( PCLIENT pClient )
 					}
 #if defined( LOG_NOTICES ) || defined( LOG_READ_NOTICES )
 					if( globalNetworkData.flags.bLogNotices )
-						lprintf( "FD_READ" );
+						lprintf( "FD_READ %p %s", pClient, NetworkExpandFlags( pClient ) );
 #endif
   					if( ( pClient->dwFlags & CF_ACTIVE ) ) {
 #if 0 && !DrainSupportDeprecated
