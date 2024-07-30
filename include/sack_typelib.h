@@ -2901,7 +2901,15 @@ TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertTextURI( CTEXTSTR text, INDEX lengt
    </code>                                                                                                                        */
 TYPELIB_PROC TEXTSTR TYPELIB_CALLTYPE ConvertURIText( CTEXTSTR text, INDEX length );
 
+/* Parses a string that contains a comma separated list of
+   strings into an array of strings. Has no quoting support, and
+   simply parses on any comma in a string.
+   Parameters
+   \ \ 
+                                                                 */
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseStringVector( CTEXTSTR data, CTEXTSTR **pData, int *nData );
+/* Parses a string with numbers separated by commas into an
+   array of ints.                                           */
 TYPELIB_PROC LOGICAL TYPELIB_CALLTYPE ParseIntVector( CTEXTSTR data, int **pData, int *nData );
 
 
