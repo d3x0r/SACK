@@ -23,6 +23,8 @@
 #define MEMORY_STRUCT_DEFINED
 #define DEFINE_MEMORY_STRUCT
 
+//#define DEBUG_TIMER_RESCHEDULE
+
 #define THREAD_STRUCTURE_DEFINED
 
 #include <stdhdrs.h> // Sleep()
@@ -2240,7 +2242,9 @@ static void InternalRescheduleTimerEx( PTIMER timer, uint32_t delay )
 		// grabbing the timer this way should put its delta into the next.
 		PTIMER bGrabbed = GrabTimer( timer, FALSE );
 		if (globalTimerData.flags.away_in_timer && globalTimerData.CurrentTimerID == timer->ID) {
+#ifdef DEBUG_TIMER_RESCHEDULE		
 			lprintf("Timer is dispatched/close to being dispatched. %d", timer->ID);
+#endif			
 			timer->flags.bRescheduled = 1; // tracks reschedule during callback
 		}
 		timer->delta = (int32_t)delay;  // should never pass a negative value here, but delta can be negative.
@@ -2274,7 +2278,9 @@ void  RescheduleTimerEx( uint32_t ID, uint32_t delay )
 	if( !ID )
 	{
 		timer =globalTimerData.current_timer;
+#ifdef DEBUG_TIMER_RESCHEDULE		
 		lprintf("timer 0 specified - use current timer (if there is one?) %d", timer ? timer->ID : -1);
+#endif		
 	}
 	else
 	{
@@ -2288,11 +2294,15 @@ void  RescheduleTimerEx( uint32_t ID, uint32_t delay )
 			// dispatched and we get here (timer itself rescheduling itself)
 			if( globalTimerData.current_timer && globalTimerData.current_timer->ID == ID )
 				timer = globalTimerData.current_timer;
+#ifdef DEBUG_TIMER_RESCHEDULE		
 			lprintf("timer is processing? %d %d", ID, timer ? timer->ID : -1);
+#endif			
 		}
+#ifdef DEBUG_TIMER_RESCHEDULE		
 		else {
-			lprintf("timer  found to reschedule %d", timer ? timer->ID : -1);
+			lprintf("timer found to reschedule %d", timer ? timer->ID : -1);
 		}
+#endif		
 	}
 	InternalRescheduleTimerEx( timer, delay );
 	LeaveCriticalSec( &globalTimerData.csGrab );

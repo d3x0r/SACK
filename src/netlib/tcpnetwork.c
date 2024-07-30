@@ -1738,7 +1738,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 	}
 	if( !(lpClient->dwFlags & CF_ACTIVE ) )
 	{
-//#ifdef VERBOSE_DEBUG
+//#ifdef LOG_WRITE_AGGREGATION
 		lprintf( "TCP Write failed - client is inactive" );
 //#endif
 		// change to inactive status by the time we got here...
@@ -1748,12 +1748,12 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 
 	if( lpClient->lpFirstPending ) // will already be in a wait on network state...
 	{
-//#ifdef VERBOSE_DEBUG
+#ifdef LOG_WRITE_AGGREGATION
 		_lprintf( DBG_RELAY )(  "Data already pending, pending buffer...%p %d", pInBuffer, nInLen );
-//#endif
+#endif
 		if( !failpending )
 		{
-#ifdef VERBOSE_DEBUG
+#ifdef LOG_WRITE_AGGREGATION
 			lprintf( "Queuing pending data anyhow..." );
 #endif
 			// this doesn't re-trigger sending; it assumes the network write-ready event will do that.
