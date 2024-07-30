@@ -1688,7 +1688,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							if( !state->current_class ) {
 								state->status = FALSE;
 								if( !state->pvtError ) state->pvtError = VarTextCreate();
-								vtprintf( state->pvtError, "?? This is like doublestring revival; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+								vtprintf( state->pvtError, "? This is like doublestring revival; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
 								break;
 							}
 							lprintf( "THIS IS WRONG!" );
