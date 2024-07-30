@@ -117,10 +117,15 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen, LOGIC
 			l1 = 0; // no more length .. should have gotten a matched length on dst...
 			break;
 		}
-		if ( !case_sensitive && ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
-			f -= ('A' - 'a');
-		if ( !case_sensitive && ((last = (TEXTCHAR)(*(src++))) >= 'A') && (last <= 'Z') )
-			last -= ('A' - 'a');
+		if( !case_sensitive ) {
+			if( (( f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
+				f -= ('A' - 'a');
+			if( (( last = (TEXTCHAR)(*(src++))) >= 'A') && (last <= 'Z') )
+				last -= ('A' - 'a');
+		} else {
+			f = (TEXTCHAR)( *( dst++ ) );
+			last = (TEXTCHAR)( *( src++ ) );
+		}
 		--l2;
 		--l1;
 	} while ( l2 && l1 && (f == last) );
