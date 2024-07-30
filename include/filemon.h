@@ -80,8 +80,8 @@ FILEMONITOR_PROC( void, SetFMonitorForceScanTime )( PMONITOR monitor, uint32_t d
 FILEMONITOR_PROC( int, DispatchChanges )( PMONITOR monitor );
 
 
-FILEMON_NAMESPACE_END
 #ifdef __cplusplus
+} } }//FILEMON_NAMESPACE_END
 using namespace sack::filesys::monitor;
 #endif
 

@@ -18,7 +18,7 @@
 #  define SACK_DEADSTART_NAMESPACE  SACK_NAMESPACE namespace app { namespace deadstart {
 #  define SACK_DEADSTART_NAMESPACE_END  } } SACK_NAMESPACE_END
 
-SACK_NAMESPACE
+namespace sack{
 	namespace app{
 /* Application namespace. */
 /* These are compiler-platform abstractions to provide a method
@@ -97,8 +97,13 @@ SACK_NAMESPACE
 #define DEADSTART_SOURCE
 #endif
 
+#ifdef __cplusplus
+namespace sack{
+	namespace app{
+		namespace deadstart {
 
-SACK_DEADSTART_NAMESPACE
+//SACK_DEADSTART_NAMESPACE
+#endif
 
 /* A macro to specify the call type of schedule routines. This
    can be changed in most projects without affect, it comes into
@@ -773,6 +778,8 @@ typedef void(*atexit_priority_proc)(void (*)(void),int,CTEXTSTR DBG_PASS);
 
 #include <exit_priorities.h>
 
-SACK_DEADSTART_NAMESPACE_END
+#ifdef __cplusplus
+} } } //SACK_DEADSTART_NAMESPACE_END
+#endif
 USE_SACK_DEADSTART_NAMESPACE
 #endif

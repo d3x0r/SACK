@@ -1360,8 +1360,8 @@ public:
 }NETWORK;
 #  endif
 #endif
-SACK_NETWORK_NAMESPACE_END
 #ifdef __cplusplus
+} } //SACK_NETWORK_NAMESPACE_END
 using namespace sack::network;
 using namespace sack::network::tcp;
 using namespace sack::network::udp;
