@@ -503,7 +503,7 @@ TEXTSTR  DupCStrLenEx( const char * original, size_t chars DBG_PASS )
 	TEXTSTR result, _result;
 	if( !original )
 		return NULL;
-	_result = result = NewArray( TEXTCHAR, chars + 1 );// (TEXTSTR)AllocateEx( (len + 1) * sizeof( result[0] )  DBG_RELAY );
+	_result = result = /*NewArray( TEXTCHAR, chars + 1 );//*/ (TEXTSTR)AllocateEx( (chars + 1) * sizeof( result[0] )  DBG_RELAY );
 	len = 0;
 	while( len < chars ) ((*result++) = (*original++)), len++;
 	result[0] = 0;

@@ -1474,7 +1474,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 #endif
 		}
 		else {
-			lprintf( "nothing was pending??" );
+			lprintf( "nothing was pending?" );
 			nSent = 0;
 		}
 
@@ -1820,7 +1820,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
 		}
-		//lprintf("Sending immediate?? %p", lpClient);
+		//lprintf("Sending immediate? %p", lpClient);
 		if( TCPWriteEx( lpClient DBG_RELAY ) )
 		{
 #ifdef VERBOSE_DEBUG

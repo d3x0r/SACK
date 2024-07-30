@@ -833,9 +833,11 @@ PROCREG_PROC( void, RegisterAndCreateGlobalWithInit )( POINTER *ppGlobal, uintpt
  * Add a transaltion tree index at the same time.
  */
 PROCREG_PROC( CTEXTSTR, SaveNameConcatN )( CTEXTSTR name1, ... );
-// no space stripping, saves literal text
+// no space stripping, saves literal text (case insensitive indexing; '/' and '\' are the same)
 PROCREG_PROC( CTEXTSTR, SaveText )( CTEXTSTR text );
 
+// no space stripping, saves literal text (case sensitive indexing; '/' and '\' are the same)
+PROCREG_PROC( CTEXTSTR, SaveTextCS )( CTEXTSTR text );
 
 PROCREG_NAMESPACE_END
 

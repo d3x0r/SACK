@@ -79,7 +79,7 @@ typedef struct data_collection_tag
 	size_t *result_len;
 	TEXTSTR *results;
 	//uint32_t nResults; // this is columns
-	TEXTSTR *fields;
+	CTEXTSTR *fields;
 	PDATALIST *ppdlResults;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	sqlite3_stmt *stmt;
@@ -172,6 +172,9 @@ struct odbc_queue
    PLINKQUEUE connections;
 };
 
+typedef char SQL_TIME_BUFFER[32];
+#define MAXSQL_TIME_BUFFERSPERSET 256
+DeclareSet( SQL_TIME_BUFFER );
 
 #ifdef SQLLIB_SOURCE
 struct pssql_global
@@ -227,6 +230,7 @@ struct pssql_global
 
 	// ----- shared with option code; these need to be shared between instances.
 	PTREEROOT tables;  // some 
+	PSQL_TIME_BUFFERSET time_buffers;
 
 };
 #endif

@@ -3147,9 +3147,12 @@ TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  FindInBinaryTree( PTREEROOT root, uintp
 
 
 // result of fuzzy routine is 0 = match.  100 = inexact match
+// 101 = no longer matching; result with last 100 match.
 // 1 = no match, actual may be larger
 // -1 = no match, actual may be lesser
 // 100 = inexact match- checks nodes near for better match.
+//
+// Basically scans left and right from 100 match to find best match.
 TYPELIB_PROC  CPOINTER TYPELIB_CALLTYPE  LocateInBinaryTree( PTREEROOT root, uintptr_t key
 														, int (CPROC*fuzzy)( uintptr_t psv, uintptr_t node_key ) );
 

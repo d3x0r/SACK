@@ -193,6 +193,9 @@ struct global_memory_tag {
 	uint32_t bMemInstanced; // set if anybody starts to DIG.
 	LOGICAL deadstart_finished;
 	PMEM pMemInstance;
+	uint32_t last_set_allocate;
+	int nLogAllocateClears;
+	int bDefaultLogAllocate;
 };
 
 #ifdef __STATIC__
@@ -311,7 +314,7 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 {
 #ifndef __NO_OPTIONS__
 	g.bLogCritical = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Log critical sections", g.bLogCritical, TRUE );
-	g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Enable Logging", g.bLogAllocate, TRUE );
+	g.bDefaultLogAllocate = g.bLogAllocate = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Enable Logging", g.bLogAllocate, TRUE );
 	if( g.bLogAllocate )
 		ll_lprintf( "Memory allocate logging enabled." );
 	g.bLogAllocateWithHold = SACK_GetProfileIntEx( GetProgramName(), "SACK/Memory Library/Enable Logging Holds", g.bLogAllocateWithHold, TRUE );
@@ -2034,13 +2037,26 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 #endif
 		DropMem( pCurMem );
 		DropMem( pMem );
+/*
+		if( pCurMem->cs.dwLocks ) {
+			fprintf( stderr, "(pcurmem) Memory block %p has %d locks on it.", pCurMem, pCurMem->cs.dwLocks );
+			//DebugBreak();
+		}
+		if( pMem->cs.dwLocks ) {
+			fprintf( stderr, "(pmem) Memory block %p has %d locks on it.", pMem, pMem->cs.dwLocks );
+			//DebugBreak();
+		}
+*/		
 		//#if DBG_AVAILABLE
 #ifndef NO_LOGGING
 #  ifdef _DEBUG
 		if( g.bLogAllocate && g.allowLogging )
 		{
 			_xlprintf( 2 DBG_RELAY )("Allocate : %p(%p) - %" _PTRSZVALfs " bytes", pc->byData, pc, pc->dwSize);
-		}
+		}else
+		{
+			//fprintf(stderr, DBG_FILELINEFMT " (disabled %d)Allocate : %p(%p) - %" _PTRSZVALfs " bytes\n" DBG_RELAY, global_memory_data.last_set_allocate, pc->byData, pc, pc->dwSize);
+		}	
 #  endif
 #endif
 		//#endif
@@ -2335,6 +2351,8 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				else
 					_xlprintf( 2 DBG_RELAY )("Release  : %p(%p) - %" _PTRSZVALfs " bytes", pc->byData, pc, pc->dwSize);
 			}
+			else
+				;//fprintf(stderr, DBG_FILELINEFMT " (disabled %d)Release  : %p(%p) - %" _PTRSZVALfs " bytes\n" DBG_RELAY,  global_memory_data.last_set_allocate, pc->byData, pc, pc->dwSize);
 #  endif
 #endif
 
@@ -2599,23 +2617,23 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 		{
 			PCHUNK pc = (PCHUNK)(((uintptr_t)pData) - ( ( (uint16_t*)pData)[-1] +
 													offsetof( CHUNK, byData ) ) );
-			PMEM pMem = GrabMem( pc->pRoot );
-
 #ifndef NO_LOGGING
 			if( g.bLogAllocate )
 			{
 				_xlprintf( 2 DBG_RELAY)( "Hold	 : %p - %" _PTRSZVALfs " bytes",pc, pc->dwSize );
 			}
 #endif
+			PMEM pMem = GrabMem( pc->pRoot );
+
 			if( !pc->info.dwOwners )
 			{
 				_xlprintf( 2 DBG_RELAY)( "Held block has already been released!  too late to hold it!" );
 				DebugBreak();
-				DropMem( pMem );
+				DropMemEx( pMem DBG_RELAY );
 				return pData;
 			}
 			pc->info.dwOwners++;
-			DropMem(pMem );
+			DropMemEx(pMem DBG_RELAY );
 #ifdef _DEBUG
 			if( !g.bDisableAutoCheck )
 				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
@@ -2959,7 +2977,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #if USE_CUSTOM_ALLOCER
 	if( !pHeap )
 		pHeap = g.pMemInstance;
+	//fprintf( stderr, "Grab Heap: %d %p\n", nLine, pHeap );
 	pMem = GrabMem( pHeap );
+	//fprintf( stderr, "Grabbed Heap: %p\n", pMem );
 	pMemSpace = FindSpace( pMem );
 	while( pMemSpace )
 	{
@@ -3057,9 +3077,15 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		}
 		nSpaces++;
 		pMemSpace = pMemSpace->next;
-		DropMem( pMemCheck );
+		DropMemEx( pMemCheck DBG_RELAY );
 	}
-	DropMem( pMem );
+	DropMemEx( pMem DBG_RELAY );
+	if( pMem->cs.dwLocks) {
+		fprintf( stderr, "Locks is still set?\n");
+		//DebugBreak();
+	}
+
+	//fprintf( stderr, "Dropped Mem: %d %p\n", nLine, pMem );
 	if( pFree )
 		*pFree = (uint32_t)nFree;
 	if( pUsed )
@@ -3079,10 +3105,38 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 }
 
 //------------------------------------------------------------------------------------------------------
- int  SetAllocateLogging ( LOGICAL bTrueFalse )
+ int  SetAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS )
 {
 	LOGICAL prior = g.bLogAllocate;
-	g.bLogAllocate = bTrueFalse;
+#ifdef _DEBUG	
+	g.last_set_allocate = nLine;
+#endif	
+	g.bDefaultLogAllocate = g.bLogAllocate = bTrueFalse;
+	_lprintf(DBG_RELAY)( "--------- USE CLEAR OR RESET LOGGING!" );
+	return prior;
+}
+
+//------------------------------------------------------------------------------------------------------
+int  ClearAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS )
+{
+	LOGICAL prior = g.bLogAllocate;
+	g.nLogAllocateClears++;
+#ifdef _DEBUG	
+	g.last_set_allocate = nLine;
+#endif	
+	g.bLogAllocate = 0;
+	return prior;
+}
+//------------------------------------------------------------------------------------------------------
+int  ResetAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS )
+{
+	LOGICAL prior = g.bLogAllocate;
+#ifdef _DEBUG	
+	g.last_set_allocate = nLine;
+#endif	
+	g.nLogAllocateClears--;
+	if( !g.nLogAllocateClears )
+		g.bLogAllocate = g.bDefaultLogAllocate;
 	return prior;
 }
 

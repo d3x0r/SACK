@@ -1205,29 +1205,83 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 #  else
 //---------------------------------------------------------------------------
 
+struct map_entry {
+	uintptr_t low;
+	uintptr_t high;
+};
+static int compare_addr( uintptr_t a, uintptr_t b )
+{
+	struct map_entry *ma = (struct map_entry *)a;
+	struct map_entry *mb = (struct map_entry *)b;
+	if( ma->low < mb->low || ma->high <= mb->low )
+		return -1;
+	if( ma->high > mb->high || ma->low >= mb->high )
+		return 1;
+	// else ma->low <= b && ma->high >= b 
+	return 0;
+}
+
+static int check_addr( uintptr_t psv, uintptr_t key )
+{
+	struct map_entry *ma = (struct map_entry *)key;
+	if( psv < ma->low )
+		return -1;
+	if( psv > ma->high )
+		return 1;
+	return 0;
+}
+
+static void delete_addr( CPOINTER data, uintptr_t key )
+{
+	Release( (POINTER)key );
+}
+
 LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 {
-   (void)len; // reference unused.
+	static size_t last_low, last_high;
+	static PTREEROOT map_index;
+	(void)len; // reference unused.
 	static FILE *maps;
-	//return FALSE;
-	//DebugBreak();
+	uintptr_t ptr = (uintptr_t)pointer;
+	// quick check last known result
+	if( ptr >= last_low && ptr <= last_high )
+		return FALSE;
+	if( !map_index ){
+		map_index = CreateBinaryTreeExtended( BT_OPT_NODUPLICATES, compare_addr, delete_addr DBG_SRC );
+	}
 	if( !maps )
 		maps = fopen( "/proc/self/maps", "rt" );
-	else
+	else {
+		struct map_entry *found;
+		if( found = (struct map_entry *)LocateInBinaryTree( map_index, ptr, check_addr ) ) {
+			last_low = found->low;
+			last_high = found->high;
+			return FALSE;
+		}
 		fseek( maps, 0, SEEK_SET );
+	}
 	//fprintf( stderr, "Testing a pointer..\n" );
 	if( maps )
 	{
-		uintptr_t ptr = (uintptr_t)pointer;
+		struct map_entry *tmp;
 		char line[256];
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
 			size_t low, high;
-			sscanf( line, "%zd-%zd" cPTRSZVALfx, &low, &high );
+			tmp = (struct map_entry *)Allocate( sizeof( struct map_entry ) );
+			sscanf( line, "%zx-%zx", &tmp->low, &tmp->high );
 			//fprintf( stderr, "%s" "Find: %08" PTRSZVALfx " Low: %08" PTRSZVALfx " High: %08" PTRSZVALfx "\n"
 			//		 , line, pointer, low, high );
-			if( ptr >= low && ptr <= high )
+			if( !AddBinaryNode( map_index, tmp, (uintptr_t)tmp ) )
 			{
+				// if the node existed before, then it didn't match...
+				Release( (POINTER)tmp );
+				continue;
+			}
+			if( ptr >= tmp->low && ptr <= tmp->high )
+			{
+				last_low = tmp->low;
+				last_high = tmp->high;
 				return FALSE;
 			}
 		}

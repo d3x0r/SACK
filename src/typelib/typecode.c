@@ -805,7 +805,7 @@ namespace sack {
 					INDEX size;
 					int prior_logging;
 					size = MY_OFFSETOF( pplq, pNode[plq->Cnt + entries] );
-					prior_logging = SetAllocateLogging( FALSE );
+					prior_logging = ClearAllocateLogging( FALSE );
 					plqNew = (PLINKQUEUE)AllocateEx( size DBG_RELAY );
 					plqNew->Cnt = plq->Cnt + entries;
 					plqNew->Bottom = 0;
@@ -824,7 +824,7 @@ namespace sack {
 					//need to make sure plq is always valid; can be trying to get a lock
 					(*pplq) = plqNew;
 					Release( plq );
-					SetAllocateLogging( prior_logging );
+					ResetAllocateLogging( prior_logging );
 				}
 #if USE_CUSTOM_ALLOCER
 				if (_link_queue_local)

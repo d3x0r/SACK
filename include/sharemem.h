@@ -677,7 +677,12 @@ MEM_PROC  void MEM_API  GetMemStats ( uint32_t *pFree, uint32_t *pUsed, uint32_t
    bTrueFalse :  if TRUE, allocation logging is turned on. Enables
                  logging when each block is Allocated, Released,
                  or Held.                                          */
-MEM_PROC  int MEM_API  SetAllocateLogging ( LOGICAL bTrueFalse );
+MEM_PROC  int MEM_API  SetAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS );
+#define SetAllocateLogging(tf) SetAllocateLoggingEx( tf DBG_SRC )
+MEM_PROC  int MEM_API  ClearAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS );
+#define ClearAllocateLogging(tf) ClearAllocateLoggingEx( tf DBG_SRC )
+MEM_PROC  int MEM_API  ResetAllocateLoggingEx ( LOGICAL bTrueFalse DBG_PASS );
+#define ResetAllocateLogging(tf) ResetAllocateLoggingEx( tf DBG_SRC )
 /* disables storing file/line, also disables auto GetMemStats
    checking
    Parameters

@@ -341,6 +341,7 @@ static void setupInterfaces() {
 			}
 			mac_data.addressCount = addressCount;
 			mac_data.addresses = NewArray( struct addressNode*, addressCount );
+			memset( mac_data.addresses, 0, sizeof( struct addressNode* ) * addressCount );
 			mac_data.netmasks = NewArray( uint8_t*, addressCount );
 			mac_data.addr_ifIndexes = NewArray( int, addressCount );
 
@@ -350,9 +351,18 @@ static void setupInterfaces() {
 				if( current_ifa->ifa_addr->sa_family != AF_INET 
 				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
 
-				struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
-				SOCKADDR *sa = AllocAddr();
-				newAddress->remote = sa;
+				struct addressNode newAddress;// = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+				uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
+
+				memset( addrbuf, 0, MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) );
+				//initialize socket length to something identifiable?
+				((uintptr_t*)addrbuf)[0] = 3;
+				((uintptr_t*)addrbuf)[1] = 0; // string representation of address
+
+				SOCKADDR *sa = (SOCKADDR*)(addrbuf + sizeof(uintptr_t) * 2);//AllocAddr();
+				//(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY )
+
+				newAddress.remote = sa;
 				//lprintf( "Got ifaddr on %s %d", current_ifa->ifa_name, current_ifa->ifa_addr->sa_family );
 				//LogBinary( (const uint8_t*)current_ifa->ifa_addr, sizeof( *current_ifa->ifa_addr));
 				sa->sa_family = current_ifa->ifa_addr->sa_family;
@@ -389,18 +399,24 @@ static void setupInterfaces() {
 								LogBinary( mac_data.netmasks[addressCount], 16 );
 #endif								
 							}
-							memcpy( newAddress->localHw, mac_data.hwaddrs[i], 6);
-							memcpy( newAddress->remoteHw, mac_data.hwaddrs[i], 6);
+							memcpy( newAddress.localHw, mac_data.hwaddrs[i], 6);
+							memcpy( newAddress.remoteHw, mac_data.hwaddrs[i], 6);
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 							LogMacAddress( newAddress );
-#endif							
-							if( AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)sa ) ) {
-								//lprintf( "Added address to tree" );
-								mac_data.addresses[addressCount] = newAddress;
-							} else {
-								//lprintf( "Failed to add address to tree" );
-								ReleaseAddress( sa );
-								Deallocate( struct addressNode *, newAddress );
+#endif						
+							if( !FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa )) {
+								struct addressNode *storeAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+								storeAddress[0] = newAddress;
+								storeAddress->remote = DuplicateAddress( storeAddress->remote );
+				
+								if( AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)storeAddress, (uintptr_t)sa ) ) {
+									//lprintf( "Added address to tree" );
+									mac_data.addresses[addressCount] = storeAddress;
+								} else {
+									//lprintf( "Failed to add address to tree" );
+									//ReleaseAddress( sa );
+									//Deallocate( struct addressNode *, newAddress );
+								}
 							}
 							break;
 						}
@@ -439,223 +455,254 @@ ATEXIT( CloseMacThread ){
 
 static uintptr_t MacThread( PTHREAD thread ) {
 
-			int stat;
-			int rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
-			if( rtnetlink_socket < 0 )
-			{
-				threadFailed = 1;
-				if( errno == ESOCKTNOSUPPORT ){
-					lprintf( "Socket No Support?");
-				}else
-					lprintf( "Unable to create netlink socket %d", errno );
-				return 0;
-			}
-			struct sockaddr rtnetlink_addr;
-			rtnetlink_addr.sa_family = AF_NETLINK;
-			rtnetlink_addr.sa_data[0] = 0;
-			rtnetlink_addr.sa_data[1] = 0;
-			int ppid = (int)(GetMyThreadID() >> 32);
-			rtnetlink_addr.sa_data[2] = ppid & 0xFF;
-			rtnetlink_addr.sa_data[3] = (ppid >> 8) & 0xFF;
-			rtnetlink_addr.sa_data[4] = (ppid >> 16) & 0xFF;
-			rtnetlink_addr.sa_data[5] = (ppid >> 24) & 0xFF;
-			int grp = RTMGRP_NEIGH;
-			rtnetlink_addr.sa_data[6] = grp & 0xFF;
-			rtnetlink_addr.sa_data[7] = 0;
-			rtnetlink_addr.sa_data[8] = 0;
-			rtnetlink_addr.sa_data[9] = 0;
-									
-			stat = bind(rtnetlink_socket, &rtnetlink_addr, 12 );
-			if( stat < 0 )
-			{
-				threadFailed = 1;
-				lprintf( "Unable to bind netlink socket %s", strerror( errno ) );
-				return 0;
-			}
-			int seq;
+	int stat;
+	int rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
+	if( rtnetlink_socket < 0 )
+	{
+		threadFailed = 1;
+		if( errno == ESOCKTNOSUPPORT ){
+			lprintf( "Socket No Support?");
+		}else
+			lprintf( "Unable to create netlink socket %d", errno );
+		return 0;
+	}
+	struct sockaddr rtnetlink_addr;
+	rtnetlink_addr.sa_family = AF_NETLINK;
+	rtnetlink_addr.sa_data[0] = 0;
+	rtnetlink_addr.sa_data[1] = 0;
+	int ppid = (int)(GetMyThreadID() >> 32);
+	rtnetlink_addr.sa_data[2] = ppid & 0xFF;
+	rtnetlink_addr.sa_data[3] = (ppid >> 8) & 0xFF;
+	rtnetlink_addr.sa_data[4] = (ppid >> 16) & 0xFF;
+	rtnetlink_addr.sa_data[5] = (ppid >> 24) & 0xFF;
+	int grp = RTMGRP_NEIGH;
+	rtnetlink_addr.sa_data[6] = grp & 0xFF;
+	rtnetlink_addr.sa_data[7] = 0;
+	rtnetlink_addr.sa_data[8] = 0;
+	rtnetlink_addr.sa_data[9] = 0;
+							
+	stat = bind(rtnetlink_socket, &rtnetlink_addr, 12 );
+	if( stat < 0 )
+	{
+		threadFailed = 1;
+		lprintf( "Unable to bind netlink socket %s", strerror( errno ) );
+		return 0;
+	}
+	int seq;
 
-			struct {
-			struct nlmsghdr nlh;
-			struct ndmsg ndm;
-			char buf[256];
-			} req;
-			req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
-			req.nlh.nlmsg_type = RTM_GETNEIGH;
-			req.nlh.nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
-			req.nlh.nlmsg_seq =  ++seq;
-			req.ndm.ndm_family = 0;
+	struct {
+	struct nlmsghdr nlh;
+	struct ndmsg ndm;
+	char buf[256];
+	} req;
+	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
+	req.nlh.nlmsg_type = RTM_GETNEIGH;
+	req.nlh.nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+	req.nlh.nlmsg_seq =  ++seq;
+	req.ndm.ndm_family = 0;
 
-			send( rtnetlink_socket, (struct msghdr*)&req, sizeof(req), 0);
+	send( rtnetlink_socket, (struct msghdr*)&req, sizeof(req), 0);
 
 	while( !macThreadEnd ) {
-			//sendmsg( rtnetlink_socket, (struct msghdr*)&req, 0);
-			ssize_t rstat;
-			static uint8_t buf[8192];
-			int loop = 1;
-			do {
-				rstat = recv( rtnetlink_socket, buf, sizeof(buf), 0/*MSG_DONTWAIT*/ );
-				if( rstat < 0) {
-					if( errno == EAGAIN || errno == EWOULDBLOCK ) {
-						//lprintf( "No data available" );
-						Relinquish();
-					} else{
-						lprintf( "Error: %s", strerror( errno ) );
-						loop = 0;
-					}
+		//sendmsg( rtnetlink_socket, (struct msghdr*)&req, 0);
+		ssize_t rstat;
+		static uint8_t buf[8192];
+		int loop = 1;
+		do {
+			rstat = recv( rtnetlink_socket, buf, sizeof(buf), 0/*MSG_DONTWAIT*/ );
+			if( rstat < 0) {
+				if( errno == EAGAIN || errno == EWOULDBLOCK ) {
+					//lprintf( "No data available" );
+					Relinquish();
+				} else{
+					lprintf( "Error: %s", strerror( errno ) );
+					loop = 0;
 				}
-				else {
-					struct response {
-						struct nlmsghdr nl;
-						struct ndmsg rt;
-					} *res;
-					int msgLen;
-					int priorLen = 0;
+			}
+			else {
+				struct response {
+					struct nlmsghdr nl;
+					struct ndmsg rt;
+				} *res;
+				int msgLen;
+				int priorLen = 0;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
-					lprintf( "Got some data from socket:%d", rstat);
-					lprintf( "Flag Values %d %d %d",NTF_SELF, NTF_PROXY, NTF_ROUTER    );
+				lprintf( "Got some data from socket:%d", rstat);
+				lprintf( "Flag Values %d %d %d",NTF_SELF, NTF_PROXY, NTF_ROUTER    );
 #endif					
-					while( priorLen < rstat ) {
-						struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
-						res = (struct response*)(buf+priorLen);
+				while( priorLen < rstat ) {
+					struct addressNode newAddress;// = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+					res = (struct response*)(buf+priorLen);
 
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
-						lprintf( "Stuff: %p %d", res, priorLen );
+					lprintf( "Stuff: %p %d", res, priorLen );
 #endif						
-						struct rtattr *attr = (struct rtattr*)(res+1);
-						switch( res->nl.nlmsg_type ) {
-							case NLMSG_DONE:
-								// end of dump; should send information here.
-								break;
-							case RTM_DELNEIGH:
-								// should probably delete the entry in the tree here...
-								break;
-							case RTM_NEWNEIGH:
-								//LogBinary( (uint8_t*)(res), res->nl.nlmsg_len );
-								/*
-								lprintf( "First message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type
-										, res->nl.nlmsg_len-sizeof( res)
-										, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
-								lprintf( "fam:%d ifi:%d st:%d fl:%d type:%d"
-											, res->rt.ndm_family, res->rt.ndm_ifindex
-											, res->rt.ndm_state, res->rt.ndm_flags, res->rt.ndm_type );
-								*/
-								// state == NUD_INCOMPLETE, NUD_REACHABLE, NUD_STALE, NUD_DELAY, NUD_PROBE, NUD_FAILED, NUD_NORARP,NUD_PERMANENT
-								// flags == NTF_PROXY, NTF_ROUTER
-								// 
-								{
-									SOCKADDR *sa = AllocAddr();
+					struct rtattr *attr = (struct rtattr*)(res+1);
+					//lprintf( "message:%d", res->nl.nlmsg_type );
+					switch( res->nl.nlmsg_type ) {
+						case NLMSG_DONE:
+							// end of dump; should send information here.
+							break;
+						case RTM_DELNEIGH:
+							// should probably delete the entry in the tree here...
+							break;
+						case RTM_NEWNEIGH:
+							//LogBinary( (uint8_t*)(res), res->nl.nlmsg_len );
+							/*
+							lprintf( "First message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type
+									, res->nl.nlmsg_len-sizeof( res)
+									, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
+							lprintf( "fam:%d ifi:%d st:%d fl:%d type:%d"
+										, res->rt.ndm_family, res->rt.ndm_ifindex
+										, res->rt.ndm_state, res->rt.ndm_flags, res->rt.ndm_type );
+							*/
+							// state == NUD_INCOMPLETE, NUD_REACHABLE, NUD_STALE, NUD_DELAY, NUD_PROBE, NUD_FAILED, NUD_NORARP,NUD_PERMANENT
+							// flags == NTF_PROXY, NTF_ROUTER
+							// 
+							{
+								uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
 
-									sa->sa_family = res->rt.ndm_family;
-									sa->sa_data[0] = 0;
-									sa->sa_data[1] = 0;
-									newAddress->remote = sa;
-									for( int i = 0; i < mac_data.interfaceCount; i++ ) {
-										if( mac_data.ifIndexes[i] == res->rt.ndm_ifindex ) {
-											memcpy( newAddress->localHw, mac_data.hwaddrs[i], 6);
-											break;
-										}
-									}
-									
-									{
-										LOGICAL duplicated = FALSE;
-										size_t attLen = res->nl.nlmsg_len-sizeof( *res);
-										size_t attOfs = priorLen + sizeof( *res );
-										do {
-											struct rtattr *attr = (struct rtattr*)(buf+attOfs);
-											if( !attr->rta_len )
-												break;
-											//lprintf( "Attr:%d %d %d", attLen, attr->rta_len, attr->rta_type );
-											switch( attr->rta_type ) {
-												case NDA_DST:
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP
-													lprintf( "Destination Address" );
-#endif													
-													if( ( sa->sa_family = res->rt.ndm_family ) == AF_INET ){
-														((uint32_t*)(sa->sa_data+2))[0] = ((uint32_t*)(attr+1))[0];
-														SET_SOCKADDR_LENGTH( sa, IN_SOCKADDR_LENGTH );
-													} else {
-														((uint32_t*)( sa->sa_data + 2))[0] = 0;
-														((uint64_t*)( sa->sa_data + 6))[0] = ((uint64_t*)(attr+1))[0];
-														((uint64_t*)( sa->sa_data + 6))[1] = ((uint64_t*)(attr+1))[1];
-														SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
-													}
-													if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
-														duplicated = TRUE;
-														//DumpAddr( "Duplicate address notification", sa );
-														ReleaseAddress( sa );
-														Deallocate( struct addressNode *, newAddress );
-														break;
-													}
+								memset( addrbuf, 0, MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) );
+								//initialize socket length to something identifiable?
+								((uintptr_t*)addrbuf)[0] = 3;
+								((uintptr_t*)addrbuf)[1] = 0; // string representation of address
+								SOCKADDR *sa = (SOCKADDR*)(addrbuf + sizeof(uintptr_t) * 2);//AllocAddr();
 
-													break;
-												case NDA_UNSPEC:
-													lprintf( "Unknown type" );
-													break;
-												case NDA_LLADDR:
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP
-													lprintf( "Link Layer Address" );
-#endif												
-													memcpy( newAddress->remoteHw, (attr+1), 6 );
-													break;
-												case NDA_PROBES: {
-													//uint32_t *probes = (uint32_t*)(attr+1);
-													//lprintf( "Probes: %d %d %d", probes[0], probes[1], probes[2] );
-													break;
-												}
-												case NDA_CACHEINFO:{
-													struct nda_cacheinfo *ci = (struct nda_cacheinfo*)(attr+1);
-													
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP
-													lprintf( "Cache Info  conf:%d used:%d upd:%d cnt:%d", ci->ndm_confirmed, ci->ndm_used, ci->ndm_updated, ci->ndm_refcnt );
-#endif													
-													break;
-												}
-												default:
-													lprintf( "Unknown attribute type: %d", attr->rta_type );
-													break;
-											}
-											attOfs += attr->rta_len;
-											attLen -= attr->rta_len;
-										} while( !duplicated && attLen );
-										if( duplicated ) {
-											break;
-										}
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP
-										LogMacAddress( newAddress );
-#endif										
-										if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote ) ) {
-											ReleaseAddress( newAddress->remote );
-											Deallocate( struct addressNode *, newAddress );
-										}
-										//LogBinary( (uint8_t*)(buf+attOfs), res->nl.nlmsg_len-attOfs );
+								sa->sa_family = res->rt.ndm_family;
+								sa->sa_data[0] = 0;
+								sa->sa_data[1] = 0;
+								newAddress.remote = sa;
+								for( int i = 0; i < mac_data.interfaceCount; i++ ) {
+									if( mac_data.ifIndexes[i] == res->rt.ndm_ifindex ) {
+										memcpy( newAddress.localHw, mac_data.hwaddrs[i], 6);
+										break;
 									}
 								}
+								
+								{
+									LOGICAL duplicated = FALSE;
+									LOGICAL destFound, linkFound;
+									size_t attLen = res->nl.nlmsg_len-sizeof( *res);
+									size_t attOfs = priorLen + sizeof( *res );
+									destFound = linkFound = FALSE;
+									do {
+										struct rtattr *attr = (struct rtattr*)(buf+attOfs);
+										if( !attr->rta_len )
+											break;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+										lprintf( "Attr:%d %d %d", attLen, attr->rta_len, attr->rta_type );
+#endif										
+										switch( attr->rta_type ) {
+											case NDA_DST:
+												destFound = TRUE;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+												lprintf( "Destination Address" );
+#endif													
+												if( ( sa->sa_family = res->rt.ndm_family ) == AF_INET ){
+													((uint32_t*)(sa->sa_data+2))[0] = ((uint32_t*)(attr+1))[0];
+													SET_SOCKADDR_LENGTH( sa, IN_SOCKADDR_LENGTH );
+												} else {
+													((uint32_t*)( sa->sa_data + 2))[0] = 0;
+													((uint64_t*)( sa->sa_data + 6))[0] = ((uint64_t*)(attr+1))[0];
+													((uint64_t*)( sa->sa_data + 6))[1] = ((uint64_t*)(attr+1))[1];
+													SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
+												}
+												//LogMacAddress( &newAddress );
+												if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
+													duplicated = TRUE;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+													DumpAddr( "Duplicate address notification", sa );
+#endif													
+													//ReleaseAddress( sa );
+													//Deallocate( struct addressNode *, newAddress );
+													break;
+												}else {
+													DumpAddr( "New address notification", sa );
+												}
 
-								break;
-							default:
-								lprintf( "Default message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type, res->nl.nlmsg_len
-										, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
-								break;
-						}
-						//lprintf( "");
-						priorLen += res->nl.nlmsg_len;
+												break;
+											case NDA_UNSPEC:
+												lprintf( "Unknown type" );
+												break;
+											case NDA_LLADDR:
+												linkFound = TRUE;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+												lprintf( "Link Layer Address" );
+#endif												
+												memcpy( newAddress.remoteHw, (attr+1), 6 );
+												break;
+											case NDA_PROBES: {
+												uint32_t *probes = (uint32_t*)(attr+1);
+												lprintf( "Probes: %d %d %d", probes[0], probes[1], probes[2] );
+
+												break;
+											}
+											case NDA_CACHEINFO:{
+												struct nda_cacheinfo *ci = (struct nda_cacheinfo*)(attr+1);
+												
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+												lprintf( "Cache Info  conf:%d used:%d upd:%d cnt:%d", ci->ndm_confirmed, ci->ndm_used, ci->ndm_updated, ci->ndm_refcnt );
+#endif													
+												break;
+											}
+											default:
+												lprintf( "Unknown attribute type: %d", attr->rta_type );
+												break;
+										}
+										attOfs += attr->rta_len;
+										attLen -= attr->rta_len;
+									} while( !duplicated && attLen );
+									if( !linkFound || !destFound || duplicated ) {
+//#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+										if( !duplicated )
+											if( !linkFound || !destFound )
+												lprintf( "Network Address was incomplete: %s %s", linkFound?"":"Link Address", destFound?"":"Destination Address" );
+//#endif											
+										break;
+									} else {
+										lprintf( "duplicated wasn't found?");
+									}
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+									LogMacAddress( &newAddress );
+#endif										
+									struct addressNode *storeAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+									storeAddress[0] = newAddress;
+									storeAddress->remote = DuplicateAddress( storeAddress->remote );
+									if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)storeAddress, (uintptr_t)storeAddress->remote ) ) {
+										lprintf( "Failed to add address to tree; should have already been marked as duplicated and in tree?" );
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+										LogMacAddress( storeAddress );
+#endif										
+										ReleaseAddress( storeAddress->remote );
+										Deallocate( struct addressNode *, storeAddress );
+									}
+									//LogBinary( (uint8_t*)(buf+attOfs), res->nl.nlmsg_len-attOfs );
+								}
+							}
+
+							break;
+						default:
+							lprintf( "Default message: type:%d len:%d flg:%d pid:%d seq:%d", res->nl.nlmsg_type, res->nl.nlmsg_len
+									, res->nl.nlmsg_flags, res->nl.nlmsg_pid, res->nl.nlmsg_seq );
+							break;
 					}
-					//LogBinary( buf, rstat );
+					//lprintf( "");
+					priorLen += res->nl.nlmsg_len;
 				}
-				{
-					INDEX idx;
-					PTHREAD waiter;
-					macTableUpdated = TRUE;
-					LIST_FORALL( macWaiters, idx, PTHREAD, waiter ) {
-						WakeThread( waiter );
-					}
+				//LogBinary( buf, rstat );
+			}
+			{
+				INDEX idx;
+				PTHREAD waiter;
+				macTableUpdated = TRUE;
+				LIST_FORALL( macWaiters, idx, PTHREAD, waiter ) {
+					WakeThread( waiter );
 				}
-			} while( loop );
-
-
-		}
-		close( rtnetlink_socket );
-		return 0;
+			}
+		} while( loop );
+	}
+	close( rtnetlink_socket );
+	return 0;
 
 }
 
@@ -929,7 +976,7 @@ SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 #ifdef DEBUG_ADDRESSES	
 	lprintf( "New Length: %d", MAGIC_SOCKADDR_LENGTH);
 #endif	
-	memset( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH );
+	memset( lpsaAddr, 0, MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) );
 	//initialize socket length to something identifiable?
 	((uintptr_t*)lpsaAddr)[0] = 3;
 	((uintptr_t*)lpsaAddr)[1] = 0; // string representation of address
@@ -1010,6 +1057,12 @@ SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS )
 	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
 		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
 				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
+
+	//lprintf( "original:");
+	//LogBinary( (const uint8_t*)tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
+	//lprintf( "duplicate:");
+	//LogBinary( (const uint8_t*)tmp2, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
+
 	return dup;
 }
 

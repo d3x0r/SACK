@@ -55,6 +55,7 @@ struct procreg_local_tag {
 
 	PTREEDEF Names;
 	PTREEROOT NameIndex;
+	PTREEROOT NameIndex_literal;
 	PTREEDEFSET TreeNodes;
 	PNAMESET NameSet;
 
@@ -97,7 +98,7 @@ PTREEDEF GetClassTreeEx( PCTREEDEF root
 //---------------------------------------------------------------------------
 
 
-static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
+static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen, LOGICAL case_sensitive )
 {
 	// NUL does not nessecarily terminate strings
 	// instead slave off the length...
@@ -116,9 +117,9 @@ static int CPROC SavedNameCmpEx(CTEXTSTR dst, CTEXTSTR src, size_t srclen)
 			l1 = 0; // no more length .. should have gotten a matched length on dst...
 			break;
 		}
-		if ( ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
+		if ( !case_sensitive && ((f = (TEXTCHAR)(*(dst++))) >= 'A') && (f <= 'Z') )
 			f -= ('A' - 'a');
-		if ( ((last = (TEXTCHAR)(*(src++))) >= 'A') && (last <= 'Z') )
+		if ( !case_sensitive && ((last = (TEXTCHAR)(*(src++))) >= 'A') && (last <= 'Z') )
 			last -= ('A' - 'a');
 		--l2;
 		--l1;
@@ -156,7 +157,23 @@ static int CPROC SavedNameCmp(CTEXTSTR dst, CTEXTSTR src)
 	if( !dst && src )
 		return -1;
 
-	return SavedNameCmpEx( dst, src, src[-1]-2 );
+	return SavedNameCmpEx( dst, src, src[-1]-2, FALSE );
+}
+//---------------------------------------------------------------------------
+
+static int CPROC SavedNameCmpCS(CTEXTSTR dst, CTEXTSTR src)
+{
+	//lprintf( "Compare names... (tree) %s,%s", dst, src );
+	if( !src && !dst )
+		return 0;
+	if( !src ) {
+		DebugBreak();
+		return 1;
+	}
+	if( !dst && src )
+		return -1;
+
+	return SavedNameCmpEx( dst, src, src[-1]-2, TRUE );
 }
 //---------------------------------------------------------------------------
 
@@ -247,8 +264,8 @@ static CTEXTSTR DressName( TEXTSTR buf, CTEXTSTR name )
 
 //---------------------------------------------------------------------------
 
-static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
-#define DoSaveName(a,b) DoSaveNameEx(a,b DBG_SRC )
+static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len, LOGICAL case_sensitive DBG_PASS )
+#define DoSaveName(a,b,c) DoSaveNameEx(a,b,c DBG_SRC )
 {
 	PNAMESPACE space = l.NameSpace;
 	TEXTCHAR *p = NULL;
@@ -272,7 +289,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 	if( l.flags.bIndexNameTable )
 	{
 		POINTER p;
-		p = (POINTER)FindInBinaryTree( l.NameIndex, (uintptr_t)stripped );
+		p = (POINTER)FindInBinaryTree( case_sensitive?l.NameIndex_literal:l.NameIndex, (uintptr_t)stripped );
 		if( p )
 		{
 			// otherwise it will be single threaded?
@@ -295,7 +312,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 			while( p[0] && len )
 			{
 				//lprintf( "Compare %s(%d) vs %s(%d)", p+1, p[0], stripped,len );
-				if( SavedNameCmpEx( p+1, stripped, len ) == 0 )
+				if( SavedNameCmpEx( p+1, stripped, len, case_sensitive ) == 0 )
 				{
 					// otherwise it will be single threaded?
 					if( procreg_local_private_data.flags.enable_critical_sections )
@@ -353,7 +370,7 @@ static CTEXTSTR DoSaveNameEx( CTEXTSTR stripped, size_t len DBG_PASS )
 		if( l.flags.bIndexNameTable )
 		{
 			AddBinaryNode( l.NameIndex, p, (uintptr_t)p );
-			//BalanceBinaryTree( l.NameIndex );
+			AddBinaryNode( l.NameIndex_literal, p, (uintptr_t)p );
 		}
 	}
 	// otherwise it will be single threaded?
@@ -404,7 +421,7 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 		StrCpyEx( stripped + 1, name, len + 1 ); // allow +1 length for null after string; otherwise strncpy dropps the nul early
 		stripped[0] = (TEXTCHAR)(len + 2);
 		{
-			CTEXTSTR result = DoSaveName( stripped + 1, len );
+			CTEXTSTR result = DoSaveName( stripped + 1, len, FALSE );
 			EnqueLink( &l.tmp_names, tmp_namebuf );
 			return result;
 		}
@@ -414,7 +431,7 @@ static CTEXTSTR SaveName( CTEXTSTR name )
 
 //---------------------------------------------------------------------------
 CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
-#define SaveNameConcat(n1,n2) SaveNameConcatN( (n1),(n2),NULL )
+//#define SaveNameConcat(n1,n2) SaveNameConcatN( (n1),(n2),NULL )
 {
 	// space concat since that's eaten by strip...
 	TEXTCHAR _stripbuffer[256];
@@ -442,20 +459,43 @@ CTEXTSTR SaveNameConcatN( CTEXTSTR name1, ... )
 	// and add another - final part of string is \0\0
 	//stripbuffer[len] = 0;
 	//len++;
-	return DoSaveName( stripbuffer, len );
+	return DoSaveName( stripbuffer, len, FALSE );
 }
 
 //---------------------------------------------------------------------------
 CTEXTSTR SaveText( CTEXTSTR text )
-#define SaveNameConcat(n1,n2) SaveNameConcatN( (n1),(n2),NULL )
 {
 	size_t len = StrLen( text );
 	TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
 	CTEXTSTR result;
 	StrCpyEx( stripped + 1, text, len + 1 );
 	stripped[0] = (TEXTCHAR)(len + 2);
-	result = DoSaveName( stripped + 1, len);
+	result = DoSaveName( stripped + 1, len, FALSE);
 	Release( stripped );
+	return result;
+}
+
+//---------------------------------------------------------------------------
+CTEXTSTR SaveTextCS( CTEXTSTR text )
+{
+	static uint32_t volatile lock;
+	static char stripped[258];
+#ifdef XCHG
+	while( XCHG( &lock, 1 ) )
+		Relinquish();
+#else
+	while( LockedExchange( &lock, 1 ) )
+		Relinquish();
+	
+#endif
+	size_t len = StrLen( text );
+	//TEXTSTR stripped = NewArray( TEXTCHAR, len + 2 );
+	CTEXTSTR result;
+	StrCpyEx( stripped + 1, text, len + 1 );
+	stripped[0] = (TEXTCHAR)(len + 2);
+	result = DoSaveName( stripped + 1, len, TRUE);
+	//Release( stripped );
+	lock = 0;
 	return result;
 }
 
@@ -494,6 +534,7 @@ static void CPROC InitGlobalSpace( POINTER p, uintptr_t size )
 	// if we have 500 names, 9 searches is much less than 250 avg
 	(*(struct procreg_local_tag*)p).flags.bIndexNameTable = 1;
 	(*(struct procreg_local_tag*)p).NameIndex = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(uintptr_t,uintptr_t))SavedNameCmp, KillName );
+	(*(struct procreg_local_tag*)p).NameIndex_literal = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, (int(CPROC *)(uintptr_t,uintptr_t))SavedNameCmpCS, KillName );
 	(*(struct procreg_local_tag*)p).reference_count++;
 }
 

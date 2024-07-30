@@ -2368,10 +2368,7 @@ void ReleaseCollectionResults( PCOLLECT pCollect, int bEntire )
 		int idx;
 		if( bEntire && pCollect->fields )
 		{
-			for( idx = 0; idx < pCollect->columns; idx++ )
-			{
-				Release( (POINTER)pCollect->fields[idx] );
-			}
+			// column text is saved in name cache
 			Release( (POINTER)pCollect->fields );
 			pCollect->fields = NULL;
 			Release( pCollect->result_len );
@@ -3436,7 +3433,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 
 #  if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 						if( odbc->flags.bSQLite_native ) {
-							val->name = DupCStr( sqlite3_column_name( collection->stmt, idx - 1 ) );
+							val->name = (TEXTSTR)SaveTextCS( sqlite3_column_name( collection->stmt, idx - 1 ) );
 							val->nameLen = StrLen( val->name );
 						}
 #endif
@@ -3473,7 +3470,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								result_cmd = WM_SQL_RESULT_ERROR;
 								break;
 							}
-							val->name = DupCStrLen( colname, namelen );
+							colname[namelen] = 0;
+							val->name = (TEXTSTR)SaveTextCS( colname );
 							val->nameLen = namelen;
 						}
 #endif
@@ -3507,7 +3505,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 			if( !collection->fields )
 			{
 				len = ( sizeof( CTEXTSTR ) * (collection->columns + 1) );
-				collection->fields = NewArray( TEXTSTR, collection->columns + 1 );
+				collection->fields = NewArray( CTEXTSTR, collection->columns + 1 );
 				MemSet( collection->fields, 0, len );
 				len = (sizeof( size_t ) * (collection->columns + 1));
 				collection->result_len = NewArray( size_t, collection->columns + 1 );
@@ -3531,7 +3529,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						if( odbc->flags.bSQLite_native )
 						{
 							collection->fields[idx-1] =
-								DupCStr( sqlite3_column_name(collection->stmt
+								SaveTextCS( sqlite3_column_name(collection->stmt
 																	 , idx - 1 ) );
 							collection->column_types[idx-1] = sqlite3_column_type( collection->stmt, idx - 1 );
 						}
@@ -3583,7 +3581,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							//lprintf( "col %s is %d %d", colname, collection->colsizes[idx-1], collection->coltypes[idx-1] );
 							colname[namelen] = 0; // always nul terminate this.
-							collection->fields[idx-1] = StrDup( colname );
+							collection->fields[idx-1] = SaveTextCS( colname );
 						}
 #endif
 					} // for
@@ -3865,6 +3863,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_VARCHAR:
 						case SQL_LONGVARCHAR:
 							val->value_type = JSOX_VALUE_STRING;
+							if( val->string ) Release( val->string );
 							do {
 								rc = SQLGetData( collection->hstmt
 									, (short)(idx)
@@ -3912,6 +3911,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						case SQL_WCHAR:
 						case SQL_WVARCHAR:
 						case SQL_WLONGVARCHAR:
+							if( val->string ) Release( val->string );
 							val->value_type = JSOX_VALUE_STRING;
 							rc = SQLGetData( collection->hstmt
 								, (short)(idx)
@@ -3962,9 +3962,10 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								if( rc == SQL_SUCCESS ) {
 									if( ResultLen == SQL_NULL_DATA ) {
 										val->value_type = JSOX_VALUE_NULL;
+										val->string = NULL;
 										if( pvtData )vtprintf( pvtData, "%sNULL", idx > 1 ? "," : ""  );
 									}else {
-										char *isoTime = NewArray( char, 32 );
+										char *isoTime = (char*)GetFromSet( SQL_TIME_BUFFER, &g.time_buffers );
 										val->stringLen = snprintf( isoTime, 32, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
 										                         , ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
 										val->value_type = JSOX_VALUE_DATE;
@@ -4907,7 +4908,23 @@ void SQLEndQuery( PODBC odbc )
 //-----------------------------------------------------------------------
 
 void ReleaseSQLResults( PDATALIST *ppdlResults ) {
-	jsox_dispose_message( ppdlResults );
+	if( ppdlResults && *ppdlResults ) {
+		PDATALIST pdlResults = *ppdlResults;
+		INDEX idx;
+		struct jsox_value_container * val;
+		DATA_FORALL( pdlResults, idx, struct jsox_value_container *, val ) {
+			// names are saved in cache and shouldn't be released...
+			//if( val->base.name ) Release( val->base.name );
+			//lprintf( "Value type:%s %s %d", val->string, val->name, val->value_type );
+			if( val->value_type == JSOX_VALUE_DATE ){
+				DeleteFromSet( SQL_TIME_BUFFER, &g.time_buffers, val->string );
+			} else
+				if( val->string ) Release( val->string );
+		}
+		DeleteDataList( ppdlResults );
+		*ppdlResults = NULL;
+	}
+	//jsox_dispose_message( ppdlResults );
 }
 
 int SQLRecordQuery_js( PODBC odbc
@@ -4921,7 +4938,7 @@ int SQLRecordQuery_js( PODBC odbc
 	int once = 0;
 	PCOLLECT collection;
 	if( !(*pdlResults) )
-		(*pdlResults) = CreateDataList( sizeof ( struct jsox_value_container  ) );
+		(*pdlResults) = CreateDataList( sizeof ( struct jsox_value_container ) );
 
 	// clean up what we think of as our result set data (reset to nothing)
 

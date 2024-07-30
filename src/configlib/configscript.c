@@ -3113,7 +3113,7 @@ CONFIGSCR_PROC( PCONFIG_HANDLER, CreateConfigurationEvaluator )( void )
 	{
 		if( !(g._disabled_allocate_logging++) )
 		{
-			g._last_allocate_logging = SetAllocateLogging( FALSE );
+			g._last_allocate_logging = ClearAllocateLogging( FALSE );
 		}
 	}
 	pch = (PCONFIG_HANDLER)Allocate( sizeof( CONFIG_HANDLER ) );
@@ -3299,7 +3299,7 @@ CONFIGSCR_PROC( void, DestroyConfigurationEvaluator )( PCONFIG_HANDLER pch )
 			g._disabled_allocate_logging--;
 			if( !g._disabled_allocate_logging )
 			{
-				SetAllocateLogging( g._last_allocate_logging );
+				ResetAllocateLogging( g._last_allocate_logging );
 			}
 		}
 	DeleteList( &pch->states );

@@ -578,7 +578,7 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 {
 	TEXTSTR tmp_path;
 	if( !path ) return NULL;
-	tmp_path = StrDup( path );
+	tmp_path = StrDupEx( path DBG_RELAY );
 	//LocalInit();
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
@@ -707,7 +707,8 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 		} else if( StrChr( path, '%' ) != NULL ) {
 			tmp_path = ExpandPathVariable( path );
 		} else {
-			tmp_path = StrDupEx( path DBG_RELAY );
+			// is already duplicated, no changes were made.
+			//tmp_path = StrDupEx( path DBG_RELAY );
 		}
 	}
 	{
@@ -1182,8 +1183,10 @@ struct file* FindFileByName( INDEX group, char const* filename, struct file_syst
 	INDEX idx;
 	LocalInit();
 	EnterCriticalSec( &( *winfile_local ).cs_files );
+	//lprintf( "Find file: %s in %p", filename, winfile_local->files );
 	LIST_FORALL( ( *winfile_local ).files, idx, struct file*, file )
 	{
+		//lprintf( "Is it %d %d %s?", !mount, file->mount == mount, file->name );
 		if( ( file->group == group )
 			&& ( PathCmp( file->name, filename ) == 0 )
 			&& ( ( !mount ) || file->mount == mount ) ) {
@@ -1196,6 +1199,7 @@ struct file* FindFileByName( INDEX group, char const* filename, struct file_syst
 	}
 
 	LeaveCriticalSec( &( *winfile_local ).cs_files );
+	//if( file ) lprintf( "found file" ); else lprintf( "file not found" );
 	return file;
 
 }
@@ -1746,6 +1750,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			}
 		}
 		EnterCriticalSec( &( *winfile_local ).cs_files );
+		//lprintf( "Adding file to winfile_local.files... %p", winfile_local->files);
 		AddLink( &( *winfile_local ).files, file );
 		allocedIndex = 0;
 		LeaveCriticalSec( &( *winfile_local ).cs_files );
@@ -2909,7 +2914,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 #else
 	char *tmpFilename = StrDup( filename );
 	{ char* tmp; if( LONG_PATHCHAR ) for( tmp = tmpFilename; tmp[0]; tmp++ ) if( tmp[0] == '\\' ) tmp[0] = LONG_PATHCHAR; }
-	result = fopen( filename, opts );
+	result = fopen( tmpFilename, opts );
 	{
 		int h = fileno( (FILE*)result );
 		if( h >= 0 ) {
@@ -2917,6 +2922,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 			if( flags >= 0 ) fcntl( h, F_SETFD, flags | FD_CLOEXEC );
 		}
 	}
+	Release( tmpFilename );
 #endif
 
 	return result;

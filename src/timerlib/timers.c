@@ -77,7 +77,7 @@ namespace sack {
 //#define LOG_INSERTS
 //#define LOG_DISPATCH
 //#define DEBUG_PIPE_USAGE
-
+const char *default_thread_name = "ThreadSignal";
 typedef struct thread_event THREAD_EVENT;
 typedef struct thread_event *PTHREAD_EVENT;
 
@@ -117,7 +117,7 @@ struct threads_tag
 	uintptr_t param;
 	uintptr_t (CPROC*proc)( struct threads_tag * );
 	uintptr_t (CPROC*simple_proc)( POINTER );
-	TEXTSTR thread_event_name; // might be not a real thread.
+	CTEXTSTR thread_event_name; // might be not a real thread.
 	volatile THREAD_ID thread_ident;
 	PTHREAD_EVENT thread_event;
 #ifdef _WIN32
@@ -270,9 +270,9 @@ static struct my_thread_info* GetThreadTLS( void )
 #  if defined( WIN32 )
 	if( !( _MyThreadInfo = (struct my_thread_info*)TlsGetValue( global_timer_structure->my_thread_info_tls ) ) )
 	{
-		int old = SetAllocateLogging( FALSE );
+		int old = ClearAllocateLogging( FALSE );
 		TlsSetValue( global_timer_structure->my_thread_info_tls, _MyThreadInfo = New( struct my_thread_info ) );
-		SetAllocateLogging( old );
+		ResetAllocateLogging( old );
 		_MyThreadInfo->nThread = 0;
 		_MyThreadInfo->pThread = 0;
 	}
@@ -421,12 +421,13 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
 #ifdef _DEBUG
 	int prior;
-	prior = SetAllocateLogging( FALSE );
+	prior = ClearAllocateLogging( FALSE );
 #endif
 
 	if( !event_name )
-		event_name = "ThreadSignal";
-	thread->thread_event_name = StrDup( event_name );
+		thread->thread_event_name = event_name = default_thread_name;
+	else 		
+		thread->thread_event_name = (TEXTSTR)StrDup( event_name );
 #ifdef _WIN32
 	if( !thread->thread_event )
 	{
@@ -506,7 +507,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #endif
 #endif
 #ifdef _DEBUG
-	SetAllocateLogging( prior );
+	ResetAllocateLogging( prior );
 #endif
 
 }
@@ -622,7 +623,7 @@ uintptr_t CPROC check_thread( POINTER p, uintptr_t psv )
 	THREAD_ID ID = *((THREAD_ID*)psv);
 	//lprintf( "Check thread %016llx %016llx %s", thread->thread_ident, ID, thread->thread_event_name );
 	if( ( thread->thread_ident == ID )
-		&& ( StrCmp( thread->thread_event_name, "ThreadSignal" ) == 0 ) )
+		&& ( StrCmp( thread->thread_event_name, default_thread_name ) == 0 ) )
 		return (uintptr_t)p;
 	return 0;
 }
@@ -810,44 +811,44 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 	if( pThread )
 	{
 #ifdef _WIN32
-#ifndef NO_LOGGING
+#  ifndef NO_LOGGING
 		if( globalTimerData.flags.bLogSleeps )
 			_xlprintf(1 DBG_RELAY )( "About to sleep on %d Thread event created...%s:%016llx"
   			                       , pThread->thread_event->hEvent
   			                       , pThread->thread_event_name
   			                       , pThread->thread_ident );
-#endif
+#  endif
 		if( WaitForSingleObject( pThread->thread_event->hEvent
 		                       , n==SLEEP_FOREVER?INFINITE:(n) ) != WAIT_TIMEOUT )
 		{
-#ifdef LOG_LATENCY
+#  ifdef LOG_LATENCY
 			_lprintf(DBG_RELAY)( "Woke up- reset event" );
-#endif
+#  endif
 			ResetEvent( pThread->thread_event->hEvent );
 			//if( n == SLEEP_FOREVER )
 			//   DebugBreak();
 		}
-#ifdef LOG_LATENCY
+#  ifdef LOG_LATENCY
 		else
 			_lprintf(DBG_RELAY)( "Timed out from %d", n );
-#endif
+#  endif
 #else
 		{
-#ifndef USE_PIPE_SEMS
-#ifdef _NO_SEMTIMEDOP_
+#  ifndef USE_PIPE_SEMS
+#    ifdef _NO_SEMTIMEDOP_
 			int nTimer = 0;
 			if( n != SLEEP_FOREVER )
 			{
 				//lprintf( "Wakeable sleep in %ld (oneshot, no frequency)", n );
 				nTimer = AddTimerExx( n, 0, TimerWake, (uintptr_t)pThread DBG_RELAY );
 			}
-#endif
-#endif
+#    endif
 			if( pThread->semaphore == -1 )
 			{
 				//lprintf( "Invalid semaphore...fixing?" );
 				InitWakeup( pThread, name );
 			}
+#  endif
 			//if( pThread->semaphore != -1 )
 			{
 				while(1)
@@ -1125,7 +1126,7 @@ static void  UnmakeThread( void )
 		//if( ( (*pThread->me)=pThread->next ) )
 		//	pThread->next->me = pThread->me;
 		{
-			int tmp = SetAllocateLogging( FALSE );
+			int tmp = ClearAllocateLogging( FALSE );
 #ifdef _WIN32
 			//lprintf( "Unmaking thread event! on thread %016" _64fx"x", pThread->thread_ident );
 			CloseHandle( pThread->thread_event->hEvent );
@@ -1142,7 +1143,8 @@ static void  UnmakeThread( void )
 #else
 			closesem( (POINTER)pThread, 0 );
 #endif
-			Deallocate( TEXTSTR, pThread->thread_event_name );
+			if( pThread->thread_event_name != default_thread_name )
+				Deallocate( CTEXTSTR, pThread->thread_event_name );
 #ifdef _WIN32
 			Deallocate( TEXTSTR, pThread->thread_event->name );
 			if( global_timer_structure )
@@ -1151,7 +1153,7 @@ static void  UnmakeThread( void )
 #endif
 			if( global_timer_structure )
 				DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
-			SetAllocateLogging( tmp );
+			ResetAllocateLogging( tmp );
 		}
 	}
 	globalTimerData.lock_thread_create = 0;
