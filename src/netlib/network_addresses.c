@@ -616,10 +616,12 @@ static uintptr_t MacThread( PTHREAD thread ) {
 													//ReleaseAddress( sa );
 													//Deallocate( struct addressNode *, newAddress );
 													break;
-												}else {
+												}
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+												else {
 													DumpAddr( "New address notification", sa );
 												}
-
+#endif
 												break;
 											case NDA_UNSPEC:
 												lprintf( "Unknown type" );
@@ -659,9 +661,12 @@ static uintptr_t MacThread( PTHREAD thread ) {
 												lprintf( "Network Address was incomplete: %s %s", linkFound?"":"Link Address", destFound?"":"Destination Address" );
 //#endif											
 										break;
-									} else {
+									}
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+									else {
 										lprintf( "duplicated wasn't found?");
 									}
+#endif
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 									LogMacAddress( &newAddress );
 #endif										
