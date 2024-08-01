@@ -292,6 +292,7 @@ struct jsox_parser_shared_data {
 	PPLINKQUEUESET linkQueues;
 
 	PPDATALISTSET dataLists;
+	PLINKQUEUE elementDataLists;
 
 	struct jsox_parse_state *_state; // static parsing state for simple message interface.
 };
