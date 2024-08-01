@@ -1698,7 +1698,7 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 			task->EndNotice( task->psvEnd, task );
 #if defined( __LINUX__ )			
 		close( task->pty );
-		lprintf( "Never did close that handle?");
+		//lprintf( "Never did close that handle?");
 #endif
 #if defined( WIN32 )
 		//lprintf( "Closing process and thread handles." );
