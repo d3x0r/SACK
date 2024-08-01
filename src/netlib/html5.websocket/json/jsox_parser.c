@@ -2176,6 +2176,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							}
 						}
 						if( input ) {
+							state->col -= input->pos - _msg_input;
 							input->pos = _msg_input;
 							state->n = (input->pos - input->buf);
 							if( state->n > input->size ) DebugBreak();
