@@ -3080,10 +3080,10 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 		DropMemEx( pMemCheck DBG_RELAY );
 	}
 	DropMemEx( pMem DBG_RELAY );
-	if( pMem->cs.dwLocks) {
-		fprintf( stderr, "Locks is still set?\n");
-		//DebugBreak();
-	}
+	//if( pMem->cs.dwLocks) {
+	//	fprintf( stderr, "Locks is still set?\n");
+	//	//DebugBreak();
+	//}
 
 	//fprintf( stderr, "Dropped Mem: %d %p\n", nLine, pMem );
 	if( pFree )
