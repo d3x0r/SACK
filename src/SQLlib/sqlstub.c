@@ -3930,8 +3930,9 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 								val->stringLen = 0;
 							}
 							else {
-								val->string = WcharConvertLen( (wchar_t*)byResult, ResultLen/2 );
-								val->stringLen = ResultLen;
+								size_t outLen;
+								val->string = WcharConvert_v2( (wchar_t*)byResult, ResultLen/2, &outLen DBG_SRC );
+								val->stringLen = outLen;
 							}
 							if( pvtData )vtprintf( pvtData, "%s%s", idx > 1 ? "," : "", val->string );
 							break;
