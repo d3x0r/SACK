@@ -2373,7 +2373,10 @@ void ReleaseCollectionResults( PCOLLECT pCollect, int bEntire )
 			pCollect->fields = NULL;
 			Release( pCollect->result_len );
 			pCollect->result_len = NULL;
+			Release( pCollect->column_types );
+			pCollect->column_types = NULL;
 		}
+
 		if( pCollect->results )
 		{
 			for( idx = 0; idx < pCollect->columns; idx++ )
@@ -3508,6 +3511,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 				collection->fields = NewArray( CTEXTSTR, collection->columns + 1 );
 				MemSet( collection->fields, 0, len );
 				len = (sizeof( size_t ) * (collection->columns + 1));
+				if( collection->result_len ) Release( collection->result_len );
 				collection->result_len = NewArray( size_t, collection->columns + 1 );
 				MemSet( collection->result_len, 0, len );
 				len = (sizeof( int ) * (collection->columns + 1));
@@ -3812,6 +3816,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 #endif
 
 						struct jsox_value_container *val = (struct jsox_value_container *)GetDataItem( collection->ppdlResults, idx - 1 );
+						//lprintf( "Get val: %p %d", val, idx );
 						switch( coltype ) {
 						default:
 							lprintf( "Unhandled coltype:%d", coltype );
@@ -3966,6 +3971,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										if( pvtData )vtprintf( pvtData, "%sNULL", idx > 1 ? "," : ""  );
 									}else {
 										char *isoTime = (char*)GetFromSet( SQL_TIME_BUFFER, &g.time_buffers );
+										//lprintf( "Using time buffer %p", isoTime );
 										val->stringLen = snprintf( isoTime, 32, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ"
 										                         , ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second, ts.fraction );
 										val->value_type = JSOX_VALUE_DATE;
@@ -4247,10 +4253,13 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	return retry;
 }
 
+void ReleaseSQLRecord( PDATALIST pdlResults );
+
 int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
 	if( ppdlRecord ) {
 		if( !odbc )
 			odbc = g.odbc;
+		ReleaseSQLRecord( ppdlRecord[0] );
 		if( odbc ) {
 			if( odbc->flags.bThreadProtect ) {
 				EnterCriticalSec( &odbc->cs );
@@ -4912,17 +4921,44 @@ void ReleaseSQLResults( PDATALIST *ppdlResults ) {
 		PDATALIST pdlResults = *ppdlResults;
 		INDEX idx;
 		struct jsox_value_container * val;
+		//lprintf( "Releasing SQL results properly? %p", ppdlResults, ppdlResults[0] );
 		DATA_FORALL( pdlResults, idx, struct jsox_value_container *, val ) {
 			// names are saved in cache and shouldn't be released...
 			//if( val->base.name ) Release( val->base.name );
 			//lprintf( "Value type:%s %s %d", val->string, val->name, val->value_type );
 			if( val->value_type == JSOX_VALUE_DATE ){
+				//lprintf( "Dropping time buffer:%p", val->string );
 				DeleteFromSet( SQL_TIME_BUFFER, &g.time_buffers, val->string );
 			} else
 				if( val->string ) Release( val->string );
+			if( &val->contains ) 
+				ReleaseSQLResults( &val->contains );
 		}
 		DeleteDataList( ppdlResults );
 		*ppdlResults = NULL;
+	}
+	//jsox_dispose_message( ppdlResults );
+}
+//-----------------------------------------------------------------------
+
+void ReleaseSQLRecord( PDATALIST pdlResults ) {
+	//lprintf( "Releasing SQL record properly? %p", pdlResults, pdlResults->Cnt );
+	if( pdlResults ) {
+		INDEX idx;
+		struct jsox_value_container * val;
+		DATA_FORALL( pdlResults, idx, struct jsox_value_container *, val ) {
+			// names are saved in cache and shouldn't be released...
+			//if( val->base.name ) Release( val->base.name );
+			//lprintf( "Value type:%s %s %d", val->string, val->name, val->value_type );
+			if( val->value_type == JSOX_VALUE_DATE ){
+				//lprintf( "Dropping time buffer:%p", val->string );
+				DeleteFromSet( SQL_TIME_BUFFER, &g.time_buffers, val->string );
+			} else
+				if( val->string ) Release( val->string );
+			if( &val->contains ) 
+				ReleaseSQLResults( &val->contains );
+		}
+		pdlResults->Cnt = 0;
 	}
 	//jsox_dispose_message( ppdlResults );
 }

@@ -1209,6 +1209,11 @@ struct map_entry {
 	uintptr_t low;
 	uintptr_t high;
 };
+typedef struct map_entry MEMORYREADPTRMAPENTRY;
+#define MAXMEMORYREADPTRMAPENTRYSPERSET 512
+DeclareSet( MEMORYREADPTRMAPENTRY );
+static PMEMORYREADPTRMAPENTRYSET entryPool;
+
 static int compare_addr( uintptr_t a, uintptr_t b )
 {
 	struct map_entry *ma = (struct map_entry *)a;
@@ -1268,7 +1273,8 @@ LOGICAL IsBadReadPtr( CPOINTER pointer, uintptr_t len )
 		while( fgets( line, sizeof(line)-1, maps ) )
 		{
 			size_t low, high;
-			tmp = (struct map_entry *)Allocate( sizeof( struct map_entry ) );
+			//tmp = (struct map_entry *)Allocate( sizeof( struct map_entry ) );
+			tmp = GetFromSet( MEMORYREADPTRMAPENTRY, &entryPool );//(struct map_entry *)Allocate( sizeof( struct map_entry ) );
 			sscanf( line, "%zx-%zx", &tmp->low, &tmp->high );
 			//fprintf( stderr, "%s" "Find: %08" PTRSZVALfx " Low: %08" PTRSZVALfx " High: %08" PTRSZVALfx "\n"
 			//		 , line, pointer, low, high );

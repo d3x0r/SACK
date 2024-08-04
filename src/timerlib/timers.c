@@ -129,8 +129,8 @@ struct threads_tag
 #ifdef USE_PIPE_SEMS
 	int pipe_ends[2]; // file handles that are the pipe's ends. 0=read 1=write
 #endif
-	int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...; otherwise it's a ipcsem
-	pthread_mutex_t mutex;
+	//int semaphore; // use this as a status of pipes if USE_PIPE_SEMS is used...; otherwise it's a ipcsem
+	pthread_mutex_t mutex;  // uses mutex now instead of semaphore to sleep
 	pthread_t hThread;
 #endif
 	struct {
@@ -364,7 +364,7 @@ uintptr_t closesem( POINTER p, uintptr_t psv )
 	close( thread->pipe_ends[1] );
 	thread->pipe_ends[0] = -1;
 	thread->pipe_ends[1] = -1;
-	thread->semaphore = -1;
+	//thread->semaphore = -1;
 #else
 	pthread_mutex_destroy( &thread->mutex );
 #endif
@@ -505,7 +505,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #else
 	pthread_mutex_init( &thread->mutex, NULL );
 	pthread_mutex_lock( &thread->mutex );
-	thread->semaphore = -1;
+	//thread->semaphore = -1;
 #endif
 #endif
 #ifdef _DEBUG
@@ -845,7 +845,7 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 				nTimer = AddTimerExx( n, 0, TimerWake, (uintptr_t)pThread DBG_RELAY );
 			}
 #    endif
-			if( pThread->semaphore == -1 )
+			if( !pThread->thread_event_name )
 			{
 				//lprintf( "Invalid semaphore...fixing?" );
 				InitWakeup( pThread, name );
@@ -954,15 +954,15 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						if( errno == EIDRM )
 						{
 							lprintf( "Semaphore has been removed on us!?" );
-							pThread->semaphore = -1;
+							//pThread->semaphore = -1;
 							break;
 						}
 						if( errno == EINVAL )
 						{
-							lprintf( "Semaphore is no longer valid on this thread object... %d"
-							       , pThread->semaphore );
+							lprintf( "Semaphore is no longer valid on this thread object... %p"
+							       , pThread->mutex );
 							// this probably means that it has gone away..
-							pThread->semaphore = -1;
+							//pThread->semaphore = -1;
 							break;
 						}
 						lprintf( "stat from sempop on thread semaphore %p = %d (%d)"

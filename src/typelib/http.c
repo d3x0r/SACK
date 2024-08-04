@@ -348,6 +348,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 									value = NEXTLINE( pLine );
 									field_name = SegSplit( &pLine, field_end - field_start );
 									trash = NEXTLINE( field_name );
+									// these fields are kept for some things like websockets, until they are closed...
 									{
 										struct HttpField *field = New( struct HttpField );
 										field->name = SegGrab( field_name );
@@ -870,6 +871,7 @@ void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t 
 {
 	INDEX idx;
 	struct HttpField *field;
+	if( !pHttpState ) return;
 	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
@@ -882,6 +884,7 @@ void ProcessCGIFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t p
 {
 	INDEX idx;
 	struct HttpField *field;
+	if( !pHttpState ) return;
 	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->cgi_fields, idx, struct HttpField *, field )
 	{
@@ -895,11 +898,12 @@ PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 	INDEX idx;
 	struct HttpField *field;
 	lockHttp( pHttpState );
-	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
-	{
-		if( StrCaseCmp( GetText( field->name ), name ) == 0 )
-			return field->value;
-	}
+	if( pHttpState->fields )
+		LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
+		{
+			if( StrCaseCmp( GetText( field->name ), name ) == 0 )
+				return field->value;
+		}
 	unlockHttp( pHttpState );
 	return NULL;
 }
@@ -944,6 +948,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	lockHttp( pHttpState );
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too? %p", pHttpState );
 	EndHttp( pHttpState ); // empties variables
+	//lprintf( "Fields should have been emptied already?" );
 	DeleteList( &pHttpState->fields );
 	DeleteList( &pHttpState->cgi_fields );
 	VarTextDestroy( &pHttpState->pvtOut );

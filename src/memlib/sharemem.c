@@ -2417,6 +2417,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 						// CRITICAL ERROR!
 						_xlprintf( 2 DBG_RELAY)( "Block is already Free! %p ", pc );
 #endif
+					DebugBreak();
 					DropMem( pMem );
 					return pData;
 				}
@@ -2715,8 +2716,8 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 							:"Unknown";
 						uint32_t nLine = BLOCK_LINE(pc);
 #endif
-						_xlprintf(LOG_ALWAYS DBG_RELAY)( "Used at %p size: %" _PTRSZVALfs "(%" _PTRSZVALfx ") Prior:%p",
-																 pc, pc->dwSize, pc->dwSize,
+						_xlprintf(LOG_ALWAYS DBG_RELAY)( "Used at %p(%p) size: %" _PTRSZVALfs "(%" _PTRSZVALfx ") Prior:%p",
+																 pc, ((uintptr_t)pc)+pc->info.to_chunk_start + offsetof( CHUNK, byData ), pc->dwSize, pc->dwSize,
 																 pc->pPrior );
 					}
 #endif

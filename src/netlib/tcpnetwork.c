@@ -1652,11 +1652,12 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 				}
 			}
 			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
+				lprintf( "Failed to lock network... requeueing" );
 				if( !requeued ) {
 					AddDataItem( &requeued, lpPending );
 				}
 			} else {
-
+				lprintf( "Send pending block %p %d", pending.buffer, pending.len );
 				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
 				if( stillPend == -1 ) {
 					lprintf( "--- This should not happen - have the lock already..." );
@@ -1730,6 +1731,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			pw.len = nInLen;
 			pw.bLong = bLongBuffer;
 			pw.failpending = failpending;
+			fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %d %p %d\n" DBG_RELAY, bLongBuffer, pw.buffer, pw.len );
 			EnqueData( &pdqPendingWrites, &pw );
 			lpClient->wakeOnUnlock = writeWaitThread;
 			lprintf( "pend on fail - queued buffer as pending... " );

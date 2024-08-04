@@ -332,10 +332,13 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 #  ifdef LOG_NETWORK_EVENT_THREAD
 						lprintf( "not active but locked? dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
+						if( locked ) NetworkUnlock( event_data->pc, 1 );
 						continue;
 					}
-					if( event_data->pc->dwFlags & CF_AVAILABLE )
+					if( event_data->pc->dwFlags & CF_AVAILABLE ) {
+						if( locked ) NetworkUnlock( event_data->pc, 1 );
 						continue;
+					}
 
 					if( !IsValid( event_data->pc->Socket ) ) {
 						NetworkUnlock( event_data->pc, 1 );
@@ -401,7 +404,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
 						read = FinishPendingRead( event_data->pc DBG_SRC );
-						//lprintf( "Read %d", read );						
+						//lprintf( "FinishPendingRead return %d", read );						
 						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !event_data->pc->flags.bInUse )
 						{
 							int locked;
@@ -516,7 +519,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						event_data->pc->dwFlags |= CF_READREADY;
 					}
 					if( locked )
-						LeaveCriticalSec( &event_data->pc->csLockRead );
+						NetworkUnlock( event_data->pc, 1 );
 				}
 				// many times a read event can cause the socket to close before write can complete.
 				if( !closed && ( event_data->pc->dwFlags & CF_ACTIVE ) ) {

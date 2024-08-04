@@ -601,7 +601,10 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 		if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
 		LeaveCriticalSec( &jxpsd.cs_states );
-		if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+		if( !state->elements[0] ) {
+			state->elements[0] = CreateDataList( sizeof( state->val ) );
+			//lprintf( "CreateDataList3 : %p", state->elements[0] );
+		}
 		PushLink( state->context_stack, old_context );
 		JSOX_RESET_STATE_VAL();
 		state->parse_context = nextMode;
@@ -713,7 +716,10 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 		if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
 		LeaveCriticalSec( &jxpsd.cs_states );
-		if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+		if( !state->elements[0] ) {
+			state->elements[0] = CreateDataList( sizeof( state->val ) );
+			//lprintf( "CreateDataList4 : %p", state->elements[0] );
+		}
 		PushLink( state->context_stack, old_context );
 
 		JSOX_RESET_STATE_VAL();
@@ -2303,7 +2309,10 @@ PDATALIST jsox_parse_get_data( struct jsox_parse_state *state ) {
 	state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 	if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
 	LeaveCriticalSec( &jxpsd.cs_states );
-	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+	if( !state->elements[0] ) {
+		state->elements[0] = CreateDataList( sizeof( state->val ) );
+		//lprintf( "CreateDataList1 : %p", state->elements[0] );
+	}
 	return result[0];
 }
 
@@ -2340,7 +2349,12 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 	// quick method
 	EnterCriticalSec( &jxpsd.cs_states );
 	msg_data[0]->Cnt = 0;
-	EnqueLinkNL( &jxpsd.elementDataLists, (POINTER)msg_data[0] );
+	if( GetQueueLength( jxpsd.elementDataLists ) > 64 ) 
+		Release( msg_data[0] );
+	else
+		EnqueLinkNL( &jxpsd.elementDataLists, (POINTER)msg_data[0] );
+	//lprintf( "Drop DataList : %p", msg_data[0] );
+
 	msg_data[0] = NULL;
 	DeleteFromSet( PDATALIST, jxpsd.dataLists, msg_data );
 	LeaveCriticalSec( &jxpsd.cs_states );
@@ -2441,7 +2455,10 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 			PDATALIST *result = state->elements;
 			state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 			if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
-			if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
+			if( !state->elements[0] ) {
+				state->elements[0] = CreateDataList( sizeof( state->val ) );
+				//lprintf( "CreateDataList2 : %p", state->elements[0] );
+			} 
 			jsox_dispose_message( result );
 		}
 	}

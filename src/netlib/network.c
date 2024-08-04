@@ -1100,7 +1100,8 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		//	lprintf( "Still need to do that write..." );
 		//}
 		//lpClient->dwFlags |= CF_WANTS_GLOBAL_LOCK;
-		//_lprintf(DBG_RELAY)( "Lock %p", lpClient );
+		//_lprintf(DBG_RELAY)( "Lock %p %d", lpClient, readWrite );
+		//fprintf( stderr, DBG_FILELINEFMT "Lock %p %d\n" DBG_RELAY, lpClient, readWrite );
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		if( EnterCriticalSecNoWait( &globalNetworkData.csNetwork, NULL ) < 1 )
 #else
@@ -1170,7 +1171,9 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 
 NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 {
-	//_lprintf(DBG_RELAY)( "Unlock %p", lpClient );
+	//_lprintf(DBG_RELAY)( "Unlock %p %d", lpClient, readWrite );
+	//fprintf( stderr, DBG_FILELINEFMT "Unlock %p %d\n" DBG_RELAY, lpClient, readWrite );
+
 	// simple unlock.
 	if( lpClient )
 	{
@@ -1196,20 +1199,6 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 		LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
 	}
-}
-
-//----------------------------------------------------------------------------
-
-#undef NetworkLock
-#undef NetworkUnlock
-NETWORK_PROC( PCLIENT, NetworkLock )(PCLIENT lpClient, int readWrite)
-{
-	return NetworkLockEx( lpClient, readWrite DBG_SRC );
-}
-
-NETWORK_PROC( void, NetworkUnlock )(PCLIENT lpClient, int readWrite)
-{
-	NetworkUnlockEx( lpClient, readWrite DBG_SRC );
 }
 
 //----------------------------------------------------------------------------

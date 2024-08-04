@@ -111,6 +111,9 @@ struct addressNode {
 	hwaddr_bytes remoteHw;
 	SOCKADDR *remote;
 };
+typedef struct addressNode MACADDRESSNODE;
+#define MAXMACADDRESSNODESPERSET 256
+DeclareSet( MACADDRESSNODE );
 
 static struct mac_data {
 	int interfaceCount;
@@ -128,7 +131,13 @@ static struct mac_data {
 	char ifbuf[512];
 #endif	
 	PTREEROOT pbtAddresses;
+	PMACADDRESSNODESET addressNodePool;
 } mac_data;
+
+typedef uint8_t NETWORK_ADDRESS_BUFFER[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
+#define MAXNETWORK_ADDRESS_BUFFERSPERSET 256
+DeclareSet( NETWORK_ADDRESS_BUFFER );
+static PNETWORK_ADDRESS_BUFFERSET networkAddressBufferSet;
 
 //----------------------------------------------------------------------------
 
@@ -140,7 +149,7 @@ static void deleteAddress( CPOINTER node, uintptr_t a )
 {
 	struct addressNode *an = (struct addressNode*)node;
 	ReleaseAddress( an->remote );
-	Deallocate( struct addressNode *, an );
+	DeleteFromSet( NETWORK_ADDRESS_BUFFER, networkAddressBufferSet, (uintptr_t)an->remote );
 }
 
 static int compareAddress( uintptr_t a, uintptr_t b )
@@ -249,7 +258,7 @@ static void setupInterfaces( void ) {
 					mask[b/8] &= ~(1<<(7-(b%8)) );
 				}
 			}
-			struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+			struct addressNode *newAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );// (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 			newAddress->remote = AllocAddr();
 			newAddress->remote->sa_family = uip_table->Table[i].Address.si_family;
 			if( newAddress->remote->sa_family == AF_INET ) {
@@ -405,7 +414,7 @@ static void setupInterfaces() {
 							LogMacAddress( newAddress );
 #endif						
 							if( !FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa )) {
-								struct addressNode *storeAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+								struct addressNode *storeAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//(struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 								storeAddress[0] = newAddress;
 								storeAddress->remote = DuplicateAddress( storeAddress->remote );
 				
@@ -670,7 +679,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 									LogMacAddress( &newAddress );
 #endif										
-									struct addressNode *storeAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+									struct addressNode *storeAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//(struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 									storeAddress[0] = newAddress;
 									storeAddress->remote = DuplicateAddress( storeAddress->remote );
 									if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)storeAddress, (uintptr_t)storeAddress->remote ) ) {
@@ -767,7 +776,7 @@ retry:
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 #endif
 	int addr;
-	struct addressNode *newAddress = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+	struct addressNode *newAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//  (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
 	newAddress->remote = saDup;
 
 	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
@@ -977,7 +986,7 @@ void SetAddrName( SOCKADDR *addr, const char *name )
 
 SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 {
-	SOCKADDR *lpsaAddr=(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
+	SOCKADDR *lpsaAddr=(SOCKADDR*)GetFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet );//(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
 #ifdef DEBUG_ADDRESSES	
 	lprintf( "New Length: %d", MAGIC_SOCKADDR_LENGTH);
 #endif	
@@ -1019,6 +1028,9 @@ int GetAddressParts( SOCKADDR *sa, uint32_t *pdwIP, uint16_t *pdwPort )
 
 //----------------------------------------------------------------------------
 // return a copy of this address... if it is a ipv6 that wraps an ipv4, return ipv4 version
+
+
+
 SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS ) 
 {
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
@@ -1768,7 +1780,8 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 	{
 		/* strdup is used for the addr part so use free instead of release */
 		free( ((POINTER*)( ( (uintptr_t)lpsaAddr ) - sizeof(uintptr_t) ))[0] );
-		Deallocate(POINTER, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
+		DeleteFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
+		//Deallocate(POINTER, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
 	}
 }
 
@@ -1885,9 +1898,6 @@ CTEXTSTR GetSystemName( void )
 #endif
 	return globalNetworkData.system_name;
 }
-
-#undef NetworkLock
-#undef NetworkUnlock
 
 NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, size_t *datalen ) {
 	if( addr ) {
