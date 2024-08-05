@@ -923,9 +923,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			if( ( !( flags & LPP_OPTION_INTERACTIVE ) )? !( newpid = fork() ) 
 			   : !( newpid = forkpty( &task->pty, NULL, NULL, NULL ) ) )
 			{
-				write( waitPipe[1], "", 1 );
-				close( waitPipe[0] );
-				close( waitPipe[1] );
 			
 				// after fork; check that args has a space for
 				// the program name to get filled into.
@@ -970,6 +967,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					if( OutputHandler || OutputHandler2 )
 						dup2( task->hStdErr.pair[1], 2 );
 				}
+
+				write( waitPipe[1], "", 1 );
+				close( waitPipe[0] );
+				close( waitPipe[1] );
+
 				DispelDeadstart();
 
 				execve( _program, (char *const*)args, environ );
@@ -1032,6 +1034,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			char buf;
 			int rc = read( waitPipe[0], &buf, 1 );
+			lprintf( "Waited on child to start?" );
 			close( waitPipe[0] );
 			close( waitPipe[1] );
 			
