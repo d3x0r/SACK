@@ -951,8 +951,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 				if( expanded_working_path ) {
 					chdir( expanded_working_path );
+					lprintf( "Change directory(in child): %s", expanded_working_path );
 					//Release( expanded_working_path );
-				}
+				} else
+					lprintf( "Not changing directory(in child?" );
 
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
