@@ -1631,10 +1631,12 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
 	if( !pdqPendingWrites )
 		pdqPendingWrites = CreateDataQueue( sizeof( struct PendingWrite ) );
+	//lprintf( "starting waittowrite" );
 	while( 1 ) {
 		WakeableSleep( 10000 );
 		struct PendingWrite pending;
 		struct PendingWrite *lpPending = &pending;
+		//lprintf( "WaitToWrite is checking for writes" );
 		while( DequeData( &pdqPendingWrites, &pending ) ) {
 			lprintf( "Handling pending writes... %p", pending.pc );
 			if( requeued ) {

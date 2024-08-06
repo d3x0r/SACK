@@ -534,6 +534,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 #  endif
 
 						if( !NetworkLock( event_data->pc, 0 ) ) {							
+							lprintf( "Lock failed on %p", event_data->pc );
 							locked = 0;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {

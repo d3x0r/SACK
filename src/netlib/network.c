@@ -1181,6 +1181,7 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 		{
 			//lprintf( "Unlocking write... %p (WOU?)%d", lpClient, lpClient->flags.bWriteOnUnlock );
 			if( lpClient->wakeOnUnlock ){
+				lprintf( "Wake writer..");
 				WakeThread( lpClient->wakeOnUnlock );
 				lpClient->wakeOnUnlock = NULL;
 			}
