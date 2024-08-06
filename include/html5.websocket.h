@@ -148,6 +148,12 @@ HTML5_WEBSOCKET_PROC( void, ResetWebsocketRequestHandler )( PCLIENT pc_client );
 
 HTML5_WEBSOCKET_PROC( uintptr_t, WebSocketGetServerData )( PCLIENT pc );
 
+// when using async accept - this is used to accept the socket.
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeAccept )( struct html5_web_socket* socket, char *protocols, int yesno );
+
+// when using async accept - this is used to accept the socket.
+HTML5_WEBSOCKET_PROC( void, WebSocketAccept )( PCLIENT pc, char *protocols, int yesno );
+
 
 
 HTML5_WEBSOCKET_NAMESPACE_END
