@@ -35,6 +35,7 @@ typedef void (*web_socket_error)( PCLIENT pc, uintptr_t psv, int error );
 typedef void (*web_socket_event)( PCLIENT pc, uintptr_t psv, LOGICAL binary, CPOINTER buffer, size_t msglen );
 // protocolsAccepted value set can be released in opened callback, or it may be simply assigned as protocols passed...
 typedef LOGICAL ( *web_socket_accept )(PCLIENT pc, uintptr_t psv, const char *protocols, const char *resource, char **protocolsAccepted);
+typedef void ( *web_socket_accept_async )(PCLIENT pc, uintptr_t psv, const char *protocols, const char *resource );
 typedef void (*web_socket_completion)( PCLIENT pc, uintptr_t psv, int binary, int bytesRead );
 
 typedef uintptr_t ( *web_socket_http_request )(PCLIENT pc, uintptr_t psv); // passed psv used in server create; since it is sort of an open, return a psv for next states(if any)
@@ -105,10 +106,12 @@ WEBSOCKET_EXPORT void SetWebSocketCloseCallback( PCLIENT pc, web_socket_closed c
 WEBSOCKET_EXPORT void SetWebSocketErrorCallback( PCLIENT pc, web_socket_error callback );
 WEBSOCKET_EXPORT void SetWebSocketHttpCallback( PCLIENT pc, web_socket_http_request callback );
 WEBSOCKET_EXPORT void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback );
+WEBSOCKET_EXPORT void SetWebSocketAcceptAsyncCallback( PCLIENT pc, web_socket_accept_async callback );
 
 WEBSOCKET_EXPORT void SetWebSocketPipeErrorCallback( struct html5_web_socket* ws, web_socket_error callback );
 WEBSOCKET_EXPORT void SetWebSocketPipeHttpCallback( struct html5_web_socket* ws, web_socket_http_request callback );
 WEBSOCKET_EXPORT void SetWebSocketPipeHttpCloseCallback( struct html5_web_socket* ws, web_socket_http_close callback );
+WEBSOCKET_EXPORT void SetWebSocketPipeAcceptAsyncCallback( struct html5_web_socket* pc, web_socket_accept_async callback );
 
 // if set in server accept callback, this will return without extension set
 // on client socket (default), does not request permessage-deflate
