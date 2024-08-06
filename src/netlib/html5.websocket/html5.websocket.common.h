@@ -71,6 +71,7 @@ struct web_socket_input_state
 	web_socket_opened on_open;
 	web_socket_error on_error;
 	web_socket_accept on_accept;  // server socket event
+	web_socket_accept_async on_accept_async;  // server socket event
 	web_socket_http_request on_request;
 	web_socket_completion on_fragment_done;
 	uintptr_t psv_on;

@@ -437,6 +437,7 @@ int TCPWriteEx( PCLIENT pc DBG_PASS );
 
 int FinishPendingRead( PCLIENT lpClient DBG_PASS );
 LOGICAL TCPDrainRead( PCLIENT pClient );
+void clearPending( PCLIENT pc );
 
 _TCP_NAMESPACE_END
 

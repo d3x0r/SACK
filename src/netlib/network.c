@@ -443,7 +443,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #ifdef VERBOSE_DEBUG
 		lprintf( "REMOVED EVENT...." );
 #endif
-
+		clearPending( pc );
 		//lprintf( "Terminating closed client..." );
 		if( IsValid( pc->Socket ) )
 		{
@@ -1094,6 +1094,7 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 
 NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 {
+	int tries = 0;
 	if( lpClient )
 	{
 		//if( lpClient->flags.bWriteOnUnlock ) {
@@ -1103,17 +1104,20 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		//_lprintf(DBG_RELAY)( "Lock %p %d", lpClient, readWrite );
 		//fprintf( stderr, DBG_FILELINEFMT "Lock %p %d\n" DBG_RELAY, lpClient, readWrite );
 #ifdef USE_NATIVE_CRITICAL_SECTION
-		if( EnterCriticalSecNoWait( &globalNetworkData.csNetwork, NULL ) < 1 )
+		while( EnterCriticalSecNoWait( &globalNetworkData.csNetwork, NULL ) < 1 )
 #else
-		if( EnterCriticalSecNoWaitEx( &globalNetworkData.csNetwork, NULL DBG_RELAY ) < 1 )
+		while( EnterCriticalSecNoWaitEx( &globalNetworkData.csNetwork, NULL DBG_RELAY ) < 1 )
 #endif
 		{
 			//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
-#ifdef LOG_NETWORK_LOCKING
-			_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
-#endif
-			Relinquish();
-			return NULL;
+			if( ++tries > 3 ) {
+//#ifdef LOG_NETWORK_LOCKING
+				_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
+//#endif
+				return NULL;
+			} else {
+				Relinquish();
+			}
 			//DebugBreak();
 		}
 #ifdef LOG_NETWORK_LOCKING
@@ -1129,14 +1133,14 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		{
 			// unlock the global section for a moment..
 			// client may be requiring both local and global locks (already has local lock)
-
+			fprintf( stderr, DBG_FILELINEFMT "Failed Lock:%p %d\n", lpClient, readWrite );
 #ifdef USE_NATIVE_CRITICAL_SECTION
 			LeaveCriticalSec( &globalNetworkData.csNetwork);
 #else
 			LeaveCriticalSecEx( &globalNetworkData.csNetwork  DBG_RELAY);
 #endif
 			//lprintf( "Idle... socket lock failed, had global though..." );
-			Relinquish();
+			//Relinquish();
 			return NULL;
 			//goto start_lock;
 		}
@@ -1154,9 +1158,9 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 #else
 			LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
-#ifdef LOG_NETWORK_LOCKING
+//#ifdef LOG_NETWORK_LOCKING
 			_lprintf( DBG_RELAY )( "Failed lock: %p  %08x %08x inactive, cannot lock.", lpClient, lpClient->dwFlags, CF_ACTIVE );
-#endif
+//#endif
 			// this client is not available for client use!
 			return NULL;
 		}

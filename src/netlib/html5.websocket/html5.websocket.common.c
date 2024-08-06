@@ -144,7 +144,7 @@ void SendWebSocketMessage( struct web_socket_input_state *input
 			r = deflate( &input->deflater, Z_FINISH );
 			if( r == Z_STREAM_END )
 				break;
-			if( r == Z_BUF_ERROR ) {
+			if( r == Z_BUF_ERROR )	 {
 				lprintf( "Zlib error: buffer error" );
 				//Z_BUF_ERROR( )
 			}
@@ -650,6 +650,23 @@ void SetWebSocketAcceptCallback( PCLIENT pc, web_socket_accept callback )
 		input_state->on_accept = callback;
 	}
 }
+
+void SetWebSocketPipeAcceptAsyncCallback( struct html5_web_socket* socket, web_socket_accept_async callback )
+{
+	if( socket ) {
+		socket->input_state.on_accept_async = callback;
+	}
+}
+
+
+void SetWebSocketAcceptAsyncCallback( PCLIENT pc, web_socket_accept_async callback )
+{
+	if( pc ) {
+ 		struct html5_web_socket* socket = (struct html5_web_socket*)GetNetworkLong( pc, 0 );
+		SetWebSocketPipeAcceptAsyncCallback( socket, callback );
+	}
+}
+
 
 void SetWebSocketReadCallback( PCLIENT pc, web_socket_event callback )
 {

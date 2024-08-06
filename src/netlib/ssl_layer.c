@@ -705,7 +705,8 @@ LOGICAL ssl_SendPipe( struct ssl_session *ses, CPOINTER buffer, size_t length )
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "ssl_Send  %d", len_out );
 #endif
-		ses->send_callback( ses->psvSendRecv, ses->obuffer, len_out );
+		if( len_out > 0 )
+			ses->send_callback( ses->psvSendRecv, ses->obuffer, len_out );
 	}
 	return TRUE;
 

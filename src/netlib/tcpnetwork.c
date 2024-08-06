@@ -1614,6 +1614,17 @@ static void triggerWrite( uintptr_t psv ){
 static PDATAQUEUE pdqPendingWrites = NULL;
 static PTHREAD writeWaitThread = NULL;
 
+void clearPending( PCLIENT pc ) {
+	INDEX i;
+	struct PendingWrite pending;
+	i = 0;
+	while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i++ ) ){
+		if( pending.pc == pc ) {
+			pending.pc = NULL;
+		}
+	}
+}
+
 static LOGICAL hasPending( PCLIENT pc ) {
 	INDEX i;
 	struct PendingWrite pending;
@@ -1633,11 +1644,24 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 		pdqPendingWrites = CreateDataQueue( sizeof( struct PendingWrite ) );
 	//lprintf( "starting waittowrite" );
 	while( 1 ) {
+		uint32_t tick; tick = timeGetTime();
 		WakeableSleep( 10000 );
+		uint32_t now; now = timeGetTime();
+		if( now -tick < 9000 ) {
+			lprintf( "woke to write writes");
+		}else {
+			if( !IsDataQueueEmpty( &pdqPendingWrites ))
+				lprintf( "delayed like 10 seconds and now checking writes");
+		}
 		struct PendingWrite pending;
 		struct PendingWrite *lpPending = &pending;
 		//lprintf( "WaitToWrite is checking for writes" );
 		while( DequeData( &pdqPendingWrites, &pending ) ) {
+			if( !pending.pc ) {
+				Release( pending.buffer );
+				lprintf( "Socket closed while data was pending");
+				continue;
+			}
 			lprintf( "Handling pending writes... %p", pending.pc );
 			if( requeued ) {
 				INDEX idx;
