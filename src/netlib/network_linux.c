@@ -534,7 +534,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 #  endif
 
 						if( !NetworkLock( event_data->pc, 0 ) ) {							
-							lprintf( "Lock failed on %p", event_data->pc );
+							//lprintf( "Lock failed on %p", event_data->pc );
 							locked = 0;
 						}
 						if( !( event_data->pc->dwFlags & ( CF_ACTIVE | CF_CLOSED ) ) ) {
@@ -587,13 +587,16 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								getsockopt( event_data->pc->Socket, SOL_SOCKET
 									, SO_ERROR
 									, &error, &errlen );
-								//lprintf( "Error checking for connect is: %s on %d", strerror( error ), event_data->pc->Socket );
+								//lprintf( "Error checking for connect is: %s on %p", strerror( error ), event_data->pc );
 								if( event_data->pc->pWaiting ) {
 #ifdef LOG_NOTICES
 									if( globalNetworkData.flags.bLogNotices )
 										lprintf( "Got connect event, waking waiter.." );
 #endif
 									WakeThread( event_data->pc->pWaiting );
+								}
+								if( error ) {
+									event_data->pc->dwFlags |= CF_CONNECTERROR;
 								}
 								if( event_data->pc->connect.ThisConnected )
 									event_data->pc->connect.ThisConnected( event_data->pc, error );
@@ -614,8 +617,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									} 
 									else lprintf( "Initial read completed without read callback...");
 									// see if initial read generated any writes...
-									if( pc->lpFirstPending 
-											&&( !pc->flags.bAggregateOutput 
+									if( pc->lpFirstPending
+											&&( !pc->flags.bAggregateOutput
 											|| !pc->writeTimer ) ) {
 										//lprintf( "Data was pending on a connecting socket, try sending it now" );
 										TCPWrite( pc );
@@ -634,8 +637,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 											LeaveCriticalSec( &globalNetworkData.csNetwork );
 										}
 									}
-								} else {
-									event_data->pc->dwFlags |= CF_CONNECTERROR;
 								}
 							}
 						} else if( event_data->pc->dwFlags & CF_UDP ) {
@@ -661,10 +662,16 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									pc->dwFlags |= CF_WRITEREADY;
 								}
 							} else {
-								lprintf( "Write but lock wasn't enabled?" );
+								//lprintf( "Write but lock wasn't enabled? (set WOU)" );
 								// although this is only a few instructions down, this can still be a lost event that the other 
 								// lock has already ended, so this will get lost still...
 								event_data->pc->flags.bWriteOnUnlock = 1;
+								if( NetworkLock( event_data->pc, 0 ) ) {							
+									//lprintf( "unlock would not have happened %p", event_data->pc );
+									NetworkUnlock( event_data->pc, 0 );
+								} else {
+									//lprintf( "still locked; should get an unlock to trigger the write");
+								}
 								//lprintf( "Write event didn't get the lock... and maybe we won't get to write more?" );
 							}
 						}

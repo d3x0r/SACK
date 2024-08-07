@@ -1098,6 +1098,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 	int tries = 0;
 	if( lpClient )
 	{
+		//uint64_t start = timeGetTime64ns();
 		//if( lpClient->flags.bWriteOnUnlock ) {
 		//	lprintf( "Still need to do that write..." );
 		//}
@@ -1111,13 +1112,16 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 #endif
 		{
 			//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
-			if( ++tries > 3 ) {
+			if( ++tries > 9 ) {
+				//uint64_t wait = timeGetTime64ns() - start;
+				//lprintf( "A wait for global lock... %lld", wait );
 //#ifdef LOG_NETWORK_LOCKING
-				_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
+				//_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
 //#endif
 				return NULL;
-			} else {
+			} else {				
 				Relinquish();
+
 			}
 			//DebugBreak();
 		}
@@ -1126,15 +1130,22 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 #endif
 
 		//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
+		tries = 0;
 #ifdef USE_NATIVE_CRITICAL_SECTION
-		if( !EnterCriticalSecNoWait( (readWrite? &lpClient->csLockRead:&lpClient->csLockWrite), NULL ) )
+		while( !EnterCriticalSecNoWait( (readWrite? &lpClient->csLockRead:&lpClient->csLockWrite), NULL ) )
 #else
-		if( EnterCriticalSecNoWaitEx( ( readWrite ?&lpClient->csLockRead : &lpClient->csLockWrite ), NULL DBG_RELAY ) < 1 )
+		while( EnterCriticalSecNoWaitEx( ( readWrite ?&lpClient->csLockRead : &lpClient->csLockWrite ), NULL DBG_RELAY ) < 1 )
 #endif
 		{
 			// unlock the global section for a moment..
 			// client may be requiring both local and global locks (already has local lock)
-			fprintf( stderr, DBG_FILELINEFMT "Failed Lock:%p %d\n", lpClient, readWrite );
+			if( ++tries < 10 ) {
+				Relinquish();
+				continue;
+			}
+			//uint64_t wait = timeGetTime64ns() - start;
+			//lprintf( "A wait for client lock... %lld", wait );
+			//fprintf( stderr, DBG_FILELINEFMT "Failed Lock:%p %d\n" DBG_RELAY, lpClient, readWrite );
 #ifdef USE_NATIVE_CRITICAL_SECTION
 			LeaveCriticalSec( &globalNetworkData.csNetwork);
 #else
@@ -1185,11 +1196,6 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 		if( !readWrite ) // is write and not read
 		{
 			//lprintf( "Unlocking write... %p (WOU?)%d", lpClient, lpClient->flags.bWriteOnUnlock );
-			if( lpClient->wakeOnUnlock ){
-				lprintf( "Wake writer..");
-				WakeThread( lpClient->wakeOnUnlock );
-				lpClient->wakeOnUnlock = NULL;
-			}
 			if( lpClient->flags.bWriteOnUnlock ) {
 				lpClient->flags.bWriteOnUnlock = 0;
 				//lprintf( "Caught unlock..." );
@@ -1204,6 +1210,16 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 #else
 		LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
+		if( !readWrite ) // is write and not read
+		{
+			PTHREAD wakeOnUnlock;
+			if( wakeOnUnlock = lpClient->wakeOnUnlock ){
+				lpClient->wakeOnUnlock = NULL;
+				WakeThread( wakeOnUnlock );
+				//lprintf( "Woke writer..");
+			}
+
+		}
 	}
 }
 
@@ -1347,6 +1363,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				lprintf( "Marked closing first, and dispatching callback?" );
 #endif
 				lpClient->dwFlags |= CF_CLOSING;
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				if( lpClient->close.CloseCallback )
 				{
 					// during thisi if it wants a lock... and the application
@@ -1362,6 +1379,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				else
 					lprintf( "no close callback!? (or duplicate close?)" );
 #endif
+				EnterCriticalSec( &globalNetworkData.csNetwork );
 				// leave the flag closing set... we'll use that later
 				// to avoid the double-lock;
 				//lpClient->dwFlags &= ~CF_CLOSING;
@@ -1406,7 +1424,8 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 	if( !lpClient ) return;
 
 	if( !( lpClient->dwFlags & CF_UDP ) 
-		&& ( lpClient->dwFlags & ( CF_CONNECTED ) ) ) {
+		&& ( lpClient->dwFlags & ( CF_CONNECTED ) )
+		&& !( lpClient->dwFlags & CF_CONNECTERROR ) ) {
 		// not linger 
 		// OR  nothing to write allow shutdown.
 #ifndef NO_SSL
@@ -1418,9 +1437,9 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 			}
 		}
 #endif
-		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) )
+		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
 			shutdown( lpClient->Socket, SHUT_WR );
-		else {
+		} else {
 			lprintf( "linger and still pending write data..." );
 			lpClient->dwFlags |= CF_TOCLOSE;
 		}

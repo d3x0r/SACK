@@ -527,11 +527,8 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 	if( buffer )
 	{
 		CTEXTSTR tmp = (CTEXTSTR)buffer;
-		//LogBinary( buffer, length );
-		//lprintf( "handle data: handshake: %d",socket->flags.initial_handshake_done );
 		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
 		{
-			//lprintf( "Initial handshake is not done..." );
 			if( AddHttpData( socket->http_state, tmp, length ) )
 				read_complete_process_data( socket );
 		}
@@ -576,7 +573,10 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-	if( !socket ) return; // closing/closed....
+	if( !socket ) {
+		lprintf( "read wasn't initilaized yet with socket %p %p", pc, socket );
+		return; // closing/closed....
+	}
 	WebSocketWrite( socket, buffer, length );
 	if( socket->input_state.flags.use_ssl  && !ssl_IsClientSecure( pc ) ) {
 		socket->input_state.flags.use_ssl = 0;
@@ -751,13 +751,13 @@ void WebSocketPipeEof( HTML5WebSocket pipe ) {
 void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 	PVARTEXT pvt_output = VarTextCreate();
 	PTEXT key1, key2, value;
+	key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
+	key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
 	if( !(socket->flags.accepted = yesno) ) {
 		vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
 	} else {
 		socket->protocols = protocols;
-		key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
-		key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
-		lprintf( "Is socket dying or something? %p %p", key1, key2 );
+		//lprintf( "Is socket dying or something? %p %p", key1, key2 );
 		if( key1 && key2 )
 			vtprintf( pvt_output, "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" );
 		else
@@ -842,7 +842,7 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 		socket->flags.in_open_event = 1;
 
 		if( socket->input_state.on_open ) {
-			lprintf( "Doing open event too (this will be in the self-JS thread)");
+			//lprintf( "Doing open event too (this will be in the self-JS thread)");
 			if( socket->Magic == 0x20240310 ) {
 				socket->input_state.psv_open = socket->input_state.on_open( (PCLIENT)socket, socket->input_state.psv_on );
 			} else {
