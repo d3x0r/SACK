@@ -436,8 +436,9 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 						int code;
 						char buf[128];
 						if( websock->frame_length > 2 ) {
-							StrCpyEx( buf, (char*)(websock->fragment_collection + 2), websock->frame_length - 2 );
-							buf[websock->frame_length - 2] = 0;
+							// assume the buffer is longer by 1 so the NUL terminator gets put after the string
+							StrCpyEx( buf, (char*)(websock->fragment_collection + 2), websock->frame_length - 1 );
+							//buf[websock->frame_length - 2] = 0;
 							code = ((int)websock->fragment_collection[0] << 8) + websock->fragment_collection[1];
 						}
 						else if( websock->frame_length ) {
@@ -449,7 +450,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 							buf[0] = 0;
 						}
 						websock->close_code = code;
-						websock->close_reason = StrDup( buf );
+						websock->close_reason = DupCStrLen( buf, websock->frame_length - 2 );
 						websock->on_close( (PCLIENT)websock->psvSender, websock->psv_open, code, buf );
 						websock->on_close = NULL;
 					}
