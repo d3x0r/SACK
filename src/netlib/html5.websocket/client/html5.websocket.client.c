@@ -190,12 +190,15 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 static void CPROC WebSocketClientClosed( PCLIENT pc )
 {
 	WebSocketClient websock = (WebSocketClient)GetNetworkLong( pc, 0 );
-   //lprintf( "WebSocketClientClosed event." );
+	//lprintf( "WebSocketClientClosed event." );
 	if( websock )
 	{
 		//lprintf( "Send to application." );
 		if( websock->input_state.on_close ) {
-			websock->input_state.on_close( pc, websock->input_state.psv_on, websock->input_state.close_code, websock->input_state.close_reason );
+			if( websock->flags.connected )
+				websock->input_state.on_close( pc, websock->input_state.psv_on, websock->input_state.close_code, websock->input_state.close_reason );
+			else
+				websock->input_state.on_close( pc, websock->input_state.psv_on, 1006, "Connection Failed" );
 			websock->input_state.on_close = NULL;
 		}
 		if( websock->input_state.close_reason )
@@ -213,6 +216,7 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 {
 	WebSocketClient websock;
+	//lprintf( "Connection websocket event: %d", error );
 	while( !( websock = (WebSocketClient)GetNetworkLong( pc, 0 ) ) )
 		Relinquish();
 
@@ -223,6 +227,7 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 	}
 	else
 	{
+		//lprintf( "Connection failed. (removeclient!)" );
 		wsc_local.opening_client = NULL;
 		RemoveClient( pc );
 	}
@@ -329,6 +334,7 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 	WebSocketClient websock = wsc;// (WebSocketClient)GetNetworkLong( pc, 0 );
 	char buf[130];
 	size_t buflen;
+	//lprintf( "Close on socket received... should come from removeclient");
 	if( !websock )  // maybe already closed?
 		return;
 	if( code ) {
@@ -348,7 +354,7 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 			serverSock->input_state.flags.closed = 1;
 		}
 		else {
-			//lprintf( "Negotiation incomplete, don't send close; just close." );
+			lprintf( "Negotiation incomplete, don't send close; just close." );
 			if( serverSock->input_state.on_close )
 				serverSock->input_state.on_close( NULL, serverSock->input_state.psv_on, 1006, "Negotiation incomplete" ); 
 			else if( serverSock->pc )
@@ -370,7 +376,6 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 				NetworkUnlock( websock->pc, 1 );
 			}
 			else {
-				//lprintf( "Negotiation incomplete, don't send close; just close." );
 				RemoveClientEx( websock->pc, 0, 1 );
 			}
 		}
