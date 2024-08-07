@@ -867,11 +867,10 @@ static void ReallocClients( uint32_t wClients, int nUserData )
 {
 
 	// protect all structures.
-	EnterCriticalSec( &globalNetworkData.csNetwork );
 	if( !wClients )
 		wClients = 32;  // default 32 clients per slab...
 	if( !nUserData )
-		nUserData = 4;  // defualt to 4 pointer words per socket; most applications only use 1.
+		nUserData = 4;  // default to 4 pointer words per socket; most applications only use 1.
 
 	// keep the max of specified data..
 	if( nUserData < globalNetworkData.nUserData )
@@ -883,31 +882,33 @@ static void ReallocClients( uint32_t wClients, int nUserData )
 
 	// if the client slab size increases, new slabs will be the new size; old slabs will still be the old size.
 
-	if( nUserData > globalNetworkData.nUserData ) // have to reallocate the user data for all sockets
+	if( wClients > MAX_NETCLIENTS || nUserData > globalNetworkData.nUserData ) // have to reallocate the user data for all sockets
 	{
 		INDEX idx;
 		PCLIENT_SLAB slab;
 		uint32_t n;
+		EnterCriticalSec( &globalNetworkData.csNetwork );
 		// for all existing client slabs...
-		LIST_FORALL( globalNetworkData.ClientSlabs, idx, PCLIENT_SLAB, slab )
-		{
-			uintptr_t* pUserData;
-			pUserData = NewArray( uintptr_t, nUserData * sizeof( uintptr_t ) * slab->count );// slab->pUserData;
-			for( n = 0; n < slab->count; n++ )
+		if( nUserData > globalNetworkData.nUserData ) // have to reallocate the user data for all sockets
+			LIST_FORALL( globalNetworkData.ClientSlabs, idx, PCLIENT_SLAB, slab )
 			{
-				if( slab->client[n].lpUserData )
-					MemCpy( (char*)pUserData + (n * (nUserData * sizeof( uintptr_t )))
-					      , slab->client[n].lpUserData
-					      , globalNetworkData.nUserData * sizeof( uintptr_t ) );
-				slab->client[n].lpUserData = pUserData + (n * nUserData);
+				uintptr_t* pUserData;
+				pUserData = NewArray( uintptr_t, nUserData * sizeof( uintptr_t ) * slab->count );// slab->pUserData;
+				for( n = 0; n < slab->count; n++ )
+				{
+					if( slab->client[n].lpUserData )
+						MemCpy( (char*)pUserData + (n * (nUserData * sizeof( uintptr_t )))
+							, slab->client[n].lpUserData
+							, globalNetworkData.nUserData * sizeof( uintptr_t ) );
+					slab->client[n].lpUserData = pUserData + (n * nUserData);
+				}
+				Deallocate( uintptr_t*, slab->pUserData );
+				slab->pUserData = pUserData;
 			}
-			Deallocate( uintptr_t*, slab->pUserData );
-			slab->pUserData = pUserData;
-		}
+		MAX_NETCLIENTS = wClients;
+		globalNetworkData.nUserData = nUserData;
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
 	}
-	MAX_NETCLIENTS = wClients;
-	globalNetworkData.nUserData = nUserData;
-	LeaveCriticalSec( &globalNetworkData.csNetwork );
 }
 
 #ifdef __LINUX__
