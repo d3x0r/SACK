@@ -28,6 +28,7 @@
 //#define LOG_NOTICES
 //#define LOG_WRITE_AGGREGATION
 //#define LOG_WRITE_NOTICES
+//#define LOG_PENDING_WRITES // lasst bit of logging around wakeOnUnlock and pending writes.
 //#define LOG_CLIENT_LISTS
 //#define LOG_NETWORK_LOCKING
 /// for windows - this logs detailed info about the new threaded events

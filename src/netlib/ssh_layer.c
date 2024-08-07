@@ -354,7 +354,7 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 							char* msg;
 							int msglen;
 							err = libssh2_session_last_error( cs->session, &msg, &msglen, 0 );
-							lprintf( "error setting env:%d $d %s", rc, err, msg );
+							lprintf( "error setting env:%d %d %s", rc, err, msg );
 						}
 						cs->pending.state = SSH_STATE_RESET;
 						Deallocate( CTEXTSTR, key );

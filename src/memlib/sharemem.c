@@ -287,12 +287,12 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifdef __64__
 #define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
-#define TAG_FORMAT_MODIFIER "ll"
+#define TAG_FORMAT_MODIFIER __PRI64_PREFIX
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
 #else
 #define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 12345678
-#define TAG_FORMAT_MODIFIER "l"
+#define TAG_FORMAT_MODIFIER __PRI32_PREFIX
 #define BLOCK_TAG_ID 0x78563412L
 #endif
 // file/line info are at the very end of the physical block...
@@ -2699,7 +2699,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 #endif
 						_xlprintf(LOG_ALWAYS DBG_RELAY)( "Free at %p size: %" _PTRSZVALfs "(%" _PTRSZVALfx ") Prior:%p NF:%p",
 																 pc, pc->dwSize, pc->dwSize,
-																 pc->pPrior,
+																 (POINTER)pc->pPrior,
 																 pc->next );
 					}
 #endif
@@ -2716,9 +2716,9 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 							:"Unknown";
 						uint32_t nLine = BLOCK_LINE(pc);
 #endif
-						_xlprintf(LOG_ALWAYS DBG_RELAY)( "Used at %p(%p) size: %" _PTRSZVALfs "(%" _PTRSZVALfx ") Prior:%p",
+						_xlprintf(LOG_ALWAYS DBG_RELAY)( "Used at %p(%zx) size: %" _PTRSZVALfs "(%" _PTRSZVALfx ") Prior:%p",
 																 pc, ((uintptr_t)pc)+pc->info.to_chunk_start + offsetof( CHUNK, byData ), pc->dwSize, pc->dwSize,
-																 pc->pPrior );
+																 (POINTER)pc->pPrior );
 					}
 #endif
 				}

@@ -953,14 +953,13 @@ static void  InternalWakeableNamedSleepEx( CTEXTSTR name, uint32_t n, LOGICAL th
 						}
 						if( errno == EIDRM )
 						{
-							lprintf( "Semaphore has been removed on us!?" );
+							lprintf( "pthread_mutex has been removed on us!?" );
 							//pThread->semaphore = -1;
 							break;
 						}
 						if( errno == EINVAL )
 						{
-							lprintf( "Semaphore is no longer valid on this thread object... %p"
-							       , pThread->mutex );
+							lprintf( "pthread_mutex is no longer valid on this thread object..." );
 							// this probably means that it has gone away..
 							//pThread->semaphore = -1;
 							break;

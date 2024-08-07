@@ -1189,7 +1189,8 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 {
 	//_lprintf(DBG_RELAY)( "Unlock %p %d", lpClient, readWrite );
 	//fprintf( stderr, DBG_FILELINEFMT "Unlock %p %d\n" DBG_RELAY, lpClient, readWrite );
-
+	int const inWakeOnUnlock = readWrite & 0x10;
+	readWrite &= 3;
 	// simple unlock.
 	if( lpClient )
 	{
@@ -1210,10 +1211,13 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 #else
 		LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
-		if( !readWrite ) // is write and not read
+		if( !readWrite && !inWakeOnUnlock ) // is write and not read
 		{
 			PTHREAD wakeOnUnlock;
 			if( wakeOnUnlock = lpClient->wakeOnUnlock ){
+#ifdef LOG_PENDING_WRITES		
+				_lprintf(DBG_RELAY)( "Wake on Unlock was set");
+#endif				
 				lpClient->wakeOnUnlock = NULL;
 				WakeThread( wakeOnUnlock );
 				//lprintf( "Woke writer..");

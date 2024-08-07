@@ -1583,8 +1583,8 @@ static void triggerWrite( uintptr_t psv ){
 				if( pc->writeTimer ) return; // while waiting to write, got more to aggregate.
 				Relinquish();
 			}
-			if( tries >= 20 ){
-				lprintf( "Failed to lock network? waiting in timer to generate write? %p", pc );
+			if( tries >= 10 ){
+				lprintf( "Failed to lock network? waiting in timer to generate write? %p %p", pc, pc->lpFirstPending );
 				if( (!(pc->dwFlags & CF_ACTIVE )) || (pc->dwFlags & CF_TOCLOSE) ) 
 					return;
 				lprintf( "Use write on unlock flag to trigger write on unlock. %p", pc );
@@ -1606,7 +1606,7 @@ static void triggerWrite( uintptr_t psv ){
 #endif			
 			NetworkUnlockEx( pc, 0 DBG_SRC );
 		} else {
-			lprintf( "Triggered write shouldn't have no pending...%p (Try Again?) %s", psv, NetworkExpandFlags(pc) );
+			lprintf( "Triggered write shouldn't have no pending...%p (Try Again?) %s", (POINTER)psv, NetworkExpandFlags(pc) );
 			//RescheduleTimerEx( timer, 3 );
 			//pc->writeTimer = timer;
 		}
@@ -1664,43 +1664,63 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 		}
 		struct PendingWrite pending;
 		struct PendingWrite *lpPending = &pending;
-		//lprintf( "WaitToWrite is checking for writes" );
+#ifdef LOG_PENDING_WRITES		
+		lprintf( "WaitToWrite is checking for writes" );
+#endif		
 		while( DequeData( &pdqPendingWrites, &pending ) ) {
 			if( !pending.pc ) {
 				Release( pending.buffer );
 				lprintf( "Socket closed while data was pending");
 				continue;
 			}
-			//lprintf( "Handling pending writes... %p %d", pending.pc, pending.len );
-			if( requeued ) {
+#ifdef LOG_PENDING_WRITES		
+			lprintf( "Handling pending writes... %p %zd", pending.pc, pending.len );
+#endif			
+			{
 				INDEX idx;
 				struct PendingWrite* lpPending;
 				DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
 					if( lpPending->pc == pending.pc ) {
-						//lprintf( "socket is already pending, requeue more:%p", pending.pc );
+						lprintf( "socket is already pending, requeue more:%p", pending.pc );
 						AddDataItem( &requeued, &pending );
 						DequeData( &pdqPendingWrites, &pending );
 						break;
 					}
 				}
 				if( lpPending ) {
+					lprintf( "This was already found as pending, saved for requeue");
 					continue;
 				}
 			}
+			if( !( pending.pc->dwFlags & CF_ACTIVE )  || (pending.pc->dwFlags & CF_TOCLOSE) ) {
+				if(pending.pc->dwFlags & CF_TOCLOSE) 
+					lprintf( "Socket is intended to close already... %08x %p" , pending.pc->dwFlags, pending.pc );
+				else
+					lprintf( "Socket is is inactive already... %08x %p" , pending.pc->dwFlags, pending.pc );
+				continue;
+			}
 			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
-				//lprintf( "(pending writer)Failed to lock network... requeueing %p", pending.pc );
+				if( !( pending.pc->dwFlags & CF_ACTIVE ) || (pending.pc->dwFlags & CF_TOCLOSE) ) {
+					lprintf( "Pending write on socket can't happen, no longer active." );
+					continue; // do not requeue this... the socket has closed.
+				}
+#ifdef LOG_PENDING_WRITES		
+				lprintf( "(pending writer)Failed to lock network... requeueing %p", pending.pc );
+#endif				
 				AddDataItem( &requeued, lpPending );
 			} else {
-				//LogBinary( (const uint8_t*)pending.buffer, pending.len );
-				//lprintf( "Send pending block %p %p %d", pending.pc, pending.buffer, pending.len );
+#ifdef LOG_PENDING_WRITES		
+				LogBinary( (const uint8_t*)pending.buffer, pending.len );
+				lprintf( "Send pending block %p %p %zd", pending.pc, pending.buffer, pending.len );
+#endif				
 				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
 				if( stillPend == -1 ) {
-					lprintf( "--- This should not happen - have the lock already..." );
+					lprintf( "--- This should not happen - have the lock already... %08x", pending.pc->dwFlags );
 					AddDataItem( &requeued, lpPending );
 				} else {
 					lpPending->pc->wakeOnUnlock = NULL;
 				}
-				NetworkUnlockEx( lpPending->pc, 0 DBG_SRC );
+				NetworkUnlockEx( lpPending->pc, 0|0x10 DBG_SRC );
 			}
 			;
 			//i++;
@@ -1741,10 +1761,10 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 
 	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 	{
-#ifdef LOG_NETWORK_LOCKING
+//#ifdef LOG_NETWORK_LOCKING
 		if( lpClient->wakeOnUnlock )
-			lprintf( "client is already waiting for wake on unlock?%d", lpClient->wakeOnUnlock);
-#endif		
+			lprintf( "client is already waiting for wake on unlock? %p", lpClient->wakeOnUnlock);
+//#endif		
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
 #ifdef LOG_NETWORK_LOCKING
@@ -1772,15 +1792,21 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			pw.len = nInLen;
 			pw.bLong = bLongBuffer;
 			pw.failpending = failpending;
-			//if( pw.len < 16 ) LogBinary( (uint8_t*)pw.buffer, pw.len );
-			//fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %d %p %d\n" DBG_RELAY, bLongBuffer, pw.buffer, pw.len );
+#ifdef LOG_PENDING_WRITES		
+			if( pw.len < 16 ) LogBinary( (uint8_t*)pw.buffer, pw.len );
+			fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %d %p %zd\n" DBG_RELAY, bLongBuffer, pw.buffer, pw.len );
+#endif			
 			EnqueData( &pdqPendingWrites, &pw );
 			lpClient->wakeOnUnlock = writeWaitThread;
 			if( NetworkLockEx( lpClient, 0 DBG_SRC ) ) {
-				//lprintf( "Network lock would not have been unlocked (wakeOnUnlock)... %p", lpClient );
+#ifdef LOG_PENDING_WRITES		
+				lprintf( "Network lock would not have been unlocked (wakeOnUnlock)... %p", lpClient );
+#endif				
 				NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			}
-			//lprintf( "pended on fail - queued buffer as pending... %p ", lpClient );
+#ifdef LOG_PENDING_WRITES		
+			else lprintf( "pended on fail - queued buffer as pending... %p ", lpClient );
+#endif			
 		}
 		return -1;
 	}
