@@ -1498,6 +1498,21 @@ namespace sack {
 				}
 			}
 
+			//--------------------------------------------------------------------------
+
+			INDEX  GetDataQueueLength( PDATAQUEUE pdq )
+			{
+				INDEX used = 0;
+				if (pdq)
+				{
+					used = pdq->Top - pdq->Bottom;
+					if (pdq->Top < pdq->Bottom)
+						used += pdq->Cnt;
+				}
+				return used;
+			}
+
+
 
 #ifdef __cplusplus
 		};//		namespace data_queue {
