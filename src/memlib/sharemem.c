@@ -287,7 +287,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifdef __64__
 #define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
-#define TAG_FORMAT_MODIFIER __PRI64_PREFIX
+#ifdef GNUC
+#  define TAG_FORMAT_MODIFIER __PRI64_PREFIX
+#else
+#  define TAG_FORMAT_MODIFIER "ll"
+#endif
 #define BLOCK_TAG_ID 0xefcdab8967452301LL
 #else
 #define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
