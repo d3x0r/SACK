@@ -535,6 +535,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			                      , SOCK_STREAM
 			                      , (((((uint8_t*)lpAddr)[1]) == AF_INET)||((((uint8_t*)lpAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
 #else
+#ifdef _WIN32
+#  define SOCK_NONBLOCK 0
+#endif
 			pResult->Socket=socket( *(uint16_t*)lpAddr
 			                      , SOCK_STREAM|SOCK_NONBLOCK
 			                      , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
