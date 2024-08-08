@@ -667,18 +667,17 @@ LOGICAL ssl_SendPipe( struct ssl_session *ses, CPOINTER buffer, size_t length )
 		LogBinary( (((uint8_t*)buffer) + offset), (( ssl_global.flags.bLogBuffers ) || ( 256 > length )) ? length : 256 );
 	}
 #endif
+	EnterCriticalSec( &ses->csReadWrite );
 	while( length ) {
 		if( pending_out > 4327 )
 			pending_out = 4327;
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "Sending %d of %d at %d", pending_out, length, offset );
 #endif
-		EnterCriticalSec( &ses->csReadWrite );
 		len = SSL_write( ses->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
-			if( ses )
-				LeaveCriticalSec( &ses->csReadWrite );
+			LeaveCriticalSec( &ses->csReadWrite );
 			return FALSE;
 		}
 		offset += len;
@@ -700,21 +699,27 @@ LOGICAL ssl_SendPipe( struct ssl_session *ses, CPOINTER buffer, size_t length )
 			ses->obuflen = len * 2;
 		}
 		len_out = BIO_read( ses->wbio, ses->obuffer, (int)ses->obuflen );
-		if( ses )
-			LeaveCriticalSec( &ses->csReadWrite );
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "ssl_Send  %d", len_out );
 #endif
 		if( len_out > 0 )
 			ses->send_callback( ses->psvSendRecv, ses->obuffer, len_out );
 	}
+	LeaveCriticalSec( &ses->csReadWrite );
 	return TRUE;
 
 }
 
 
 LOGICAL ssl_Send( PCLIENT pc, CPOINTER buffer, size_t length ) {
-	return ssl_SendPipe( pc->ssl_session, buffer, length );
+	int tries = 0;
+	while( !NetworkLock( pc, 0 ) ) {
+		Relinquish();
+		if( tries++ > 10 ) lprintf( "failing to lock client %p", pc );
+	}
+	LOGICAL status =  ssl_SendPipe( pc->ssl_session, buffer, length );
+	NetworkUnlock( pc, 0 );
+	return status;
 }
 
 
