@@ -1761,10 +1761,10 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 
 	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_SRC ) )
 	{
-//#ifdef LOG_NETWORK_LOCKING
+#ifdef LOG_NETWORK_LOCKING
 		if( lpClient->wakeOnUnlock )
 			lprintf( "client is already waiting for wake on unlock? %p", lpClient->wakeOnUnlock);
-//#endif		
+#endif		
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
 #ifdef LOG_NETWORK_LOCKING
