@@ -123,6 +123,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 		if( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
 		{
 			//lprintf( "Partial is complete with %d", GetTextSize( pHttpState->partial ) );
+			pHttpState->flags.no_content_length = 0;
 			pHttpState->content = SegSplit( &pHttpState->partial, pHttpState->content_length );
 			pHttpState->partial = NEXTLINE( pHttpState->partial );
 			SegGrab( pHttpState->partial );
@@ -587,7 +588,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 					}
 					else if( StrCaseStr( GetText( field->value ), "close" ) ) {
 						// the close defines the length of content...
-						pHttpState->flags.no_content_length = 1;
+						if( !pHttpState->content_length ) // might have length already specified...
+							pHttpState->flags.no_content_length = 1;
 					}
 				}
 				else if( TextLike( field->name, "Transfer-Encoding" ) )
@@ -629,7 +631,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		//lprintf( "return http %d l:%d nl:%d",pHttpState->numeric_code, pHttpState->content_length, pHttpState->flags.no_content_length );
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
-		if( pHttpState->content && (pHttpState->numeric_code == 200) ) {
+		if( pHttpState->content && ( (pHttpState->numeric_code == 201) || (pHttpState->numeric_code == 200) ) ) {
 			return HTTP_STATE_RESULT_CONTENT;
 		}
 		if( pHttpState->numeric_code == 100 )
@@ -861,7 +863,6 @@ PTEXT GetHttpContent( struct HttpState *pHttpState )
 		return NULL;
 	}
 	unlockHttp( pHttpState );
-
 	if( pHttpState->content_length )
 		return pHttpState->content;
 	return NULL;
@@ -1103,12 +1104,12 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
-	//lprintf( "HTTP Close Event" );
+	//lprintf( "HTTP Socket Close Event" );
 	if( data->flags.no_content_length ) { // data is collected into 'partial' until close
 		//lprintf( "HTTP Close event... collecting data...");
 		GatherHttpData( data );
 		data->content_length = GetTextSize( data->partial );
-		//lprintf( "at close what is content length? %d", data->content_length );
+		//lprintf( "at close what is content length? %p %d", data, data->content_length );
 	}
 	if( data->content_length ) {
 		// should do one further gather; will set resulting status better.
