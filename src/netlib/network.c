@@ -14,6 +14,9 @@
 //
 //  DEBUG FLAGS IN netstruc.h
 //
+
+//#define LOCK_GLOBAL_WHEN_LOCKING_CLIENT
+
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE  // for features.h
 #ifndef _GNU_SOURCE
@@ -373,29 +376,8 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 }
 
 //----------------------------------------------------------------------------
-#if 0
-static void NetworkGlobalLock( DBG_VOIDPASS ) {
-	LOGICAL locked = FALSE;
-	do {
-#ifdef USE_NATIVE_CRITICAL_SECTION
-		if( TryEnterCriticalSection( &globalNetworkData.csNetwork ) < 1 )
-#else
-		if( EnterCriticalSecNoWaitEx( &globalNetworkData.csNetwork, NULL DBG_RELAY ) < 1 )
-#endif
-		{
-#ifdef LOG_NETWORK_LOCKING
-			_lprintf( DBG_RELAY )("Failed enter global? %lld", globalNetworkData.csNetwork.dwThreadID );
-#endif
-			Relinquish();
-		}
-		else
-			locked = TRUE;
-#ifdef LOG_NETWORK_LOCKING
-		_lprintf( DBG_RELAY )("Got global lock");
-#endif
-	} while( !locked );
-}
-#endif
+
+// used in network_linux during close...
 LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS ) {
 	LOGICAL locked = FALSE;
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -1035,8 +1017,7 @@ get_client:
 
 NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient, int nLong, uintptr_t dwValue)
 {
-	if( lpClient && ( nLong < globalNetworkData.nUserData ) )
-	{
+	if( lpClient && ( nLong < globalNetworkData.nUserData ) ) {
 		lpClient->lpUserData[nLong] = dwValue;
 	}
 	return;
@@ -1047,9 +1028,8 @@ NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient, int nLong, uintptr_t dwVa
 NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 {
 	if( !lpClient )
-	{
 		return (uintptr_t)-1;
-	}
+
 	if( nLong < 0 )
 	{
 		switch( nLong )
@@ -1081,9 +1061,7 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 		}
 	}
 	else if( nLong < globalNetworkData.nUserData )
-	{
 		return lpClient->lpUserData[nLong];
-	}
 
 	return (uintptr_t)-1;   //spv:980303
 }
@@ -1105,6 +1083,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		//lpClient->dwFlags |= CF_WANTS_GLOBAL_LOCK;
 		//_lprintf(DBG_RELAY)( "Lock %p %d", lpClient, readWrite );
 		//fprintf( stderr, DBG_FILELINEFMT "Lock %p %d\n" DBG_RELAY, lpClient, readWrite );
+#ifdef LOCK_GLOBAL_WHEN_LOCKING_CLIENT
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		while( EnterCriticalSecNoWait( &globalNetworkData.csNetwork, NULL ) < 1 )
 #else
@@ -1116,7 +1095,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 				//uint64_t wait = timeGetTime64ns() - start;
 				//lprintf( "A wait for global lock... %lld", wait );
 //#ifdef LOG_NETWORK_LOCKING
-				//_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
+				_lprintf(DBG_RELAY)( "Failed enter global? %llx", globalNetworkData.csNetwork.dwThreadID  );
 //#endif
 				return NULL;
 			} else {				
@@ -1128,7 +1107,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 #ifdef LOG_NETWORK_LOCKING
 		_lprintf( DBG_RELAY )( "Got global lock %p %d", lpClient, readWrite );
 #endif
-
+#endif
 		//lpClient->dwFlags &= ~CF_WANTS_GLOBAL_LOCK;
 		tries = 0;
 #ifdef USE_NATIVE_CRITICAL_SECTION
@@ -1146,21 +1125,24 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 			//uint64_t wait = timeGetTime64ns() - start;
 			//lprintf( "A wait for client lock... %lld", wait );
 			//fprintf( stderr, DBG_FILELINEFMT "Failed Lock:%p %d\n" DBG_RELAY, lpClient, readWrite );
+#ifdef LOCK_GLOBAL_WHEN_LOCKING_CLIENT
 #ifdef USE_NATIVE_CRITICAL_SECTION
 			LeaveCriticalSec( &globalNetworkData.csNetwork);
 #else
 			LeaveCriticalSecEx( &globalNetworkData.csNetwork  DBG_RELAY);
+#endif
 #endif
 			//lprintf( "Idle... socket lock failed, had global though..." );
 			//Relinquish();
 			return NULL;
 			//goto start_lock;
 		}
-		//EnterCriticalSec( readWrite ? &lpClient->csLockRead : &lpClient->csLockWrite );
+#ifdef LOCK_GLOBAL_WHEN_LOCKING_CLIENT
 #ifdef USE_NATIVE_CRITICAL_SECTION
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 #else
 		LeaveCriticalSecEx( &globalNetworkData.csNetwork  DBG_RELAY);
+#endif
 #endif
 		if( !(lpClient->dwFlags & (CF_ACTIVE|CF_CLOSED) ) )
 		{
@@ -1178,7 +1160,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 		}
 	}
 #ifdef LOG_NETWORK_LOCKING
-		_lprintf( DBG_RELAY )( "Got private lock %p %d", lpClient, readWrite );
+	_lprintf( DBG_RELAY )( "Got private lock %p %d", lpClient, readWrite );
 #endif
 	return lpClient;
 }
