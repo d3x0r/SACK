@@ -1642,12 +1642,13 @@ static LOGICAL hasPending( PCLIENT pc ) {
 
 uintptr_t WaitToWrite( PTHREAD thread ) {
 	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
+	INDEX lastCount = 0;
 	if( !pdqPendingWrites )
 		pdqPendingWrites = CreateDataQueue( sizeof( struct PendingWrite ) );
 	//lprintf( "started waittowrite" );
 	while( 1 ) {
 		//uint32_t tick; tick = timeGetTime();
-		if( IsDataQueueEmpty( &pdqPendingWrites ) ) {
+		if( lastCount == GetDataQueueLength( pdqPendingWrites ) || IsDataQueueEmpty( &pdqPendingWrites ) ) {
 			//lprintf( "WaitToWrite sleeps..." );
 			WakeableSleep( 10000 );
 			/*
@@ -1682,8 +1683,7 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 				DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
 					if( lpPending->pc == pending.pc ) {
 						lprintf( "socket is already pending, requeue more:%p", pending.pc );
-						AddDataItem( &requeued, &pending );
-						DequeData( &pdqPendingWrites, &pending );
+						AddDataItem( &requeued, lpPending );
 						break;
 					}
 				}
@@ -1707,7 +1707,7 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 #ifdef LOG_PENDING_WRITES		
 				lprintf( "(pending writer)Failed to lock network... requeueing %p", pending.pc );
 #endif				
-				AddDataItem( &requeued, lpPending );
+				AddDataItem( &requeued, &pending );
 			} else {
 #ifdef LOG_PENDING_WRITES		
 				LogBinary( (const uint8_t*)pending.buffer, pending.len );
@@ -1716,9 +1716,12 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
 				if( stillPend == -1 ) {
 					lprintf( "--- This should not happen - have the lock already... %08x", pending.pc->dwFlags );
-					AddDataItem( &requeued, lpPending );
+					AddDataItem( &requeued, &pending );
 				} else {
-					lpPending->pc->wakeOnUnlock = NULL;
+					if( !hasPending( pending.pc ))
+						pending.pc->wakeOnUnlock = NULL;
+					else
+						lprintf( "Still has pending writes... %p", pending.pc );
 				}
 				NetworkUnlockEx( lpPending->pc, 0|0x10 DBG_SRC );
 			}
@@ -1730,10 +1733,11 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 			INDEX idx;
 			struct PendingWrite* lpPending;
 			DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
-				//lprintf( "Requeing block %p %p %d", lpPending->pc, lpPending->buffer, lpPending->len );
+				lprintf( "Requeing block %p %p %d", lpPending->pc, lpPending->buffer, lpPending->len );
 				EnqueData( &pdqPendingWrites, lpPending );
-				pending.pc->wakeOnUnlock = thread;
+				lpPending->pc->wakeOnUnlock = thread;
 			}
+			lastCount = idx;
 			//lprintf( "Emptied requeue list...");
 			EmptyDataList( &requeued );
 		}
@@ -1763,7 +1767,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 	{
 #ifdef LOG_NETWORK_LOCKING
 		if( lpClient->wakeOnUnlock )
-			lprintf( "client is already waiting for wake on unlock? %p", lpClient->wakeOnUnlock);
+			lprintf( "client is already waiting for wake on unlock? %p  %p", lpClient, lpClient->wakeOnUnlock);
 #endif		
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
@@ -1791,10 +1795,11 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			}
 			pw.len = nInLen;
 			pw.bLong = bLongBuffer;
-			pw.failpending = failpending;
+			// when re-queuing this don't want to pend the same packet again...
+			pw.failpending = FALSE;//failpending;
 #ifdef LOG_PENDING_WRITES		
 			if( pw.len < 16 ) LogBinary( (uint8_t*)pw.buffer, pw.len );
-			fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %d %p %zd\n" DBG_RELAY, bLongBuffer, pw.buffer, pw.len );
+			fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %p %d %p %zd\n" DBG_RELAY, lpClient, bLongBuffer, pw.buffer, pw.len );
 #endif			
 			EnqueData( &pdqPendingWrites, &pw );
 			lpClient->wakeOnUnlock = writeWaitThread;
