@@ -1,4 +1,5 @@
 //#define DEBUG_LIBRARY_LOADING
+//#define DEBUG_WINDOWS_TREMINATE
 #define NO_UNICODE_C
 #define SYSTEM_CORE_SOURCE
 #define FIX_RELEASE_COM_COLLISION
@@ -1414,8 +1415,9 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			DWORD dwKillId = task->pi.dwProcessId;
 			if( task->spawn_flags & LPP_OPTION_NEW_GROUP ) {
 				IgnoreBreakHandler( ( 1 << CTRL_C_EVENT ) | ( 1 << CTRL_BREAK_EVENT ) );
-
-				lprintf( "Killing child %d? %s (%s)", dwKillId, task->name );
+#ifdef DEBUG_WINDOWS_TREMINATE
+				lprintf( "Killing child %d? %s", dwKillId, task->name );
+#endif
 				//MessageBox( NULL, "pause", "pause", MB_OK );
 				FreeConsole();
 				BOOL a = AttachConsole( dwKillId );
@@ -1435,7 +1437,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 					} else lprintf( "Success sending ctrl break?" );
 				IgnoreBreakHandler( 0 );
 			} else {
-				lprintf( "Process wasn't in a new group - would end up killing self. %s", task->name );
+				lprintf( "Process wasn't in a new group - would end up killing self. %s (maybe can use event signal option?", task->name );
 			}
 		}
 //#if 0
