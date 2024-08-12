@@ -538,6 +538,11 @@ void SetNetworkReadComplete( PCLIENT pClient
 	{
 		pClient->read.ReadComplete = pReadComplete;
 	}
+	if( !( pClient->dwFlags & CF_READREADY ) ) {
+		pClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
+		if( pClient->read.ReadComplete )
+			pClient->read.ReadComplete( pClient, NULL, 0 );
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -551,6 +556,11 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
 		pClient->read.CPPReadComplete = pReadComplete;
 		pClient->psvRead = psv;
 		pClient->dwFlags |= CF_CPPREAD;
+	}
+	if( !( pClient->dwFlags & CF_READREADY ) ) {
+		pClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
+		if( pClient->read.ReadComplete )
+			pClient->read.CPPReadComplete( pClient->psvRead, NULL, 0 );
 	}
 }
 
