@@ -176,10 +176,10 @@ void AcceptClient(PCLIENT pListen)
 
 			// signal initial read.
 			//lprintf(" Initial notifications...");
-			pNewClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
 
 			if( pNewClient->read.ReadComplete )
 			{
+				pNewClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
 				if( pListen->dwFlags & CF_CPPREAD )
 					pNewClient->read.CPPReadComplete( pNewClient->psvRead, NULL, 0 );  // process read to get data already pending...
 				else
