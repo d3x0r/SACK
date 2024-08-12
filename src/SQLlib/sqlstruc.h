@@ -123,11 +123,12 @@ struct odbc_handle_tag{
 #endif
 	struct {
 		BIT_FIELD  bConnected  : 1;
-		BIT_FIELD  bAccess  : 1; // operate as if talking to an access MDB
-		BIT_FIELD  bSQLite  : 1; // sqllite via sqlite odbc driver...
-		BIT_FIELD  bMySQL   : 1; // for selecting how transactions are done.
-		BIT_FIELD  bPSQL    : 1; // for selecting how transactions are done.
-		BIT_FIELD  bMariaDB : 1; // database personality indicator for maria db
+		BIT_FIELD  bAccess  : 1; // provider type 4 operate as if talking to an access MDB
+		BIT_FIELD  bSQLite  : 1; // provider type 1 sqllite via sqlite odbc driver...
+		BIT_FIELD  bMySQL   : 1; // provider type 2 for selecting how transactions are done.
+		BIT_FIELD  bSQLServer : 1; // provider type 6
+		BIT_FIELD  bPSQL    : 1; // provider type 3 for selecting how transactions are done.
+		BIT_FIELD  bMariaDB : 1; // provider type 5 database personality indicator for maria db
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 		BIT_FIELD  bSQLite_native  : 1;
 #endif
