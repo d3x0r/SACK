@@ -293,7 +293,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 				event_data = (struct event_data*)events[n].data.ptr;
 #  ifdef LOG_NOTICES
 				if( event_data != (struct event_data*)1 ) {
-					lprintf( "Process %d %x", event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket
+					lprintf( "Process %p %d %s %x", event_data->pc, event_data->broadcast?event_data->pc->SocketBroadcast:event_data->pc->Socket, NetworkExpandFlags( event_data->pc )
 							 , events[n].events );
 				}
 #  endif
@@ -399,7 +399,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						size_t read;
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
-							lprintf( "TCP Read Event..." );
+							lprintf( "TCP Read Event... %p", event_data->pc );
 #endif
 						// packet oriented things may probably be reading only
 						// partial messages at a time...
@@ -598,8 +598,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								if( error ) {
 									event_data->pc->dwFlags |= CF_CONNECTERROR;
 								}
-								if( event_data->pc->connect.ThisConnected )
-									event_data->pc->connect.ThisConnected( event_data->pc, error );
+								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
+									if( event_data->pc->connect.CPPThisConnected )
+										event_data->pc->connect.CPPThisConnected( event_data->pc->psvConnect, error );
+								} else
+									if( event_data->pc->connect.ThisConnected )
+										event_data->pc->connect.ThisConnected( event_data->pc, error );
 #ifdef LOG_NOTICES
 								if( globalNetworkData.flags.bLogNotices )
 									lprintf( "Connect error was: %d", error );
@@ -613,7 +617,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 #  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 										lprintf( "Initial Read Complete" );
 #endif
-										pc->read.ReadComplete( pc, NULL, 0 );
+										if( pc->dwFlags & CF_CPPREAD ) 
+											pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );
+										else
+											pc->read.ReadComplete( pc, NULL, 0 );
 									} 
 									else lprintf( "Initial read completed without read callback...");
 									// see if initial read generated any writes...
@@ -630,7 +637,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										if( pc->dwFlags & CF_TOCLOSE )
 										{
 											pc->dwFlags &= ~CF_TOCLOSE;
-											lprintf( "Pending write completed - and wants to close." );
+											lprintf( "Pending write completed - and wants to close. %s", NetworkExpandFlags( pc ) );
 											EnterCriticalSec( &globalNetworkData.csNetwork );
 											InternalRemoveClientEx( pc, FALSE, TRUE );
 											TerminateClosedClient( pc );

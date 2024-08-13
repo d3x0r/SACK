@@ -487,6 +487,7 @@ void SetNetworkWriteComplete( PCLIENT pClient
 	if( pClient && IsValid( pClient->Socket ) )
 	{
 		pClient->write.WriteComplete = WriteComplete;
+		pClient->dwFlags &= ~CF_CPPWRITE;
 	}
 }
 
@@ -509,6 +510,11 @@ void SetCPPNetworkWriteComplete( PCLIENT pClient
 void SetNetworkCloseCallback( PCLIENT pClient
                             , cCloseCallback CloseCallback )
 {
+	if( pClient->ssl_session ) {
+		pClient->ssl_session->user_close = CloseCallback;
+		pClient->ssl_session->dwOriginalFlags &= ~CF_CPPCLOSE;
+		return;
+	}
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->close.CloseCallback = CloseCallback;
@@ -521,6 +527,13 @@ void SetCPPNetworkCloseCallback( PCLIENT pClient
                                , cppCloseCallback CloseCallback
                                , uintptr_t psv)
 {
+	if( pClient->ssl_session ) {
+		pClient->ssl_session->cpp_user_close = CloseCallback;
+		pClient->psvClose = psv;
+		pClient->ssl_session->dwOriginalFlags |= CF_CPPCLOSE;
+
+		return;
+	}
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->close.CPPCloseCallback = CloseCallback;
@@ -534,6 +547,11 @@ void SetCPPNetworkCloseCallback( PCLIENT pClient
 void SetNetworkReadComplete( PCLIENT pClient
                            , cReadComplete pReadComplete )
 {
+	if( pClient->ssl_session ) {
+		pClient->ssl_session->user_read = pReadComplete;
+		pClient->ssl_session->dwOriginalFlags &= ~CF_CPPREAD;
+		return;
+	}
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->read.ReadComplete = pReadComplete;
@@ -551,6 +569,13 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
                               , cppReadComplete pReadComplete
                               , uintptr_t psv)
 {
+	if( pClient->ssl_session ) {
+		pClient->ssl_session->cpp_user_read = pReadComplete;
+		pClient->ssl_session->psvRead = psv;
+		pClient->ssl_session->dwOriginalFlags |= CF_CPPREAD;
+		return;
+	}
+
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->read.CPPReadComplete = pReadComplete;

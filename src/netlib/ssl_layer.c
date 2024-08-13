@@ -64,25 +64,6 @@ SACK_NETWORK_NAMESPACE_END
 
 #else
 
-#ifndef OPENSSL_API_COMPAT
-#  define OPENSSL_API_COMPAT 10101
-#endif
-
-#define _LIB
-#  if NODE_MAJOR_VERSION >= 17
-// this can't work?
-#    include <openssl/configuration.h>
-#  endif
-#include <openssl/ssl.h>
-#include <openssl/tls1.h>
-#include <openssl/err.h>
-
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/pkcs12.h>
-#if OPENSSL_VERSION_MAJOR >= 3
-#include <openssl/core_names.h>
-#endif
 
 SACK_NETWORK_NAMESPACE
 
@@ -156,12 +137,6 @@ EVP_PKEY *genKey() {
 
 #ifndef UNICODE
 
-typedef struct {
-  int verbose_mode;
-  int verify_depth;
-  int always_continue;
-} verify_mydata_t;
-#define verify_mydata_index 0
 
 // template
 verify_mydata_t verify_default = { FALSE, 100, FALSE };
@@ -173,49 +148,6 @@ struct ssl_hostContext {
 	char* host;
 };
 
-struct ssl_session {
-	PLIST hosts;
-	SSL_CTX        *ctx;
-	struct internalCert* cert;
-	LOGICAL ignoreVerification;
-	LOGICAL firstPacket;
-	LOGICAL closed;
-	BIO *rbio;
-	BIO *wbio;
-	//EVP_PKEY *privkey;
-	PLIST          accepting; // sockets being accepted so we can find the proper SSL*
-	TEXTSTR	       hostname;  // accepted client's hostname request (NULL if none)
-	PLIST          protocols; // protocol select from TLS
-	SSL*           ssl;
-	uint32_t       dwOriginalFlags; // CF_CPPREAD
-
-	cppReadComplete  recv_callback;
-	cppWriteComplete  send_callback;
-	uintptr_t 	psvSendRecv;
-	cReadComplete  user_read;
-	cppReadComplete  cpp_user_read;
-	uintptr_t psvRead;
-
-	cNotifyCallback user_connected;
-	cppNotifyCallback cpp_user_connected;
-
-	cCloseCallback user_close;
-	cppCloseCallback cpp_user_close;
-
-	cErrorCallback errorCallback;
-	uintptr_t psvErrorCallback;
-
-	uint8_t *obuffer;
-	size_t obuflen;
-	uint8_t *ibuffer;
-	size_t ibuflen;
-	uint8_t *dbuffer;
-	size_t dbuflen;
-	CRITICALSECTION csReadWrite;
-	verify_mydata_t verify_data;
-	//CRITICALSECTION csReadWrite;
-	//CRITICALSECTION csWrite;
-};
 
 static struct ssl_global
 {
@@ -863,7 +795,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	else
 		pcServer->ssl_session->user_connected( pcServer, pcNew);
 
-
+	ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
 	ses->user_read = pcNew->read.ReadComplete;
 	ses->cpp_user_read = pcNew->read.CPPReadComplete;
 	ses->psvRead = pcNew->psvRead;
@@ -879,9 +811,6 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	pcNew->dwFlags &= ~CF_CPPREAD;
 	pcNew->close.CloseCallback = ssl_CloseCallback;
 	pcNew->dwFlags &= ~CF_CPPCLOSE;
-
-
-	ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
 
 }
 

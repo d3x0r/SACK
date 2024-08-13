@@ -8,6 +8,27 @@
 #ifdef __LINUX__
 #include <fcntl.h>
 #endif
+
+#ifndef OPENSSL_API_COMPAT
+#  define OPENSSL_API_COMPAT 10101
+#endif
+
+#define _LIB
+#  if NODE_MAJOR_VERSION >= 17
+// this can't work?
+#    include <openssl/configuration.h>
+#  endif
+#include <openssl/ssl.h>
+#include <openssl/tls1.h>
+#include <openssl/err.h>
+
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/pkcs12.h>
+#if OPENSSL_VERSION_MAJOR >= 3
+#include <openssl/core_names.h>
+#endif
+
 //#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 // debugging flag for socket creation/closing
@@ -208,6 +229,58 @@ struct peer_thread_info
 	} flags;
 };
 
+typedef struct {
+  int verbose_mode;
+  int verify_depth;
+  int always_continue;
+} verify_mydata_t;
+#define verify_mydata_index 0
+
+struct ssl_session {
+	PLIST hosts;
+	SSL_CTX        *ctx;
+	struct internalCert* cert;
+	LOGICAL ignoreVerification;
+	LOGICAL firstPacket;
+	LOGICAL closed;
+	BIO *rbio;
+	BIO *wbio;
+	//EVP_PKEY *privkey;
+	PLIST          accepting; // sockets being accepted so we can find the proper SSL*
+	TEXTSTR	       hostname;  // accepted client's hostname request (NULL if none)
+	PLIST          protocols; // protocol select from TLS
+	SSL*           ssl;
+	uint32_t       dwOriginalFlags; // CF_CPPREAD
+
+	cppReadComplete  recv_callback;
+	cppWriteComplete  send_callback;
+	uintptr_t 	psvSendRecv;
+	cReadComplete  user_read;
+	cppReadComplete  cpp_user_read;
+	uintptr_t psvRead;
+
+	cNotifyCallback user_connected;
+	cppNotifyCallback cpp_user_connected;
+	// ssl uses C callbacks which get socket, and can save psvConnect in original socket.
+
+	cCloseCallback user_close;
+	cppCloseCallback cpp_user_close;
+	// ssl uses C callbacks which get socket, and can save psvClose in original socket.
+
+	cErrorCallback errorCallback;
+	uintptr_t psvErrorCallback;
+
+	uint8_t *obuffer;
+	size_t obuflen;
+	uint8_t *ibuffer;
+	size_t ibuflen;
+	uint8_t *dbuffer;
+	size_t dbuflen;
+	CRITICALSECTION csReadWrite;
+	verify_mydata_t verify_data;
+	//CRITICALSECTION csReadWrite;
+	//CRITICALSECTION csWrite;
+};
 
 struct NetworkClient
 {
