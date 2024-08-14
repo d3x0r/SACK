@@ -1462,38 +1462,41 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 
 						state->val.contains = state->elements[0];
 						state->val._contains = state->elements;
+						if( old_context ) {
+							state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
 
-						state->parse_context = old_context->context; // this will restore as IN_ARRAY or OBJECT_FIELD
+							// lose current class in the pop; have; have to report completed status before popping.
+							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
+								if( !state->current_class )
+									state->completed = TRUE;
+							}
 
-						// lose current class in the pop; have; have to report completed status before popping.
-						if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
-							if( !state->current_class )
-								state->completed = TRUE;
-						}
-
-						state->elements = old_context->elements;
-						state->val.name = old_context->name;
-						state->val.nameLen = old_context->nameLen;
-						state->val.className = old_context->className;
-						state->val.classNameLen = old_context->classNameLen;
-						state->current_class = old_context->current_class;
-						state->current_class_item = old_context->current_class_item;
-						state->arrayType = old_context->arrayType;
+							state->elements = old_context->elements;
+							state->val.name = old_context->name;
+							state->val.nameLen = old_context->nameLen;
+							state->val.className = old_context->className;
+							state->val.classNameLen = old_context->classNameLen;
+							state->current_class = old_context->current_class;
+							state->current_class_item = old_context->current_class_item;
+							state->arrayType = old_context->arrayType;
 #ifdef DEBUG_ARRAY_TYPE
-						lprintf( "close object restore arrayType:%d",state->arrayType );
+							lprintf( "close object restore arrayType:%d",state->arrayType );
 #endif
-						state->objectContext = old_context->objectContext;
+							state->objectContext = old_context->objectContext;
 #ifdef DEBUG_CLASS_STATES
-						lprintf( "POP CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
+							lprintf( "POP CLASS NAME %s %s %p", state->val.className, state->current_class ? state->current_class->name : "", state->current_class ? state->current_class->fields : 0 );
 #endif
-						DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
+							DeleteFromSet( JSOX_PARSE_CONTEXT, state->parseContexts, old_context );
 
-						if( emitObject )
-							state->val.value_type = JSOX_VALUE_OBJECT;
-						else
-							state->val.value_type = JSOX_VALUE_UNSET;
-						state->val.string = NULL;
-
+							if( emitObject )
+								state->val.value_type = JSOX_VALUE_OBJECT;
+							else
+								state->val.value_type = JSOX_VALUE_UNSET;
+							state->val.string = NULL;
+						} else {
+							vtprintf( state->pvtError, "Close } without open: %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							state->status = FALSE;
+						}
 					}
 				}
 				break;

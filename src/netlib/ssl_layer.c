@@ -1822,7 +1822,7 @@ void SetSSLPipeErrorCallback( struct ssl_session *session, cErrorCallback callba
 }
 
 void SetNetworkErrorCallback( PCLIENT pc, cErrorCallback callback, uintptr_t psvUser ) {
-	lprintf( "SetNetworkErrorCallback %p %p", pc, pc->ssl_session );  // a listern had no ssl_session at this point
+	//lprintf( "SetNetworkErrorCallback %p %p", pc, pc->ssl_session );  // a listern had no ssl_session at this point
 	if( pc && pc->ssl_session ) {		
 		pc->ssl_session->errorCallback = callback;
 		pc->ssl_session->psvErrorCallback = psvUser;
