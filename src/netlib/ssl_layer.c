@@ -799,12 +799,26 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 		pcServer->ssl_session->user_connected( pcServer, pcNew);
 
 	ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
-	ses->user_read = pcNew->read.ReadComplete;
-	ses->cpp_user_read = pcNew->read.CPPReadComplete;
-	ses->psvRead = pcNew->psvRead;
-
-	ses->user_close = pcNew->close.CloseCallback;
-	ses->cpp_user_close = pcNew->close.CPPCloseCallback;
+	// these can get set in the connection callback...
+	if( !ses->user_read && !ses->cpp_user_read ) 
+		if( pcNew->dwFlags & CF_CPPREAD ) {
+			ses->cpp_user_read = pcNew->read.CPPReadComplete;
+			ses->user_read = NULL;
+			ses->psvRead = pcNew->psvRead;
+		} else {
+			ses->user_read = pcNew->read.ReadComplete;
+			ses->cpp_user_read = NULL;
+		}
+	// these can get set in the connection callback...
+	if( !ses->user_close && !ses->cpp_user_close ) {
+		if( pcNew->dwFlags & CF_CPPCLOSE ) {
+			ses->cpp_user_close = pcNew->close.CPPCloseCallback;
+			ses->user_close = NULL;
+		} else {
+			ses->user_close = pcNew->close.CloseCallback;
+			ses->cpp_user_close = NULL;
+		}
+	}
 
 	ses->send_callback = ssl_layer_sender;
 	ses->recv_callback = ssl_layer_recver;
@@ -1465,22 +1479,28 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		// revert native socket methods.
 		if( pc->ssl_session->user_read )
 			pc->read.ReadComplete = pc->ssl_session->user_read;
-		if( pc->ssl_session->cpp_user_read ) {
+		else if( pc->ssl_session->cpp_user_read ) {
 			pc->read.CPPReadComplete = pc->ssl_session->cpp_user_read;
 			pc->psvRead = pc->ssl_session->psvRead;
-		}
+		} else
+			pc->read.ReadComplete = NULL;
+
 		if( pc->ssl_session->user_close)
 			pc->close.CloseCallback = pc->ssl_session->user_close;
-		if( pc->ssl_session->cpp_user_close ) {
+		else if( pc->ssl_session->cpp_user_close ) {
 			pc->close.CPPCloseCallback = pc->ssl_session->cpp_user_close;
 			//pc->psvClose = pc->ssl_session->psvClose;
-		}
+		} else 
+			pc->close.CloseCallback = NULL;
+
 		if( pc->ssl_session->user_connected )
 			pc->connect.ClientConnected = pc->ssl_session->user_connected;
-		if( pc->ssl_session->cpp_user_connected ) {
+		else if( pc->ssl_session->cpp_user_connected ) {
 			pc->connect.CPPClientConnected = pc->ssl_session->cpp_user_connected;
 			//pc->psvConnect = pc->ssl_session->psvConnect;
 		}
+		else
+			pc->connect.ClientConnected = NULL;
 		// restore all the native specified options for callbacks.
 		(*(uint32_t*)&pc->dwFlags) &= ~(pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
