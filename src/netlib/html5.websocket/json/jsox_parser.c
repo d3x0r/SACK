@@ -61,11 +61,10 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	PPLIST ppList;
 	PPLINKQUEUE ppQueue;
 	PPLINKSTACK ppStack;
-
 	state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );
 	if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
 	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );
-
+	
 	ppStack = GetFromSet( PLINKSTACK, &jxpsd.linkStacks );
 	if( !ppStack[0] ) ppStack[0] = CreateLinkStack();
 	state->outBuffers = ppStack;
@@ -2353,7 +2352,7 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 		Release( msg_data[0] );
 	else
 		EnqueLinkNL( &jxpsd.elementDataLists, (POINTER)msg_data[0] );
-	//lprintf( "Drop DataList : %p", msg_data[0] );
+	//lprintf( "Drop DataList(clearing list holder) : %p %p", msg_data, msg_data[0] );
 
 	msg_data[0] = NULL;
 	DeleteFromSet( PDATALIST, jxpsd.dataLists, msg_data );
@@ -2362,6 +2361,7 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 }
 
 static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
+	//lprintf( "Compare list: %p %p with %p", p, ((PPDATALIST)p)[0], (PDATALIST)psv );
 	if( ((PPDATALIST)p)[0] == (PDATALIST)psv )
 		return (uintptr_t)p;
 	return 0;
@@ -2383,10 +2383,11 @@ static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 			*/
 			{
 				uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data );
+				//lprintf( "Disposing message: %p %p", msg_data, actual );
 				if( actual )
 					_jsox_dispose_message( (PDATALIST*)actual );
 				else
-					lprintf( "Failed to find message to dispose (not from JSOX parsing?)" );
+					lprintf( "Failed to find message to dispose (not from JSOX parsing?) %p", msg_data );
 			}
 		}
 		WakeableSleep( 100000 );
@@ -2401,7 +2402,6 @@ void jsox_dispose_message( PDATALIST *msg_data ) {
 	EnqueLink( &dispose_queue, (POINTER)(msg_data[0]) );
 	if( !dispose_thread ) dispose_thread = ThreadTo( jsox_dispose_thread, 0 );
 	else                  WakeThread( dispose_thread );
-	msg_data[0] = NULL;
 }
 
 
@@ -2453,12 +2453,15 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		state->val.string = NULL;
 		{
 			PDATALIST *result = state->elements;
+			//lprintf( "elements is something %p %p", result, result[0] );
+			// ininitialize a blank list...
 			state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 			if( !state->elements[0] ) state->elements[0] = (PDATALIST)DequeLinkNL( &jxpsd.elementDataLists );
 			if( !state->elements[0] ) {
 				state->elements[0] = CreateDataList( sizeof( state->val ) );
 				//lprintf( "CreateDataList2 : %p", state->elements[0] );
 			} 
+			//lprintf( "set state new message: %p %p (from state elements)", state->elements, state->elements[0] );
 			jsox_dispose_message( result );
 		}
 	}

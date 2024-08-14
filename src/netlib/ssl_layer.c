@@ -306,15 +306,15 @@ static int handshake( struct ssl_session* ses ) {
 #ifdef DEBUG_SSL_IO_VERBOSE
   					lprintf( "send %d %d for handshake", pending, read );
 #endif
-  					if( read > 0 ) {
+					if( read > 0 ) {
 #ifdef DEBUG_SSL_IO
-  						lprintf( "handshake send %d", read );
+						lprintf( "handshake send %d", read );
 #endif
-							ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
-  					}
-  				}
-  			}
-  		}
+						ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
+					}
+				}
+			}
+		}
 		if (r < 0) {
 
 			r = SSL_get_error(ses->ssl, r);
@@ -407,6 +407,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 					if( !ses->ignoreVerification && SSL_get_peer_certificate( ses->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( ses->ssl ) ) != X509_V_OK ) {
+							lprintf( "Verify result - client connection: %d %p", r, ses->errorCallback );
 							if( pc )
 								if( ses->errorCallback )
 									ses->errorCallback( ses->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
@@ -467,6 +468,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session* ses, POINTER buff
 				}
 			}
 			else if( hs_rc == -1 ) {
+				//lprintf( "handshake failed - client connection: %zd %p", length, ses->errorCallback );
 				if( pc && ses->errorCallback )
 					ses->errorCallback( ses->psvErrorCallback, pc, ses->firstPacket
 						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
@@ -782,8 +784,9 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 
 	SSL_set_accept_state( ses->ssl );
 	AddLink( &pcServer->ssl_session->accepting, ses );
-	ses->errorCallback = pcNew->errorCallback;
-	ses->psvErrorCallback = pcNew->psvErrorCallback;
+
+	ses->errorCallback = pcServer->ssl_session?pcServer->ssl_session->errorCallback:pcServer->errorCallback;
+	ses->psvErrorCallback = pcServer->ssl_session?pcServer->ssl_session->psvErrorCallback:pcServer->psvErrorCallback;
 	pcNew->ssl_session = ses;
 
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -1460,10 +1463,26 @@ LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 	if( pc && pc->ssl_session ) {
 		// revert native socket methods.
-		pc->read.ReadComplete = pc->ssl_session->user_read;
-		pc->close.CloseCallback = pc->ssl_session->user_close;
-		pc->connect.ClientConnected = pc->ssl_session->user_connected;
+		if( pc->ssl_session->user_read )
+			pc->read.ReadComplete = pc->ssl_session->user_read;
+		if( pc->ssl_session->cpp_user_read ) {
+			pc->read.CPPReadComplete = pc->ssl_session->cpp_user_read;
+			pc->psvRead = pc->ssl_session->psvRead;
+		}
+		if( pc->ssl_session->user_close)
+			pc->close.CloseCallback = pc->ssl_session->user_close;
+		if( pc->ssl_session->cpp_user_close ) {
+			pc->close.CPPCloseCallback = pc->ssl_session->cpp_user_close;
+			//pc->psvClose = pc->ssl_session->psvClose;
+		}
+		if( pc->ssl_session->user_connected )
+			pc->connect.ClientConnected = pc->ssl_session->user_connected;
+		if( pc->ssl_session->cpp_user_connected ) {
+			pc->connect.CPPClientConnected = pc->ssl_session->cpp_user_connected;
+			//pc->psvConnect = pc->ssl_session->psvConnect;
+		}
 		// restore all the native specified options for callbacks.
+		(*(uint32_t*)&pc->dwFlags) &= ~(pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		// prevent close event...
 		POINTER tmp;
@@ -1474,14 +1493,17 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		ssl_CloseCallback( pc );
 		// SSL callback failed, but it may be possible to connect direct.
 		// and if so; setup to return a redirect.
+		//lprintf( "is ssl_session gone(yes)? %p %p", pc, pc->ssl_session );
 		if( buffer ) {
 			if( pc->dwFlags & CF_CPPREAD ) {
 				pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
-				pc->read.CPPReadComplete( pc->psvRead, buffer, length );
+				if( buffer )
+					pc->read.CPPReadComplete( pc->psvRead, buffer, length );
 			}
 			else {
 				pc->read.ReadComplete( pc, NULL, 0 );
-				pc->read.ReadComplete( pc, buffer, length );
+				if( buffer )
+					pc->read.ReadComplete( pc, buffer, length );
 			}
 		}
 		Release( tmp );
@@ -1800,7 +1822,7 @@ void SetSSLPipeErrorCallback( struct ssl_session *session, cErrorCallback callba
 }
 
 void SetNetworkErrorCallback( PCLIENT pc, cErrorCallback callback, uintptr_t psvUser ) {
-	//lprintf( "SetNetworkErrorCallback %p %p", pc, pc->ssl_session );  // a listern had no ssl_session at this point
+	lprintf( "SetNetworkErrorCallback %p %p", pc, pc->ssl_session );  // a listern had no ssl_session at this point
 	if( pc && pc->ssl_session ) {		
 		pc->ssl_session->errorCallback = callback;
 		pc->ssl_session->psvErrorCallback = psvUser;
