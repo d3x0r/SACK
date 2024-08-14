@@ -9,6 +9,10 @@
 #include <fcntl.h>
 #endif
 
+#ifdef _WIN32
+#include <wincrypt.h>
+#endif
+
 #ifndef OPENSSL_API_COMPAT
 #  define OPENSSL_API_COMPAT 10101
 #endif
