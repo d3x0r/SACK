@@ -155,7 +155,7 @@ int _libssh2_hmac_update(libssh2_hmac_ctx *ctx,
 #ifdef USE_OPENSSL_3
     return EVP_MAC_update(*ctx, data, datalen);
 #elif defined(HAVE_OPAQUE_STRUCTS)
-/* FIXME: upstream bug as of v5.6.0: datalen is int instead of size_t */
+/* FIXME: upstream bug as of v5.7.0: datalen is int instead of size_t */
 #if defined(LIBSSH2_WOLFSSL)
     return HMAC_Update(*ctx, data, (int)datalen);
 #else /* !LIBSSH2_WOLFSSL */
@@ -1056,7 +1056,13 @@ _libssh2_cipher_crypt(_libssh2_cipher_ctx * ctx,
                decrypt: verify tag, if applicable
                in!=NULL is equivalent to EVP_CipherUpdate
                in==NULL is equivalent to EVP_CipherFinal */
-#ifdef HAVE_OPAQUE_STRUCTS
+#if defined(LIBSSH2_WOLFSSL) && LIBWOLFSSL_VERSION_HEX < 0x05007000
+            /* Workaround for wolfSSL bug fixed in v5.7.0:
+               https://github.com/wolfSSL/wolfssl/pull/7143 */
+            unsigned char buf2[EVP_MAX_BLOCK_LENGTH];
+            int outb;
+            ret = EVP_CipherFinal(*ctx, buf2, &outb);
+#elif defined(HAVE_OPAQUE_STRUCTS)
             ret = EVP_Cipher(*ctx, NULL, NULL, 0); /* final */
 #else
             ret = EVP_Cipher(ctx, NULL, NULL, 0); /* final */

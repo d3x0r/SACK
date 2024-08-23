@@ -36,7 +36,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 message(STATUS "Using CMake version ${CMAKE_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -149,11 +149,11 @@ if(HIDE_SYMBOLS)
   elseif((CMAKE_C_COMPILER_ID MATCHES "Clang") OR
          (CMAKE_COMPILER_IS_GNUCC AND NOT CMAKE_C_COMPILER_VERSION VERSION_LESS 4.0) OR
          (CMAKE_C_COMPILER_ID MATCHES "Intel" AND NOT CMAKE_C_COMPILER_VERSION VERSION_LESS 9.1))
-    #set(LIB_SHARED_C_FLAGS "-fvisibility=hidden")
-    #set(LIBSSH2_API "__attribute__ ((__visibility__ (\"default\")))")
+    set(LIB_SHARED_C_FLAGS "-fvisibility=hidden")
+    set(LIBSSH2_API "__attribute__ ((__visibility__ (\"default\")))")
   elseif(CMAKE_C_COMPILER_ID MATCHES "SunPro" AND NOT CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
-    #set(LIB_SHARED_C_FLAGS "-xldscope=hidden")
-    #set(LIBSSH2_API "__global")
+    set(LIB_SHARED_C_FLAGS "-xldscope=hidden")
+    set(LIBSSH2_API "__global")
   endif()
 endif()
 
@@ -188,7 +188,6 @@ if(WIN32)
     set(HAVE_UNISTD_H 1)
     set(HAVE_INTTYPES_H 1)
     set(HAVE_SYS_TIME_H 1)
-    set(HAVE_SYS_PARAM_H 1)
     set(HAVE_GETTIMEOFDAY 1)
     set(HAVE_STRTOLL 1)
   elseif(MSVC)
@@ -214,7 +213,6 @@ check_include_files("inttypes.h" HAVE_INTTYPES_H)
 if(NOT MSVC)
   check_include_files("unistd.h" HAVE_UNISTD_H)
   check_include_files("sys/time.h" HAVE_SYS_TIME_H)
-  check_include_files("sys/param.h" HAVE_SYS_PARAM_H)  # tests
 endif()
 if(NOT WIN32)
   check_include_files("sys/select.h" HAVE_SYS_SELECT_H)
@@ -355,12 +353,12 @@ endif()
 
 if(CRYPTO_BACKEND STREQUAL "wolfSSL" OR NOT CRYPTO_BACKEND)
 
-  find_package(wolfssl ${SPECIFIC_CRYPTO_REQUIREMENT})
+  find_package(WolfSSL ${SPECIFIC_CRYPTO_REQUIREMENT})
 
   if(WOLFSSL_FOUND)
     set(CRYPTO_BACKEND "wolfSSL")
     set(CRYPTO_BACKEND_DEFINE "LIBSSH2_WOLFSSL")
-    set(CRYPTO_BACKEND_INCLUDE_DIR ${WOLFSSL_INCLUDE_DIR} "${WOLFSSL_INCLUDE_DIR}/wolfssl")
+    set(CRYPTO_BACKEND_INCLUDE_DIR ${WOLFSSL_INCLUDE_DIRS})
     list(APPEND LIBRARIES ${WOLFSSL_LIBRARIES})
     list(APPEND LIBSSH2_PC_LIBS_PRIVATE "-lwolfssl")
     list(APPEND LIBSSH2_PC_REQUIRES_PRIVATE "wolfssl")
@@ -396,14 +394,15 @@ endif()
 
 if(CRYPTO_BACKEND STREQUAL "mbedTLS" OR NOT CRYPTO_BACKEND)
 
-  find_package(mbedTLS ${SPECIFIC_CRYPTO_REQUIREMENT})
+  find_package(MbedTLS ${SPECIFIC_CRYPTO_REQUIREMENT})
 
   if(MBEDTLS_FOUND)
     set(CRYPTO_BACKEND "mbedTLS")
     set(CRYPTO_BACKEND_DEFINE "LIBSSH2_MBEDTLS")
-    set(CRYPTO_BACKEND_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR})
+    set(CRYPTO_BACKEND_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIRS})
     list(APPEND LIBRARIES ${MBEDTLS_LIBRARIES})
     list(APPEND LIBSSH2_PC_LIBS_PRIVATE "-lmbedcrypto")
+    list(APPEND LIBSSH2_PC_REQUIRES_PRIVATE "mbedcrypto")
     link_directories(${MBEDTLS_LIBRARY_DIR})
   endif()
 endif()

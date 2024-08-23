@@ -137,7 +137,7 @@ if(LIBSSH2_BUILD_STATIC_LIBS)
     SUFFIX "${STATIC_LIB_SUFFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
   target_include_directories(${LIB_STATIC}
-    PRIVATE "${PROJECT_SOURCE_DIR}/include/" ${libssh2_INCLUDE_DIRS} ${PRIVATE_INCLUDE_DIRECTORIES}
+    PRIVATE "${PROJECT_SOURCE_DIR}/include" ${libssh2_INCLUDE_DIRS} ${PRIVATE_INCLUDE_DIRECTORIES}
     PUBLIC
       "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
@@ -158,7 +158,7 @@ if(LIBSSH2_BUILD_SHARED_LIBS)
     POSITION_INDEPENDENT_CODE ON)
 
   target_include_directories(${LIB_SHARED}
-    PRIVATE "${PROJECT_SOURCE_DIR}/include/" ${libssh2_INCLUDE_DIRS} ${PRIVATE_INCLUDE_DIRECTORIES}
+    PRIVATE "${PROJECT_SOURCE_DIR}/include" ${libssh2_INCLUDE_DIRS} ${PRIVATE_INCLUDE_DIRECTORIES}
     PUBLIC
       "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>")
@@ -171,58 +171,58 @@ endif()
 
 ## Installation
 if( NOT LIBSSH2_SKIP_INSTALL )
-install(FILES
-  "${PROJECT_SOURCE_DIR}/include/libssh2.h"
-  "${PROJECT_SOURCE_DIR}/include/libssh2_publickey.h"
-  "${PROJECT_SOURCE_DIR}/include/libssh2_sftp.h"
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(FILES
+    "${PROJECT_SOURCE_DIR}/include/libssh2.h"
+    "${PROJECT_SOURCE_DIR}/include/libssh2_publickey.h"
+    "${PROJECT_SOURCE_DIR}/include/libssh2_sftp.h"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-if(LIBSSH2_BUILD_STATIC_LIBS)
-  install(TARGETS ${LIB_STATIC}
-    EXPORT "${PROJECT_NAME}-targets"
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  if(LIBSSH2_BUILD_STATIC_LIBS)
+    install(TARGETS ${LIB_STATIC}
+      EXPORT "${PROJECT_NAME}-targets"
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
+  if(LIBSSH2_BUILD_SHARED_LIBS)
+    install(TARGETS ${LIB_SHARED}
+      EXPORT "${PROJECT_NAME}-targets"
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+      list(APPEND _RUNTIME_DEPENDENCIES $<TARGET_FILE:${LIB_SHARED}>)
   endif()
-if(LIBSSH2_BUILD_SHARED_LIBS)
-  install(TARGETS ${LIB_SHARED}
-    EXPORT "${PROJECT_NAME}-targets"
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-  list(APPEND _RUNTIME_DEPENDENCIES $<TARGET_FILE:${LIB_SHARED}>)
-endif()
+  ## During package installation, install libssh2-targets.cmake
+  install(EXPORT "${PROJECT_NAME}-targets"
+    NAMESPACE "${PROJECT_NAME}::"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
-## During package installation, install libssh2-targets.cmake
-install(EXPORT "${PROJECT_NAME}-targets"
-  NAMESPACE "${PROJECT_NAME}::"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+  endif()
 
-endif()
+  set(RUNTIME_DEPENDENCIES ${_RUNTIME_DEPENDENCIES} CACHE INTERNAL
+      "Files that must be in the same directory as the executables at runtime.")
 
-set(RUNTIME_DEPENDENCIES ${_RUNTIME_DEPENDENCIES} CACHE INTERNAL
-    "Files that must be in the same directory as the executables at runtime.")
-
-# Package config
+  # Package config
 
 
-## During build, register directly from build tree
-# create libssh2-targets.cmake
-export(TARGETS ${libssh2_export} NAMESPACE "${PROJECT_NAME}::" FILE "${PROJECT_NAME}-targets.cmake")
-export(PACKAGE ${PROJECT_NAME})  # register it
+  ## During build, register directly from build tree
+  # create libssh2-targets.cmake
+  export(TARGETS ${libssh2_export} NAMESPACE "${PROJECT_NAME}::" FILE "${PROJECT_NAME}-targets.cmake")
+  export(PACKAGE ${PROJECT_NAME})  # register it
 
-# Generate libssh2-config.cmake into build tree and install it with dependencies
-configure_file("${PROJECT_SOURCE_DIR}/cmake/libssh2-config.cmake.in" "${PROJECT_NAME}-config.cmake" @ONLY)
-install(
-  FILES 
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindLibgcrypt.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/FindmbedTLS.cmake"
-    "${PROJECT_SOURCE_DIR}/cmake/Findwolfssl.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+  # Generate libssh2-config.cmake into build tree and install it with dependencies
+  configure_file("${PROJECT_SOURCE_DIR}/cmake/libssh2-config.cmake.in" "${PROJECT_NAME}-config.cmake" @ONLY)
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+      "${PROJECT_SOURCE_DIR}/cmake/FindLibgcrypt.cmake"
+      "${PROJECT_SOURCE_DIR}/cmake/FindMbedTLS.cmake"
+      "${PROJECT_SOURCE_DIR}/cmake/FindWolfSSL.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
-  ## Export a .pc file for client projects not using CMaek
+  ## Export a .pc file for client projects not using CMake
   if(LIBSSH2_PC_REQUIRES_PRIVATE)
     string(REPLACE ";" "," LIBSSH2_PC_REQUIRES_PRIVATE "${LIBSSH2_PC_REQUIRES_PRIVATE}")
   endif()
@@ -231,7 +231,7 @@ install(
     string(REPLACE ";" " " LIBSSH2_PC_LIBS_PRIVATE "${LIBSSH2_PC_LIBS_PRIVATE}")
   endif()
   # merge the pkg-config private fields into public ones when static-only
-  if(LIBSSH2_BUILD_SHARED_LIBS)
+  if(BUILD_SHARED_LIBS)
     set(LIBSSH2_PC_REQUIRES "")
     set(LIBSSH2_PC_LIBS "")
   else()
@@ -243,12 +243,10 @@ install(
   set(libdir "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
   set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
   configure_file("${PROJECT_SOURCE_DIR}/libssh2.pc.in" "libssh2.pc" @ONLY)
-  if(LIBSSH2_BUILD_STATIC_LIBS)
-
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/libssh2.pc"
     DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-  endif()
+
   #
 
   include(CMakePackageConfigHelpers)
