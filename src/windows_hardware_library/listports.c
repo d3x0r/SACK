@@ -28,9 +28,9 @@ static uint32_t ListPorts_OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM
 static uint32_t ListPorts_QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
 #endif
 
+#ifdef WIN32
 LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 
-#ifdef WIN32
 
 
 	/* check parameters */
@@ -108,7 +108,6 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 
 #else
 
-#endif
 #endif
 
 }
@@ -635,7 +634,6 @@ struct ListPortsProcessParams {
 	ListPortsCallback lpCallback;
 	uintptr_t psv;
 };
-}
 
 LOGICAL Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
 	struct ListPortsProcessParams *params = (struct ListPortsProcessParams *)psvUser;
