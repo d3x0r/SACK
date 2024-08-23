@@ -4934,7 +4934,7 @@ void ReleaseSQLResults( PDATALIST *ppdlResults ) {
 				DeleteFromSet( SQL_TIME_BUFFER, &g.time_buffers, val->string );
 			} else
 				if( val->string ) Release( val->string );
-			if( &val->contains ) 
+			if( val->contains ) 
 				ReleaseSQLResults( &val->contains );
 		}
 		DeleteDataList( ppdlResults );
@@ -4958,7 +4958,7 @@ void ReleaseSQLRecord( PDATALIST pdlResults ) {
 				DeleteFromSet( SQL_TIME_BUFFER, &g.time_buffers, val->string );
 			} else
 				if( val->string ) Release( val->string );
-			if( &val->contains ) 
+			if( val->contains ) 
 				ReleaseSQLResults( &val->contains );
 		}
 		pdlResults->Cnt = 0;

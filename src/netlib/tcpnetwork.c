@@ -1358,10 +1358,10 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			uint32_t dwError;
 			if( pc->flags.bAggregateOutput && pc->lpFirstPending->lpNext ){
 				uint32_t size = 0;
-				uint32_t blocks = 0;
+				//uint32_t blocks = 0;
 				PendingBuffer *lpNext = pc->lpFirstPending;
 				// collapse all pending into first pending block.
-				while( lpNext ) { size += lpNext->dwAvail; blocks++; lpNext = lpNext->lpNext;}
+				while( lpNext ) { size += lpNext->dwAvail; /*blocks++; */lpNext = lpNext->lpNext;}
 				if( size > 0 ) {
 					POINTER newbuffer =  Allocate( size );
 					// 

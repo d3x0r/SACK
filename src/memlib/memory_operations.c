@@ -236,7 +236,9 @@ wchar_t* StrRChrW( wchar_t* s1, TEXTRUNE c ) {
 	TEXTRUNE c1;
 	wchar_t* p1 = s1;
 	if( !p1 ) return NULL;
-	while( GetUtfCharW( (const wchar_t**)&p1 ) ); p1--; // go back to \0
+	while( GetUtfCharW( (const wchar_t**)&p1 ) )
+		;
+	p1--; // go back to \0
 	while( p1 != s1 && ( c1 = GetPriorUtfCharW( s1, (const wchar_t**) & p1) ) != c );
 	if( c1 == c )
 		return p1;

@@ -379,7 +379,6 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 
 // used in network_linux during close...
 LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS ) {
-	LOGICAL locked = FALSE;
 #ifdef USE_NATIVE_CRITICAL_SECTION
 	if( TryEnterCriticalSection( &globalNetworkData.csNetwork ) < 1 )
 #else
@@ -391,8 +390,6 @@ LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS ) {
 #endif
 		return FALSE;
 	}
-	else
-		locked = TRUE;
 #ifdef LOG_NETWORK_LOCKING
 	_lprintf( DBG_RELAY )("Got global lock");
 #endif

@@ -282,6 +282,8 @@ struct ssl_session {
 	size_t dbuflen;
 	CRITICALSECTION csReadWrite;
 	verify_mydata_t verify_data;
+	uint32_t inUse;
+	uint32_t deleteInUse;
 	//CRITICALSECTION csReadWrite;
 	//CRITICALSECTION csWrite;
 };

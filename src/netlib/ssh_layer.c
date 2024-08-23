@@ -138,6 +138,17 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 			if( cs->pending.state == SSH_STATE_RESET )
 				DequeData( &cs->pdqStates, &cs->pending );
 			switch( cs->pending.state ) {
+			default:
+				lprintf( "Unhandled ssh_layer state:%d", cs->pending.state );
+				break;
+			/*
+			case SSH_STATE_CONNECTING:
+				break;
+			case SSH_STATE_CONNECT:
+				break;
+			case SSH_STATE_FORWARD:
+				break;
+			*/
 			case SSH_STATE_HANDSHAKE:{
 					rc = libssh2_session_handshake( cs->session, 1/*sock*/ );
 					if( rc == LIBSSH2_ERROR_EAGAIN ) break;

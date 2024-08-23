@@ -1057,10 +1057,6 @@ HWND find_main_window( unsigned long process_id ) {
 	return data.window_handle;
 }
 
-static BOOL WINAPI CtrlC( DWORD dwCtrlType ) {
-	fprintf( stderr, "Received ctrlC Event %u\n", dwCtrlType );
-	return TRUE; // return handled?
-}
 struct move_window {
 	PTASK_INFO task;
 	int timeout, left, top, width, height;
