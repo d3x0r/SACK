@@ -4,7 +4,7 @@
 #include <sharemem.h>
 
 //#define LISTPORTS_SUPPORT_WIN9X
-//#define LISTPORTS_SUPPORT_W2K
+#define LISTPORTS_SUPPORT_W2K
 //#define LISTPORTS_SUPPORT_WCE
 
 #ifdef LISTPORTS_SUPPORT_WIN9X
@@ -22,8 +22,8 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 #endif
 
 #if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
-static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName );
-static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
+static uint32_t ListPorts_OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName );
+static uint32_t ListPorts_QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
 #endif
 
 LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
@@ -52,11 +52,12 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 
 	//IsWindowsVersionOrGreater( 6, 0, 0 );
 
-	if( IsWindowsVersionOrGreater( 4, 0, 0 ) )
+	if( !IsWindowsVersionOrGreater( 5, 0, 0 ) ) {
+		lprintf( "NT4 version returns very limited information about the ports... (fixme?)" );
 		return WinNT40ListPorts( lpCallback, psv );
-	else {
+	} else {
 		lprintf( "ListPorts is not supported on this platform..." );
-		return FALSE;
+		return Win2000ListPorts( lpCallback, psv ); /* hopefully it'll also work for XP */
 	}
 
 #if 0
@@ -76,21 +77,16 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 				return FALSE;
 			}
 
-			else if( IsWindowsVersionOrGreater( 4, 0, 0 ) )
+			else if( !IsWindowsVersionOrGreater( 5, 0, 0 ) )
 			{
 				return WinNT40ListPorts( lpCallback, psv );
 			}
 
-#if defined( LISTPORTS_SUPPORT_W2K )
+//#if defined( LISTPORTS_SUPPORT_W2K )
 			else
 			{
 				return Win2000ListPorts( lpCallback, psv ); /* hopefully it'll also work for XP */
 			}
-#else
-			{
-				lprintf( "List ports is not supported on this platform..." );
-			}
-#endif
 
 			break;
 #if defined( LISTPORTS_SUPPORT_WCE )
@@ -187,7 +183,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 
 		portinfo.lpPortName = lpPortName;
 		portinfo.lpFriendlyName = lpPortName; /* no friendly name in NT 4.0 */
-		portinfo.lpTechnology = ""; /* this information is not available */
+		portinfo.lpTechnology = lpValueName; /* this information is not available */
 
 		if( !lpCallback( psv,&portinfo ) )
 		{
@@ -275,13 +271,13 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 	{
 		dwError = 0;
 
-		if ( dwError = OpenSubKeyByIndex( hKey, dwIndex, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, NULL ) ) 
+		if ( dwError = ListPorts_OpenSubKeyByIndex( hKey, dwIndex, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, NULL ) ) 
 		{
 			if ( dwError == ERROR_NO_MORE_ITEMS ) dwError = 0;
 			break;
 		}
 
-		if ( dwError = QueryStringValue( hkLevel1, "PREFIX", &lpPortName ) ) 
+		if ( dwError = ListPorts_QueryStringValue( hkLevel1, "PREFIX", &lpPortName ) )
 		{
 			if( dwError == ERROR_FILE_NOT_FOUND )
 				continue; 
@@ -307,7 +303,7 @@ static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 		snprintf( portinfo.lpPortName, sizeof( portinfo.lpPortName ), "COM%u", index );		 //-V579
 
 		// Get friendly name
-		dwError = QueryStringValue( hkLevel1, "FRIENDLYNAME", &lpFriendlyName );
+		dwError = ListPorts_QueryStringValue( hkLevel1, "FRIENDLYNAME", &lpFriendlyName );
 		portinfo.lpFriendlyName = dwError ? (TEXTSTR)"" : lpFriendlyName;
 
 		portinfo.lpTechnology = ""; /* this information is not available */
@@ -377,7 +373,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 			hkLevel1 = NULL;
 		}
 
-		if( dwError = OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) )
+		if( dwError = ListPorts_OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) )
 		{
 			if( dwError == ERROR_NO_MORE_ITEMS )
 			{
@@ -397,7 +393,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				hkLevel2 = NULL;
 			}
 
-			if( dwError = OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, NULL ) )
+			if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, NULL ) )
 			{
 				if( dwError == ERROR_NO_MORE_ITEMS )
 				{
@@ -420,7 +416,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 					hkLevel3 = NULL;
 				}
 
-				if( dwError = OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, NULL ) )
+				if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, NULL ) )
 				{
 					if( dwError == ERROR_NO_MORE_ITEMS )
 					{
@@ -460,7 +456,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				/* get "PORTNAME" */
 
-				dwError = QueryStringValue( hkLevel3, "PORTNAME", &lpPortName );
+				dwError = ListPorts_QueryStringValue( hkLevel3, "PORTNAME", &lpPortName );
 				if( dwError == ERROR_FILE_NOT_FOUND )
 				{
 					/* In Win200, "PORTNAME" is located under the subkey "DEVICE PARAMETERS".
@@ -475,7 +471,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				
 					if( RegOpenKeyEx( hkLevel3, "DEVICE PARAMETERS", 0, KEY_READ, &hkDeviceParameters ) == ERROR_SUCCESS )
 					{
-						dwError = QueryStringValue( hkDeviceParameters, "PORTNAME", &lpPortName );
+						dwError = ListPorts_QueryStringValue( hkDeviceParameters, "PORTNAME", &lpPortName );
 					}
 				}
 
@@ -499,7 +495,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				/* now go for "FRIENDLYNAME" */
 
-				if( dwError = QueryStringValue( hkLevel3, "FRIENDLYNAME", &lpFriendlyName ) )
+				if( dwError = ListPorts_QueryStringValue( hkLevel3, "FRIENDLYNAME", &lpFriendlyName ) )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )
 					{
@@ -548,7 +544,7 @@ end:
 #endif
 
 #if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
-static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
+static uint32_t ListPorts_OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
 {
 	uint32_t              dwError = 0;
 	LOGICAL          bLocalSubkeyName = FALSE;
@@ -601,7 +597,7 @@ end:
 #endif
 
 #if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
-static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
+static uint32_t ListPorts_QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
 {
 	uint32_t cbStringValue = 128 * sizeof( TEXTCHAR ); /* an initial guess */
 
