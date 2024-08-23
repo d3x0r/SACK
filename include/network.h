@@ -953,7 +953,7 @@ NETWORK_PROC( void, ssl_WriteData )( struct ssl_session* session, POINTER buffer
 /*
 * Send data out ssl connection
 */
-NETWORK_PROC( LOGICAL, ssl_SendPipe )( struct ssl_session* ses, CPOINTER buffer, size_t length );
+NETWORK_PROC( LOGICAL, ssl_SendPipe )( struct ssl_session** ses, CPOINTER buffer, size_t length );
 
 /*
 * set the send and receive work functions for an SSL connection
@@ -974,6 +974,10 @@ NETWORK_PROC( CTEXTSTR, ssl_GetRequestedHostName )(PCLIENT pc);
 // just closed, but new error handling allows fallback to HTTP in order to send
 // a redirect to the HTTPS address proper.
 NETWORK_PROC( void, ssl_EndSecure )(PCLIENT pc, POINTER buffer, size_t buflen );
+/* 
+ For a ssl_session pipe, this is a close.    
+ */
+NETWORK_PROC( void, ssl_EndSecurePipe )(struct ssl_session** session );
 
 
 /* use this to send on SSL Connection instead of SendTCP. */
