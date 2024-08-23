@@ -1,6 +1,8 @@
 #define SACKCOMMLIST_SOURCE
 #include "listports.h"
+#ifdef _WIN32
 #include <VersionHelpers.h>
+#endif
 #include <sharemem.h>
 
 //#define LISTPORTS_SUPPORT_WIN9X
@@ -626,4 +628,51 @@ static uint32_t ListPorts_QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEX
 			return dwError;
 	}
 }
+
+#else
+
+struct ListPortsProcessParams {
+	ListPortsCallback lpCallback;
+	uintptr_t psv;
+};
+}
+
+LOGICAL Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
+	struct ListPortsProcessParams *params = (struct ListPortsProcessParams *)psvUser;
+	if( flags & SFF_DIRECTORY ) {
+		return TRUE;
+	} else {
+		static char link[1024];
+		static char tmpname[1024];
+		static char data[1024];
+		int rc = readlink( name, buf, sizeof(buf) );
+		if( rc <= 0 ) {
+			return TRUE;
+		}
+		link[rc] = 0;
+		snprintf( tmpname, sizeof( tmpname ), "%s/type", name );
+		FILE* f = fopen( tmpname, "r" );
+		fread( data, 1, sizeof(data), f );
+		fclose( f );
+		if( strcmp( data, "0" ) ) {
+			return TRUE;
+		}
+		LISTPORTS_PORTINFO portinfo;
+		portinfo.lpPortName = name + 15;
+		portinfo.lpFriendlyName = name + 15;
+		portinfo.lpTechnology = "TBD";
+		return params->lpCallback( params->psv, &portinfo );
+	}
+}
+
+LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
+	struct ListPortsProcessParams params;
+	params.lpCallback = lpCallback;
+	params.psv = psv;
+	while( ScanFiles( "/sys/class/tty", "*", &info, Process, 0, (uintptr_t)&params ) )
+		;
+
+	return TRUE;
+}
+
 #endif
