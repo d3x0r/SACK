@@ -1,13 +1,13 @@
 #define SACKCOMMLIST_SOURCE
 #include "listports.h"
+#include <sharemem.h>
 #ifdef _WIN32
 #include <VersionHelpers.h>
-#endif
-#include <sharemem.h>
-
 //#define LISTPORTS_SUPPORT_WIN9X
 #define LISTPORTS_SUPPORT_W2K
 //#define LISTPORTS_SUPPORT_WCE
+#endif
+
 
 #ifdef LISTPORTS_SUPPORT_WIN9X
 static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv );
