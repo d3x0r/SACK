@@ -665,6 +665,7 @@ LOGICAL Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags fla
 
 LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 	struct ListPortsProcessParams params;
+	POINTER info = NULL;
 	params.lpCallback = lpCallback;
 	params.psv = psv;
 	while( ScanFiles( "/sys/class/tty", "*", &info, Process, 0, (uintptr_t)&params ) )
