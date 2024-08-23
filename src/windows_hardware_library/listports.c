@@ -635,7 +635,7 @@ struct ListPortsProcessParams {
 	uintptr_t psv;
 };
 
-LOGICAL Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
+void Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
 	struct ListPortsProcessParams *params = (struct ListPortsProcessParams *)psvUser;
 	if( flags & SFF_DIRECTORY ) {
 		return TRUE;
@@ -643,7 +643,7 @@ LOGICAL Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags fla
 		static char link[1024];
 		static char tmpname[1024];
 		static char data[1024];
-		int rc = readlink( name, buf, sizeof(buf) );
+		int rc = readlink( name, link, sizeof(link) );
 		if( rc <= 0 ) {
 			return TRUE;
 		}
@@ -668,7 +668,7 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 	POINTER info = NULL;
 	params.lpCallback = lpCallback;
 	params.psv = psv;
-	while( ScanFiles( "/sys/class/tty", "*", &info, Process, 0, (uintptr_t)&params ) )
+	while( ScanFiles( "/sys/class/tty", "*", &info, Process, (enum ScanFileFlags)0, (uintptr_t)&params ) )
 		;
 
 	return TRUE;
