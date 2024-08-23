@@ -380,8 +380,8 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE       EmptyDataList ( PDATALIST *ppdl );
    }
 
    </code>                                               */
-#define DATA_FORALL( l, i, t, v )  if(((v)=(t)NULL),(l)&&((l)->Cnt != INVALID_INDEX))   \
-	for( ((i)=0);                         \
+#define DATA_FORALL( l, i, t, v )  if(((i)=0),((v)=(t)NULL),(l)&&((l)->Cnt != INVALID_INDEX))   \
+	for( ;                                               \
 	(((i) < (l)->Cnt)                                    \
          ?(((v)=(t)((l)->data + (uintptr_t)(((l)->Size) * (i)))),1)   \
 	      :(((v)=(t)NULL),0))&&(v); (i)++ )
