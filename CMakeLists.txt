@@ -389,7 +389,7 @@ endif( NOT __NO_INSTALL__ )
 
 if( NEED_LIBRESSL )
    if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
-	set( LIBRESSL_SKIP_INSTALL ON )
+		set( LIBRESSL_SKIP_INSTALL ON )
    endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
 	set( LIBRESSL_APPS OFF )
 	set( LIBRESSL_TESTS OFF )
@@ -400,14 +400,6 @@ if( NEED_LIBRESSL )
 	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
         include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
         set( SSL_LIBS ssl tls crypto )
-
-if( OFF )
-   SET( LIBSSH_SKIP_INSTALL ON )
-   set( LIBSSH_BUILD_SHARED_LIBS OFF )
-   add_subdirectory( src/contrib/libssh )
-   set( SSH_LIBS ssh )
-endif( OFF )
-
 
 else( NEED_LIBRESSL )
 
