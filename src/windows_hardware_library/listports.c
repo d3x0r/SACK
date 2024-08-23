@@ -1,26 +1,39 @@
 #define SACKCOMMLIST_SOURCE
 #include "listports.h"
+#include <VersionHelpers.h>
 #include <sharemem.h>
 
-static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv );
-static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv );
-static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv ); 
-static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv);
-static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv );
-static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName ); 
-static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
+//#define LISTPORTS_SUPPORT_WIN9X
+//#define LISTPORTS_SUPPORT_W2K
+//#define LISTPORTS_SUPPORT_WCE
 
-LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
-{
+#ifdef LISTPORTS_SUPPORT_WIN9X
+static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv );
+#endif
+static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv );
+#if defined( LISTPORTS_SUPPORT_W2K )
+static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv ); 
+#endif
+#if defined( LISTPORTS_SUPPORT_WCE )
+static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv);
+#endif
+#if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K )
+static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv );
+#endif
+
+#if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
+static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName );
+static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue );
+#endif
+
+LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 
 #ifdef WIN32
 
-	OSVERSIONINFO osvinfo;
 
 	/* check parameters */
 
-	if( !lpCallback )
-	{
+	if( !lpCallback ) {
 		SetLastError( ERROR_INVALID_PARAMETER );
 		return FALSE;
 	}
@@ -29,21 +42,32 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 	* to the appropriate routine
 	*/
 
+#if 0
+	OSVERSIONINFO osvinfo;
 	ZeroMemory( &osvinfo, sizeof( osvinfo ) );
 	osvinfo.dwOSVersionInfoSize = sizeof( osvinfo );
-
 	GetVersionEx( &osvinfo );
-
 	lprintf( " Platform ID: %d, Major Version: %d", osvinfo.dwPlatformId, osvinfo.dwMajorVersion );
+#endif
 
+	//IsWindowsVersionOrGreater( 6, 0, 0 );
+
+	if( IsWindowsVersionOrGreater( 4, 0, 0 ) )
+		return WinNT40ListPorts( lpCallback, psv );
+	else {
+		lprintf( "ListPorts is not supported on this platform..." );
+		return FALSE;
+	}
+
+#if 0
 	switch( osvinfo.dwPlatformId )
 	{
-
+#ifdef LISTPORTS_SUPPORT_WIN9X
 		case VER_PLATFORM_WIN32_WINDOWS:
 			
 			return Win9xListPorts( lpCallback, psv );
 			break;
-
+#endif
 		case VER_PLATFORM_WIN32_NT:
 
 			if( osvinfo.dwMajorVersion < 4 )
@@ -52,24 +76,31 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 				return FALSE;
 			}
 
-			else if( osvinfo.dwMajorVersion == 4 )
+			else if( IsWindowsVersionOrGreater( 4, 0, 0 ) )
 			{
 				return WinNT40ListPorts( lpCallback, psv );
 			}
 
+#if defined( LISTPORTS_SUPPORT_W2K )
 			else
 			{
 				return Win2000ListPorts( lpCallback, psv ); /* hopefully it'll also work for XP */
 			}
+#else
+			{
+				lprintf( "List ports is not supported on this platform..." );
+			}
+#endif
 
 			break;
+#if defined( LISTPORTS_SUPPORT_WCE )
 #ifdef _WIN32_WCE
 
 		case VER_PLATFORM_WIN32_CE:
 			return WinCEListPorts( lpCallback, lpCallbackValue );
 
 #endif
-
+#endif
 		default:
 
 			SetLastError( ERROR_OLD_WIN_VERSION );
@@ -80,12 +111,16 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 #else
 
 #endif
+#endif
+
 }
 
+#ifdef LISTPORTS_SUPPORT_WIN9X
 static LOGICAL Win9xListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 {
 	return ScanEnumTree( "ENUM", lpCallback, psv );
 }
+#endif
 
 static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Unlike Win9x, information on serial ports registry storing in NT 4.0 is
@@ -177,6 +212,7 @@ end:
 	else return TRUE;
 }
 
+#if defined( LISTPORTS_SUPPORT_W2K )
 static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Information on serial ports is stored in the Win2000 registry in a manner very
  * similar to that of Win9x, with three differences:
@@ -203,6 +239,9 @@ static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 {
   return ScanEnumTree( "SYSTEM\\CURRENTCONTROLSET\\ENUM", lpCallback, psv );
 }
+#endif
+
+#if defined( LISTPORTS_SUPPORT_WCE )
 
 static LOGICAL WinCEListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Available COM ports on Pocket PC/Windows CE devices are stored in registry under
@@ -299,6 +338,9 @@ end:
 	else 
 		return TRUE;
 }
+#endif
+
+#if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K )
 
 static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, uintptr_t psv )
 {
@@ -503,7 +545,9 @@ end:
 	else
 		return TRUE;
 }
+#endif
 
+#if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
 static uint32_t OpenSubKeyByIndex( HKEY hKey, uint32_t dwIndex, REGSAM samDesired, PHKEY phkResult, TEXTSTR* lppSubKeyName )
 {
 	uint32_t              dwError = 0;
@@ -554,7 +598,9 @@ end:
 
 	return dwError;
 }
+#endif
 
+#if defined( LISTPORTS_SUPPORT_WIN9X ) || defined( LISTPORTS_SUPPORT_W2K ) || defined( LISTPORTS_SUPPORT_WCE )
 static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppStringValue )
 {
 	uint32_t cbStringValue = 128 * sizeof( TEXTCHAR ); /* an initial guess */
@@ -584,3 +630,4 @@ static uint32_t QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEXTSTR* lppS
 			return dwError;
 	}
 }
+#endif
