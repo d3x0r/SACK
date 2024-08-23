@@ -627,7 +627,7 @@ static uint32_t ListPorts_QueryStringValue( HKEY hKey, CTEXTSTR lpValueName, TEX
 			return dwError;
 	}
 }
-
+#endif
 #else
 
 struct ListPortsProcessParams {
