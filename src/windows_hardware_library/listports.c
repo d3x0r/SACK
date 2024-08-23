@@ -638,14 +638,14 @@ struct ListPortsProcessParams {
 void Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags ) {
 	struct ListPortsProcessParams *params = (struct ListPortsProcessParams *)psvUser;
 	if( flags & SFF_DIRECTORY ) {
-		return TRUE;
+		return;
 	} else {
 		static char link[1024];
 		static char tmpname[1024];
 		static char data[1024];
 		int rc = readlink( name, link, sizeof(link) );
 		if( rc <= 0 ) {
-			return TRUE;
+			return;
 		}
 		link[rc] = 0;
 		snprintf( tmpname, sizeof( tmpname ), "%s/type", name );
@@ -653,13 +653,13 @@ void Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags 
 		fread( data, 1, sizeof(data), f );
 		fclose( f );
 		if( strcmp( data, "0" ) ) {
-			return TRUE;
+			return;
 		}
 		LISTPORTS_PORTINFO portinfo;
 		portinfo.lpPortName = name + 15;
 		portinfo.lpFriendlyName = name + 15;
 		portinfo.lpTechnology = "TBD";
-		return params->lpCallback( params->psv, &portinfo );
+		params->lpCallback( params->psv, &portinfo );
 	}
 }
 
