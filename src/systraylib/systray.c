@@ -1,4 +1,7 @@
-#define NO_OPEN_MACRO
+#ifndef NO_OPEN_MACRO
+#  define UNDEF_NO_OPEN_MACRO
+#  define NO_OPEN_MACRO
+#endif
 #define FIX_RELEASE_COM_COLLISION
 #include <stdhdrs.h>
 #include <shlwapi.h>
@@ -569,12 +572,13 @@ void TerminateIcon( void )
 			Log( "Telling previous instance to exit." );
 		SendMessage( hWndOld, WM_COMMAND, /*MNU_EXIT*/1000, 0 );
 		Sleep( 100 );
-      attempt++;
+		attempt++;
 	}
 	if( attempt == 5 )
 	{
-      DWORD dwProcess;
-		DWORD dwThread = GetWindowThreadProcessId( hWndOld, &dwProcess );
+		DWORD dwProcess;
+		//DWORD dwThread = 
+		GetWindowThreadProcessId( hWndOld, &dwProcess );
 		HANDLE hProc;
 		if( localSystrayState.flags.bLog )
 			lprintf( "posting didn't cause process to exit... attempting to terminate." );
@@ -595,6 +599,11 @@ ATEXIT( DoUnregisterIcon )
 {
    UnregisterIcon();
 }
+
+#ifdef UNDEF_NO_OPEN_MACRO
+#  undef UNDEF_NO_OPEN_MACRO
+#  undef NO_OPEN_MACRO
+#endif
 
 // $Log: systray.c,v $
 // Revision 1.15  2005/07/25 21:43:15  jim
