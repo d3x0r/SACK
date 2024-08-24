@@ -562,7 +562,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					EnterCriticalSec( &ses[0]->csReadWrite );
 					goto read_more;
 				} else {
-					lprintf( "Session closed during read." );
+					//lprintf( "Session closed during read." );
 				}
 			}
 			else if( len == 0 ) {
@@ -770,7 +770,7 @@ static void ssl_InitSession( struct ssl_session *ses ) {
 
 void ssl_ClosePipe( struct ssl_session **ses ) {
 	if (!ses[0]) {
-		lprintf("already closed?");
+		//lprintf("(ClosePipe)already closed?");
 		return;
 	}
 	if( ses[0]->inUse ) {
@@ -802,7 +802,7 @@ void ssl_ClosePipe( struct ssl_session **ses ) {
 static void ssl_CloseCallback( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
 	if (!ses) {
-		lprintf("already closed?");
+		//lprintf("already closed?");
 		return;
 	}
 	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
