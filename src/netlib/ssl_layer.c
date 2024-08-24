@@ -26,6 +26,7 @@
 
 #include "netstruc.h"
 
+//#define DEBUG_SSL_FALLBACK
 //#define DEBUG_SSL_IO
 // also has option to control output
 //#define DEBUG_SSL_IO_BUFFERS
@@ -236,14 +237,22 @@ LOGICAL ssl_IsPipeClosed( struct ssl_session*ssl_session ) {
 
 void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 {
-	//lprintf( "Close generic session %p", ssl_session );
+#if defined( DEBUG_SSL_FALLBACK )			
+	lprintf( "Close generic session %p", ssl_session );
+#endif	
 	if( ssl_session[0] )
 	{
 		struct ssl_session *ses = ssl_session[0];
 		INDEX idx;
 		PTEXT seg;
 		SSL_shutdown( ses->ssl );
-		ssl_handlePendingControlwrites( ses );
+		//lprintf( "SSL Shutdown... but this should only be done if handshake complete..." );
+		if( SSL_is_init_finished( ses->ssl ) ) {
+#if defined( DEBUG_SSL_FALLBACK )			
+			lprintf( "SSL Shutdown... but this should only be done if handshake complete..." );
+#endif			
+			ssl_handlePendingControlwrites( ses );
+		}
 
 		LIST_FORALL( ses->protocols, idx, PTEXT, seg ) {
 			LineRelease( seg );
@@ -257,6 +266,9 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 		/* this should probably have a do_close action event too like send/recv */
 		//Release( pc->ssl_session );
 		//pc->ssl_session = NULL;
+		ssl_session[0] = NULL;
+	} else {
+		lprintf( "Session already closed" );
 	}
 }
 
@@ -266,8 +278,9 @@ void ssl_CloseSession( PCLIENT pc ) {
 		RemoveClient( pc );
 }
 
-static int handshake( struct ssl_session* ses ) {
-	if (!SSL_is_init_finished(ses->ssl)) {
+static int handshake( struct ssl_session** ses ) {
+	if( !ses[0] ) return -1;
+	if (!SSL_is_init_finished(ses[0]->ssl)) {
 		int r;
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "doing handshake...." );
@@ -276,13 +289,13 @@ static int handshake( struct ssl_session* ses ) {
 #ifdef DEBUG_SSL_IO
 		lprintf(" Handshake is not finished? %p", pc );
 #endif
-		r = SSL_do_handshake(ses->ssl);
+		r = SSL_do_handshake(ses[0]->ssl);
 #ifdef DEBUG_SSL_IO_VERBOSE
 		lprintf( "handle data posted to SSL? %d", r );
 #endif
 		if( r == 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-			r = SSL_get_error( ses->ssl, r );
+			r = SSL_get_error( ses[0]->ssl, r );
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 
 #ifdef DEBUG_SSL_IO
@@ -291,19 +304,20 @@ static int handshake( struct ssl_session* ses ) {
 			return -1;
 		}
 		//if( r >= 0 )
+		if( ses[0] )
 		{
 			size_t pending;
-			while( ( pending = BIO_ctrl_pending( ses->wbio) ) > 0 ) {
+			while( ( pending = BIO_ctrl_pending( ses[0]->wbio) ) > 0 ) {
 				if( r == -1 && pending < 8 ) break;
-				if (pending > 0) {
+				if (ses[0] && pending > 0) {
 					int read;
-					if( pending > ses->obuflen ) {
-						if( ses->obuffer )
-							Deallocate( uint8_t *, ses->obuffer );
-						ses->obuffer = NewArray( uint8_t, ses->obuflen = pending*2 );
+					if( pending > ses[0]->obuflen ) {
+						if( ses[0]->obuffer )
+							Deallocate( uint8_t *, ses[0]->obuffer );
+						ses[0]->obuffer = NewArray( uint8_t, ses[0]->obuflen = pending*2 );
 						//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 					}
-					read = BIO_read(ses->wbio, ses->obuffer, (int)pending);
+					read = BIO_read(ses[0]->wbio, ses[0]->obuffer, (int)pending);
 #ifdef DEBUG_SSL_IO_VERBOSE
   					lprintf( "send %d %d for handshake", pending, read );
 #endif
@@ -311,20 +325,20 @@ static int handshake( struct ssl_session* ses ) {
 #ifdef DEBUG_SSL_IO
 						lprintf( "handshake send %d", read );
 #endif
-						ses->send_callback( ses->psvSendRecv, ses->obuffer, read );
+						ses[0]->send_callback( ses[0]->psvSendRecv, ses[0]->obuffer, read );
 					}
 				}
 			}
 		}
 		if (r < 0) {
 
-			r = SSL_get_error(ses->ssl, r);
+			r = SSL_get_error(ses[0]->ssl, r);
 			if( SSL_ERROR_SSL == r ) {
 #ifdef DEBUG_SSL_IO
 				lprintf( "SSL_Read failed... %d", r );
 #endif
 
-				if( !ses->errorCallback )
+				if( !ses[0]->errorCallback )
 					ERR_print_errors_cb( logerr, (void*)__LINE__ );
 				return -1;
 			}
@@ -340,6 +354,7 @@ static int handshake( struct ssl_session* ses ) {
 		return 2;
 	}
 	else {
+
 		/* SSL IS INITIALISED */
 #ifdef DEBUG_SSL_IO
 		lprintf(" Handshake is and has been finished?");
@@ -384,7 +399,8 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				return;
 			}
 
-			if( !( hs_rc = handshake( ses[0] ) ) ) {
+			if( !( hs_rc = handshake( ses ) ) ) {
+				// zero result is 'needs more data read'
 				if( !ses[0] ) {
 					ses[0]->inUse--;
 					LeaveCriticalSec( &ses[0]->csReadWrite ); //-V522
@@ -429,7 +445,6 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 						}
 					}
 
-					ses[0]->inUse--;
 					LeaveCriticalSec( &ses[0]->csReadWrite );
 
 					//lprintf( "Initial read dispatch.." );
@@ -437,13 +452,16 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 						ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
 					else
 						ses[0]->user_read( pc, NULL, 0 );
-
+					if( ses[0]->deleteInUse ){
+						lprintf( "Pending close... was in-use when closed.");
+					}
 					EnterCriticalSec( &ses[0]->csReadWrite );
 				}
 				len = 0;
 			}
 			if( hs_rc >= 1 )
 			{
+				// 1 is 'needs to send some data to complete handshake'
 			read_more:
 				// if read isn't done before pending, pending doesn't get set
 				// but this read doens't return a useful length.
@@ -491,28 +509,42 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				if( ses[0] ) {
 					ses[0]->inUse--;
 					LeaveCriticalSec( &ses[0]->csReadWrite );
-					//ssl_CloseSession( pc );
-					ssl_ClosePipeSession( ses );
-					if( pc )
-					if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
-						RemoveClient( pc );
+					if( ses[0]->deleteInUse ){
+#if defined( DEBUG_SSL_FALLBACK )			
+						lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d", ses[0]->inUse, ses[0]->deleteInUse );
+#endif						
+						ssl_ClosePipeSession( ses );
+					} else {
+						//ssl_CloseSession( pc );
+#if defined( DEBUG_SSL_FALLBACK )			
+						lprintf( "This is a close anyway...");
+#endif						
+						if( pc ) {
+							if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+								RemoveClient( pc );
+						}
+					}
 				}
+#if defined( DEBUG_SSL_FALLBACK )			
+				lprintf( "done with failed handshake?");
+#endif				
 				return;
 			}
 			else
 				len = 0;
 
 			ssl_handlePendingControlwrites( ses[0] );
+			ses[0]->inUse--;
+			LeaveCriticalSec( &ses[0]->csReadWrite );
+			if( ses[0] && ses[0]->deleteInUse ) {
+				lprintf( "Need to close this SSL layer?" );
+			}
 			if( !ses[0] ) {
-				ses[0]->inUse--;
-				LeaveCriticalSec( &ses[0]->csReadWrite );
 				return;
 			}
 
-			LeaveCriticalSec( &ses[0]->csReadWrite );
-
 			// do was have any decrypted data to give to the application?
-			if( len > 0 ) {
+			if( ses[0] && len > 0 ) {
 #ifdef DEBUG_SSL_IO_BUFFERS
 				if( ssl_global.flags.bLogBuffers ) {
 					lprintf( "READ BUFFER:" );
@@ -524,8 +556,13 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				else
 					ses[0]->user_read( pc, ses[0]->dbuffer, len );
 				if( ses[0] ) { // might have closed during read.
+					if( ses[0] && ses[0]->deleteInUse ){
+						lprintf( "Pending close(3)... was in-use when closed.");
+					}
 					EnterCriticalSec( &ses[0]->csReadWrite );
 					goto read_more;
+				} else {
+					lprintf( "Session closed during read." );
 				}
 			}
 			else if( len == 0 ) {
@@ -565,16 +602,22 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 						}
 						read = BIO_read( ses[0]->wbio, ses[0]->obuffer, (int)ses[0]->obuflen );
+						lprintf( "Sending bio pending? %d (even though we're closing the ssl to fallback?)", pending );
 						ses[0]->send_callback( ses[0]->psvSendRecv, ses[0]->obuffer, read );
 						//SendTCP( pc, ses[0]->obuffer, read );
 					}
 				}
 			}
-			ses[0]->inUse--;
-			LeaveCriticalSec( &ses[0]->csReadWrite );
+			if( ses[0] ){
+				ses[0]->inUse--;
+				LeaveCriticalSec( &ses[0]->csReadWrite );
+				if( ses[0]->deleteInUse ){
+					lprintf( "Pending close... was in-use when closed.");
+				}
+			}
 		}
 		//lprintf( "Read more data..." );
-		if( ses ) {
+		if( ses[0] ) {
 
 			if( !buffer )
 				ses[0]->firstPacket = 1;
@@ -604,7 +647,7 @@ LOGICAL ssl_SendPipe( struct ssl_session **ses, CPOINTER buffer, size_t length )
 	int32_t len_out;
 	size_t offset = 0;
 	size_t pending_out = length;
-	if( !ses )
+	if( !ses || !ses[0] )
 		return FALSE;
 #if defined( DEBUG_SSL_IO ) || defined( DEBUG_SSL_IO_VERBOSE)
 	lprintf( "SSL SEND....%d ", length );
@@ -625,6 +668,12 @@ LOGICAL ssl_SendPipe( struct ssl_session **ses, CPOINTER buffer, size_t length )
 #endif
 		len = SSL_write( ses[0]->ssl, (((uint8_t*)buffer) + offset), (int)pending_out );
 		if (len < 0) {
+			ERR_print_errors_cb(logerr, (void*)__LINE__);
+			ses[0]->inUse--;
+			LeaveCriticalSec( &ses[0]->csReadWrite );
+			return FALSE;
+		} 
+		if( !len ) {
 			ERR_print_errors_cb(logerr, (void*)__LINE__);
 			ses[0]->inUse--;
 			LeaveCriticalSec( &ses[0]->csReadWrite );
@@ -1491,12 +1540,15 @@ struct ssl_session* ssl_BeginClientPipeSession( void (*send)(uintptr_t, CPOINTER
 
 LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 	//lprintf( "Is client secure? %p %d %d", pc, !!pc->ssl_session, (pc->ssl_session&&(pc->ssl_session->ctx != NULL)) );
-	return (!!pc->ssl_session);//&&(pc->ssl_session->ctx != NULL));
+	return (!!pc->ssl_session) && !pc->ssl_session->deleteInUse;//&&(pc->ssl_session->ctx != NULL));
 }
 
 
 void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 	if( pc && pc->ssl_session ) {
+#if defined( DEBUG_SSL_FALLBACK )			
+		lprintf( "Restoring old callbacks" );
+#endif		
 		// revert native socket methods.
 		if( pc->ssl_session->user_read )
 			pc->read.ReadComplete = pc->ssl_session->user_read;
@@ -1531,10 +1583,15 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		pc->ssl_session->cpp_user_close = NULL;
 		tmp = pc->ssl_session->ibuffer;
 		pc->ssl_session->ibuffer = NULL;
+#if defined( DEBUG_SSL_FALLBACK )			
+		lprintf( "Invoke close callback?" );
+#endif		
 		ssl_CloseCallback( pc );
 		// SSL callback failed, but it may be possible to connect direct.
 		// and if so; setup to return a redirect.
-		//lprintf( "is ssl_session gone(yes)? %p %p", pc, pc->ssl_session );
+#if defined( DEBUG_SSL_FALLBACK )			
+		lprintf( "is ssl_session gone(yes)? %p %p %d %d", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1 );
+#endif		
 		if( buffer ) {
 			if( pc->dwFlags & CF_CPPREAD ) {
 				pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
@@ -1546,6 +1603,9 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 				if( buffer )
 					pc->read.ReadComplete( pc, buffer, length );
 			}
+#if defined( DEBUG_SSL_FALLBACK )			
+			lprintf( "Sent buffer to app?");
+#endif			
 		}
 		Release( tmp );
 	}

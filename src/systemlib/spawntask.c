@@ -504,16 +504,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	TEXTSTR expanded_path;// = ExpandPath( program );
 	TEXTSTR expanded_working_path = path ? ExpandPath( path ) : NULL;
 	PLIST oldStrings = NULL;
-	{
-		INDEX idx;
-		struct environmentValue* val;
-		LIST_FORALL( list, idx, struct environmentValue*, val ) {
-			const char *oldVal = OSALOT_GetEnvironmentVariable( val->field );
-			if( oldVal ) oldVal = StrDup( oldVal );
-			SetLink( &oldStrings, idx, oldVal );
-			OSALOT_SetEnvironmentVariable( val->field, val->value );
-		}
-	}
 	if( path ) {
 		path = ExpandPath( path );
 
@@ -553,6 +543,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		int shellExec = 0;
 		if( path )
 			Deallocate( CTEXTSTR, path );
+
+		{
+			INDEX idx;
+			struct environmentValue* val;
+			LIST_FORALL( list, idx, struct environmentValue*, val ) {
+				const char *oldVal = OSALOT_GetEnvironmentVariable( val->field );
+				if( oldVal ) oldVal = StrDup( oldVal );
+				SetLink( &oldStrings, idx, oldVal );
+				OSALOT_SetEnvironmentVariable( val->field, val->value );
+			}
+		}
+
 		//TEXTCHAR saved_path[256];
 		task = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
 		MemSet( task, 0, sizeof( TASK_INFO ) );
@@ -920,9 +922,21 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 			int waitPipe[2];
 			pipe(waitPipe);
-			if( ( !( flags & LPP_OPTION_INTERACTIVE ) )? !( newpid = fork() ) 
-			   : !( newpid = forkpty( &task->pty, NULL, NULL, NULL ) ) )
+			if( ( !( flags & LPP_OPTION_INTERACTIVE ) )
+			    ? !( newpid = fork() ) 
+			    : !( newpid = forkpty( &task->pty, NULL, NULL, NULL ) ) )
 			{
+				{
+					INDEX idx;
+					struct environmentValue* val;
+					LIST_FORALL( list, idx, struct environmentValue*, val ) {
+						//lprintf( "Waited until in the fork to set environment variable %s=%s", val->field, val->value );
+						if( !val->value )
+							unsetenv( val->field );
+						else
+							setenv( val->field, val->value, TRUE );
+					}
+				}
 			
 				// after fork; check that args has a space for
 				// the program name to get filled into.
@@ -948,11 +962,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 				if( expanded_working_path ) {
 					chdir( expanded_working_path );
-					lprintf( "Change directory(in child): %s", expanded_working_path );
+					//lprintf( "Change directory(in child): %s", expanded_working_path );
 					//Release( expanded_working_path );
-				} else
-					lprintf( "Not changing directory(in child?" );
-
+				}
+				// keep a copy of program name so main thread can continue - which may be fast enough
+				// to release the program name before the child gets to it.
 				char *_program = CStrDup( program );
 				// in case exec fails, we need to
 				// drop any registered exit procs...
@@ -967,7 +981,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					if( OutputHandler || OutputHandler2 )
 						dup2( task->hStdErr.pair[1], 2 );
 				}
-
+				// mark the child as started...
 				write( waitPipe[1], "", 1 );
 				close( waitPipe[0] );
 				close( waitPipe[1] );
