@@ -2971,7 +2971,8 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
  void  GetHeapMemStatsEx ( PMEM pHeap, uint32_t *pFree, uint32_t *pUsed, uint32_t *pChunks, uint32_t *pFreeChunks DBG_PASS )
 {
 #if USE_CUSTOM_ALLOCER
-	int nChunks = 0, nFreeChunks = 0, nSpaces = 0;
+	int nChunks = 0, nFreeChunks = 0;
+	//int nSpaces = 0;
 	uintptr_t nFree = 0, nUsed = 0;
 	PCHUNK pc, _pc;
 	PMEM pMem;
@@ -3080,7 +3081,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 			_pc = pc;
 			pc = pc->next;
 		}
-		nSpaces++;
+		//nSpaces++;
 		pMemSpace = pMemSpace->next;
 		DropMemEx( pMemCheck DBG_RELAY );
 	}

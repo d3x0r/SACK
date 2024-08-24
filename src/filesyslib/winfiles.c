@@ -2537,7 +2537,7 @@ LOGICAL windowDeepDelete( const char* path )
 
 	if( info.dwFileAttributes & FILE_ATTRIBUTE_READONLY ) {
 		/* Remove read-only attribute */
-		FILE_BASIC_INFORMATION basic = { 0 };
+		FILE_BASIC_INFORMATION basic = {};
 
 		basic.FileAttributes = ( info.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY ) |
 			FILE_ATTRIBUTE_ARCHIVE;
@@ -2687,8 +2687,8 @@ static	int CPROC sack_filesys_find_first( struct find_cursor* _cursor ) {
 static	int CPROC sack_filesys_find_close( struct find_cursor* _cursor ) {
 	struct find_cursor_data* cursor = ( struct find_cursor_data* )_cursor;
 #ifdef WIN32
-	int r;
-	r = findclose( cursor->findHandle );
+	//int r = 
+	findclose( cursor->findHandle );
 	//lprintf( "findClose %d %p", r, cursor );
 #else
 	if( cursor->handle )

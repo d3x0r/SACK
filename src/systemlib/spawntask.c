@@ -43,7 +43,7 @@ typedef struct task_info_tag TASK_INFO;
 static int DumpErrorEx( DBG_VOIDPASS )
 #define DumpError() DumpErrorEx( DBG_VOIDSRC )
 {
-	const int err = GetLastError();
+	//const int err = GetLastError();
 	//_xlprintf( LOG_NOISE+1 DBG_RELAY)( "Failed create process:%d", err );
 	return 0;
 }
@@ -538,7 +538,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		TEXTSTR new_path;
 		PTEXT final_cmdline;
 		LOGICAL needs_quotes;
-		int first = TRUE;
+		//int first = TRUE;
 		int success = 0;
 		int shellExec = 0;
 		if( path )
@@ -632,7 +632,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				vtprintf( pvt, " \"%s\"", args[0] );
 			else
 				vtprintf( pvt, " %s", args[0] );
-			first = FALSE;
+			//first = FALSE;
 			args++;
 		}
 		cmdline = VarTextGet( pvt );
@@ -692,7 +692,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		}
 
 		{
-			HINSTANCE hShellProcess = 0;
 			if( flags & LPP_OPTION_IMPERSONATE_EXPLORER )
 			{
 				HANDLE hExplorer = GetImpersonationToken();
@@ -1199,10 +1198,10 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 				//LogBinary( GetText( seg )
 				//			, GetTextSize( seg ) );
 					WriteFile( task->hStdIn.handle
-							, GetText( seg )
-							, (DWORD)GetTextSize( seg )
-							, &dwWritten
-							, NULL );
+					          , GetText( seg )
+					          , (DWORD)GetTextSize( seg )
+					          , &dwWritten
+					          , NULL );
 					written += dwWritten;
 #else
 				{
@@ -1215,8 +1214,8 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 					}
 					//LogBinary( (uint8_t*)GetText( seg ), GetTextSize( seg ) );
 					written = write( task->hStdIn.handle
-							, GetText( seg )
-							, GetTextSize( seg ) );
+					               , GetText( seg )
+					               , GetTextSize( seg ) );
 				}
 #endif
 				seg = NEXTLINE(seg);
@@ -1229,7 +1228,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 		//lprintf( "Task has ended, write  aborted." );
 	}
 	VarTextDestroy( &pvt );
-	return 0;
+	return written;
 }
 
 //----------------------- Utility to send to launched task's stdin ----------------------------
