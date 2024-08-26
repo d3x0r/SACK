@@ -224,7 +224,7 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 			}
 			}
 		*/
-		ghWndIcon = CreateWindow( (CTEXTSTR)ac,
+		ghWndIcon = CreateWindow( MAKEINTATOM(ac),
 										 wndname,
 										 0,0,0,0,0,NULL,NULL,NULL,NULL);
 	}
