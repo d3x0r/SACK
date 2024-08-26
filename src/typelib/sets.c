@@ -162,7 +162,7 @@ ExtendSet:
 				set->nUsed = n;
 				goto ExtendSet;
 			}
-			for( n = n; n < maxcnt; n++ )
+			for( /*n = n*/; n < maxcnt; n++ )
 			{
 				if( !IsUsed( set, n ) )
 				{

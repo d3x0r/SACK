@@ -919,7 +919,6 @@ void DetectUnicodeBOM( FILE* file ) {
 
 	if( _file->textmode == TM_UNKNOWN ) {
 		uint8_t bytes[5];
-		enum textModes textmode = _file->textmode;
 		size_t bytelength;
 		_file->textmode = TM_BINARY;
 		bytelength = sack_fread( bytes, 1, 5, file );

@@ -369,7 +369,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 								}
 								else
 								{
-									lprintf( "Header field [%s] invalid", GetText( pLine ) );
+									lprintf( "Header field [%s] invalid(%s)", GetText( pLine ), GetText( pCurrent ) );
 									LineRelease( pLine );
 								}
 							}

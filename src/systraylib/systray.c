@@ -212,19 +212,19 @@ uintptr_t CPROC RegisterAndCreate( PTHREAD thread )
 		//	snprintf( wndname, sizeof( wndname ), "AlertAgentIcon:%d", icon );
 		//else
 		tnprintf( wndname, sizeof( wndname ), "AlertAgentIcon:%s", GetProgramName() );
-      /*
+		/*
 		{
 			HWND prior = NULL;
 			HWND test = NULL;
 			while( (test = FindWindow( wc.lpszClassName, wndname )) && test != prior )
 			{
-            //lprintf( "Sending paint to prior window?" );
-            SendMessage( test, WM_PAINT, 0, 0 );
-            prior = test;
+				//lprintf( "Sending paint to prior window?" );
+				SendMessage( test, WM_PAINT, 0, 0 );
+				prior = test;
 			}
 			}
-      */
-		ghWndIcon = CreateWindow(  (CTEXTSTR)ac,
+		*/
+		ghWndIcon = CreateWindow( (CTEXTSTR)ac,
 										 wndname,
 										 0,0,0,0,0,NULL,NULL,NULL,NULL);
 	}

@@ -323,7 +323,7 @@ static LOGICAL _fs_ValidateBAT( struct sack_vfs_fs_volume *vol ) {
 // function to process a currently loaded program to get the
 // data offset at the end of the executable.
 
-
+#if 0
 static POINTER _fs_GetExtraData( POINTER block )
 {
 #ifdef WIN32
@@ -378,6 +378,7 @@ static POINTER _fs_GetExtraData( POINTER block )
 	return 0;
 #endif
 }
+#endif
 
 static void _fs_AddSalt2( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	struct datatype { void* start; size_t length; } *data = (struct datatype*)psv;
@@ -721,6 +722,7 @@ struct sack_vfs_fs_volume *sack_vfs_fs_load_crypt_volume( const char * filepath,
 	if( !_fs_ExpandVolume( vol ) || !_fs_ValidateBAT( vol ) ) { sack_vfs_fs_unload_volume( vol ); return NULL; }
 	return vol;
 }
+
 #if 0
 struct sack_vfs_fs_volume *sack_vfs_fs_use_crypt_volume( POINTER memory, size_t sz, uintptr_t version, const char * userkey, const char * devkey ) {
 	struct sack_vfs_fs_volume *vol = New( struct sack_vfs_fs_volume );
@@ -977,7 +979,6 @@ LOGICAL _fs_ScanDirectory( struct sack_vfs_fs_volume *vol, const char * filename
 		next_entries = BTSEEK( struct directory_entry *, vol, this_dir_block, cache );
 		for( n = 0; n < VFS_DIRECTORY_ENTRIES; n++ ) {
 			BLOCKINDEX bi;
-			enum block_cache_entries name_cache = BC(NAMES);
 			struct directory_entry *entkey = ( vol->key)?((struct directory_entry *)vol->usekey[cache])+n:&l.zero_entkey;
 			struct directory_entry *entry = ((struct directory_entry *)vol->usekey_buffer[cache]) + n;
 			//const char * testname;
@@ -997,8 +998,11 @@ LOGICAL _fs_ScanDirectory( struct sack_vfs_fs_volume *vol, const char * filename
 			if( name_ofs > vol->dwSize ) { return FALSE; }
 			//testname =
 			if( filename ) {
+#if defined( DEBUG_TRACE_LOG )
+				enum block_cache_entries name_cache = BC(NAMES);
 				const char *names = TSEEK( const char *, vol, name_ofs, name_cache ); // have to do the seek to the name block otherwise it might not be loaded.
 				LoG( "this name: %s", names );
+#endif
 				if( _fs_MaskStrCmp( vol, filename, name_ofs, path_match ) == 0 ) {
 					if( dirkey ) {
 						dirkey[0] = (*entkey);

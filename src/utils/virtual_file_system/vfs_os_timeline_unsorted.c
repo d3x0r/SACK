@@ -652,14 +652,14 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 }
 
 BLOCKINDEX getTimeEntry( struct memoryTimelineNode* time, struct sack_vfs_os_volume* vol, LOGICAL unused, void(*init)(uintptr_t, struct memoryTimelineNode*), uintptr_t psv DBG_PASS ) {
-	enum block_cache_entries cache = BC( TIMELINE );
-	enum block_cache_entries cache_last = BC( TIMELINE );
-	enum block_cache_entries cache_free = BC( TIMELINE );
-	enum block_cache_entries cache_new = BC( TIMELINE );
+	//enum block_cache_entries cache = BC( TIMELINE );
+	//enum block_cache_entries cache_last = BC( TIMELINE );
+	//enum block_cache_entries cache_free = BC( TIMELINE );
+	//enum block_cache_entries cache_new = BC( TIMELINE );
 	struct storageTimeline* timeline = vol->timeline;
 	TIMELINE_BLOCK_TYPE freeIndex;
 	BLOCKINDEX index;
-	BLOCKINDEX priorIndex = (BLOCKINDEX)time->index; // ref.index type is larger than index in some configurations; but won't exceed those bounds
+	//BLOCKINDEX priorIndex = (BLOCKINDEX)time->index; // ref.index type is larger than index in some configurations; but won't exceed those bounds
 	BLOCKINDEX lastIndex = timeline->header.last_added_entry.ref.index;
 
 	freeIndex.ref.index = timeline->header.first_free_entry.ref.index;
@@ -766,7 +766,7 @@ BLOCKINDEX updateTimeEntryTime( struct memoryTimelineNode* time
 	}
 	else {
 		struct memoryTimelineNode time_;
-		LOGICAL existing = ( time ) ? 1 : 0;
+		//LOGICAL existing = ( time ) ? 1 : 0;
 		if( !time ) time = &time_;
 		reloadTimeEntry( time, vol, index VTReadWrite GRTENoLog DBG_RELAY );
 		time->disk->time = timeGetTime64ns();

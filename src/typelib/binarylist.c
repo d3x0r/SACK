@@ -483,7 +483,11 @@ int HangBinaryNode( PTREEROOT root, PTREENODE node )
 		}
 	}
 	if( node->parent->lesser != node && node->parent->greater != node ) {
+#ifdef __clang__
+		__builtin_trap();
+#else
 		*(int*)0 = 0;
+#endif
 	}
 	AVLbalancer( root, node );
 #ifdef DEBUG_AVL_VALIDATION
@@ -535,7 +539,11 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		if( !node->parent->flags.bRoot
 			&& node->parent->lesser != node
 			&& node->parent->greater != node ) {
+#ifdef __clang__
+			__builtin_trap();
+#else
 			*(int*)0=0;
+#endif
 		}
 		PTREENODE least = NULL;
 		PTREENODE backtrack;

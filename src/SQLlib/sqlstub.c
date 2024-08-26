@@ -4509,6 +4509,7 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
 		int useIndex = (int)(idx + 1);
 		int rc;
+      rc = 0;
 		if( val->name ) {
 			useIndex = sqlite3_bind_parameter_index( db, val->name );
 		}

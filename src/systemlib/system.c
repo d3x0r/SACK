@@ -1729,16 +1729,6 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 //--------------------------------------------------------------------------
 
 #ifdef WIN32
-static int DumpError( void )
-{
-#ifdef _DEBUG
-	lprintf( "Failed create process:%d", GetLastError() );
-#endif
-	return 0;
-}
-#endif
-
-#ifdef WIN32
 
 static BOOL CALLBACK EnumDesktopProc( LPTSTR lpszDesktop,
 												 LPARAM lParam

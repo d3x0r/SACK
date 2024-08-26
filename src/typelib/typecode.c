@@ -1182,7 +1182,12 @@ namespace sack {
 			static struct data_queue_local_data
 			{
 				volatile uint32_t lock;
-			} s_data_queue_local, * _data_queue_local;
+			}
+			   s_data_queue_local
+#ifndef __STATIC_GLOBALS__
+				, * _data_queue_local
+#endif
+									;
 
 #ifdef __STATIC_GLOBALS__
 #  define data_queue_local  ((s_data_queue_local))

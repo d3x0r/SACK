@@ -344,9 +344,10 @@ struct file_header {
 	struct file_block_definition referencedBy;
 };
 
+#if 0
 static void flushFileSuffix( struct sack_vfs_os_file* file );
 static void WriteIntoBlock( struct sack_vfs_os_file* file, int blockType, FPI pos, CPOINTER data, FPI length );
-
+#endif
 
 #include "vfs_os_timeline_unsorted.c"
 
@@ -431,12 +432,12 @@ static struct sack_vfs_os_file* _os_createFile( struct sack_vfs_os_volume* vol, 
 static int sack_vfs_os_close_internal( struct sack_vfs_os_file* file, int unlock );
 static enum block_cache_entries _os_UpdateSegmentKey_( struct sack_vfs_os_volume* vol, enum block_cache_entries* cache_idx, BLOCKINDEX segment DBG_PASS );
 
-static uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more );
-
 #ifdef DEBUG_DIRECTORIES
 static int _os_dumpDirectories( struct sack_vfs_os_volume *vol, BLOCKINDEX start, LOGICAL init );
 #endif
 //#include "vfs_os_index.c"
+
+#ifdef XX_VIRTUAL_OBJECT_STORE
 
 static void _os_SetSmallBlockUsage( struct file_block_small_definition* block, int more ) {
 	block->used = more;
@@ -444,7 +445,7 @@ static void _os_SetSmallBlockUsage( struct file_block_small_definition* block, i
 		block->avail += 128;
 }
 
- uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more ) {
+static uint32_t _os_AddSmallBlockUsage( struct file_block_small_definition* block, uint32_t more ) {
 	uint32_t oldval = block->used;
 	_os_SetSmallBlockUsage( block, block->used + more );
 	return oldval;
@@ -455,6 +456,7 @@ static void _os_SetFileBlockUsage( struct file_block_small_definition* block, ui
 	while( block->avail < block->used )
 		block->avail += 256;
 }
+#endif
 
 ATEXIT( flushVolumes ){
 	INDEX idx;
@@ -1137,7 +1139,7 @@ static int  _os_PathCaseCmpEx ( CTEXTSTR s1, CTEXTSTR s2, size_t maxlen )
 static int _os_MaskStrCmp( struct sack_vfs_os_volume *vol, CTEXTSTR filename, BLOCKINDEX nameBlock, FPI name_offset, int path_match ) {
 	enum block_cache_entries cache = BC(NAMES);
 	const char *dirname = (const char*)vfs_os_FSEEK( vol, NULL, nameBlock, name_offset, &cache, NAME_BLOCK_SIZE DBG_SRC );
-	const char *prior_dirname = dirname;
+	//const char *prior_dirname = dirname;
 	if( !dirname ) return 1;
 	{
 		//LoG( "doesn't volume always have a key?" );
@@ -1689,7 +1691,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 
 	BLOCKINDEX n;
 	enum block_cache_entries cache = BC(BAT);
-	BLOCKINDEX sector = 0;
+	//BLOCKINDEX sector = 0;
 	{
 		struct sack_vfs_os_BAT_info info;
 		struct sack_vfs_os_BAT_info *priorInfo;
@@ -1725,7 +1727,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 				AddDataItem( &vol->pdl_BAT_information, &info );
 				priorInfo = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, vol->pdl_BAT_information->Cnt-1 );
 			}
-			sector++;
+			//sector++;
 
 			for( m = 0; m < BLOCKS_PER_BAT; m++ )
 			{
@@ -1828,62 +1830,6 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 //-------------------------------------------------------
 // function to process a currently loaded program to get the
 // data offset at the end of the executable.
-
-
-static POINTER _os_GetExtraData( POINTER block )
-{
-#ifdef WIN32
-#  define Seek(a,b) (((uintptr_t)a)+(b))
-	//uintptr_t source_memory_length = block_len;
-	POINTER source_memory = block;
-
-	{
-		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
-		PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( source_memory, source_dos_header->e_lfanew );
-		if( source_dos_header->e_magic != IMAGE_DOS_SIGNATURE ) {
-			LoG( "Basic signature check failed; not a library" );
-			return NULL;
-		}
-
-		if( source_nt_header->Signature != IMAGE_NT_SIGNATURE ) {
-			LoG( "Basic NT signature check failed; not a library" );
-			return NULL;
-		}
-
-		if( source_nt_header->FileHeader.SizeOfOptionalHeader )
-		{
-			if( source_nt_header->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR_MAGIC )
-			{
-				LoG( "Optional header signature is incorrect..." );
-				return NULL;
-			}
-		}
-		{
-			int n;
-			long FPISections = source_dos_header->e_lfanew
-				+ sizeof( DWORD ) + sizeof( IMAGE_FILE_HEADER )
-				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
-			PIMAGE_SECTION_HEADER source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			uintptr_t dwSize = 0;
-			uintptr_t newSize;
-			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
-			for( n = 0; n < source_nt_header->FileHeader.NumberOfSections; n++ )
-			{
-				newSize = (source_section[n].PointerToRawData) + source_section[n].SizeOfRawData;
-				if( newSize > dwSize )
-					dwSize = newSize;
-			}
-			dwSize += (BLOCK_SIZE*2)-1; // pad 1 full block, plus all but 1 byte of a full block(round up)
-			dwSize &= ~(BLOCK_SIZE-1); // mask off the low bits; floor result to block boundary
-			return (POINTER)Seek( source_memory, dwSize );
-		}
-	}
-#  undef Seek
-#else
-	// need to get elf size...
-	return 0;
-#endif
-}
 
 static void _os_AddSalt2( uintptr_t psv, POINTER *salt, size_t *salt_size ) {
 	struct datatype { void* start; size_t length; } *data = (struct datatype*)psv;
@@ -2033,9 +1979,12 @@ defaultOpen:
 			enum block_cache_entries timeCache = BC( TIMELINE );
 			enum block_cache_entries rollbackCache = BC( ROLLBACK );
 
-			BLOCKINDEX dirblock = _os_GetFreeBlock( vol, &dirCache, GFB_INIT_DIRENT, DIR_BLOCK_SIZE );
-			BLOCKINDEX timeblock = _os_GetFreeBlock( vol, &timeCache, GFB_INIT_TIMELINE, TIME_BLOCK_SIZE );
-			BLOCKINDEX rollbackblock = _os_GetFreeBlock( vol, &rollbackCache, GFB_INIT_ROLLBACK, ROLLBACK_BLOCK_SIZE );
+			//BLOCKINDEX dirblock = 
+				_os_GetFreeBlock( vol, &dirCache, GFB_INIT_DIRENT, DIR_BLOCK_SIZE );
+			//BLOCKINDEX timeblock = 
+				_os_GetFreeBlock( vol, &timeCache, GFB_INIT_TIMELINE, TIME_BLOCK_SIZE );
+			//BLOCKINDEX rollbackblock = 
+				_os_GetFreeBlock( vol, &rollbackCache, GFB_INIT_ROLLBACK, ROLLBACK_BLOCK_SIZE );
 
 			vol->lastBatBlock = 0;
 		}
@@ -2509,7 +2458,6 @@ static uintptr_t volume_flusher( PTHREAD thread ) {
 }
 
 void sack_vfs_os_polish_volume( struct sack_vfs_os_volume* vol ) {
-	static PTHREAD flusher;
 	if( !vol->flusher )
 		vol->flusher = ThreadTo( volume_flusher, (uintptr_t)vol );
 	else if( !vol->flushing )
@@ -2614,8 +2562,8 @@ void sack_vfs_os_shrink_volume( struct sack_vfs_os_volume * vol ) {
 	size_t n;
 	unsigned int b = 0;
 	//int found_free; // this block has free data; should be last BAT?
-	BLOCKINDEX last_block = 0;
-	unsigned int last_bat = 0;
+	//BLOCKINDEX last_block = 0;
+	//unsigned int last_bat = 0;
 	enum block_cache_entries cache = BC(BAT);
 	BLOCKINDEX *current_BAT = (BLOCKINDEX*)vfs_os_block_index_SEEK( vol, 0, 0, &cache );
 	if( !current_BAT ) return; // expand failed, tseek failed in response, so don't do anything
@@ -2624,8 +2572,8 @@ void sack_vfs_os_shrink_volume( struct sack_vfs_os_volume * vol ) {
 		for( n = 0; n < BLOCKS_PER_BAT; n++ ) {
 			check_val = *(current_BAT++);
 			if( check_val ) {
-				last_bat = b;
-				last_block = n;
+				//last_bat = b;
+				//last_block = n;
 			}
 		}
 		b++;
@@ -2819,7 +2767,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 		nameBlock = dirblock->names_first_block;
 		if( filename )
 		{
-			BLOCKINDEX nextblock = dirblock->next_block[filename[ofs]];
+			BLOCKINDEX nextblock = dirblock->next_block[(unsigned)filename[ofs]];
 			if( nextblock ) {
 				leadin[(*leadinDepth)++] = filename[ofs];
 				ofs += 1;
@@ -3050,7 +2998,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 	size_t n;
 	FPI nameoffset_temp = 0;
 
-	static uint8_t namebuffer[3 * 4096];
+	//static uint8_t namebuffer[3 * 4096];
 	uint8_t* nameblock = NULL;
 	uint8_t* nameblock_;
 	int f;
@@ -3143,7 +3091,7 @@ static void deleteDirectoryEntryName( struct sack_vfs_os_volume* vol, struct sac
 		else if( e >= 0 ) {
 			if( dirblock->entries[f].timelineEntry ) {
 				struct memoryTimelineNode time;
-				enum block_cache_entries  timeCache = BC( TIMELINE );
+				//enum block_cache_entries  timeCache = BC( TIMELINE );
 				reloadTimeEntry( &time, vol, ( dirblock->entries[f].timelineEntry ) VTReadWrite GRTENoLog DBG_SRC );
 				time.disk->dirent_fpi = vol->bufferFPI[nameCache] + sane_offsetof( struct directory_hash_lookup_block, entries[f - 1] );
 				{
@@ -3255,10 +3203,10 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 				enum block_cache_entries newdir_cache;
 				BLOCKINDEX newFirstNameBlock;
 				int usedNames = dirblock->used_names;
-				int _usedNames = usedNames;
+				//int _usedNames = usedNames;
 				int nf = 0;
-				int firstNameOffset = -1;
-				int finalNameOffset = 0;;
+				//int firstNameOffset = -1;
+				//int finalNameOffset = 0;;
 				int movedEntry = 0;
 				int offset;
 				newdir_cache = BC(DIRECTORY);
@@ -3277,7 +3225,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 				//SMUDGECACHE( vol, newdir_cache ); // this will be dirty because it was init above.
 
 				for( f = 0; f < usedNames; f++ ) {
-					BLOCKINDEX first = dirblock->entries[f].first_block;
+					//BLOCKINDEX first = dirblock->entries[f].first_block;
 					struct directory_entry *entry;
 					struct directory_entry *newEntry;
 					FPI name;
@@ -3311,7 +3259,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 						{
 							struct memoryTimelineNode time;
 							FPI oldFPI;
-							enum block_cache_entries  timeCache = BC( TIMELINE );
+							//enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (entry->timelineEntry     ) VTReadWrite GRTENoLog DBG_SRC );
 							oldFPI = (FPI)time.disk->dirent_fpi; // dirent_fpi type is larger than index in some configurations; but won't exceed those bounds
 							// new entry is still the same timeline entry as the old entry.
@@ -3412,7 +3360,7 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 #endif
 						{
 							struct memoryTimelineNode time;
-							enum block_cache_entries  timeCache = BC( TIMELINE );
+							//enum block_cache_entries  timeCache = BC( TIMELINE );
 							reloadTimeEntry( &time, vol, (dirblock->entries[m + offset].timelineEntry) VTReadWrite GRTENoLog DBG_SRC );
 							time.disk->dirent_fpi = this_dir_block * BLOCK_SIZE /*vol->bufferFPI[cache]*/ + sane_offsetof( struct directory_hash_lookup_block, entries[m] );
 							{
@@ -3450,8 +3398,8 @@ static void ConvertDirectory( struct sack_vfs_os_volume *vol, const char *leadin
 				if( usedNames ) {
 					static uint8_t newnamebuffer[18 * 4096];
 					int newout = 0;
-					int min_name = NAME_BLOCK_SIZE + 1;
-					int _min_name = -1; // min found has to be after this one.
+					//int min_name = NAME_BLOCK_SIZE + 1;
+					//int _min_name = -1; // min found has to be after this one.
 					//lprintf( "%d names remained.", usedNames );
 					for( f = 0; f < usedNames; f++ ) {
 						struct directory_entry *entry;
@@ -3529,12 +3477,12 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 	const char * filename
 		, struct sack_vfs_os_file *file ) {
 	size_t n;
-	const char *_filename = filename;
+	//const char *_filename = filename;
 	static char leadin[256];
 	static int leadinDepth = 0;
 	BLOCKINDEX this_dir_block = FIRST_DIR_BLOCK;
-	struct directory_entry *next_entries;
-	LOGICAL moveMark = FALSE;
+	//struct directory_entry *next_entries;
+	//LOGICAL moveMark = FALSE;
 	if( filename && filename[0] == '.' && ( filename[1] == '/' || filename[1] == '\\' ) ) filename += 2;
 	leadinDepth = 0;
 	do {
@@ -3560,7 +3508,7 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 		dirblockFPI = vol->bufferFPI[cache];
 		firstNameBlock = dirblock->names_first_block;
 		{
-			BLOCKINDEX nextblock = dirblock->next_block[filename[0]];
+			BLOCKINDEX nextblock = dirblock->next_block[(unsigned)filename[0]];
 			if( nextblock ) {
 				leadin[leadinDepth++] = filename[0];
 				filename++;
@@ -3585,14 +3533,14 @@ static struct directory_entry * _os_GetNewDirectory( struct sack_vfs_os_volume *
 		{
 			struct directory_entry *ent;
 			FPI name_ofs;
-			BLOCKINDEX first_blk;
+			//BLOCKINDEX first_blk;
 
-			next_entries = dirblock->entries;
+			//next_entries = dirblock->entries;
 			ent = dirblock->entries;
 			for( n = 0; USS_LT( n, size_t, usedNames, int ); n++ ) {
 				ent = dirblock->entries + (n);
 				name_ofs = ( ent->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
-				first_blk = ent->first_block;
+				//first_blk = ent->first_block;
 				// not name_offset (end of list) or not first_block(free entry) use this entry
 				//if( name_ofs && (first_blk > 1) )  continue;
 
@@ -3723,11 +3671,11 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 
 	if( create ) {  // sort of a opened for write
 		// this updates the timestamp of the file, and allocates a new one
-		PDATALIST pdlTimes = CreateDataList( sizeof( uint64_t ) );
+		//PDATALIST pdlTimes = CreateDataList( sizeof( uint64_t ) );
 		struct sack_vfs_os_volume* vol = file->vol;
 	        
 		struct memoryTimelineNode time;
-		enum block_cache_entries  timeCache = BC( TIMELINE );
+		//enum block_cache_entries  timeCache = BC( TIMELINE );
 	        
 		BLOCKINDEX priorData = file->entry->first_block;
 		reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
@@ -3787,6 +3735,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_open( uintptr_t psvInstance, 
 }
 
 
+#ifdef XX_VIRTUAL_OBJECT_STORE
 
 static char * getFilename( const char *objBuf, size_t objBufLen
 	, char *sealBuf, size_t sealBufLen, LOGICAL owner
@@ -3835,7 +3784,7 @@ static char * getFilename( const char *objBuf, size_t objBufLen
 		return idBuf[0];
 	}
 }
-
+#endif
 
 int CPROC sack_vfs_os_exists( struct sack_vfs_os_volume *vol, const char * file ) {
 	LOGICAL result;
@@ -4631,7 +4580,7 @@ static int _os_iterate_find( struct sack_vfs_os_find_info *_info ) {
 			int l;
 
 			struct memoryTimelineNode time;
-			enum block_cache_entries  timeCache = BC( TIMELINE );
+			//enum block_cache_entries  timeCache = BC( TIMELINE );
 			reloadTimeEntry( &time, info->vol, (next_entries[n].timelineEntry) VTReadWrite GRTENoLog  DBG_SRC );
 			if( !time.disk->time ) DebugBreak();
 			if( time.disk->priorTime )
@@ -4766,7 +4715,7 @@ uint64_t CPROC sack_vfs_os_find_get_wtime( struct sack_vfs_os_find_info *_info )
 }
 
 LOGICAL CPROC sack_vfs_os_rename( uintptr_t psvInstance, const char *original, const char *newname ) {
-	struct sack_vfs_os_volume *vol = (struct sack_vfs_os_volume *)psvInstance;
+	//struct sack_vfs_os_volume *vol = (struct sack_vfs_os_volume *)psvInstance;
 	lprintf( "RENAME IS NOT SUPPORTED IN OBJECT STORAGE(OR NEEDS TO BE FIXED)" );
 	// fail if the names are the same.
 	return TRUE;
@@ -4783,14 +4732,14 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 		break;
 	case SOSFSFIO_DESTROY_INDEX:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 
 		break;
 	}
 	case SOSFSFIO_CREATE_INDEX:
 	{
-		const char* indexname = va_arg( args, const char* );
-		size_t indexnameLen = va_arg( args, size_t );
+		//const char* indexname = va_arg( args, const char* );
+		//size_t indexnameLen = va_arg( args, size_t );
 		lprintf( "Indexes should be implemented higher..." );
 		//enum jsox_value_types type = va_arg( args, enum jsox_value_types );
 		//int typeExtra = va_arg( args, int );
@@ -4801,40 +4750,40 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	}
 	case SOSFSFIO_ADD_INDEX_ITEM:
 	{
-		struct memoryStorageIndex* index = (struct memoryStorageIndex*)va_arg( args, uintptr_t );
-		struct sack_vfs_os_file *reference = va_arg( args, struct sack_vfs_os_file* );
-		struct jsox_value_container * value = va_arg( args, struct jsox_value_container* );
+		//struct memoryStorageIndex* index = (struct memoryStorageIndex*)va_arg( args, uintptr_t );
+		//struct sack_vfs_os_file *reference = va_arg( args, struct sack_vfs_os_file* );
+		//struct jsox_value_container * value = va_arg( args, struct jsox_value_container* );
 
 		//file->
 		break;
 	}
 	case SOSFSFIO_REMOVE_INDEX_ITEM:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 		//file->
 		break;
 	}
 	case SOSFSFIO_ADD_REFERENCE:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 		//file->
 		break;
 	}
 	case SOSFSFIO_REMOVE_REFERENCE:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 		//file->
 		break;
 	}
 	case SOSFSFIO_ADD_REFERENCE_BY:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 		//file->
 		break;
 	}
 	case SOSFSFIO_REMOVE_REFERENCE_BY:
 	{
-		const char* indexname = va_arg( args, const char* );
+		//const char* indexname = va_arg( args, const char* );
 		//file->
 		break;
 	}
@@ -4918,10 +4867,9 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	break;
 	case SOSFSFIO_GET_TIME:
 	{
-		uint64_t** timeArray = va_arg( args, uint64_t** );
-		int8_t** tzArray = va_arg( args, int8_t** );
-		size_t* timeCount  = va_arg( args, size_t* );
-		
+		//uint64_t** timeArray = va_arg( args, uint64_t** );
+		//int8_t** tzArray = va_arg( args, int8_t** );
+		//size_t* timeCount  = va_arg( args, size_t* );
 		return file->entry->timelineEntry;
 	}
 	break;
@@ -4936,7 +4884,7 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	break;
 	case SOSFSFIO_SET_BLOCKSIZE: // automatic managment is good enough?
 	{
-		int size = va_arg( args, int );
+		//int size = va_arg( args, int );
 		//file->blockSize = size;
 	}
 	break;
@@ -5148,7 +5096,7 @@ LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArr
 	struct sack_vfs_os_volume* vol = file->vol;
 
 	struct memoryTimelineNode time;
-	enum block_cache_entries  timeCache = BC( TIMELINE );
+	//enum block_cache_entries  timeCache = BC( TIMELINE );
 
 	reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 	if( !time.disk->time ) DebugBreak();
@@ -5191,7 +5139,7 @@ LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal, i
 	struct sack_vfs_os_volume* vol = file->vol;
 
 	struct memoryTimelineNode time;
-	enum block_cache_entries  timeCache = BC( TIMELINE );
+	//enum block_cache_entries  timeCache = BC( TIMELINE );
 	
 	reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 	//int tz = timeVal & 0xFF;
