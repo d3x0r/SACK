@@ -213,10 +213,10 @@ end:
 static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 /* Information on serial ports is stored in the Win2000 registry in a manner very
  * similar to that of Win9x, with three differences:
- *   · The ENUM tree is not located under HKLM, but under HKLM\SYSTEM\CURRENTCONTROLSET.
- *   · The parameter "PORTNAME" is not a LEVEL3 value like "CLASS" and "FRIENDLYNAME";
+ *   ï¿½ The ENUM tree is not located under HKLM, but under HKLM\SYSTEM\CURRENTCONTROLSET.
+ *   ï¿½ The parameter "PORTNAME" is not a LEVEL3 value like "CLASS" and "FRIENDLYNAME";
  *     instead, it is located under an additional subkey named "DEVICE PARAMETERS"
- *   · "CLASS" seems to be deprecated in favor of "CLASSGUID" wich contains a GUID
+ *   ï¿½ "CLASS" seems to be deprecated in favor of "CLASSGUID" wich contains a GUID
  *     identifying each type of device. I've seen Win200 installations with and
  *     without "CLASS" values. Moreover, I've seen Win9x installations containing
  *     "CLASSGUID" values, so, to be as robust as possible, ScanEnumTree() accept either
@@ -228,10 +228,10 @@ static LOGICAL Win2000ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
  *   |-BIOS
  *     |-*PNP0501
  *       |-0D (or any other value, this is not important for us)
- *         · CLASSGUID=    "{4D36E978-E325-11CE-BFC1-08002BE10318}"
- *         · FRIENDLYNAME= "Communications Port (COM1)"
+ *         ï¿½ CLASSGUID=    "{4D36E978-E325-11CE-BFC1-08002BE10318}"
+ *         ï¿½ FRIENDLYNAME= "Communications Port (COM1)"
  *         |-DEVICE PARAMETERS
- *           · PORTNAME=   "COM1"
+ *           ï¿½ PORTNAME=   "COM1"
  */
 {
   return ScanEnumTree( "SYSTEM\\CURRENTCONTROLSET\\ENUM", lpCallback, psv );
@@ -650,16 +650,19 @@ void Process( uintptr_t psvUser, CTEXTSTR name, enum ScanFileProcessFlags flags 
 		link[rc] = 0;
 		snprintf( tmpname, sizeof( tmpname ), "%s/type", name );
 		FILE* f = fopen( tmpname, "r" );
-		fread( data, 1, sizeof(data), f );
-		fclose( f );
-		if( strcmp( data, "0" ) ) {
-			return;
+		if( f ) {
+			fread( data, 1, sizeof(data), f );
+			fclose( f );
+			if( strcmp( data, "0" ) ) {
+				return;
+			}
+			LISTPORTS_PORTINFO portinfo;
+			portinfo.lpPortName = name + 15;
+			portinfo.lpFriendlyName = name + 15;
+			portinfo.lpTechnology = "TBD";
+			params->lpCallback( params->psv, &portinfo );
 		}
-		LISTPORTS_PORTINFO portinfo;
-		portinfo.lpPortName = name + 15;
-		portinfo.lpFriendlyName = name + 15;
-		portinfo.lpTechnology = "TBD";
-		params->lpCallback( params->psv, &portinfo );
+		// else we didn't have access to that port anyway?
 	}
 }
 
