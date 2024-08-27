@@ -139,3 +139,8 @@ add_program( ${project} test_critsec2.c )
 SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
 install_default_dest( ${project} )
 
+set( project test_netstat )
+add_program( ${project} test_netstat.c )
+SET_TARGET_PROPERTIES(${project} PROPERTIES FOLDER tests )
+install_default_dest( ${project} )
+
