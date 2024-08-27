@@ -4,6 +4,11 @@
 
 #ifdef _WIN32
 
+#ifdef __cplusplus 
+namespace sack {
+	namespace network {
+#endif
+
 void SackNetstat_GetListeners( PDATALIST *ppList ){
 	DWORD dwErr;
 	ppList[0] = CreateDataList( sizeof( struct listener_pid_info ) );
@@ -153,4 +158,10 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 
 }
 
+#ifdef __cplusplus 
+   }
+}
 #endif
+
+#endif
+
