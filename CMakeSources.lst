@@ -103,11 +103,21 @@ if( WIN32 )
 if( NOT __NO_NETWORK__ )
 set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES}
   ${SOURCES_ROOT}src/netlib/net_winsock2.c
+  ${SOURCES_ROOT}src/netlib/netstat_win32.c
 )
 endif( NOT __NO_NETWORK__ )
 
 set( SERVICE_STUB_SOURCES ${SOURCES_ROOT}src/utils/service/service_stub.c )
 endif( WIN32 )
+
+if( UNIX )
+  if( NOT __NO_NETWORK__ )
+    set(MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES}
+      ${SOURCES_ROOT}src/netlib/netstat_linux.c
+    )
+  endif( NOT __NO_NETWORK__ )
+endif( WIN32 )
+
 
 if( NOT __NO_NETWORK__ )
 if( NOT __ARM__ )
