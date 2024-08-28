@@ -1230,8 +1230,8 @@ NETWORK_PROC( LOGICAL, DoWhois )( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvt
 //----- NETSTAT ----
 
 struct listener_pid_info {
-	USHORT port;
-	ULONG pid;
+	uint16_t port;
+	uint64_t pid;
 };
 
 // list is filled with struct listener_pid_info entries
