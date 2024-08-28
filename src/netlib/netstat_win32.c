@@ -25,7 +25,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	if( dwErr == ERROR_SUCCESS ) {
 		for( int i = 0; i < table->dwNumEntries; i++ ) {
 			if( table->table[i].dwState == MIB_TCP_STATE_LISTEN ) {
-				struct listener l;
+				struct listener_pid_info l;
 				l.pid = table->table[i].dwOwningPid;
 				l.port = ntohs( table->table[i].dwLocalPort );
 				AddDataItem( ppList, &l );
@@ -51,7 +51,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	if( dwErr == ERROR_SUCCESS ) {
 		for( int i = 0; i < table6->dwNumEntries; i++ ) {
 			if( table6->table[i].dwState == MIB_TCP_STATE_LISTEN ) {
-				struct listener l;
+				struct listener_pid_info l;
 				INDEX idx;
 				struct listener_pid_info* info;
 				l.pid = table6->table[i].dwOwningPid;
