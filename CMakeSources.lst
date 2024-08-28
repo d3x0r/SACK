@@ -116,7 +116,7 @@ if( UNIX )
       ${SOURCES_ROOT}src/netlib/netstat_linux.c
     )
   endif( NOT __NO_NETWORK__ )
-endif( WIN32 )
+endif()
 
 
 if( NOT __NO_NETWORK__ )
