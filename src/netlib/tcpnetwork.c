@@ -1736,7 +1736,7 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 			INDEX idx;
 			struct PendingWrite* lpPending;
 			DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
-				lprintf( "Requeing block %p %p %d", lpPending->pc, lpPending->buffer, lpPending->len );
+				lprintf( "Requeing block %p %p %zd", lpPending->pc, lpPending->buffer, lpPending->len );
 				EnqueData( &pdqPendingWrites, lpPending );
 				lpPending->pc->wakeOnUnlock = thread;
 			}

@@ -267,15 +267,25 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 		//Release( pc->ssl_session );
 		//pc->ssl_session = NULL;
 		ssl_session[0] = NULL;
+		Release( ses );
 	} else {
-		lprintf( "Session already closed" );
+		//lprintf( "Session already closed" );
 	}
 }
 
 void ssl_CloseSession( PCLIENT pc ) {
+	struct ssl_session *ses = pc->ssl_session;
+	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
+		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
+	}else{
+		if( ses->user_close ) ses->user_close( pc );
+	}
+
 	ssl_ClosePipeSession( &pc->ssl_session );
-	if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+	if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) ) {
+		//lprintf( "RemoveClient (Again?)");
 		RemoveClient( pc );
+	}
 }
 
 static int handshake( struct ssl_session** ses ) {
@@ -602,7 +612,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 						}
 						read = BIO_read( ses[0]->wbio, ses[0]->obuffer, (int)ses[0]->obuflen );
-						lprintf( "Sending bio pending? %d (even though we're closing the ssl to fallback?)", pending );
+						lprintf( "Sending bio pending? %zd (even though we're closing the ssl to fallback?)", pending );
 						ses[0]->send_callback( ses[0]->psvSendRecv, ses[0]->obuffer, read );
 						//SendTCP( pc, ses[0]->obuffer, read );
 					}
@@ -867,33 +877,22 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
 	else
 		pcServer->ssl_session->user_connected( pcServer, pcNew);
-
 	ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
 	// these can get set in the connection callback...
-	if( !ses->user_read && !ses->cpp_user_read ) 
-		if( pcNew->dwFlags & CF_CPPREAD ) {
-			ses->cpp_user_read = pcNew->read.CPPReadComplete;
-			ses->user_read = NULL;
-			ses->psvRead = pcNew->psvRead;
-		} else {
-			ses->user_read = pcNew->read.ReadComplete;
-			ses->cpp_user_read = NULL;
-		}
+	if( !ses->user_read && !ses->cpp_user_read ) {
+		ses->cpp_user_read = pcServer->ssl_session->cpp_user_read;
+		ses->psvRead = pcServer->ssl_session->psvRead;
+		ses->user_read = pcServer->ssl_session->user_read;
+	}
 	// these can get set in the connection callback...
 	if( !ses->user_close && !ses->cpp_user_close ) {
-		if( pcNew->dwFlags & CF_CPPCLOSE ) {
-			ses->cpp_user_close = pcNew->close.CPPCloseCallback;
-			ses->user_close = NULL;
-		} else {
-			ses->user_close = pcNew->close.CloseCallback;
-			ses->cpp_user_close = NULL;
-		}
+		ses->cpp_user_close = pcServer->ssl_session->cpp_user_close;
+		ses->user_close = pcServer->ssl_session->user_close;
 	}
 
 	ses->send_callback = ssl_layer_sender;
 	ses->recv_callback = ssl_layer_recver;
 	ses->psvSendRecv = (uintptr_t)pcNew;
-
 	pcNew->read.ReadComplete = ssl_ReadComplete;
 	pcNew->dwFlags &= ~CF_CPPREAD;
 	pcNew->close.CloseCallback = ssl_CloseCallback;
@@ -923,7 +922,7 @@ struct ssl_session* ssl_ClientPipeConnected( struct ssl_session* session, uintpt
 #ifdef DEBUG_SSL_IO_VERBOSE
 	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
 #endif
-
+	//lprintf( "pipe connected callback.....................");
 	ses->user_read = (cReadComplete)read;
 	ses->user_close = (cCloseCallback)close;
 	if( write ) write[0] = ssl_WriteData;
@@ -1577,6 +1576,9 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		// restore all the native specified options for callbacks.
 		(*(uint32_t*)&pc->dwFlags) &= ~(pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
+
+		//lprintf( "read: %x", pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE) );
+
 		// prevent close event...
 		POINTER tmp;
 		pc->ssl_session->user_close = NULL;
@@ -1587,25 +1589,28 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		lprintf( "Invoke close callback?" );
 #endif		
 		ssl_CloseCallback( pc );
-		// SSL callback failed, but it may be possible to connect direct.
-		// and if so; setup to return a redirect.
+		if( pc->dwFlags & CF_ACTIVE ) {
+
+			// SSL callback failed, but it may be possible to connect direct.
+			// and if so; setup to return a redirect.
 #if defined( DEBUG_SSL_FALLBACK )			
-		lprintf( "is ssl_session gone(yes)? %p %p %d %d", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1 );
+			lprintf( "is ssl_session gone(yes)? %p %p %d %d", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1 );
 #endif		
-		if( buffer ) {
-			if( pc->dwFlags & CF_CPPREAD ) {
-				pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
-				if( buffer )
-					pc->read.CPPReadComplete( pc->psvRead, buffer, length );
-			}
-			else {
-				pc->read.ReadComplete( pc, NULL, 0 );
-				if( buffer )
-					pc->read.ReadComplete( pc, buffer, length );
-			}
+			if( buffer ) {
+				if( pc->dwFlags & CF_CPPREAD ) {
+					pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
+					if( buffer )
+						pc->read.CPPReadComplete( pc->psvRead, buffer, length );
+				}
+				else {
+					pc->read.ReadComplete( pc, NULL, 0 );
+					if( buffer )
+						pc->read.ReadComplete( pc, buffer, length );
+				}
 #if defined( DEBUG_SSL_FALLBACK )			
-			lprintf( "Sent buffer to app?");
+				lprintf( "Sent buffer to app?");
 #endif			
+			}
 		}
 		Release( tmp );
 	}
