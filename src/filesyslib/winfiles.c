@@ -1,6 +1,7 @@
 // #define _FILE_OFFSET_BTIS	64
 //[02:03 : 43] <significant> #define _LARGEFILE64_SOURCE
 
+#define UNDEF_FILESYS_DEFS
 #define FILESYSTEM_LIBRARY_SOURCE
 #define NO_UNICODE_C
 #define WINFILE_COMMON_SOURCE
@@ -2921,7 +2922,7 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 			if( flags >= 0 ) fcntl( h, F_SETFD, flags | FD_CLOEXEC );
 		}
 	}
-	Release( tmpFilename );
+	Deallocate( char*, tmpFilename );
 #endif
 
 	return result;
@@ -3197,4 +3198,13 @@ FILESYS_NAMESPACE_END
 #ifdef _MSC_VER
 #  pragma warning( default: 6387 )
 #  pragma warning( default: 6031 ) // disable ignoring return value of chsize; nothing to do if it fails.
+#endif
+
+
+#ifdef UNDEF_FILESYS_DEFS
+#   undef UNDEF_FILESYS_DEFS
+#   undef FILESYSTEM_LIBRARY_SOURCE
+#   undef NO_UNICODE_C
+#   undef WINFILE_COMMON_SOURCE
+#   undef FIX_RELEASE_COM_COLLISION
 #endif
