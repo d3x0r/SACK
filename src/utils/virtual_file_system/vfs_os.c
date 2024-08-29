@@ -2742,7 +2742,7 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 	int minName;
 	int curName;
 	struct directory_hash_lookup_block *dirblock;
-	struct directory_entry *next_entries;
+	//struct directory_entry *next_entries;
 	if( filename && filename[0] == '.' && ( filename[1] == '/' || filename[1] == '\\' ) ) filename += 2;
 	if( !file && !filename && nameBlockStart )
 		lprintf( "Begin a scan dir:%d", (int)dirBlockSeg );
@@ -2807,12 +2807,12 @@ LOGICAL _os_ScanDirectory_( struct sack_vfs_os_volume *vol, const char * filenam
 		minName = 0;
 		curName = (usedNames) >> 1;
 		{
-			next_entries = dirblock->entries;
+			//next_entries = dirblock->entries;
 			//lprintf( "name block %d %d %d", (int)dirBlockSeg, (int)usedNames, (int)cache );
 			while( minName <= usedNames && ( curName <= usedNames ) && ( curName >= 0 ) )
 			{
 				BLOCKINDEX bi;
-				enum block_cache_entries name_cache = BC(NAMES);
+				//enum block_cache_entries name_cache = BC(NAMES);
 				struct directory_entry *entry = dirblock->entries + curName;
 				//const char * testname;
 				FPI name_ofs = ( entry->name_offset ) & DIRENT_NAME_OFFSET_OFFSET;
@@ -3640,7 +3640,9 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 	struct sack_vfs_os_file *file = GetFromSet( VFS_OS_FILE, &l.files );//New( struct sack_vfs_os_file );
 	while( LockedExchange( &vol->lock, 1 ) ) Relinquish();
 	MemSet( file, 0, sizeof( struct sack_vfs_os_file ) );
+#ifdef XX_VIRTUAL_OBJECT_STORE
 	BLOCKINDEX offset;
+#endif
 	file->vol = vol;
 	file->entry = &file->entry_; // default to internal buffer; might never have a real directory
 	//file->sealant = NULL;
@@ -3677,7 +3679,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 		struct memoryTimelineNode time;
 		//enum block_cache_entries  timeCache = BC( TIMELINE );
 	        
-		BLOCKINDEX priorData = file->entry->first_block;
+		//BLOCKINDEX priorData = file->entry->first_block;
 		reloadTimeEntry( &time, vol, file->entry->timelineEntry VTReadWrite GRTENoLog  DBG_SRC );
 #ifdef _DEBUG
 		if( !time.disk->time ) DebugBreak();
@@ -3690,7 +3692,7 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 				struct storageTimelineNode* prior = getRawTimeEntry( vol, priorTime, &cache GRTENoLog DBG_SRC );
 				//prior->
 				priorTime = prior->priorTime;
-				priorData = prior->priorData;
+				//priorData = prior->priorData;
 				file->filesize_ = prior->priorDataSize;
 				if( prior->time <= version ) break;
 				dropRawTimeEntry( file->vol, cache GRTENoLog DBG_SRC );
@@ -3698,10 +3700,10 @@ static struct sack_vfs_os_file * CPROC sack_vfs_os_openfile_internal( struct sac
 		}
 		dropRawTimeEntry( vol, time.diskCache GRTENoLog DBG_SRC );
 	}
-	offset = file->entry_.name_offset; // file->entry->name_offset;
 	//file->filename = StrDup( filename );
 	//file->fileName = !!filename;
 #ifdef XX_VIRTUAL_OBJECT_STORE
+	offset = file->entry_.name_offset; // file->entry->name_offset;
 	if( ( file->entry->name_offset ) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {
 		sack_vfs_os_read_internal( file, 0, &file->diskHeader, sizeof( file->diskHeader ) );
 		file->header = file->diskHeader;
@@ -4356,10 +4358,10 @@ static void sack_vfs_os_unlink_file_entry( struct sack_vfs_os_volume *vol, struc
 				LoG( "unlink storing free block:%d", _block );
 				_block = block;
 			} while( block != EOFBLOCK );
-			// this deletes the allocated name
-			// it also removes the directory entry from list of entries
-			deleteTimelineIndex( vol, (BLOCKINDEX)dirinfo->entry->timelineEntry ); // timelineEntry type is larger than index in some configurations; but won't exceed those bounds
-			deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache, dirinfo->dir_block );
+		// this deletes the allocated name
+		// it also removes the directory entry from list of entries
+		deleteTimelineIndex( vol, (BLOCKINDEX)dirinfo->entry->timelineEntry ); // timelineEntry type is larger than index in some configurations; but won't exceed those bounds
+		deleteDirectoryEntryName( vol, dirinfo, dirinfo->entry->name_offset & DIRENT_NAME_OFFSET_OFFSET, dirinfo->cache, dirinfo->dir_block );
 
 	}
 }
@@ -4790,9 +4792,8 @@ uintptr_t CPROC sack_vfs_os_file_ioctl_internal( struct sack_vfs_os_file* file, 
 	case SOSFSFIO_TAMPERED:
 	{
 		//struct sack_vfs_file *file = (struct sack_vfs_file *)psvInstance;
-		int *result = va_arg( args, int* );
-
 #ifdef XX_VIRTUAL_OBJECT_STORE
+		int *result = va_arg( args, int* );
 		if( file->sealant ) {
 			switch( file->sealed ) {
 			case SACK_VFS_OS_SEAL_STORE:
@@ -4948,9 +4949,9 @@ uintptr_t CPROC sack_vfs_os_system_ioctl_internal( struct sack_vfs_os_volume *vo
 
 	case SOSFSSIO_PATCH_OBJECT:
 		{
-		LOGICAL owner;owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
+		//LOGICAL owner;owner = va_arg( args, LOGICAL );  // seal input is a constant, generate random meta key
 
-		char *objIdBuf;objIdBuf = va_arg( args, char * );
+		//char *objIdBuf;objIdBuf = va_arg( args, char * );
 		/*
 		size_t objIdBufLen = va_arg( args, size_t );
 
