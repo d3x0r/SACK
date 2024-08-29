@@ -458,10 +458,13 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LeaveCriticalSec( &ses[0]->csReadWrite );
 
 					//lprintf( "Initial read dispatch.." );
-					if( ses[0]->dwOriginalFlags & CF_CPPREAD )
-						ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
-					else
-						ses[0]->user_read( pc, NULL, 0 );
+					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
+						if( ses[0]->cpp_user_read )
+							ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
+					} else {
+						if( ses[0]->user_read )
+							ses[0]->user_read( pc, NULL, 0 );
+					}
 					if( ses[0]->deleteInUse ){
 						lprintf( "Pending close... was in-use when closed.");
 					}
