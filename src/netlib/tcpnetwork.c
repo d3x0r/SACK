@@ -1668,18 +1668,18 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 		}
 		struct PendingWrite pending;
 		struct PendingWrite *lpPending = &pending;
-#ifdef LOG_PENDING_WRITES		
+#ifdef LOG_PENDING_WRITES
 		lprintf( "WaitToWrite is checking for writes" );
-#endif		
+#endif
 		while( DequeData( &pdqPendingWrites, &pending ) ) {
 			if( !pending.pc ) {
 				Release( pending.buffer );
 				lprintf( "Socket closed while data was pending");
 				continue;
 			}
-#ifdef LOG_PENDING_WRITES		
+#ifdef LOG_PENDING_WRITES
 			lprintf( "Handling pending writes... %p %zd", pending.pc, pending.len );
-#endif			
+#endif
 			{
 				INDEX idx;
 				struct PendingWrite* lpPending;
@@ -1707,24 +1707,28 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 					lprintf( "Pending write on socket can't happen, no longer active." );
 					continue; // do not requeue this... the socket has closed.
 				}
-#ifdef LOG_PENDING_WRITES		
+#ifdef LOG_PENDING_WRITES
 				lprintf( "(pending writer)Failed to lock network... requeueing %p", pending.pc );
-#endif				
+#endif
 				AddDataItem( &requeued, &pending );
 			} else {
-#ifdef LOG_PENDING_WRITES		
+#ifdef LOG_PENDING_WRITES
 				LogBinary( (const uint8_t*)pending.buffer, pending.len );
 				lprintf( "Send pending block %p %p %zd", pending.pc, pending.buffer, pending.len );
-#endif				
+#endif
 				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
 				if( stillPend == -1 ) {
+#ifdef LOG_PENDING_WRITES
 					lprintf( "--- This should not happen - have the lock already... %08x", pending.pc->dwFlags );
+#endif
 					AddDataItem( &requeued, &pending );
 				} else {
 					if( !hasPending( pending.pc ))
 						pending.pc->wakeOnUnlock = NULL;
+#ifdef LOG_PENDING_WRITES
 					else
 						lprintf( "Still has pending writes... %p", pending.pc );
+#endif
 				}
 				NetworkUnlockEx( lpPending->pc, 0|0x10 DBG_SRC );
 			}
@@ -1736,7 +1740,9 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 			INDEX idx;
 			struct PendingWrite* lpPending;
 			DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
+#ifdef LOG_PENDING_WRITES
 				lprintf( "Requeing block %p %p %zd", lpPending->pc, lpPending->buffer, lpPending->len );
+#endif
 				EnqueData( &pdqPendingWrites, lpPending );
 				lpPending->pc->wakeOnUnlock = thread;
 			}
