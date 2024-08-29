@@ -245,7 +245,7 @@ static BOOL WINAPI CtrlC( DWORD dwCtrlType )
 {
 	if( ignoreBreak & ( 1 << dwCtrlType ) ) return TRUE;
 #ifdef DEBUG_ATEXIT
-	fprintf( stderr, "Received ctrlC Event %08x %ld\n", ignoreBreak, dwCtrlType );
+	fprintf( stderr, "Received ctrlC Event %08x %d\n", ignoreBreak, dwCtrlType );
 #endif	
 	switch( dwCtrlType )
 	{
@@ -331,7 +331,7 @@ void InvokeDeadstart( void )
 #  ifndef UNDER_CE
 		if( GetConsoleWindow() )
 		{
-			if( !SetConsoleCtrlHandler( CtrlC, TRUE ) ) fprintf( stderr, "failed to SetConsoleCtrlHandler? %u\n", GetLastError() );
+			if( !SetConsoleCtrlHandler( CtrlC, TRUE ) ) fprintf( stderr, "failed to SetConsoleCtrlHandler? %lu\n", GetLastError() );
 		}
 		else
 		{
