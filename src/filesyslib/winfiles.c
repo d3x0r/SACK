@@ -598,31 +598,37 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 					, path[1] ? SYS_PATHCHAR : ""
 					, path[1] ? ( path + 2 ) : "" );
 			}
-			else if( ( path[0] == '@' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+			else if( ( path[0] == '@' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetLibraryPath();
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here?here:"", path + 2 );
+				tnprintf( tmp_path, len, "%s%s%s", here?here:""
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
 			}
-#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
-			else if( ( path[0] == ',' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+//#if !defined( __STATIC__ ) && !defined( __STATIC_GLOBALS__ )
+			else if( ( path[0] == ',' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetInstallPath();
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
 			}
-#endif			
-			else if( ( path[0] == '#' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+//#endif			
+			else if( ( path[0] == '#' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = GetProgramPath();
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
 			} else if( ( path[0] == '~' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
@@ -633,28 +639,36 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 #endif
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			} else if( ( path[0] == '*' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
+			} else if( ( path[0] == '*' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).data_file_root;
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			} else if( ( path[0] == ';' ) && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
+			} else if( ( path[0] == ';' ) && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).local_data_file_root;
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
-			} else if( path[0] == '?' && ( ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
+			} else if( path[0] == '?' && ( ( path[1] == 0 ) || ( path[1] == '/' ) || ( path[1] == '\\' ) ) ) {
 				CTEXTSTR here;
 				size_t len;
 				here = ( *winfile_local ).share_data_root;
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( path ) ) );
-				tnprintf( tmp_path, len, "%s" SYS_PATHCHAR "%s", here, path + 2 );
+				tnprintf( tmp_path, len, "%s%s%s", here
+				        , path[1] ? SYS_PATHCHAR : ""
+				        , path[1]?path + 2:(path+1) );
 			}
 #if __ANDROID__
 			{
@@ -693,7 +707,9 @@ TEXTSTR ExpandPathExx( CTEXTSTR path, struct file_system_interface* fsi DBG_PASS
 				here = OSALOT_GetEnvironmentVariable( "HOME" );
 #endif
 				tmp_ = NewArray( TEXTCHAR, len = ( StrLen( here ) + StrLen( tmp_path ) ) );
-				tnprintf( tmp_, len, "%s" SYS_PATHCHAR "%s", here, tmp_path + 2 );
+				tnprintf( tmp_, len, "%s%s%s", here
+				        , tmp_path[1] ? SYS_PATHCHAR : ""
+				        , tmp_path[1]?tmp_path + 2:(tmp_path+1) );
 				ReleaseEx( tmp_path DBG_SRC );
 				tmp_path = tmp_;
 			}
