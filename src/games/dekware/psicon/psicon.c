@@ -269,14 +269,14 @@ static void fontResult( uintptr_t psv, SFTFont font ) {
 
 //----------------------------------------------------------------------------
 
-static void setColor( uintptr_t psv, CDATA color ) {
+static void setColor( uintptr_t psv, CDATA color, LOGICAL ok ) {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	PCONSOLE_INFO pdp;
 	pdp = (PCONSOLE_INFO)GetControlUserData( pc );
 	pdp->psicon.crCommand = color;
 	SmudgeCommon( pc );
 }
-static void setBackColor( uintptr_t psv, CDATA color ) {
+static void setBackColor( uintptr_t psv, CDATA color, LOGICAL ok ) {
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	PCONSOLE_INFO pdp;
 	pdp = (PCONSOLE_INFO)GetControlUserData( pc );

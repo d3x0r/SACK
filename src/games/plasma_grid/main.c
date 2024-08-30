@@ -47,7 +47,7 @@ struct plasma_local
 	struct grid_reader *grid_reader;
 } l;
 
-int CPROC Mouse( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC Mouse( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 {
 	if( MAKE_FIRSTBUTTON( b, l.mouse_b ) )
 	{
@@ -70,7 +70,7 @@ int CPROC Mouse( uintptr_t psv, int32_t x, int32_t y, uint32_t b )
 	return 1;
 }
 
-void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
+int CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 {
 	Image surface = GetDisplayImage( render );
 	LOGICAL use_grid_reader = FALSE;
@@ -92,7 +92,7 @@ void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 	else
 		virtual_surface = 0;
 	if( !data )
-		return;
+		return 0;
 
 	for( h = 0; h < surface->height; h++ )
 	{
@@ -136,6 +136,7 @@ void CPROC DrawPlasma( uintptr_t psv, PRENDERER render )
 	UpdateDisplay( render );
 	if( use_grid_reader )
 		Release( data );
+	return 1;
 }
 
 static void FeedRandom( uintptr_t psvPlasma, POINTER *salt, size_t *salt_size )

@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <psi.h>
 #include <sharemem.h>
-
+#include <filesys.h>
 // this is correct for cmake proper projects.
 #include "../cards/cards.h"
 

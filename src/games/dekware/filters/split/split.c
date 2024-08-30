@@ -138,7 +138,7 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
            else
            {
                DECLTEXT( merge, "merge" );
-					pdp->pMerger = (PMERGEDATAPATH)FindOpenDevice( ps, (PTEXT)&merge );
+					pdp->pMerger = (PMERGEDATAPATH)((uintptr_t)FindOpenDevice( ps, (PTEXT)&merge ));
                //if( merger )
 					{
                   //lprintf( "foudn datapth type ID..." );

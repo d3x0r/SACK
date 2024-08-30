@@ -134,12 +134,14 @@ include_directories( ${FBASEDIR}/include )
 FOREACH( SRC ${FT_SRCS} )
   LIST( APPEND FREETYPE_SOURCE ${FBASEDIR}/${SRC} )
 ENDFOREACH()
-if( FORCE_CXX )
-set_source_files_properties(${FREETYPE_SOURCE} PROPERTIES LANGUAGE C )
-endif( FORCE_CXX )
+
+if (UNIX)
+   set_source_files_properties(${FREETYPE_SOURCE} PROPERTIES COMPILE_DEFINITIONS "HAVE_UNISTD_H" )
 endif()
 
 source_group("Source Files\\Freetype-2.13.2 Library" FILES ${FREETYPE_SOURCE})
+endif()
+
 
 
 if( BUILD_EXTRAS )

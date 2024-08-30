@@ -83,8 +83,8 @@ int drawing;
 int all_players_went;
 
 
-void CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer );
-int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b );
+int CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer );
+uintptr_t CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b );
 
 
 void CPROC Close( uintptr_t dwUser )
@@ -1031,7 +1031,7 @@ void AddPeice( int x, int y, int posx, int posy )
 	}
 }
 
-int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
+uintptr_t CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
 {
 	static int left, right;
 	int Boardx, Boardy;
@@ -1166,12 +1166,13 @@ int CPROC Mouse( uintptr_t dwUser, int32_t x, int32_t y, uint32_t b )
    return 1;
 }
 
-void CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer )
+int CPROC MyRedraw( uintptr_t dwUser, PRENDERER pRenderer )
 {
    if( !pGameBoard )
 		pGameBoard = MakeSubImage( GetDisplayImage( pRenderer ), 0, 0, BoardSizeX * BOARD_X, BoardSizeY * BOARD_Y );
    ClearImageTo( GetDisplayImage( pRenderer ), BASE_COLOR_BLACK );
 	DrawBoard( (uintptr_t)hDisplay );
+	return 1;
 }
 SaneWinMain( argc, argv )
 {
