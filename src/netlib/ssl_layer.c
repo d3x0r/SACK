@@ -901,11 +901,6 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 		ses->user_close = pcServer->ssl_session->user_close;
 	}
 
-	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
-		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
-	else
-		pcServer->ssl_session->user_connected( pcServer, pcNew);
-
 	ses->send_callback = ssl_layer_sender;
 	ses->recv_callback = ssl_layer_recver;
 	ses->psvSendRecv = (uintptr_t)pcNew;
@@ -913,6 +908,11 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	pcNew->dwFlags &= ~CF_CPPREAD;
 	pcNew->close.CloseCallback = ssl_CloseCallback;
 	pcNew->dwFlags &= ~CF_CPPCLOSE;
+
+	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
+		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
+	else
+		pcServer->ssl_session->user_connected( pcServer, pcNew );
 
 }
 
