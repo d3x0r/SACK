@@ -564,10 +564,13 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LogBinary( ses[0]->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
 				}
 #endif
-				if( ses[0]->dwOriginalFlags & CF_CPPREAD )
-					ses[0]->cpp_user_read( ses[0]->psvRead, ses[0]->dbuffer, len );
-				else
-					ses[0]->user_read( pc, ses[0]->dbuffer, len );
+				if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
+					if( ses[0]->cpp_user_read )
+						ses[0]->cpp_user_read( ses[0]->psvRead, ses[0]->dbuffer, len );
+				} else {
+					if( ses[0]->user_read )
+						ses[0]->user_read( pc, ses[0]->dbuffer, len );
+				}
 				if( ses[0] ) { // might have closed during read.
 					if( ses[0] && ses[0]->deleteInUse ){
 						lprintf( "Pending close(3)... was in-use when closed.");
