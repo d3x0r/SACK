@@ -39,6 +39,7 @@ endif( WATCOM )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ )
 
 set( NO_SSL ON )
+set( NO_SSH ON )
 include( ${SOURCES_ROOT}/CMakeSources.lst )
 
 set(BASE_SOURCES
