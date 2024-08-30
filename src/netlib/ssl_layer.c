@@ -457,13 +457,15 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 
 					LeaveCriticalSec( &ses[0]->csReadWrite );
 
-					//lprintf( "Initial read dispatch.." );
+					//lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
 					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 						if( ses[0]->cpp_user_read )
 							ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
+						else lprintf( "Couldn't send initial read - no C++ function?!" );
 					} else {
 						if( ses[0]->user_read )
 							ses[0]->user_read( pc, NULL, 0 );
+						else lprintf( "Couldn't send initial read - no function?!" );
 					}
 					if( ses[0]->deleteInUse ){
 						lprintf( "Pending close... was in-use when closed.");
@@ -564,12 +566,15 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LogBinary( ses[0]->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
 				}
 #endif
+				//lprintf( "cpp read? %d ", ses[0]->dwOriginalFlags & CF_CPPREAD);
 				if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 					if( ses[0]->cpp_user_read )
 						ses[0]->cpp_user_read( ses[0]->psvRead, ses[0]->dbuffer, len );
+					else lprintf( "Somehow missing the C++ read function?");
 				} else {
 					if( ses[0]->user_read )
 						ses[0]->user_read( pc, ses[0]->dbuffer, len );
+					else lprintf( "Somehow missing the read function?");
 				}
 				if( ses[0] ) { // might have closed during read.
 					if( ses[0] && ses[0]->deleteInUse ){
@@ -878,23 +883,26 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 #ifdef DEBUG_SSL_IO_VERBOSE
 	SSL_set_info_callback( pcNew->ssl_session->ssl, infoCallback );
 #endif
-
-	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
-		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
-	else
-		pcServer->ssl_session->user_connected( pcServer, pcNew);
 	ses->dwOriginalFlags = pcServer->ssl_session->dwOriginalFlags;
 	// these can get set in the connection callback...
+	//lprintf( "Setup user read functions (BEFORE CONNECT)? %p %p",ses->user_read, ses->cpp_user_read );
+	//lprintf( "Setup user read functions from... %p %p",pcServer->ssl_session->user_read, pcServer->ssl_session->cpp_user_read );
 	if( !ses->user_read && !ses->cpp_user_read ) {
 		ses->cpp_user_read = pcServer->ssl_session->cpp_user_read;
 		ses->psvRead = pcServer->ssl_session->psvRead;
 		ses->user_read = pcServer->ssl_session->user_read;
-	}
+	} 
+	//else lprintf( "read callbacks already set... skipped?");
 	// these can get set in the connection callback...
 	if( !ses->user_close && !ses->cpp_user_close ) {
 		ses->cpp_user_close = pcServer->ssl_session->cpp_user_close;
 		ses->user_close = pcServer->ssl_session->user_close;
 	}
+
+	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
+		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
+	else
+		pcServer->ssl_session->user_connected( pcServer, pcNew);
 
 	ses->send_callback = ssl_layer_sender;
 	ses->recv_callback = ssl_layer_recver;
