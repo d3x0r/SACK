@@ -567,9 +567,13 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
                               , uintptr_t psv)
 {
 	if( pClient->ssl_session ) {
+		//lprintf( "is an ssl connection - set new cpp_user_read %p %p", pClient->ssl_session->cpp_user_read, pClient->ssl_session->user_read);
 		pClient->ssl_session->cpp_user_read = pReadComplete;
 		pClient->ssl_session->psvRead = psv;
+		//lprintf( "maybe psv Read needs to be reset? %p %p", pClient->psvRead, psv );
+		pClient->psvRead = psv;
 		pClient->ssl_session->dwOriginalFlags |= CF_CPPREAD;
+		//lprintf( "Session original flags set? %x", pClient->ssl_session->dwOriginalFlags);
 		return;
 	}
 
