@@ -623,7 +623,9 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 							//lprintf( "making obuffer bigger %d %d", pending, pending * 2 );
 						}
 						read = BIO_read( ses[0]->wbio, ses[0]->obuffer, (int)ses[0]->obuflen );
+#ifdef DEBUG_SSL_IO
 						lprintf( "Sending bio pending? %zd (even though we're closing the ssl to fallback?)", pending );
+#endif
 						ses[0]->send_callback( ses[0]->psvSendRecv, ses[0]->obuffer, read );
 						//SendTCP( pc, ses[0]->obuffer, read );
 					}
