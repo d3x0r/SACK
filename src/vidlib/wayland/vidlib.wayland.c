@@ -705,6 +705,7 @@ static void xdgTopLeveLHandleConfigure(void* data,
 		postSizeEvent( r, width, height );
 		if (width) r->bufw = width;
 		if (height) r->bufh = height;
+			lprintf( "xdg_toplevel_configure...%d %d  %d %d", width, height, r->flags.canCommit, !r->flags.dirty);
 		/*
 		if( width && height ) {
 
@@ -1220,8 +1221,13 @@ static struct wl_buffer * nextBuffer( PXPANEL r, int attach ) {
 			}
 	}
 	// update image internals of renderer... 
-	r->pImage = RemakeImage( r->pImage, r->shm_data, r->bufw, r->bufh );
-	r->pImage->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
+	lprintf( "Resizing Output image");
+	r->pImageOutput = RemakeImage( r->pImageOutput, r->shm_data, r->bufw, r->bufh );
+	Image tmp = r->pImageDraw;//UnmakeImageFile( r->pImageDraw );
+	r->pImageDraw = MakeImageFile( r->bufw, r->bufh );
+	BlotImageSizedTo( r->pImageDraw, tmp, 0, 0, 0, 0, r->bufw, r->bufh );
+	UnmakeImageFile( tmp );
+	r->pImageOutput->flags |= IF_FLAG_FINAL_RENDER|IF_FLAG_IN_MEMORY;
 	return r->buff;
 }
 
@@ -1616,6 +1622,7 @@ static int do_waylandDrawThread( uintptr_t psv ) {
 				if( req->setSize ) {
 					req->r->bufw = req->w;
 					req->r->bufh = req->h;
+					lprintf( "Set Size request in wayland draw thread...");
 				}
 				if( req->setFocus ) {
 					lprintf( "Set Focus in draw event... %d", req->hasFocus );
@@ -1808,6 +1815,7 @@ handle_configure(void *data, struct wl_shell_surface *shell_surface,
 	PXPANEL r = (PXPANEL)data;
 
 	postSizeEvent( r, r->bufw, r->bufh );
+	lprintf( "psot size event (should result in something)");
 	//wl_surface_commit( r->surface );
 	//r->changedEdge = edges;
 	lprintf( "(old?) shell configure %d %d", width, height );
@@ -2138,9 +2146,10 @@ static PRENDERER sack_wayland_OpenDisplayAboveUnderSizedAt(uint32_t attr , uint3
 	if( (int)w < 0 ) w = 800;
 	if( (int)h < 0 ) h = 600;
 
+	lprintf( "Initial window create a window size set bufw bufh");
 	r->bufw = w;
 	r->bufh = h;
-
+	r->pImageDraw = MakeImageFile( w, h );
 	{
 		struct wvideo_tag *parent = r->above;
 		while( (parent ) && parent->sub_surface ) {
@@ -2221,9 +2230,14 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 #endif	
 	THREAD_ID prior = 0;
+	BlotImageSizedTo( r->pImageOutput, r->pImageDraw, x, y, x, y, w, h );
 	int e = EnterCriticalSecNoWait( &wl.cs_wl, &prior );
 	if( e > 0 ) {
+#ifdef DEBUG_DIRTY_DRAW		
+		lprintf( "Locked, able to do update");
+#endif		
 		if( r->surface ) {
+			//lprintf( "Do surface damage.." );
 			wl_surface_damage( r->surface, x, y, w, h );
 			// this doesn't directly commit
 			// so maybe canCommit isn't useful?
@@ -2252,7 +2266,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	_lprintf( DBG_RELAY )( "Who calls update the WHOLE display anyway?");
+	//_lprintf( DBG_RELAY )( "Who calls update the WHOLE display anyway?");
 	sack_wayland_UpdateDisplayPortionEx( renderer
 		, 0, 0
 		, r->buffer_states[r->curBuffer].w
@@ -2413,12 +2427,12 @@ static void sack_wayland_GetMouseState    ( int32_t *x, int32_t *y, uint32_t *b 
 static Image sack_wayland_GetDisplayImage(PRENDERER renderer) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
 	if( r ) {
-		if( !r->pImage ) {
+		if( !r->pImageDraw ) {
 			lprintf( "draw getting display image...(do attachnewbuffer (initialized))");
 			attachNewBuffer( r, 1, 0 );
 		}
 		//lprintf( "GetDisplayImage:Result with image: %p %p", r->pImage );
-		return r->pImage;
+		return r->pImageDraw;
 	}
 	return NULL;
 }
