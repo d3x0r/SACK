@@ -334,6 +334,13 @@ NETWORK_PROC( void, GetNetworkAddressBinary )( SOCKADDR *addr, uint8_t **data, s
  */
 NETWORK_PROC( SOCKADDR *, MakeNetworkAddressFromBinary )( uintptr_t *data, size_t datalen );
 
+enum NetworkAddressFlags {
+	NETWORK_ADDRESS_FLAG_PREFER_NONE = 0,
+	NETWORK_ADDRESS_FLAG_PREFER_V6 = 1,
+	NETWORK_ADDRESS_FLAG_PREFER_V4 = 2,
+};
+
+NETWORK_PROC( SOCKADDR*, CreateRemoteV2 )( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddressFlags flags );
 NETWORK_PROC( SOCKADDR *, CreateRemote )( CTEXTSTR lpName,uint16_t nHisPort);
 NETWORK_PROC( SOCKADDR *, CreateLocal )(uint16_t nMyPort);
 NETWORK_PROC( int, GetAddressParts )( SOCKADDR *pAddr, uint32_t *pdwIP, uint16_t *pwPort );

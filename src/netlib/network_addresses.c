@@ -23,8 +23,6 @@
 #endif
 #endif
 
-#define FIX_RELEASE_COM_COLLISION
-#define NO_UNICODE_C
 #include <stdhdrs.h>
 #include <stddef.h>
 #include <ctype.h>
@@ -92,7 +90,6 @@ extern "C" {
 
 #endif
 #ifdef WIN32
-#include <windows.h>
 #include <stdio.h>
 #ifdef __CYGWIN__
 #include <mingw/tchar.h>
@@ -321,11 +318,11 @@ static void setupInterfaces() {
 					lprintf( "ioctl SIOCGIFINDEX error? %d", errno);
 				}
 				if (ioctl(sock_handle, SIOCGIFFLAGS, &ifr) == 0) {
-	            	if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
-    	            	if (ioctl(sock_handle, SIOCGIFHWADDR, &ifr) == 0) {
+					if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
+						if (ioctl(sock_handle, SIOCGIFHWADDR, &ifr) == 0) {
 							//LogBinary( (const uint8_t*)ifr.ifr_hwaddr.sa_data, 12 );
 							memcpy( mac_data.hwaddrs[i], ifr.ifr_hwaddr.sa_data, 6 );
-						}  else {
+						} else {
 							lprintf( "ioctl SIOCGIFHWADDR failed: %d", errno);
 						}
 					} else {
@@ -1112,20 +1109,12 @@ struct sockaddr_un {
 NETWORK_PROC( SOCKADDR *,CreateUnixAddress)( CTEXTSTR path )
 {
 	struct sockaddr_un *lpsaAddr;
-#ifdef UNICODE
-	char *tmp_path = CStrDup( path );
-#endif
-   lpsaAddr=(struct sockaddr_un*)AllocAddr();
+	lpsaAddr=(struct sockaddr_un*)AllocAddr();
 	if (!lpsaAddr)
 		return(NULL);
 	((uintptr_t*)lpsaAddr)[-1] = StrLen( path ) + 1;
 	lpsaAddr->sun_family = PF_UNIX;
-#ifdef UNICODE
-	strncpy( lpsaAddr->sun_path, tmp_path, 107 );
-	Deallocate( char*, tmp_path );
-#else
 	strncpy( lpsaAddr->sun_path, path, 107 );
-#endif
 
 #ifdef __MAC__
 	lpsaAddr->sun_len = 2+strlen( lpsaAddr->sun_path );
@@ -1147,23 +1136,24 @@ SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
 	if (!lpsaAddr)
 		return(NULL);
 	SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
-	lpsaAddr->sin_family	    = AF_INET;         // InetAddress Type.
+	lpsaAddr->sin_family            = AF_INET;         // InetAddress Type.
 	lpsaAddr->sin_addr.S_un.S_addr  = dwIP;
-	lpsaAddr->sin_port         = htons(nHisPort);
+	lpsaAddr->sin_port              = htons(nHisPort);
 	return((SOCKADDR*)lpsaAddr);
 }
 
 //---------------------------------------------------------------------------
 
-SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
+SOCKADDR* CreateRemote( CTEXTSTR lpName, uint16_t nHisPort ) {
+	return CreateRemoteV2( lpName, nHisPort, NETWORK_ADDRESS_FLAG_PREFER_NONE );
+}
+
+
+SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddressFlags flags )
 {
 	SOCKADDR_IN *lpsaAddr;
 	int conversion_success = FALSE;
 	char *tmpName = NULL;
-#ifdef UNICODE
-	char *_lpName = CStrDup( lpName );
-#  define lpName _lpName
-#endif
 #ifndef WIN32
 	PHOSTENT phe;
 	// a IP type name will never have a / in it, therefore
@@ -1182,18 +1172,15 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 	lpsaAddr=(SOCKADDR_IN*)AllocAddr();
 	if( !lpsaAddr )
 	{
-#ifdef UNICODE
-		Deallocate( char *, _lpName );
-#endif
 		return(NULL);
 	}
 	SetAddrName( (SOCKADDR*)lpsaAddr, lpName );
 
 	// if it's a numeric name... attempt to use as an address.
-#ifdef __LINUX__
-	if( lpName &&
-		( lpName[0] >= '0' && lpName[0] <= '9' )
-	  && StrChr( lpName, '.' ) )
+	int has_bracket = 0;
+	if( lpName 
+	    && ( lpName[0] >= '0' && lpName[0] <= '9' )
+	    && StrChr( lpName, '.' ) )
 	{
 		if( inet_pton( AF_INET, lpName, &lpsaAddr->sin_addr ) > 0 )
 		{
@@ -1203,12 +1190,13 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 		}
 	}
 	else if( lpName
-		   && ( ( lpName[0] >= '0' && lpName[0] <= '9' )
-		      || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
-		      || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
-		      || lpName[0] == ':'
-		      || ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) )
-		   && StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
+	         && ( ( lpName[0] >= '0' && lpName[0] <= '9' )
+	            || ( lpName[0] >= 'a' && lpName[0] <= 'f' )
+	            || ( lpName[0] >= 'A' && lpName[0] <= 'F' )
+	            || lpName[0] == ':'
+	            || ( ( has_bracket = 1 )
+	               , ( lpName[0] == '[' && lpName[StrLen( lpName ) - 1] == ']' ) ) )
+	         && StrChr( lpName, ':' )!=StrRChr( lpName, ':' ) )
 	{
 		//lprintf( "Converting name:", lpName );
 		if( inet_pton( AF_INET6, lpName, (struct in6_addr*)(&lpsaAddr->sin_addr+1) ) > 0 )
@@ -1220,7 +1208,7 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 			conversion_success = TRUE;
 		}
 	}
-#endif
+
 	if( !conversion_success )
 	{
 		if( lpName )
@@ -1257,74 +1245,69 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 			}
 #else //WIN32
 
-			char *tmp = CStrDup( lpName );
-#ifdef __EMSCRIPTEN__
-			if(!(phe=gethostbyname(tmp) ) )
-#else
-         if(1)
-#endif
+#  ifdef __EMSCRIPTEN__
+			if( !( phe = gethostbyname( lpName ) ) )
 			{
-#if !defined( __EMSCRIPTEN__ )
-				if( !(phe=gethostbyname2(tmp,AF_INET6) ) )
-#endif
-				{
-#if !defined( __EMSCRIPTEN__ )
-					if( !(phe=gethostbyname2(tmp,AF_INET) ) )
-#endif
-					{
- 						// could not find the name in the host file.
-						globalNetworkData.lastAddressError = errno;
+ 				// could not find the name in the host file.
+				globalNetworkData.lastAddressError = errno;
 
-						lprintf( "Could not Resolve to %s  %s", tmp, lpName );
-						ReleaseAddress((SOCKADDR*)lpsaAddr);
-						Deallocate( char*, tmp );
-						if( tmpName ) Deallocate( char*, tmpName );
-						return(NULL);
-					}
-#if !defined( __EMSCRIPTEN__ )
-					else
-					{
-						//lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
-						SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
-						lpsaAddr->sin_family = AF_INET;
-						memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
-							    phe->h_addr,
-						       phe->h_length);
-					}
-#endif
-				}
-#if !defined( __EMSCRIPTEN__ )
-				else
-				{
-					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
-					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
-					//lprintf( "This copy:%d", phe->h_length );
-#  if inline_note_never_included
-					{
-						__SOCKADDR_COMMON (sin6_);
-						n_port_t sin6_port;        /* Transport layer port # */
-						uint32_t sin6_flowinfo;     /* IPv6 flow information */
-						struct in6_addr sin6_addr;  /* IPv6 address */
-						uint32_t sin6_scope_id;     /* IPv6 scope-id */
-					};
-#  endif
-
-					memcpy( ((struct sockaddr_in6*)lpsaAddr)->sin6_addr.s6_addr,           // save IP address from host entry.
-							 phe->h_addr,
-							 phe->h_length);
-				}
-#endif
+				lprintf( "Could not Resolve to %s", lpName );
+				ReleaseAddress((SOCKADDR*)lpsaAddr);
+				if( tmpName ) Deallocate( char*, tmpName );
+				return(NULL);
 			}
 			else
 			{
-				Deallocate( char *, tmp );
 				SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 				lpsaAddr->sin_family = AF_INET;         // InetAddress Type.
 				//lprintf( "gethostbyname2:...." );
-				memcpy( &lpsaAddr->sin_addr.S_un.S_addr,           // save IP address from host entry.
-					 phe->h_addr,
-					 phe->h_length);
+				memcpy( &lpsaAddr->sin_addr.S_un.S_addr           // save IP address from host entry.
+				      , phe->h_addr,
+				      , phe->h_length);
 			}
+#  else
+			int found = 0;
+			int try_again;
+			do {
+				try_again = 0;
+				if( !( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 )
+				    && ( phe = gethostbyname2( lpName, AF_INET6 ) ) ) {
+					found = 1;
+					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
+					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
+					//lprintf( "This copy:%d", phe->h_length );
+					memcpy( ( (struct sockaddr_in6*)lpsaAddr )->sin6_addr.s6_addr           // save IP address from host entry.
+						, phe->h_addr
+						, phe->h_length );
+
+				}
+				if( !found 
+				    && !( flags & NETWORK_ADDRESS_FLAG_PREFER_V6 )
+				    && ( phe = gethostbyname2( lpName, AF_INET ) ) ) {
+					found = 1;
+					//lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
+					SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
+					lpsaAddr->sin_family = AF_INET;
+					memcpy( &lpsaAddr->sin_addr.S_un.S_addr           // save IP address from host entry.
+						, phe->h_addr
+						, phe->h_length );
+				} else {
+					if( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 ) {
+						flags |= NETWORK_ADDRESS_FLAG_PREFER_V6;
+						try_again = 1;
+					}
+				}
+			} while( try_again && !found );
+			if( !found )
+			{
+				// could not find the name in the host file.
+				globalNetworkData.lastAddressError = errno;
+				lprintf( "Could not Resolve to %s  %s", lpName );
+				ReleaseAddress( (SOCKADDR*)lpsaAddr );
+				if( tmpName ) Deallocate( char*, tmpName );
+				return( NULL );
+			}
+#  endif
 #endif
 #ifdef H_ADDR_DEFINED
 #  undef H_ADDR_DEFINED
@@ -1338,10 +1321,6 @@ SOCKADDR *CreateRemote( CTEXTSTR lpName,uint16_t nHisPort)
 			SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
 		}
 	}
-#ifdef UNICODE
-	Deallocate( char *, _lpName );
-#  undef lpName
-#endif
 	//lprintf( "Resulting thing" );
 	//DumpAddr( "RESULT ADDRESS", (SOCKADDR*)lpsaAddr );
 	// put in his(destination) port number...
@@ -1370,29 +1349,29 @@ namespace udp {
 			BinaryToString( pvt, (uint8_t*)sa, ((sa->sa_family==AF_INET)? IN_SOCKADDR_LENGTH: IN6_SOCKADDR_LENGTH)  DBG_RELAY );
 			if( sa->sa_family == AF_INET ) {
 				vtprintf( pvt, "%s: (%s) %d.%d.%d.%d:%d ", name
-					, ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
-					//*(((unsigned char *)sa)+0),
-					//*(((unsigned char *)sa)+1),
-					, *( ( (unsigned char*)sa ) + 4 ),
-					*( ( (unsigned char*)sa ) + 5 ),
-					*( ( (unsigned char*)sa ) + 6 ),
-					*( ( (unsigned char*)sa ) + 7 )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
+				        , ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
+				        //*(((unsigned char *)sa)+0),
+				        //*(((unsigned char *)sa)+1),
+				        , *( ( (unsigned char*)sa ) + 4 )
+				        , *( ( (unsigned char*)sa ) + 5 )
+				        , *( ( (unsigned char*)sa ) + 6 )
+				        , *( ( (unsigned char*)sa ) + 7 )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
 				);
 			} else if( sa->sa_family == AF_INET6 ) {
 				lprintf( "Socket address binary: %s", name );
 				vtprintf( pvt, "%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x "
-					, name
-					, ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 8 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 10 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 12 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 14 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 16 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 18 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 20 ) ) ) )
-					, ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 22 ) ) ) )
+				        , name
+				        , ( ( (uintptr_t*)sa )[-1] & 0xFFFF0000 ) ? ( ( (char**)sa )[-1] ) : "no name"
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 2 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 8 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 10 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 12 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 14 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 16 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 18 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 20 ) ) ) )
+				        , ntohs( *( ( (unsigned short*)( (unsigned char*)sa + 22 ) ) ) )
 				);
 			}
 		}
@@ -1424,18 +1403,18 @@ NETWORK_PROC( void, DumpAddrEx)( CTEXTSTR name, SOCKADDR *sa DBG_PASS )
 		{
 			lprintf( "Socket address binary: %s", name );
 			_lprintf(DBG_RELAY)( "%s: (%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x "
-					 , name
-					, ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+12))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+14))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+16))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+18))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+20))))
-					 , ntohs(*(((unsigned short *)((unsigned char*)sa+22))))
-					 );
+			                   , name
+			                   , ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+12))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+14))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+16))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+18))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+20))))
+			                   , ntohs(*(((unsigned short *)((unsigned char*)sa+22))))
+			                   );
 		}
 
 }
@@ -1472,10 +1451,6 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 	uint16_t wPort;
 	CTEXTSTR portName = name;
 
-#ifdef UNICODE
-	char *_name = CStrDup( name );
-#  define name _name
-#endif
 	if( name[0] == '[' ) { //-V595
 		while( portName[0] && portName[0] != ']' )
 			portName++;
@@ -1502,12 +1477,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 				se = getservbyname( port, NULL );
 				if( !se )
 				{
-#ifdef UNICODE
-#define FMT "S"
-#else
-#define FMT "s"
-#endif
-					Log1( "Could not resolve \"%" FMT "\" as a valid service name", port );
+					lprintf( "Could not resolve \"%s\" as a valid service name", port );
 					//return NULL;
 					wPort = nDefaultPort;
 				}
@@ -1518,9 +1488,6 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 		}
 		else
 			wPort = nDefaultPort;
-#ifdef UNICODE
-#  undef name
-#endif
 		sa = CreateRemote( name, wPort );
 		if( port )
 		{
@@ -1532,9 +1499,6 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 		//Log1( "%s does not have a ':'", name );
 		sa = CreateRemote( name, nDefaultPort );
 	}
-#ifdef UNICODE
-	Deallocate( char *, _name );
-#endif
 	if( bTmpName ) Deallocate( char*, tmp );
 	return sa;
 }
@@ -1649,11 +1613,11 @@ LOGICAL IsThisAddressMe( SOCKADDR *addr, uint16_t myport )
 
 LOGICAL IsBroadcastAddressForInterface( struct interfaceAddress *address, SOCKADDR *addr ) {
 	if( addr->sa_family == AF_INET ) {
-      //lprintf( "can test for broadcast... %08x %08x %08x", ( ((uint32_t*)(address->saMask->sa_data+2))[0] | ((uint32_t*)(addr->sa_data+2))[0] ), ((uint32_t*)address->saMask->sa_data)[0] , ((uint32_t*)addr->sa_data)[0] );
+		//lprintf( "can test for broadcast... %08x %08x %08x", ( ((uint32_t*)(address->saMask->sa_data+2))[0] | ((uint32_t*)(addr->sa_data+2))[0] ), ((uint32_t*)address->saMask->sa_data)[0] , ((uint32_t*)addr->sa_data)[0] );
 		if( ( ((uint32_t*)(address->saMask->sa_data+2))[0] | ((uint32_t*)(addr->sa_data+2))[0] ) == 0xFFFFFFFFU )
-         return TRUE;
+			return TRUE;
 	}
-   return FALSE;
+	return FALSE;
 }
 
 //----------------------------------------------------------------------------
@@ -2013,13 +1977,7 @@ void LoadNetworkAddresses( void ) {
 	{
 		struct addrinfo *result;
 		struct addrinfo *test;
-#ifdef _UNICODE
-		char *tmp = WcharConvert( globalNetworkData.system_name );
-		getaddrinfo( tmp, NULL, NULL, (struct addrinfo**)&result );
-		Deallocate( char*, tmp );
-#else
 		getaddrinfo( globalNetworkData.system_name, NULL, NULL, (struct addrinfo**)&result );
-#endif
 		for( test = result; test; test = test->ai_next )
 		{
 			//if( test->ai_family == AF_INET )
