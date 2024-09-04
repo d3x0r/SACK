@@ -15,23 +15,41 @@ SaneWinMain( argc, argv )
 	if( argc < 1 )
 	{
 		printf( "Usage: %s <name>\n", argv[0] );
-      return 1;
+		return 1;
 	}
-   if( NetworkWait(NULL,1,0) )
-	{
-		SOCKADDR *sa = CreateRemote( argv[1], 5555 );
+	if( NetworkWait( NULL, 1, 0 ) ) {
+		SOCKADDR* sa = CreateRemote( argv[1], 5555 );
 		uint32_t IP;
-		GetAddressParts( sa, &IP, NULL );
+		if( sa->sa_family == AF_INET ) {
+			GetAddressParts( sa, &IP, NULL );
 
-		printf( "%"_32f ".%"_32f ".%"_32f ".%"_32f ""
-				, (IP & 0xFF)
-				, (IP & 0xFF00) >> 8
-				, (IP & 0xFF0000) >> 16
-				, (IP & 0xFF000000) >> 24
-				);
+			printf( "%"_32f ".%"_32f ".%"_32f ".%"_32f ""
+			      , ( IP & 0xFF )
+			      , ( IP & 0xFF00 ) >> 8
+			      , ( IP & 0xFF0000 ) >> 16
+			      , ( IP & 0xFF000000 ) >> 24
+			);
+		}
+		if( sa->sa_family == AF_INET6 ) {
+			//uint32_t IP[4];
+			//GetAddressParts( sa, IP, NULL );
+			printf( "(%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n"
+			      , ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+12))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+14))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+16))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+18))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+20))))
+			      , ntohs(*(((unsigned short *)((unsigned char*)sa+22))))
+			      );
+			//printf( "%
+		}
 	}
 	else
-      printf( "Failed to enable network." );
+		printf( "Failed to enable network." );
 	return 0;
 }
 EndSaneWinMain()
