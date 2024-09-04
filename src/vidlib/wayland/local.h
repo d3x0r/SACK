@@ -80,7 +80,8 @@ typedef struct wvideo_tag
 	int drawResult;
 	struct wl_shm_pool *pool;
 	struct wl_callback *frame_callback;  // request for WM_PAINT
-	Image pImage;
+	Image pImageOutput;
+	Image pImageDraw;
 	RedrawCallback pRedrawCallback;
 	intptr_t dwRedrawData;
 
