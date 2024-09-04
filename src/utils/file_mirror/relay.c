@@ -288,9 +288,11 @@ static void DoVerifyCommands( PNETWORK_STATE pns, PACCOUNT account )
 	LIST_FORALL( account->verify_commands, idx, CTEXTSTR, update_cmd )
 	{
 		TEXTCHAR cmd[4096];
+		char addbuf[64];
+		(char*)inet_ntop( AF_INET, *(struct in_addr*)&dwIP, addbuf, sizeof( addbuf ) );
 		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
-				  , (char*)inet_ntoa( *(struct in_addr*)&dwIP )
-				  , update_cmd );
+		        , addbuf
+		        , update_cmd );
 		System( cmd, LogOutput, 0 );
 	}
 }
@@ -307,9 +309,11 @@ static void DoUpdateCommands( PNETWORK_STATE pns, PACCOUNT account )
 	LIST_FORALL( account->update_commands, idx, CTEXTSTR, update_cmd )
 	{
 		TEXTCHAR cmd[4096];
+		char addbuf[64];
+		(char*)inet_ntop( AF_INET, *(struct in_addr*)&dwIP, addbuf, sizeof( addbuf ) );
 		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
-				  , (char*)inet_ntoa( *(struct in_addr*)&dwIP )
-				  , update_cmd );
+		        , addbuf
+		        , update_cmd );
 		System( cmd, LogOutput, 0 );
 	}
 }
@@ -1370,16 +1374,18 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 				{
 					uint32_t IP = (uint32_t)GetNetworkLong( pcping, GNL_IP );
 					//lprintf( "User %s connected...", account->unique_name );
+					char addbuf[64];
+					(char*)inet_ntop( AF_INET, *(struct in_addr*)&IP, addbuf, sizeof( addbuf ) );
 
 					lprintf( "%p Checking connection %d %ld.%ld %s(%d) %s"
-						, pcping 
-						, i
-							, version_code >> 16
-								, version_code & 0xFFF
-                            , pns->account->unique_name
-                            , pns->account->logincount
-                            , inet_ntoa( *(struct in_addr*)&IP )
-									);
+					       , pcping 
+					       , i
+					       , version_code >> 16
+					       , version_code & 0xFFF
+					       , pns->account->unique_name
+					       , pns->account->logincount
+					       , addbuf
+					       );
 					if( ( pns->last_message_time + 13000 )
 						< timeGetTime() )
 
@@ -1399,9 +1405,9 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 							SendTCP( pcping, "PING", 4 );
 						}
 					}
-                }
-                else
-                {
+				}
+				else
+				{
 					lprintf( "%p No account on connection %d!?!?!"
 						, pcping 
 						, i );
@@ -1410,7 +1416,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 						pns->login_fails = 0;
 						RemoveClient( pcping );
 					}
-                }
+				}
 				NetworkUnlock( pcping, 1 );
 			}
 			else
@@ -1424,7 +1430,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 		else if( bRetry )
 			WakeableSleep( 2000 );
 		else
-         WakeableSleep( 2000 );
+			WakeableSleep( 2000 );
 	}
 	bServerRunning = 0;
 	return 0;
@@ -1434,7 +1440,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 
 static void CPROC ExitButton( uintptr_t psv, PSI_CONTROL pc )
 {
-   lprintf( "Exit button clicked, indicating done and waking main.");
+	lprintf( "Exit button clicked, indicating done and waking main.");
 	bDone = 1;
 	WakeThread( g.main_thread );
 }
@@ -1445,15 +1451,15 @@ static void OpenStatusDisplay( PACCOUNT account )
 {
 	TEXTCHAR title[256];
 	PSI_CONTROL frame;
-   static int status_offset_x = 0;
-   static int status_offset_y = 0;
+	static int status_offset_x = 0;
+	static int status_offset_y = 0;
 	snprintf( title, sizeof( title ), "%s Status", account->unique_name );
 	frame = account->client.frame = CreateFrame( title, 100 + status_offset_x, 0 + status_offset_y, 320, 110, BORDER_NORMAL, 0 );
 	status_offset_x += 350;
 	if( status_offset_x > 1024 )
 	{
 		status_offset_x = 0;
-      status_offset_y += 130;
+		status_offset_y += 130;
 	}
 	if( frame )
 	{
