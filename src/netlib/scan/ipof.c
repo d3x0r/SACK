@@ -25,7 +25,7 @@ SaneWinMain( argc, argv )
 			if( sa->sa_family == AF_INET ) {
 				GetAddressParts( sa, &IP, NULL );
 
-				printf( "%"_32f ".%"_32f ".%"_32f ".%"_32f ""
+				printf( "%"_32f ".%"_32f ".%"_32f ".%"_32f "\n"
 				      , ( IP & 0xFF )
 				      , ( IP & 0xFF00 ) >> 8
 				      , ( IP & 0xFF0000 ) >> 16
@@ -35,9 +35,7 @@ SaneWinMain( argc, argv )
 			if( sa->sa_family == AF_INET6 ) {
 				//uint32_t IP[4];
 			//GetAddressParts( sa, IP, NULL );
-				printf( "(%s) %03d %04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n"
-				      , ( ((uintptr_t*)sa)[-1] & 0xFFFF0000 )?( ((char**)sa)[-1] ) : "no name"
-				      , ntohs(*(((unsigned short *)((unsigned char*)sa+2))))
+				printf( "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x\n"
 				      , ntohs(*(((unsigned short *)((unsigned char*)sa+8))))
 				      , ntohs(*(((unsigned short *)((unsigned char*)sa+10))))
 				      , ntohs(*(((unsigned short *)((unsigned char*)sa+12))))
