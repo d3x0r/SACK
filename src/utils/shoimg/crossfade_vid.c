@@ -67,7 +67,7 @@ int not_first;
 
 
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{

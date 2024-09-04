@@ -93,7 +93,7 @@ void FillDifference( Image surface, int a, int b, int mix, CDATA color )
 
 }
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	surface = GetDisplayImage( display );
 {

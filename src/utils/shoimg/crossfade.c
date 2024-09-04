@@ -50,7 +50,7 @@ int not_first;
 
 
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -62,7 +62,9 @@ void CPROC Output( uintptr_t psv, PRENDERER display )
 			BlotScaledImageSizedEx( surface, imgGraphic, 0, 0, (surface)->width, (surface)->height, 0, 0, (imgGraphic)->width, (imgGraphic)->height, 0, BLOT_INVERTED );
 		else
 			BlotScaledImage( surface, imgGraphic );
+		return 1;
 	}
+	return 0;
 }
 
 int target_out;

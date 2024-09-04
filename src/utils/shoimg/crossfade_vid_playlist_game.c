@@ -104,7 +104,7 @@ typedef struct global_tag {
 static GLOBAL g;
 
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
@@ -355,7 +355,7 @@ static void CPROC OnStopFade( uintptr_t psv )
 	StopItem( player->vlc );
 }
 
-static int CPROC MouseMethod( uintptr_t psvMouse, int32_t x, int32_t y , uint32_t b )
+static uintptr_t CPROC MouseMethod( uintptr_t psvMouse, int32_t x, int32_t y , uint32_t b )
 {
 	struct video_player *player = (struct video_player *)psvMouse;
 	if( player )

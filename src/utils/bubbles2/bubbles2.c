@@ -86,12 +86,12 @@ void DrawAllBubbles( Image image )
 	PBUBBLE bubble;
 	LIST_FORALL( l.bubbles, idx, PBUBBLE, bubble )
 	{
-      ChooseColorDest( bubble );
-      DrawBubbles( image, bubble->x, bubble->y, bubble->current );
+		ChooseColorDest( bubble );
+		DrawBubbles( image, bubble->x, bubble->y, bubble->current );
 	}
 }
 
-void CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
+int CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
 	ClearImage( image );

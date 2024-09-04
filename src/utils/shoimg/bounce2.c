@@ -206,7 +206,7 @@ void FillDifference2( Image surface, int a, int b, int mix, int color, int c2 )
 
 }
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	surface = GetDisplayImage( display );
 	{
@@ -447,13 +447,13 @@ SaneWinMain(argc, argv )
 														  , x //0
 														  , y //0
 											 );
-      AddTimer( 33, tick, 0 );
-      lprintf( "Entered main at %lld", a );
+		AddTimer( 33, tick, 0 );
+		lprintf( "Entered main at %lld", a );
 		SetRedrawHandler( display, Output, 0 );
-      g.flags.bBlacking = 1;
+		g.flags.bBlacking = 1;
 		UpdateDisplay( display );
 		//ClearImageTo( GetDisplayImage( display ), 0xFF000000 );
-      MakeTopmost( display );
+		MakeTopmost( display );
 		//if( z )
 		//{
 		//	while( (( GetTickCount() - a ) / 1000 ) < z )

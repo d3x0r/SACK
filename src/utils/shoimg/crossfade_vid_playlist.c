@@ -83,7 +83,7 @@ typedef struct global_tag {
 static GLOBAL g;
 
 
-void CPROC Output( uintptr_t psv, PRENDERER display )
+int CPROC Output( uintptr_t psv, PRENDERER display )
 {
 	if( g.is_up[psv] )
 	{
