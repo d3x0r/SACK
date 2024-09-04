@@ -507,11 +507,13 @@ void SetCPPNetworkWriteComplete( PCLIENT pClient
 void SetNetworkCloseCallback( PCLIENT pClient
                             , cCloseCallback CloseCallback )
 {
+#ifndef NO_SSL
 	if( pClient->ssl_session ) {
 		pClient->ssl_session->user_close = CloseCallback;
 		pClient->ssl_session->dwOriginalFlags &= ~CF_CPPCLOSE;
 		return;
 	}
+#endif
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->close.CloseCallback = CloseCallback;
@@ -524,6 +526,7 @@ void SetCPPNetworkCloseCallback( PCLIENT pClient
                                , cppCloseCallback CloseCallback
                                , uintptr_t psv)
 {
+#ifndef NO_SSL
 	if( pClient->ssl_session ) {
 		pClient->ssl_session->cpp_user_close = CloseCallback;
 		pClient->psvClose = psv;
@@ -531,6 +534,7 @@ void SetCPPNetworkCloseCallback( PCLIENT pClient
 
 		return;
 	}
+#endif
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->close.CPPCloseCallback = CloseCallback;
@@ -544,11 +548,13 @@ void SetCPPNetworkCloseCallback( PCLIENT pClient
 void SetNetworkReadComplete( PCLIENT pClient
                            , cReadComplete pReadComplete )
 {
+#ifndef NO_SSL
 	if( pClient->ssl_session ) {
 		pClient->ssl_session->user_read = pReadComplete;
 		pClient->ssl_session->dwOriginalFlags &= ~CF_CPPREAD;
 		return;
 	}
+#endif
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->read.ReadComplete = pReadComplete;
@@ -566,6 +572,7 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
                               , cppReadComplete pReadComplete
                               , uintptr_t psv)
 {
+#ifndef NO_SSL
 	if( pClient->ssl_session ) {
 		//lprintf( "is an ssl connection - set new cpp_user_read %p %p", pClient->ssl_session->cpp_user_read, pClient->ssl_session->user_read);
 		pClient->ssl_session->cpp_user_read = pReadComplete;
@@ -576,7 +583,7 @@ void SetCPPNetworkReadComplete( PCLIENT pClient
 		//lprintf( "Session original flags set? %x", pClient->ssl_session->dwOriginalFlags);
 		return;
 	}
-
+#endif
 	if( pClient && IsValid(pClient->Socket) )
 	{
 		pClient->read.CPPReadComplete = pReadComplete;

@@ -17,22 +17,23 @@
 #  define OPENSSL_API_COMPAT 10101
 #endif
 
-#define _LIB
-#  if NODE_MAJOR_VERSION >= 17
+#ifndef NO_SSL
+#  define _LIB
+#    if NODE_MAJOR_VERSION >= 17
 // this can't work?
-#    include <openssl/configuration.h>
+#      include <openssl/configuration.h>
+#    endif
+#  include <openssl/ssl.h>
+#  include <openssl/tls1.h>
+#  include <openssl/err.h>
+
+#  include <openssl/rsa.h>
+#  include <openssl/pem.h>
+#  include <openssl/pkcs12.h>
+#  if OPENSSL_VERSION_MAJOR >= 3
+#    include <openssl/core_names.h>
 #  endif
-#include <openssl/ssl.h>
-#include <openssl/tls1.h>
-#include <openssl/err.h>
-
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/pkcs12.h>
-#if OPENSSL_VERSION_MAJOR >= 3
-#include <openssl/core_names.h>
 #endif
-
 //#include "../contrib/MatrixSSL/3.7.1/matrixssl/matrixsslApi.h"
 
 // debugging flag for socket creation/closing
@@ -240,6 +241,7 @@ typedef struct {
 } verify_mydata_t;
 #define verify_mydata_index 0
 
+#ifndef NO_SSL
 struct ssl_session {
 	PLIST hosts;
 	SSL_CTX        *ctx;
@@ -287,6 +289,7 @@ struct ssl_session {
 	//CRITICALSECTION csReadWrite;
 	//CRITICALSECTION csWrite;
 };
+#endif
 
 struct NetworkClient
 {
@@ -375,7 +378,9 @@ struct NetworkClient
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;
 	//int tcp_delay_count;
+#ifndef NO_SSL
 	struct ssl_session *ssl_session;
+#endif
 };
 typedef struct NetworkClient CLIENT;
 
