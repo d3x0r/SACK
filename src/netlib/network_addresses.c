@@ -1293,7 +1293,7 @@ SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddres
 						, phe->h_length );
 				} else {
 					if( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 ) {
-						flags |= NETWORK_ADDRESS_FLAG_PREFER_V6;
+						flags = NETWORK_ADDRESS_FLAG_PREFER_V6;
 						try_again = 1;
 					}
 				}
