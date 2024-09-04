@@ -116,10 +116,6 @@ static void output_geometry(void *data, struct wl_output *wl_output, int32_t x,
   struct output_data *output_data = wl_output_get_user_data(wl_output);
   (void)data;
   (void)wl_output;
-  (void)x;
-  (void)y;
-  (void)physical_width;
-  (void)physical_height;
   (void)subpixel;
   (void)make;
   (void)model;
@@ -137,9 +133,6 @@ static void output_mode(void *data, struct wl_output *wl_output, uint32_t flags,
   struct output_data *output_data = wl_output_get_user_data(wl_output);
   (void)data;
   (void)wl_output;
-  (void)flags;
-  (void)width;
-  (void)height;
   (void)refresh;
   // refresh/1000 = hz
   if( flags ) {
