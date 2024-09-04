@@ -18,7 +18,8 @@ SaneWinMain( argc, argv )
 		return 1;
 	}
 	if( NetworkWait( NULL, 1, 0 ) ) {
-		for( let i = 0; i < 2; i++ ) {
+		int i;
+		for( i = 0; i < 2; i++ ) {
 			SOCKADDR* sa = CreateRemoteV2( argv[1], 5555, i?NETWORK_ADDRESS_FLAG_PREFER_V6:NETWORK_ADDRESS_FLAG_PREFER_V4 );
 			uint32_t IP;
 			if( sa->sa_family == AF_INET ) {
