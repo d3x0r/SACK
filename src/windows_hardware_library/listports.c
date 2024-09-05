@@ -53,13 +53,12 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 #endif
 
 	//IsWindowsVersionOrGreater( 6, 0, 0 );
-
-	if( !IsWindowsVersionOrGreater( 5, 0, 0 ) ) {
-		//lprintf( "NT4 version returns very limited information about the ports... (fixme?)" );
-		return WinNT40ListPorts( lpCallback, psv );
-	} else if( !IsWindowsVersionOrGreater( 5, 0, 0 ) ) {
+	if( IsWindowsVersionOrGreater( 5, 0, 0 ) ) {
 		//lprintf( "ListPorts is not supported on this platform..." );
 		return Win2000ListPorts( lpCallback, psv ); /* hopefully it'll also work for XP */
+	} else if( IsWindowsVersionOrGreater( 4, 0, 0 ) ) {
+		//lprintf( "NT4 version returns very limited information about the ports... (fixme?)" );
+		return WinNT40ListPorts( lpCallback, psv );
 	} else {
 		lprintf( "ListPorts is not supported on this platform..." );
 	}
