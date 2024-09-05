@@ -1144,10 +1144,6 @@ SOCKADDR *CreateAddress( uint32_t dwIP,uint16_t nHisPort)
 
 //---------------------------------------------------------------------------
 
-SOCKADDR* CreateRemote( CTEXTSTR lpName, uint16_t nHisPort ) {
-	return CreateRemoteV2( lpName, nHisPort, NETWORK_ADDRESS_FLAG_PREFER_NONE );
-}
-
 
 SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddressFlags flags )
 {
@@ -1441,7 +1437,7 @@ NETWORK_PROC( SOCKADDR *, SetNonDefaultPort )( SOCKADDR *pAddr, uint16_t nDefaul
 
 //----------------------------------------------------------------------------
 
-NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort )
+NETWORK_PROC( SOCKADDR *,CreateSockAddressV2)(CTEXTSTR name, uint16_t nDefaultPort, enum NetworkAddressFlags flags )
 {
 // blah... should process a ip:port - but - default port?!
 	uint32_t bTmpName = 0;
@@ -1488,7 +1484,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 		}
 		else
 			wPort = nDefaultPort;
-		sa = CreateRemote( name, wPort );
+		sa = CreateRemoteV2( name, wPort, flags );
 		if( port )
 		{
 			port[-1] = ':';  // incase we obliterated it
@@ -1497,7 +1493,7 @@ NETWORK_PROC( SOCKADDR *,CreateSockAddress)(CTEXTSTR name, uint16_t nDefaultPort
 	else  // no port specification...
 	{
 		//Log1( "%s does not have a ':'", name );
-		sa = CreateRemote( name, nDefaultPort );
+		sa = CreateRemoteV2( name, nDefaultPort, flags );
 	}
 	if( bTmpName ) Deallocate( char*, tmp );
 	return sa;

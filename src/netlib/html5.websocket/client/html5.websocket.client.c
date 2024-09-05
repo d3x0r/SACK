@@ -227,6 +227,9 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 	}
 	else
 	{
+		if(websock->input_state.on_error )
+			websock->input_state.on_error( pc, websock->input_state.psv_on, error );
+
 		//lprintf( "Connection failed. (removeclient!)" );
 		wsc_local.opening_client = NULL;
 		RemoveClient( pc );
@@ -246,13 +249,13 @@ static void getRandomSalt( uintptr_t inst, POINTER *salt, size_t *salt_size ) {
 //  since these packets are collected at a lower layer, buffers passed to receive event are allocated for
 //  the application, and the application does not need to setup an  initial read.
 PCLIENT WebSocketOpen( CTEXTSTR url_address
-							, enum WebSocketOptions options
-							, web_socket_opened on_open
-							, web_socket_event on_event
-							, web_socket_closed on_closed
-							, web_socket_error on_error
-							, uintptr_t psv
-	, const char *protocols )
+                     , enum WebSocketOptions options
+                     , web_socket_opened on_open
+                     , web_socket_event on_event
+                     , web_socket_closed on_closed
+                     , web_socket_error on_error
+                     , uintptr_t psv
+                     , const char *protocols )
 {
 	WebSocketClient websock = New( struct web_socket_client );
 	if( !wsc_local.rng ) {
@@ -289,13 +292,15 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	{
 		SOCKADDR *lpsaDest = CreateSockAddress( websock->url->host, websock->url->port ? websock->url->port : websock->url->default_port );
 		websock->pc = OpenTCPClientAddrExxx( lpsaDest
-												, WebSocketClientReceive
-												, WebSocketClientClosed
-												, NULL
-												, WebSocketClientConnected // if there is an on-open event, then register for async open
-												, (options&WS_DELAY_OPEN)?OPEN_TCP_FLAG_DELAY_CONNECT:0
-												DBG_SRC
-												);
+		                                   , WebSocketClientReceive
+		                                   , WebSocketClientClosed
+		                                   , NULL
+		                                   , WebSocketClientConnected // if there is an on-open event, then register for async open
+		                                   , ((options&WS_DELAY_OPEN)?OPEN_TCP_FLAG_DELAY_CONNECT:0)
+		                                     | ((options&WS_PREFER_V4)?OPEN_TCP_FLAG_PREFER_V4:0)
+		                                     | ((options&WS_PREFER_V6)?OPEN_TCP_FLAG_PREFER_V6:0)
+		                                     DBG_SRC
+		                                   );
 		if( websock->pc )
 		{
 			SetNetworkLong( websock->pc, 0, (uintptr_t)websock );

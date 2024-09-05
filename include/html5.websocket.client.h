@@ -44,6 +44,8 @@ typedef uintptr_t ( *web_socket_http_request )(PCLIENT pc, uintptr_t psv); // pa
 // options used for WebSocketOpen
 enum WebSocketOptions {
 	WS_DELAY_OPEN = 1,  
+	WS_PREFER_V6 = 4, // address type to prefer when opening socket (match TCP options)
+	WS_PREFER_V4 = 8, // address type to prefer when opening socket
 };
 
 //enum WebSockClientOptions {
