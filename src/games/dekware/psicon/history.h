@@ -100,7 +100,7 @@ int history_GetCommandCursor( PHISTORY_BROWSER phbr
                     , size_t *command_end
 						  );
 #endif
-PDATALIST *GetDisplayInfo( PHISTORY_BROWSER phbr );
+PDATALIST *dekware_GetDisplayInfo( PHISTORY_BROWSER phbr );
 void GetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t* x, int32_t* y );
 void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y );
 void SetHistoryPageLines( PHISTORY_BROWSER phbr, uint32_t nLines );

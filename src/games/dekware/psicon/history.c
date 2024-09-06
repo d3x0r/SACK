@@ -1532,7 +1532,7 @@ int dekware_HistoryPageDown( PHISTORY_BROWSER pb )
 
 //----------------------------------------------------------------------------
 
-PDATALIST *GetDisplayInfo( PHISTORY_BROWSER phbr )
+PDATALIST *dekware_GetDisplayInfo( PHISTORY_BROWSER phbr )
 {
    return &phbr->DisplayLineInfo;
 }

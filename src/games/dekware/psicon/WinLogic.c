@@ -758,13 +758,13 @@ int ConvertXYToLineCol( PCONSOLE_INFO pdp
 		  // y is in 'history'
 		  // might have to bias over separator lines
 		  y = pdp->nHistoryLineStart - y - pdp->nYPad; // invert y;
-		  pdp->CurrentLineInfo = GetDisplayInfo( pdp->pHistoryDisplay );
+		  pdp->CurrentLineInfo = dekware_GetDisplayInfo( pdp->pHistoryDisplay );
 	 }
 	 else if( y < pdp->nDisplayLineStart )
 	 {
 		  // y is in 'display'
 		  y = pdp->nDisplayLineStart - pdp->nYPad - y; // invert y;
-		  pdp->CurrentLineInfo = GetDisplayInfo( pdp->pCurrentDisplay );
+		  pdp->CurrentLineInfo = dekware_GetDisplayInfo( pdp->pCurrentDisplay );
 	 }
 	 else // y is on the command line...
 	 {
@@ -825,7 +825,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 			nMinLine = pdp->nHistoryLineStart;
 		else
 			nMinLine = 0;
-		ppCurrentLineInfo = GetDisplayInfo( pdp->pCurrentDisplay );
+		ppCurrentLineInfo = dekware_GetDisplayInfo( pdp->pCurrentDisplay );
 	}
 	else // do render history start...
 	{
@@ -839,7 +839,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, PENDING_RECT *region
 		nMinLine = 0;
 		nFirst = -1;
 		// the seperator is actually rendererd OVER the top of the displayed line.
-		ppCurrentLineInfo = GetDisplayInfo( pdp->pHistoryDisplay );
+		ppCurrentLineInfo = dekware_GetDisplayInfo( pdp->pHistoryDisplay );
 	}
 	//lprintf( "Render history separator %d", pdp->nHistoryLineStart );
 	if( pdp->RenderSeparator )
