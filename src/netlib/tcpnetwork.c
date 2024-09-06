@@ -150,6 +150,8 @@ void AcceptClient(PCLIENT pListen)
 		pNewClient->saSource = DuplicateAddress( pListen->saSource );
 		if( getsockname( pNewClient->Socket, pNewClient->saSource, &nLen ) )
 		{
+			DumpAddr( "Failed adr:", pNewClient->saSource );
+			DumpAddr( " Failed from:", pNewClient->saClient);
 			lprintf( "getsockname errno = %d", errno );
 		}
 		if( SOCKADDR_NAME( pNewClient->saSource) ) free( SOCKADDR_NAME( pNewClient->saSource ) );
@@ -188,6 +190,9 @@ void AcceptClient(PCLIENT pListen)
 		AddActive( pNewClient );
 		{
 			//lprintf( "Accepted and notifying..." );
+			if( pNewClient->Socket != INVALID_SOCKET ) {
+				scheduleSocket( pNewClient, NULL );
+			}
 			if( pListen->connect.ClientConnected )
 			{
 				if( pListen->dwFlags & CF_CPPCONNECT )
@@ -198,7 +203,6 @@ void AcceptClient(PCLIENT pListen)
 
 			// signal initial read.
 			//lprintf(" Initial notifications...");
-
 			if( pNewClient->read.ReadComplete )
 			{
 				pNewClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
@@ -206,24 +210,6 @@ void AcceptClient(PCLIENT pListen)
 					pNewClient->read.CPPReadComplete( pNewClient->psvRead, NULL, 0 );  // process read to get data already pending...
 				else
 					pNewClient->read.ReadComplete( pNewClient, NULL, 0 );  // process read to get data already pending...
-			}
-			/*
-			* really don't need a write complete on initial open... the initial read should suffice.
-			if( pNewClient->write.WriteComplete  &&
-				!pNewClient->bWriteComplete )
-			{
-				pNewClient->bWriteComplete = TRUE;
-				if( pNewClient->dwFlags & CF_CPPWRITE )
-					pNewClient->write.CPPWriteComplete( pNewClient->psvWrite, NULL, 0 );
-				else
-					pNewClient->write.WriteComplete( pNewClient, NULL, 0 );
-				pNewClient->bWriteComplete = FALSE;
-			}
-			*/
-			//lprintf( "Is it already closed HERE?""?""?");
-			if( pNewClient->Socket ) {
-				//lprintf( "Socket should not be zero now(2)? %d", pNewClient->Socket );
-				scheduleSocket( pNewClient, NULL );
 			}
 
 			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
@@ -250,11 +236,25 @@ void AcceptClient(PCLIENT pListen)
 
 static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 {
+	int replaced = 0;
 	if( !IsInvalid( pClient->Socket ) )
 	{
-		lprintf( "COSE SOCKET IN OPEN: %d", pClient->Socket	);
+		//lprintf( "CLOSE SOCKET IN OPEN: %d", pClient->Socket );
+#ifdef __LINUX__	
+		// closing a handle and re-opening it doesn't trick epoll...  have to probably at last add the events...
+		// but there's other work associated with related sockets that needs to be done... not just reset epoll handle
+		RemoveThreadEvent( pClient );
+#endif
+		replaced = 1;
 		closesocket( pClient->Socket );
 	}
+#ifndef _WIN32
+	if( pAddr->sa_family==AF_UNIX ) {
+		// delete the old socket file if it exists
+		if( pFromAddr == pAddr ) // this would only be true for listeners(?)
+			unlink( (char*)(((uint16_t*)pAddr)+1));
+	}
+#endif
 	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
 #ifdef WIN32
 	pClient->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
@@ -284,14 +284,26 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 				uint32_t dwError = WSAGetLastError();
 				lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
 			}
-			pClient->saSource = DuplicateAddress( pFromAddr );
+			// client's don't normally have a from, but when they do, it gets overwritten with another duplicate...
+			if( pClient->saSource != pFromAddr ) {
+				if( !pClient->saSource )
+					pClient->saSource = DuplicateAddress( pFromAddr );
+				else {
+					lprintf( "Source address already set... %p", pClient->saSource );
+					DumpAddr( "Source address is already", pClient->saSource );
+					DumpAddr( "new from address is", pFromAddr );
+				}
+			}
 			//DumpAddr( "source", pResult->saSource );
 			if( ( err = bind( pClient->Socket, pClient->saSource
 											, SOCKADDR_LENGTH( pClient->saSource ) ) ) )
 			{
 				uint32_t dwError;
 				dwError = WSAGetLastError();
-				lprintf( "Error binding connecting socket to source address... continuing with connect : %d", dwError );
+				lprintf( "Error binding connecting socket to source address...: %d", dwError );
+				DumpAddr( "Bind address:", pAddr );
+				closesocket( pClient->Socket );
+				pClient->Socket = INVALID_SOCKET;
 			}
 		}
 
@@ -308,6 +320,12 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 		}
 #endif
 	}
+#ifdef __LINUX__	
+		// closing a handle and re-opening it doesn't trick epoll...  have to probably at last add the events...
+		// but there's other work associated with related sockets that needs to be done... not just reset epoll handle
+	if( replaced )
+		AddThreadEvent( pClient, 0 );
+#endif
 
 }
 
@@ -326,25 +344,16 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		lprintf( "Network has not been started." );
 		return NULL;
 	}
-	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
-#ifdef WIN32
-	pListen->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
-#endif
-#ifdef __MAC__
-		pListen->Socket = socket( ((uint8_t*)pAddr)[1]
-										, SOCK_STREAM
-										, ((((uint8_t*)pAddr)[1] == AF_INET)||((((uint8_t*)pAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
-#else
-		pListen->Socket = socket( *(uint16_t*)pAddr
-										, SOCK_STREAM
-										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
-#endif
-//#ifdef LOG_SOCKET_CREATION
-	lprintf( "(listen, old way)Created new socket %d", pListen->Socket );
-//#endif
+	// openSocket also schedules it for event handling... so setup what events.
 	pListen->dwFlags &= ~CF_UDP; // make sure this flag is clear!
 	pListen->dwFlags |= CF_LISTEN;
 	pListen->flags.bWaiting = waitForReady;
+	pListen->connect.CPPClientConnected = NotifyCallback;
+	pListen->psvConnect = psvConnect;
+	pListen->dwFlags |= CF_CPPCONNECT;
+
+	// this does the bind part of the socket also... (if any)
+	openSocket( pListen, pAddr, pAddr /*second parameter just selects link protocol, and stream */ );
 	if( pListen->Socket == INVALID_SOCKET )
 	{
 		lprintf( " Open Listen Socket Fail... %d", errno);
@@ -358,50 +367,8 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		return NULL;
 	}
 
-
-
-#ifdef _WIN32
-#  ifdef USE_WSA_EVENTS
-	pListen->event = WSACreateEvent();
-	WSAEventSelect( pListen->Socket, pListen->event, FD_ACCEPT|FD_CLOSE );
-#  else
-	if( WSAAsyncSelect( pListen->Socket, globalNetworkData.ghWndNetwork
-	                  , SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
-	{
-		lprintf( "Windows AsynchSelect failed: %d", WSAGetLastError() );
-		EnterCriticalSec( &globalNetworkData.csNetwork );
-		InternalRemoveClientEx( pListen, TRUE, FALSE );
-		LeaveCriticalSec( &globalNetworkData.csNetwork );
-		NetworkUnlockEx( pListen, 0 DBG_SRC );
-		NetworkUnlockEx( pListen, 1 DBG_SRC );
-		return NULL;
-	}
-#  endif
-	{
-		int t = FALSE;
-		setsockopt( pListen->Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&t, 4 );
-	}
-#endif
-#ifndef _WIN32
-	if( pAddr->sa_family==AF_UNIX ) {
-		// delete the old socket file if it exists
-		unlink( (char*)(((uint16_t*)pAddr)+1));
-	}
-#endif
-
-	if (!pAddr ||
-		 bind(pListen->Socket ,pAddr, SOCKADDR_LENGTH( pAddr ) ) )
-	{
-		_lprintf(DBG_RELAY)( "Cannot bind to address..:%d", WSAGetLastError() );
-		DumpAddr( "Bind address:", pAddr );
-		EnterCriticalSec( &globalNetworkData.csNetwork );
-		InternalRemoveClientEx( pListen, TRUE, FALSE );
-		LeaveCriticalSec( &globalNetworkData.csNetwork );
-		NetworkUnlockEx( pListen, 0 DBG_SRC );
-		NetworkUnlockEx( pListen, 1 DBG_SRC );
-		return NULL;
-	}
 	pListen->saSource = DuplicateAddress( pAddr );
+	scheduleSocket( pListen, NULL );
 
 	if(listen(pListen->Socket, SOMAXCONN ) == SOCKET_ERROR )
 	{
@@ -413,23 +380,15 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
 		return NULL;
 	}
-	pListen->connect.CPPClientConnected = NotifyCallback;
-	pListen->psvConnect = psvConnect;
-	pListen->dwFlags |= CF_CPPCONNECT;
 	NetworkUnlockEx( pListen, 0 DBG_SRC );
 	NetworkUnlockEx( pListen, 1 DBG_SRC );
 	AddActive( pListen );
-   // make sure to schedule this socket for events (connect)
+	// make sure to schedule this socket for events (connect)
 #ifdef USE_WSA_EVENTS
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( "SET GLOBAL EVENT (listener added)" );
 	EnqueLink( &globalNetworkData.client_schedule, pListen );
 	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
-#ifdef __LINUX__
-	EnterCriticalSec( &globalNetworkData.csNetwork );
-	AddThreadEvent( pListen, 0 );
-	LeaveCriticalSec( &globalNetworkData.csNetwork );
 #endif
 	return pListen;
 }
@@ -500,7 +459,7 @@ PCLIENT OpenTCPListenerExx(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PA
 
 int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	int err;
-lprintf( "Netowkr connect?");
+
 	while( !NetworkLockEx( pc, 0 DBG_SRC ) )
 	{
 		if( !(pc->dwFlags & CF_ACTIVE) )
@@ -511,22 +470,24 @@ lprintf( "Netowkr connect?");
 	}
 
 	pc->dwFlags |= CF_CONNECTING;
-	DumpAddr( "Connect to", pc->saClient );
+
 	while( 1 ) {
 		if( (err = connect( pc->Socket, pc->saClient
 		                  , SOCKADDR_LENGTH( pc->saClient ) )) )
 		{
 			uint32_t dwError;
 			dwError = WSAGetLastError();
+			//lprintf( "err: %d %d %d", err, dwError, EHOSTUNREACH );
 			if( 
 #ifdef __LINUX__
 			    dwError == EHOSTUNREACH 
+			  || dwError == ENETUNREACH
 #else
 			    dwError == WSAENETUNREACH 
 #endif			
 			)
 			{
-				DumpAddr( "Unreachable address:", pc->saClient );
+				//DumpAddr( "Unreachable address:", pc->saClient );
 				if( pc->saClient->sa_family == AF_INET6 )
 				{
 					char * tmp = ((char**)(pc->saClient))[-1];
@@ -536,9 +497,11 @@ lprintf( "Netowkr connect?");
 							pc->saClient = addr;
 							// the old pc->Socket was scheduled (in wait events?)
 							// and this creates a new One...
-							lprintf( "Re-open the socket... was %d", pc->Socket );
-							openSocket( pc, pc->saSource, pc->saClient );
-							lprintf( "Re-open the socket... and is %d", pc->Socket );
+							//lprintf( "Re-open the socket... was %d", pc->Socket );
+							// if saSource == saClient (which it never should, they should be indepdenatly duplicated)
+							// this behaves like a listener 
+							openSocket( pc, pc->saSource /* used to bind to an address on the client side */, pc->saClient /* just determins socket parameters with family */ );
+							//lprintf( "Re-open the socket... and is %d", pc->Socket );
 							// should kick the thread waiting to wait on the new one now...
 							// but it didn't have to be scheduled, connect() bombed before an event...
 							continue;
@@ -549,8 +512,7 @@ lprintf( "Netowkr connect?");
 						}
 					}
 				}
-			}
-			if( dwError != WSAEWOULDBLOCK
+			} else if( dwError != WSAEWOULDBLOCK
 #ifdef __LINUX__
 			  && dwError != EINPROGRESS
 #else
@@ -558,6 +520,7 @@ lprintf( "Netowkr connect?");
 #endif
 				)
 			{
+				// is a union, either is valid to test
 				if( pc->connect.CPPThisConnected ) {
 					//lprintf( "connect callback dispatch... %p", pc->saClient );
 					if( pc->dwFlags & CF_CPPCONNECT )
@@ -575,12 +538,8 @@ lprintf( "Netowkr connect?");
 			}
 			else
 			{
+				// is EINPROGRESS on linux, WSAEWOULDBLOCK on windows...
 				//lprintf( "Pending connect has begun...%p %d", pc, dwError );
-#ifdef __LINUX__
-				//result was EINPROGRESS
-				// the thread event should already be added.....
-				//AddThreadEvent( pc, 0 );
-#endif
 			}
 		}
 		else
@@ -647,7 +606,6 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		struct peer_thread_info *this_thread = IsNetworkThread();
 		// use the sockaddr to switch what type of socket this is.
 		openSocket( pResult, pFromAddr, lpAddr ); // addr determins some socket flags
-		lprintf( "Socket should not be zero now? %d", pResult->Socket );
 		if (pResult->Socket==INVALID_SOCKET)
 		{
 			// this is a windows failure like 'network not started'
@@ -681,7 +639,6 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			NetworkUnlockEx(pResult, 0 DBG_SRC);
 			//lprintf( "Leaving Client's critical section" );
 
-			lprintf( "Socket should not be zero now(3)? %d %p", pResult->Socket, this_thread );
 			scheduleSocket( pResult, this_thread );
 
 			// socket should now get scheduled for events, after unlocking it?
@@ -1024,7 +981,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
  			dwError = WSAGetLastError();
-			lprintf( "Network receive %p %d %d %d", lpClient, nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
+			//lprintf( "Network receive %p %d %zd %zd", lpClient, nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 			if (nRecv == SOCKET_ERROR)
 			{
 #ifdef DEBUG_SOCK_IO
@@ -1072,10 +1029,10 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else
 			{
-//#ifdef DEBUG_SOCK_IO
+#ifdef DEBUG_SOCK_IO
 				lprintf( "Received %d", nRecv );
-//#endif
-				//if( globalNetworkData.flags.bShortLogReceivedData )
+#endif
+				if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p
 					         + lpClient->RecvPending.dwUsed,  (nRecv < 64) ? nRecv:64 );

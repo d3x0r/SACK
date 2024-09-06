@@ -216,9 +216,9 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 {
 	WebSocketClient websock;
-	//lprintf( "Connection websocket event: %d", error );
 	while( !( websock = (WebSocketClient)GetNetworkLong( pc, 0 ) ) )
 		Relinquish();
+	//lprintf( "Connection websocket event: %p %d", websock, error );
 
 	if( !error )
 	{

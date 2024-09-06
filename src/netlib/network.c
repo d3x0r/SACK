@@ -435,6 +435,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #endif
 			//lprintf( "Win32:ShutdownWR+closesocket %p", pc );
 			closesocket( pc->Socket );
+			pc->Socket = INVALID_SOCKET;
 			while( pc->lpFirstPending )
 			{
 				lpNext = pc->lpFirstPending -> lpNext;
@@ -868,7 +869,6 @@ static void AddClients( void ) {
 		MemSet( pClientSlab->pUserData, 0, (MAX_NETCLIENTS) * globalNetworkData.nUserData * sizeof( uintptr_t ) );
 		pClientSlab->count = MAX_NETCLIENTS;
 
-lprintf( "Initializing sockets to INVALID_SOCKET" );
 		for( n = 0; n < pClientSlab->count; n++ )
 		{
 			pClientSlab->client[n].Socket = INVALID_SOCKET; // unused sockets on all clients.
