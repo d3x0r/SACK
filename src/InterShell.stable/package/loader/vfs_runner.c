@@ -14,7 +14,7 @@ static struct vfs_runner_local
 	struct file_system_interface *fsi;
 	struct file_system_mounted_interface *rom;
 	struct file_system_mounted_interface *ram;
-	int(CPROC*entry_point)(int argc, char**argv, int bConsole,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey ),void (CPROC*unload)(struct volume *));
+	int(CPROC*entry_point)(int argc, char**argv, int bConsole,struct volume* (CPROC *load)( CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey ),void (CPROC*unload)(struct volume *));
 	struct volume* resource_fs;
 	struct volume* core_fs;
 	struct volume* user_fs;
@@ -432,18 +432,18 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #ifdef __GNUC__
 #  ifdef WIN32
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
-											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
+											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
 											  ))LoadFunction( "lib/SACK/applicationCore/InterShell.core", "Main" );
 #  else
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
-											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
+											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
 											  ))LoadFunction( "libInterShell.core.so", "Main" );
 #  endif
 #else
 		l.entry_point = (int(CPROC*)(int argc, char**argv, int bConsole
-											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, CTEXTSTR userkey, CTEXTSTR devkey )
+											  ,struct volume* (CPROC *load)( CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey )
 											  ,void (CPROC*unload)(struct volume *)
 											  ))LoadFunction( "lib/SACK/applicationCore/InterShell.core", "Main" );
 #endif
@@ -455,7 +455,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 SaneWinMain(argc,argv)
 {
 	if( l.entry_point )
-		return l.entry_point(argc, argv, FALSE,  sack_vfs_load_crypt_volume, sack_vfs_unload_volume );
+		return l.entry_point(argc, argv, FALSE,  ( struct volume* ( CPROC * load )( CTEXTSTR filepath, uintptr_t version, CTEXTSTR userkey, CTEXTSTR devkey ) )sack_vfs_load_crypt_volume, ( void ( CPROC * unload )( struct volume* ) )sack_vfs_unload_volume );
 	MessageBox( NULL, "Failed to get program entrypoint", "Critical Error", MB_OK );
 	return 0;
 }
