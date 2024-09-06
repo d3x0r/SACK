@@ -289,7 +289,7 @@ static void DoVerifyCommands( PNETWORK_STATE pns, PACCOUNT account )
 	{
 		TEXTCHAR cmd[4096];
 		char addbuf[64];
-		(char*)inet_ntop( AF_INET, *(struct in_addr*)&dwIP, addbuf, sizeof( addbuf ) );
+		(char*)inet_ntop( AF_INET, (void*)&dwIP, addbuf, sizeof( addbuf ) );
 		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
 		        , addbuf
 		        , update_cmd );
@@ -310,7 +310,7 @@ static void DoUpdateCommands( PNETWORK_STATE pns, PACCOUNT account )
 	{
 		TEXTCHAR cmd[4096];
 		char addbuf[64];
-		(char*)inet_ntop( AF_INET, *(struct in_addr*)&dwIP, addbuf, sizeof( addbuf ) );
+		(char*)inet_ntop( AF_INET, (void*)&dwIP, addbuf, sizeof( addbuf ) );
 		snprintf( cmd, sizeof( cmd ), "launchcmd -l -s %s -- %s"
 		        , addbuf
 		        , update_cmd );
@@ -1375,7 +1375,7 @@ uintptr_t CPROC ServerTimerProc( PTHREAD unused )
 					uint32_t IP = (uint32_t)GetNetworkLong( pcping, GNL_IP );
 					//lprintf( "User %s connected...", account->unique_name );
 					char addbuf[64];
-					(char*)inet_ntop( AF_INET, *(struct in_addr*)&IP, addbuf, sizeof( addbuf ) );
+					(char*)inet_ntop( AF_INET, (void*)&IP, addbuf, sizeof( addbuf ) );
 
 					lprintf( "%p Checking connection %d %ld.%ld %s(%d) %s"
 					       , pcping 
