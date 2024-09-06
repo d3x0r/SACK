@@ -1298,7 +1298,7 @@ SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddres
 			{
 				// could not find the name in the host file.
 				globalNetworkData.lastAddressError = errno;
-				lprintf( "Could not Resolve to %s  %s", lpName );
+				lprintf( "Could not Resolve to %s", lpName );
 				ReleaseAddress( (SOCKADDR*)lpsaAddr );
 				if( tmpName ) Deallocate( char*, tmpName );
 				return( NULL );

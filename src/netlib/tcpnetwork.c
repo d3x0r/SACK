@@ -65,6 +65,28 @@ LOGICAL TCPDrainRead( PCLIENT pClient );
 #endif
 //----------------------------------------------------------------------------
 
+static inline void scheduleSocket( PCLIENT pc, struct peer_thread_info *this_thread ) {
+#ifdef _WIN32
+	if( globalNetworkData.flags.bLogNotices )
+		lprintf( "SET GLOBAL EVENT (wait for connect) %p %p", pc, pc->event );
+	EnqueLink( &globalNetworkData.client_schedule, pc );
+	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+	// this_thread may be NULL, which won't be equal to root_thread?
+	// the root thread is a wakeable object wait, which schedules other wsaasyncwait threads
+	if( this_thread == globalNetworkData.root_thread ) {
+		ProcessNetworkMessages( this_thread, 1 );
+	}
+#endif
+#ifdef __LINUX__
+	{
+		//lprintf( "schedule socket %p %d", pc, pc->Socket );
+		AddThreadEvent( pc, 0 );
+	}
+#endif
+
+}
+
+
 void SetNetworkListenerReady( PCLIENT pListen ) {
 	pListen->flags.bWaiting = 0;
 }
@@ -200,15 +222,8 @@ void AcceptClient(PCLIENT pListen)
 			*/
 			//lprintf( "Is it already closed HERE?""?""?");
 			if( pNewClient->Socket ) {
-#ifdef USE_WSA_EVENTS
-				if( globalNetworkData.flags.bLogNotices )
-					lprintf( "SET GLOBAL EVENT (accepted socket added)  %p  %p", pNewClient, pNewClient->event );
-				EnqueLink( &globalNetworkData.client_schedule, pNewClient );
-				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-#endif
-#ifdef __LINUX__
-				AddThreadEvent( pNewClient, 0 );
-#endif
+				//lprintf( "Socket should not be zero now(2)? %d", pNewClient->Socket );
+				scheduleSocket( pNewClient, NULL );
 			}
 
 			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
@@ -233,6 +248,69 @@ void AcceptClient(PCLIENT pListen)
 
 //----------------------------------------------------------------------------
 
+static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
+{
+	if( !IsInvalid( pClient->Socket ) )
+	{
+		lprintf( "COSE SOCKET IN OPEN: %d", pClient->Socket	);
+		closesocket( pClient->Socket );
+	}
+	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
+#ifdef WIN32
+	pClient->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
+	if( pClient->Socket == INVALID_SOCKET )
+#endif
+#ifdef __MAC__
+		pClient->Socket = socket( ((uint8_t*)pAddr)[1]
+										, SOCK_STREAM
+										, ((((uint8_t*)pAddr)[1] == AF_INET)||((((uint8_t*)pAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
+#else
+		pClient->Socket = socket( *(uint16_t*)pAddr
+										, SOCK_STREAM
+										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
+#endif
+//#ifdef LOG_SOCKET_CREATION
+	lprintf( "Created new socket %d %d", pClient->Socket, errno );
+//#endif
+	if( pClient->Socket != INVALID_SOCKET )
+	{
+		int err;
+		if( pFromAddr )
+		{
+			LOGICAL opt = 1;
+			err = setsockopt( pClient->Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof( opt ) );
+			if( err )
+			{
+				uint32_t dwError = WSAGetLastError();
+				lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
+			}
+			pClient->saSource = DuplicateAddress( pFromAddr );
+			//DumpAddr( "source", pResult->saSource );
+			if( ( err = bind( pClient->Socket, pClient->saSource
+											, SOCKADDR_LENGTH( pClient->saSource ) ) ) )
+			{
+				uint32_t dwError;
+				dwError = WSAGetLastError();
+				lprintf( "Error binding connecting socket to source address... continuing with connect : %d", dwError );
+			}
+		}
+
+#ifdef WIN32
+		SetHandleInformation( (HANDLE)pClient->Socket, HANDLE_FLAG_INHERIT, 0 );
+#else
+		{
+			int flags = fcntl( pClient->Socket, F_GETFL, 0 );
+			fcntl( pClient->Socket, F_SETFL, O_NONBLOCK );
+		}
+		{ 
+			int flags = fcntl( pClient->Socket, F_GETFD, 0 );
+			if( flags >= 0 ) fcntl( pClient->Socket, F_SETFD, flags | FD_CLOEXEC );
+		}
+#endif
+	}
+
+}
+
 PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
                                  , cppNotifyCallback NotifyCallback
                                  , uintptr_t psvConnect
@@ -251,7 +329,6 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
 #ifdef WIN32
 	pListen->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
-	if( pListen->Socket == INVALID_SOCKET )
 #endif
 #ifdef __MAC__
 		pListen->Socket = socket( ((uint8_t*)pAddr)[1]
@@ -262,9 +339,9 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
-#ifdef LOG_SOCKET_CREATION
-	lprintf( "Created new socket %d", pListen->Socket );
-#endif
+//#ifdef LOG_SOCKET_CREATION
+	lprintf( "(listen, old way)Created new socket %d", pListen->Socket );
+//#endif
 	pListen->dwFlags &= ~CF_UDP; // make sure this flag is clear!
 	pListen->dwFlags |= CF_LISTEN;
 	pListen->flags.bWaiting = waitForReady;
@@ -281,18 +358,6 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		return NULL;
 	}
 
-#ifdef WIN32
-	SetHandleInformation( (HANDLE)pListen->Socket, HANDLE_FLAG_INHERIT, 0 );
-#else
-	{
-		int flags = fcntl( pListen->Socket, F_GETFL, 0 );
-		fcntl( pListen->Socket, F_SETFL, O_NONBLOCK );
-	}
-	{ 
-		int flags = fcntl( pListen->Socket, F_GETFD, 0 );
-		if( flags >= 0 ) fcntl( pListen->Socket, F_SETFD, flags | FD_CLOEXEC );
-	}
-#endif
 
 
 #ifdef _WIN32
@@ -300,8 +365,8 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 	pListen->event = WSACreateEvent();
 	WSAEventSelect( pListen->Socket, pListen->event, FD_ACCEPT|FD_CLOSE );
 #  else
-	if( WSAAsyncSelect( pListen->Socket, globalNetworkData.ghWndNetwork,
-                       SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
+	if( WSAAsyncSelect( pListen->Socket, globalNetworkData.ghWndNetwork
+	                  , SOCKMSG_TCP, FD_ACCEPT|FD_CLOSE ) )
 	{
 		lprintf( "Windows AsynchSelect failed: %d", WSAGetLastError() );
 		EnterCriticalSec( &globalNetworkData.csNetwork );
@@ -316,22 +381,12 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		int t = FALSE;
 		setsockopt( pListen->Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&t, 4 );
 	}
-#else
-	{
-		int t = TRUE;
-		setsockopt( pListen->Socket, SOL_SOCKET, SO_REUSEADDR, &t, 4 );
-		fcntl( pListen->Socket, F_SETFL, O_NONBLOCK );
-	}
-#  ifdef SO_REUSEPORT
-	{
-		int t = TRUE;
-		setsockopt( pListen->Socket, SOL_SOCKET, SO_REUSEPORT, &t, 4 );
-	}
-#  endif
 #endif
 #ifndef _WIN32
-	if( pAddr->sa_family==AF_UNIX )
+	if( pAddr->sa_family==AF_UNIX ) {
+		// delete the old socket file if it exists
 		unlink( (char*)(((uint16_t*)pAddr)+1));
+	}
 #endif
 
 	if (!pAddr ||
@@ -445,7 +500,7 @@ PCLIENT OpenTCPListenerExx(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PA
 
 int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	int err;
-
+lprintf( "Netowkr connect?");
 	while( !NetworkLockEx( pc, 0 DBG_SRC ) )
 	{
 		if( !(pc->dwFlags & CF_ACTIVE) )
@@ -456,48 +511,113 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	}
 
 	pc->dwFlags |= CF_CONNECTING;
-	//DumpAddr( "Connect to", pc->saClient );
-	if( (err = connect( pc->Socket, pc->saClient
-		, SOCKADDR_LENGTH( pc->saClient ) )) )
-	{
-		uint32_t dwError;
-		dwError = WSAGetLastError();
-		if( dwError != WSAEWOULDBLOCK
-#ifdef __LINUX__
-			&& dwError != EINPROGRESS
-#else
-			&& dwError != WSAEINPROGRESS
-#endif
-			)
+	DumpAddr( "Connect to", pc->saClient );
+	while( 1 ) {
+		if( (err = connect( pc->Socket, pc->saClient
+		                  , SOCKADDR_LENGTH( pc->saClient ) )) )
 		{
-			if( pc->connect.CPPThisConnected ) {
-				if( pc->dwFlags & CF_CPPCONNECT )
-					pc->connect.CPPThisConnected( pc->psvConnect, dwError );
-				else
-					pc->connect.ThisConnected( pc, dwError );
+			uint32_t dwError;
+			dwError = WSAGetLastError();
+			if( 
+#ifdef __LINUX__
+			    dwError == EHOSTUNREACH 
+#else
+			    dwError == WSAENETUNREACH 
+#endif			
+			)
+			{
+				DumpAddr( "Unreachable address:", pc->saClient );
+				if( pc->saClient->sa_family == AF_INET6 )
+				{
+					char * tmp = ((char**)(pc->saClient))[-1];
+					if( tmp ) {
+						SOCKADDR *addr = (SOCKADDR*)CreateSockAddressV2( tmp, ntohs((uint16_t)( (SOCKADDR_IN*)(pc->saClient))->sin_port), NETWORK_ADDRESS_FLAG_PREFER_V4 );
+						if( addr->sa_family == AF_INET ) {
+							pc->saClient = addr;
+							// the old pc->Socket was scheduled (in wait events?)
+							// and this creates a new One...
+							lprintf( "Re-open the socket... was %d", pc->Socket );
+							openSocket( pc, pc->saSource, pc->saClient );
+							lprintf( "Re-open the socket... and is %d", pc->Socket );
+							// should kick the thread waiting to wait on the new one now...
+							// but it didn't have to be scheduled, connect() bombed before an event...
+							continue;
+						}else {
+							DumpAddr( "The resulting request for a V4 was still v6?", addr );
+							DumpAddr( "and it started V6", pc->saClient );
+							ReleaseAddress( addr );
+						}
+					}
+				}
 			}
-			_lprintf( DBG_RELAY )("Connect FAIL: %d %d %" _32f, pc->Socket, err, dwError);
-			EnterCriticalSec( &globalNetworkData.csNetwork );
-			InternalRemoveClientEx( pc, TRUE, FALSE );
-			LeaveCriticalSec( &globalNetworkData.csNetwork );
-			NetworkUnlockEx( pc, 0 DBG_SRC );
-			pc = NULL;
-			return -1;
+			if( dwError != WSAEWOULDBLOCK
+#ifdef __LINUX__
+			  && dwError != EINPROGRESS
+#else
+			  && dwError != WSAEINPROGRESS
+#endif
+				)
+			{
+				if( pc->connect.CPPThisConnected ) {
+					//lprintf( "connect callback dispatch... %p", pc->saClient );
+					if( pc->dwFlags & CF_CPPCONNECT )
+						pc->connect.CPPThisConnected( pc->psvConnect, dwError );
+					else
+						pc->connect.ThisConnected( pc, dwError );
+				}
+				//_lprintf( DBG_RELAY )("Connect FAIL: %p %d %d %" _32f, pc->saClient, pc->Socket, err, dwError);
+				EnterCriticalSec( &globalNetworkData.csNetwork );
+				InternalRemoveClientEx( pc, TRUE, FALSE );
+				LeaveCriticalSec( &globalNetworkData.csNetwork );
+				NetworkUnlockEx( pc, 0 DBG_SRC );
+				pc = NULL;
+				return dwError;
+			}
+			else
+			{
+				//lprintf( "Pending connect has begun...%p %d", pc, dwError );
+#ifdef __LINUX__
+				//result was EINPROGRESS
+				// the thread event should already be added.....
+				//AddThreadEvent( pc, 0 );
+#endif
+			}
 		}
 		else
 		{
-			//lprintf( "Pending connect has begun...%p %d", pc, dwError );
-		}
-	}
-	else
-	{
 //#ifdef VERBOSE_DEBUG
-		lprintf( "Connected before we even get a chance to wait" );
+			lprintf( "Connected before we even get a chance to wait" );
 //#endif
+		}
+		break;
 	}
 	NetworkUnlockEx( pc, 0 DBG_SRC );
 
 	return 0;
+}
+
+
+static inline void waitScheduleSocket( PCLIENT pc ) {
+#ifdef _WIN32
+	int tries = 0;
+	while( !pc->this_thread ) {
+		INDEX idx;
+		POINTER client;
+		IdleFor(1); // wait for it to be added to waiting lists?
+		if( tries++ > 10 ) {
+			tries = 0;
+			for( idx = 0; client = PeekQueueEx( globalNetworkData.client_schedule, (int)idx); idx++ ){
+				if( client == pc ) break;
+			}
+			if( !pc->this_thread && !client ) {
+				lprintf( "Lost client in schedule list:%p (Requeuing)", pc );
+				EnqueLink( &globalNetworkData.client_schedule, pc );
+				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+			}
+		}
+	}
+	//if( tries > 1 ) lprintf( "Took %d tries.", tries );
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -526,28 +646,12 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 	{
 		struct peer_thread_info *this_thread = IsNetworkThread();
 		// use the sockaddr to switch what type of socket this is.
-#ifdef WIN32
-		pResult->Socket = OpenSocket( ((*(uint16_t*)lpAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
-		if( pResult->Socket == INVALID_SOCKET )
-#endif
-#ifdef __MAC__
-			pResult->Socket=socket( ((uint8_t*)lpAddr)[1]
-			                      , SOCK_STREAM
-			                      , (((((uint8_t*)lpAddr)[1]) == AF_INET)||((((uint8_t*)lpAddr)[1]) == AF_INET6))?IPPROTO_TCP:0 );
-#else
-#ifdef _WIN32
-#  define SOCK_NONBLOCK 0
-#endif
-			pResult->Socket=socket( *(uint16_t*)lpAddr
-			                      , SOCK_STREAM|SOCK_NONBLOCK
-			                      , (((*(uint16_t*)lpAddr) == AF_INET)||((*(uint16_t*)lpAddr) == AF_INET6))?IPPROTO_TCP:0 );
-#endif
-#ifdef LOG_SOCKET_CREATION
-		lprintf( "Created new socket %p %d", pResult, pResult->Socket );
-#endif
+		openSocket( pResult, pFromAddr, lpAddr ); // addr determins some socket flags
+		lprintf( "Socket should not be zero now? %d", pResult->Socket );
 		if (pResult->Socket==INVALID_SOCKET)
 		{
-			lprintf( "Create socket failed. %d", WSAGetLastError() );
+			// this is a windows failure like 'network not started'
+			lprintf( "Create socket failed (network not started?). %d", WSAGetLastError() );
 			EnterCriticalSec( &globalNetworkData.csNetwork );
 			InternalRemoveClientEx( pResult, TRUE, FALSE );
 			LeaveCriticalSec( &globalNetworkData.csNetwork );
@@ -557,66 +661,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		}
 		else
 		{
-			int err;
-#ifdef _WIN32
-			if( 0 )
-			{
-				DWORD dwFlags;
-				GetHandleInformation( (HANDLE)pResult->Socket, &dwFlags );
-				lprintf( "Natural was %d", dwFlags );
-			}
-			SetHandleInformation( (HANDLE)pResult->Socket, HANDLE_FLAG_INHERIT, 0 );
-#  ifdef USE_WSA_EVENTS
-			pResult->event = WSACreateEvent();
-#    ifdef LOG_NETWORK_EVENT_THREAD
-			lprintf( "new event is %p", pResult->event );
-#    endif
-			WSAEventSelect( pResult->Socket, pResult->event, FD_READ|FD_WRITE|FD_CONNECT|FD_CLOSE );
-#  else
-			if( WSAAsyncSelect( pResult->Socket,globalNetworkData.ghWndNetwork,SOCKMSG_TCP
-			                  , FD_READ|FD_WRITE|FD_CLOSE|FD_CONNECT) )
-			{
-				lprintf( " Select NewClient Fail! %d", WSAGetLastError() );
-				EnterCriticalSec( &globalNetworkData.csNetwork );
-				InternalRemoveClientEx( pResult, TRUE, FALSE );
-				LeaveCriticalSec( &globalNetworkData.csNetwork );
-				NetworkUnlockEx( pResult, 1 DBG_SRC );
-				NetworkUnlockEx( pResult, 0 DBG_SRC );
-				pResult = NULL;
-				goto LeaveNow;
-			}
-#  endif
-#else
-			{ 
-				int flags = fcntl( pResult->Socket, F_GETFD, 0 );
-				if( flags >= 0 ) fcntl( pResult->Socket, F_SETFD, flags | FD_CLOEXEC );
-			}
-			{
-				int flags = fcntl( pResult->Socket, F_GETFL, 0 );
-				fcntl( pResult->Socket, F_SETFL, flags|O_NONBLOCK );
-			}
-#endif
-			if( pFromAddr )
-			{
-
-				LOGICAL opt = 1;
-				err = setsockopt( pResult->Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&opt, sizeof( opt ) );
-				if( err )
-				{
-					uint32_t dwError = WSAGetLastError();
-					lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
-				}
-				pResult->saSource = DuplicateAddress( pFromAddr );
-				//DumpAddr( "source", pResult->saSource );
-				if( ( err = bind( pResult->Socket, pResult->saSource
-				                , SOCKADDR_LENGTH( pResult->saSource ) ) ) )
-				{
-					uint32_t dwError;
-					dwError = WSAGetLastError();
-					lprintf( "Error binding connecting socket to source address... continuing with connect : %d", dwError );
-				}
-			}
-
+			// allow caller to forge their copy (Hold, but this structure has negative indices)
 			pResult->saClient = DuplicateAddress( lpAddr );
 
 			// set up callbacks before asynch select...
@@ -636,141 +681,102 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			NetworkUnlockEx(pResult, 0 DBG_SRC);
 			//lprintf( "Leaving Client's critical section" );
 
-			// socket should now get scheduled for events, after unlocking it?
-#ifdef USE_WSA_EVENTS
-			if( globalNetworkData.flags.bLogNotices )
-				lprintf( "SET GLOBAL EVENT (wait for connect) new %p %p  %08x %p", pResult, pResult->event, pResult->dwFlags, globalNetworkData.hMonitorThreadControlEvent );
-			EnqueLink( &globalNetworkData.client_schedule, pResult );
-			if( this_thread == globalNetworkData.root_thread ) {
-				ProcessNetworkMessages( this_thread, 1 );
-				if( !pResult->this_thread ) {
-					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-					//lprintf( "Failed to schedule myself in a single run of root thread that I am running on." );
-				}
-			}
-			else {
-				int tries = 0;
-				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-				while( !pResult->this_thread ) {
-					INDEX idx;
-					POINTER client;
-					IdleFor(1); // wait for it to be added to waiting lists?
-					if( tries++ > 10 ) {
-						tries = 0;
-						for( idx = 0; client = PeekQueueEx( globalNetworkData.client_schedule, (int)idx); idx++ ){
-							if( client == pResult ) break;
-						}
-						if( !pResult->this_thread && !client ) {
-							lprintf( "Lost client in schedule list:%p (Requeuing)", pResult );
-							EnqueLink( &globalNetworkData.client_schedule, pResult );
-							WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-						}
-					}
-				}
-				//if( tries > 1 ) lprintf( "Took %d tries.", tries );
-			}
+			lprintf( "Socket should not be zero now(3)? %d %p", pResult->Socket, this_thread );
+			scheduleSocket( pResult, this_thread );
 
-#endif
-#ifdef __LINUX__
-			AddThreadEvent( pResult, 0 );
-#endif
+			// socket should now get scheduled for events, after unlocking it?
 			if (!(flags & OPEN_TCP_FLAG_DELAY_CONNECT)) {
 				NetworkConnectTCPEx(pResult DBG_RELAY);
-			}
-			if( !pConnectComplete && !(flags & OPEN_TCP_FLAG_DELAY_CONNECT) )
-			{
-				uint64_t Start = timeGetTime64();
-				int bProcessing = 0;
 
-				// should trigger a rebuild (if it's the root thread)
-				pResult->dwFlags |= CF_CONNECT_WAITING;
-				// caller was expecting connect to block....
-				while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
-						( ( timeGetTime64() - Start ) < globalNetworkData.dwConnectTimeout ) )
+				// if there is not a network callback, wait for connect inline...
+				if( !pConnectComplete )
 				{
-					// may be this thread itself which connects...
-					if( this_thread )
+					uint64_t Start = timeGetTime64();
+					int bProcessing = 0;
+
+					// should trigger a rebuild (if it's the root thread)
+					pResult->dwFlags |= CF_CONNECT_WAITING;
+					// caller was expecting connect to block....
+					while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
+							( ( timeGetTime64() - Start ) < globalNetworkData.dwConnectTimeout ) )
 					{
-						if( !bProcessing )
+						// may be this thread itself which connects...
+						if( this_thread )
 						{
-							if( ProcessNetworkMessages( this_thread, 0 ) >= 0 )
-								bProcessing = 1;
+							if( !bProcessing )
+							{
+								if( ProcessNetworkMessages( this_thread, 0 ) >= 0 )
+									bProcessing = 1;
+								else
+									bProcessing = 2;
+							}
 							else
-								bProcessing = 2;
+							{
+								if( bProcessing >= 0 )
+									ProcessNetworkMessages( this_thread, 0 );
+							}
 						}
 						else
 						{
-							if( bProcessing >= 0 )
-								ProcessNetworkMessages( this_thread, 0 );
+							// isn't a network thread; so wait as an external thread
+							bProcessing = 2;
+						}
+						if( bProcessing == 2 )
+						{
+							pResult->pWaiting = MakeThread();
+							if( globalNetworkData.flags.bLogNotices )
+								lprintf( "Falling asleep 3 seconds waiting for connect on %p.", pResult );
+							//pResult->tcp_delay_count++;
+							WakeableSleep( 3000 );
+							pResult->pWaiting = NULL;
+							if( pResult->dwFlags & CF_CLOSING )
+								return NULL;
+						}
+						else
+						{
+							lprintf( "Spin wait for connect" );
+							Relinquish();
 						}
 					}
-					else
+					if( (( timeGetTime64() - Start ) >= 10000)
+						|| (pResult->dwFlags &  CF_CONNECTERROR ) )
 					{
-						// isn't a network thread; so wait as an external thread
-						bProcessing = 2;
+						if( pResult->dwFlags &  CF_CONNECTERROR )
+						{
+							//DumpAddr( "Connect to: ", lpAddr );
+							//lprintf( "Connect FAIL: message result" );
+						}
+						else
+							lprintf( "Connect FAIL: Timeout" );
+						EnterCriticalSec( &globalNetworkData.csNetwork );
+						InternalRemoveClientEx( pResult, TRUE, FALSE );
+						LeaveCriticalSec( &globalNetworkData.csNetwork );
+						pResult->dwFlags &= ~CF_CONNECT_WAITING;
+						return pResult = NULL;
 					}
-					if( bProcessing == 2 )
 					{
-						pResult->pWaiting = MakeThread();
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( "Falling asleep 3 seconds waiting for connect on %p.", pResult );
-						//pResult->tcp_delay_count++;
-						WakeableSleep( 3000 );
-						pResult->pWaiting = NULL;
-						if( pResult->dwFlags & CF_CLOSING )
-							return NULL;
-					}
-					else
-					{
-						lprintf( "Spin wait for connect" );
-						Relinquish();
-					}
-				}
-				if( (( timeGetTime64() - Start ) >= 10000)
-					|| (pResult->dwFlags &  CF_CONNECTERROR ) )
-				{
-					if( pResult->dwFlags &  CF_CONNECTERROR )
-					{
-						//DumpAddr( "Connect to: ", lpAddr );
-						//lprintf( "Connect FAIL: message result" );
-					}
-					else
-						lprintf( "Connect FAIL: Timeout" );
-					EnterCriticalSec( &globalNetworkData.csNetwork );
-					InternalRemoveClientEx( pResult, TRUE, FALSE );
-					LeaveCriticalSec( &globalNetworkData.csNetwork );
-					pResult->dwFlags &= ~CF_CONNECT_WAITING;
-					pResult = NULL;
-					goto LeaveNow;
-				}
-				{
-			#ifdef __LINUX__
-					socklen_t
-			#else
+#ifdef __LINUX__
+						socklen_t
+#else
 						int
-			#endif
-						nLen = MAGIC_SOCKADDR_LENGTH;
-					if( !pResult->saSource )
-						pResult->saSource = AllocAddr();
-					if( getsockname( pResult->Socket, pResult->saSource, &nLen ) )
-					{
-						lprintf( "getsockname errno = %d", errno );
-					}
-				}
-				//lprintf( "Connect did complete... returning to application");
-			}
-#ifdef VERBOSE_DEBUG
-			else
-				lprintf( "Connect in progress, will notify application when done." );
 #endif
-			pResult->dwFlags &= ~CF_CONNECT_WAITING;
+							nLen = MAGIC_SOCKADDR_LENGTH;
+						if( !pResult->saSource )
+							pResult->saSource = AllocAddr();
+						if( getsockname( pResult->Socket, pResult->saSource, &nLen ) )
+						{
+							lprintf( "getsockname errno = %d", errno );
+						}
+					}
+					//lprintf( "Connect did complete... returning to application");
+					pResult->dwFlags &= ~CF_CONNECT_WAITING;
+				}
+#ifdef VERBOSE_DEBUG
+				else
+					lprintf( "Connect in progress, will notify application when done." );
+#endif
+			}
 		}
-	}
-
-LeaveNow:
-	if( !pResult )  // didn't break out of the loop with a good return.
-	{
-		//lprintf( "Failed Open TCP Client." );
 	}
 	return pResult;
 }
@@ -1018,7 +1024,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							 lpClient->RecvPending.dwUsed,
 							 (int)lpClient->RecvPending.dwAvail,0);
  			dwError = WSAGetLastError();
-			//lprintf( "Network receive %p %d %d %d", lpClient, nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
+			lprintf( "Network receive %p %d %d %d", lpClient, nRecv, lpClient->RecvPending.dwUsed, lpClient->RecvPending.dwAvail );
 			if (nRecv == SOCKET_ERROR)
 			{
 #ifdef DEBUG_SOCK_IO
@@ -1066,10 +1072,10 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			}
 			else
 			{
-#ifdef DEBUG_SOCK_IO
+//#ifdef DEBUG_SOCK_IO
 				lprintf( "Received %d", nRecv );
-#endif
-				if( globalNetworkData.flags.bShortLogReceivedData )
+//#endif
+				//if( globalNetworkData.flags.bShortLogReceivedData )
 				{
 					LogBinary( (uint8_t*)lpClient->RecvPending.buffer.p
 					         + lpClient->RecvPending.dwUsed,  (nRecv < 64) ? nRecv:64 );

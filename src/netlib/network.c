@@ -344,10 +344,12 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 #endif
 	me = pc->me;
 	next = pc->next;
+	// these states are saved to be restored.
 	pbtemp = pc->lpUserData;
 	csr = pc->csLockRead;
 	csw = pc->csLockWrite;
 	DeleteListEx( &pc->psvInUse DBG_SRC );
+	// these are memset to 0 afterward... 
 	ReleaseAddress( pc->saClient );
 	ReleaseAddress( pc->saSource );
 #if _WIN32
@@ -357,14 +359,9 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 		WSACloseEvent( pc->event );
 	}
 #endif
-	// sets socket to 0 - so it's not quite == INVALID_SOCKET
-#ifdef LOG_NETWORK_EVENT_THREAD
-	if( globalNetworkData.flags.bLogNotices )
-		_lprintf(DBG_RELAY)( "Clear Client %p  %08x   %08x", pc, pc->dwFlags, dwFlags );
-#endif
-	MemSet( pc, 0, sizeof( CLIENT ) ); // clear all information...
 
-	// Socket is now 0; which for linux is a valid handle... which is what I get for events...
+	MemSet( pc, 0, sizeof( CLIENT ) ); // clear all information...
+	pc->Socket = INVALID_SOCKET;
 	pc->csLockRead = csr;
 	pc->csLockWrite = csw;
 	pc->lpUserData = pbtemp;
@@ -871,6 +868,7 @@ static void AddClients( void ) {
 		MemSet( pClientSlab->pUserData, 0, (MAX_NETCLIENTS) * globalNetworkData.nUserData * sizeof( uintptr_t ) );
 		pClientSlab->count = MAX_NETCLIENTS;
 
+lprintf( "Initializing sockets to INVALID_SOCKET" );
 		for( n = 0; n < pClientSlab->count; n++ )
 		{
 			pClientSlab->client[n].Socket = INVALID_SOCKET; // unused sockets on all clients.

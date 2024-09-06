@@ -1216,9 +1216,15 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 }
 
 static void httpConnected( PCLIENT pc, int error ) {
+	struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 0 );
 	if( error ) {
+		pHttpState->options->connectError = error;
+		lprintf( "This is a request, and it failed with error %d", error );
 		RemoveClient( pc );
 	}
+	else {
+		pHttpState->options->connected = TRUE;
+	}	
 	if(0)
 	{
 		INDEX idx;
@@ -1303,6 +1309,10 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 	return NULL;
 }
 
+void httpSSLError( uintptr_t psv, PCLIENT pc, enum SackNetworkErrorIdentifier error, ... ) {
+	lprintf( "SSL Level Error: %d (unhandled)", error );
+}
+
 HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 {
 	static struct HTTPRequestOptions defaultOpts = {
@@ -1334,6 +1344,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		"1.1", // HTTP Version ("1.1" default)
 		3000, // timeout (3000 default)
 		3, // retries (3 default)
+		NETWORK_ADDRESS_FLAG_PREFER_NONE
 	};
 	if( !options ) options = &defaultOpts;
 	int retries;
@@ -1344,7 +1355,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 	for( retries = 0; retries < options->retries; retries++ )
 	{
 		PCLIENT pc;
-		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
+		SOCKADDR *addr = CreateSockAddressV2( GetText( address ), options->ssl?443:80, options->addrFlags );
 		struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState( &connect->pc );
 		state->options = options;
@@ -1354,11 +1365,8 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		//lprintf( "adding pending3: %p", connect );
 		//AddLink( &l.pendingConnects, connect );
 		//lprintf( "added pending3" );
-		if( retries ) {
-			//lprintf( "HTTP(S) Query (retry):%s", GetText( url ) );
-			//lprintf( "PC of connect:%p  %d", pc, retries );
-		}
 		//DumpAddr( "Http Address:", addr );
+		options->connectError = 0; // clear any previous error.
 		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose
 				, writeComplete, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
 		connect->pc = pc;
@@ -1406,6 +1414,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( options->ssl ) {
 				if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, options->certChain?options->certChain:certChain, certChain
 							? strlen( options->certChain ? options->certChain:certChain ) : 0 ) ) {
+					SetNetworkErrorCallback( pc, httpSSLError, (uintptr_t)state );
 					state->waiter = MakeThread();
 					if( !options->rejectUnauthorized )
 						ssl_SetIgnoreVerification( pc );
@@ -1421,7 +1430,6 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( pc ) {
 				state->waiter = MakeThread();
 				PTEXT send = VarTextPeek( state->pvtOut );
-
 				if( NetworkConnectTCP( pc ) < 0 ) {
 					DestroyHttpState( state );
 					return NULL;

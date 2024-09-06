@@ -193,7 +193,7 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 	//lprintf( "WebSocketClientClosed event." );
 	if( websock )
 	{
-		//lprintf( "Send to application." );
+		//lprintf( "Send close to application." );
 		if( websock->input_state.on_close ) {
 			if( websock->flags.connected )
 				websock->input_state.on_close( pc, websock->input_state.psv_on, websock->input_state.close_code, websock->input_state.close_reason );
@@ -227,11 +227,13 @@ static void CPROC WebSocketClientConnected( PCLIENT pc, int error )
 	}
 	else
 	{
+		//lprintf( "Connect error: %d", error );
 		if(websock->input_state.on_error )
 			websock->input_state.on_error( pc, websock->input_state.psv_on, error );
 
 		//lprintf( "Connection failed. (removeclient!)" );
 		wsc_local.opening_client = NULL;
+		//lprintf( "This is a normal remove client... after onerrror....");
 		RemoveClient( pc );
 	}
 }
@@ -290,15 +292,15 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	EnterCriticalSec( &wsc_local.cs_opening );
 	wsc_local.opening_client = websock;
 	{
-		SOCKADDR *lpsaDest = CreateSockAddress( websock->url->host, websock->url->port ? websock->url->port : websock->url->default_port );
+		SOCKADDR *lpsaDest = CreateSockAddressV2( websock->url->host, websock->url->port ? websock->url->port : websock->url->default_port
+		                                        , (enum NetworkAddressFlags)(((options&WS_PREFER_V4)?(int)NETWORK_ADDRESS_FLAG_PREFER_V4:0)
+		                                          | ((options&WS_PREFER_V6)?(int)NETWORK_ADDRESS_FLAG_PREFER_V6:0)) );
 		websock->pc = OpenTCPClientAddrExxx( lpsaDest
 		                                   , WebSocketClientReceive
 		                                   , WebSocketClientClosed
 		                                   , NULL
 		                                   , WebSocketClientConnected // if there is an on-open event, then register for async open
 		                                   , ((options&WS_DELAY_OPEN)?OPEN_TCP_FLAG_DELAY_CONNECT:0)
-		                                     | ((options&WS_PREFER_V4)?OPEN_TCP_FLAG_PREFER_V4:0)
-		                                     | ((options&WS_PREFER_V6)?OPEN_TCP_FLAG_PREFER_V6:0)
 		                                     DBG_SRC
 		                                   );
 		if( websock->pc )
