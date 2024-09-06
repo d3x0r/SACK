@@ -487,7 +487,7 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 
 
 		FILE( APPEND ${FILEOUT} "install( DIRECTORY ${TARGET_INSTALL_PREFIX}/include/SACK DESTINATION include )\n" )
-		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{ffmpeg_libraries} $" "{openal_libraries} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_ffmpeg_libraries} $" "{openal_libraries} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 
 #      foreach( lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} )
 #			FILE( APPEND ${FILEOUT} "install( PROGRAMS \"${lib}\" DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
