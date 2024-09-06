@@ -256,12 +256,12 @@ static void ReloadPlayed( void )
 	if( file )
 	{
 		TEXTCHAR buf[256];
-		while( fgets( buf, 256, file ) )
+		while( sack_fgets( buf, 256, file ) )
 		{
 			buf[strlen(buf)-1] = 0;
 			AddLink( &l.videos_played, StrDup( buf ) );
 		}
-		fclose( file );
+		sack_fclose( file );
 	}
 }
 
@@ -282,12 +282,12 @@ static void SavePlayed( CTEXTSTR newname )
 		FILE *file = sack_fopen( 0, "*/playlist.m3u", "wt" );
 		if( file )
 		{
-			fprintf( file, "%s\n", newname );
+			sack_fprintf( file, "%s\n", newname );
 			LIST_FORALL( l.videos_played, idx, CTEXTSTR, name )
 			{
-				fprintf( file, "%s\n", name );
+				sack_fprintf( file, "%s\n", name );
 			}
-			fclose( file );
+			sack_fclose( file );
 		}
 	}
 }

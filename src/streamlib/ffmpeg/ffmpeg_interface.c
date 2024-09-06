@@ -1894,25 +1894,31 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		{
 			{
 				/* calculated for 1/ to get frame delta */
-#define r2d(a) (((a).den)/((a).num))
+#define r2d(a) (((double)(a).den)/((double)(a).num))
+#define ir2d(a) (((double)(a).num)/((double)(a).den))
 
 				AVStream *ic = file->pFormatCtx->streams[file->videoStream];
-				file->frame_del = 1000000LL * ic->r_frame_rate.den / ic->r_frame_rate.num;
+				//file->frame_del = 1000000LL * ic->r_frame_rate.den / ic->r_frame_rate.num;
+				file->frame_del = 1000000000*ir2d( ic->time_base );
+
+				lprintf( "Setting up time scaling here? %lld %lld", file->frame_del, ic->r_frame_rate.den );
 
 //#if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(52, 111, 0)
 				if( file->frame_del <= 0 )
 				{
 					file->frame_del = 1000 * r2d( ic->avg_frame_rate );
+					lprintf( "And it was negative? %lld %g", file->frame_del, r2d(ic->avg_frame_rate) );
 				}
 //#endif
-
-				if( file->frame_del < 0.0001 )
+				if( !file->frame_del )
 				{
-					file->frame_del = 1000.0 / r2d( ic->codec->time_base );
+					file->frame_del = 1000000.0 / r2d( ic->codec->time_base );
+					lprintf( "And it was too small? %lld", file->frame_del );
 				}
 
 				//return fps;
 			}
+			
 
 			//lprintf( "testing for fixups for PTS" );
 			if( file->pFormatCtx->duration_estimation_method == AVFMT_DURATION_FROM_PTS )
@@ -1982,8 +1988,8 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 {
 	//- file->pVideoCodecCtx->delay
 	static int64_t prior_video_time;
-	int64_t video_time = ( file->videoFrame - 1 ) * file->frame_del;
-	int64_t video_time_now = ( file->videoFrame ) * file->frame_del;
+	int64_t video_time = ( file->videoFrame - 1 ) * file->frame_del / 1000;
+	int64_t video_time_now = ( file->videoFrame ) * file->frame_del / 1000;
 	// in MS
 	uint64_t audio_time = file->pAudioCodecCtx?(1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate):0;
 	uint64_t audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
@@ -2050,16 +2056,16 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 #endif
 
 		if( video 
-			&& ( file->videoFrame > 10 )
+			&& ( file->videoFrame > 10000 )
 			)
 		{
 			// track video to itself...
 
 			//file->video_current_pts_time = file->media_start_time + video_time * 1000;;
 			if( file->pAudioCodecCtx ) {
-#ifdef DEBUG_WIN8_REDRAW
+//#ifdef DEBUG_WIN8_REDRAW
 				lprintf( "next tick is built from %" _64fs "  %"  _64fs  " %" _64fs, file->media_start_time, video_time_now, ((video_time_in_audio_frames - file->audioSamplesPlayed) * 1000LL) / file->pAudioCodecCtx->sample_rate );
-#endif
+//#endif
 				file->video_next_pts_time = file->media_start_time + (video_time_now)
 					+((video_time_in_audio_frames - file->audioSamplesPlayed) * 1000LL) / file->pAudioCodecCtx->sample_rate
 					+ (video_time_tick * file->video_adjust_ticks * 1000)
@@ -2068,9 +2074,9 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 			else {
 				int64_t tmp = clock_time - file->media_start_time;
 					//		+(video_time_tick * file->video_adjust_ticks)) - file->video_next_pts_time;
-#ifdef DEBUG_WIN8_REDRAW
+//#ifdef DEBUG_WIN8_REDRAW
 				lprintf( "next tick is built from %" _64fs "  %"  _64fs  " %" _64fs, file->media_start_time, video_time_now, video_time_tick * 1000 );
-#endif
+//#endif
 				file->video_next_pts_time = file->video_decode_start
 					+ ( video_time_now ) + file->frame_del
 					//+( video_time_tick * 1000 )
@@ -2117,7 +2123,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 			  , ( ( ( clock_time - prior_video_time ) / 1000 )% ( 1000 ) )
 			  );
 	prior_video_time = clock_time;
-	if( pause_wait )
+	//if( pause_wait )
 		_lprintf(DBG_RELAY)( "%s %s", leader, file->szTime );
 }
 
@@ -2511,6 +2517,7 @@ static void OutputFrame( struct ffmpeg_file * file, struct ffmpeg_video_frame *f
 static uintptr_t CPROC UpdateOutputFrames( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
+	lprintf( "Updating frames?" );
 	while( !file->flags.close_processing )
 	{
 		struct ffmpeg_video_frame *frame;
@@ -2534,10 +2541,13 @@ static uintptr_t CPROC UpdateOutputFrames( PTHREAD thread )
 
 		if( frame ) {
 			int64_t now = ffmpeg.av_gettime();
-			if( now < frame->video_current_pts_time ) {
-				//lprintf( "sleep for %" _64fs, (frame->video_current_pts_time - now) / 1000 );
+			lprintf( "wait time would be: %lld", frame->video_current_pts_time - now );
+			while( now < frame->video_current_pts_time ) {
+				lprintf( "sleep for %" _64fs, (frame->video_current_pts_time - now) / 1000 );
 				WakeableSleep( (uint32_t)(( frame->video_current_pts_time - now ) / 1000) );
+				now = ffmpeg.av_gettime();
 			}
+			lprintf( "play frame without sleeping maybe? %lld %lld %lld", now, frame->video_current_pts_time, frame->video_current_pts_time - now  );
 			OutputFrame( file, frame );
 			EnqueLink( &file->pEmptyVideoFrames, frame );
 		}
@@ -2651,9 +2661,9 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				uint64_t processed_time = ffmpeg.av_gettime();
 				if( file->flags.video.flushing )
 					file->flags.video.first_flush = 0;
-#ifdef DEBUG_VIDEO_PACKET_READ
-				lprintf( "for the record we're lookin at %" _64fs" %" _64fs, processed_time - file->video_decode_start, video_time_tick );
-#endif
+//#ifdef DEBUG_VIDEO_PACKET_READ
+				lprintf( "for the record we're lookin at %" _64fs" %" _64fs, processed_time - file->video_decode_start, processed_time );
+//#endif
 				if( pause_resume )
 					pause_resume--;
 
@@ -2731,8 +2741,9 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 					//	file->video_current_pts = file->pVideoFrame->pkt_pts;
 					file->video_decode_start = file->media_start_time;
 					file->video_current_pts_time = file->video_decode_start; // when we started decoding.
-					//lprintf( "Set current to %" _64fs "  %" _64fs, file->video_current_pts_time, file->video_current_pts_time - ffmpeg.av_gettime() );
+					//lprintf( "Set current to %" _64fs "  %" _64fs " %" _64fs, file->video_current_pts_time, file->frame_del, file->video_current_pts_time - ffmpeg.av_gettime() );
 					file->video_next_pts_time = file->video_current_pts_time + file->frame_del;
+					lprintf( "This is adding 1 frame del (not videoFrame)" );
 					//lprintf( "no frame, so set the video tick start at %" _64fs " %" _64fs, file->video_next_pts_time, file->video_decode_start );
 				}
 				else
@@ -2756,7 +2767,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				//			, file->video_next_pts_time, time
 					//		, file->video_next_pts_time - time );
 					file->video_current_pts_time = file->video_next_pts_time;
-					//lprintf( "Set current to %" _64fs "  %" _64fs, file->video_current_pts_time, file->video_current_pts_time - ffmpeg.av_gettime() );
+					lprintf( "Set current to %" _64fs "  %" _64fs, file->video_current_pts_time, file->video_current_pts_time - ffmpeg.av_gettime() );
 					file->video_next_pts_time = file->video_current_pts_time + file->frame_del;
 				}
 				// add the real time...
@@ -2776,7 +2787,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 									 , frame->pVideoFrameRGB->linesize);
 				frame->video_current_pts_time = file->video_current_pts_time + file->video_current_pts_offset;
 				//lprintf( "Set FRAME current to %" _64fs "  %" _64fs, frame->video_current_pts_time, frame->video_current_pts_time - ffmpeg.av_gettime() );
-
+				//lprintf( "Send frame to play... %lld", file->video_current_pts_offset );
 				EnqueLink( &file->pDecodedVideoFrames, frame );
 				{
 					if( !file->videoOutputThread ) {
