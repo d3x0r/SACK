@@ -2710,9 +2710,9 @@ static int EvalExcept( int n )
 {
 	switch( n )
 	{
-	case 		STATUS_ACCESS_VIOLATION:
-		lprintf( "Access violation - OpenGL layer at this moment.." );
-		return EXCEPTION_EXECUTE_HANDLER;
+//	case 		STATUS_ACCESS_VIOLATION:
+//		lprintf( "Access violation - OpenGL layer at this moment.." );
+		//return EXCEPTION_EXECUTE_HANDLER;
 	default:
 		lprintf( "Filter unknown : %08X", n );
 

@@ -3,6 +3,8 @@
 // the motion needs to wrap the atoms outside and back on-board
 #define CHAIN_REACT_MAIN
 #include <stdhdrs.h>
+#undef timeGetTime
+#include <mmsystem.h>
 #include <logging.h>
 
 #include "global.h"
