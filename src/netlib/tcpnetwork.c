@@ -177,9 +177,6 @@ void AcceptClient(PCLIENT pListen)
 	{ // and we get one from the accept...
 #ifdef _WIN32
 		pNewClient->event = WSACreateEvent();
-#ifdef LOG_NETWORK_EVENT_THREAD
-		lprintf( "New event on accepted %p", pNewClient->event );
-#endif
 		WSAEventSelect( pNewClient->Socket, pNewClient->event, /*FD_ACCEPT| FD_OOB| FD_CONNECT| FD_QOS| FD_GROUP_QOS| FD_ROUTING_INTERFACE_CHANGE| FD_ADDRESS_LIST_CHANGE|*/
 			FD_READ|FD_WRITE|FD_CLOSE );
 #else
@@ -257,6 +254,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 #endif
 	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
 #ifdef WIN32
+	pClient->event = WSACreateEvent();
 	pClient->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 	if( pClient->Socket == INVALID_SOCKET )
 #endif
@@ -385,6 +383,7 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 	AddActive( pListen );
 	// make sure to schedule this socket for events (connect)
 #ifdef USE_WSA_EVENTS
+	WSAEventSelect( pListen->Socket, pListen->event, FD_ACCEPT|FD_CLOSE );
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( "SET GLOBAL EVENT (listener added)" );
 	EnqueLink( &globalNetworkData.client_schedule, pListen );
