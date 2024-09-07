@@ -118,22 +118,8 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	}
 
 #ifdef _WIN32
-#  ifdef USE_WSA_EVENTS
 	pc->event = WSACreateEvent();
 	WSAEventSelect( pc->Socket, pc->event, FD_READ|FD_WRITE );
-#  else
-	if (WSAAsyncSelect( pc->Socket,
-	                   globalNetworkData.ghWndNetwork,
-	                   SOCKMSG_UDP,
-	                   FD_READ|FD_WRITE ) )
-	{
-		Log( "Select Fail");
-		InternalRemoveClientEx( pc, TRUE, FALSE );
-		NetworkUnlock( pc, 0 );
-		NetworkUnlock( pc, 1 );
-		return NULL;
-	}
-#  endif
 #else
 	{
 		int t = TRUE;
