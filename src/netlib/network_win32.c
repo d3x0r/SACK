@@ -710,10 +710,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 			if( dwError == WSA_INVALID_HANDLE )
 			{
 				lprintf( "Rebuild list, have a bad event handle somehow." );
+				thread->flags.bProcessing = 0;
 				break;
 			}
 			lprintf( "error of wait is %d   %p", dwError, thread );
 			LogBinary( (const uint8_t*)thread->event_list->data, 64 );
+			thread->flags.bProcessing = 0;
 			break;
 		}
 #ifndef UNDER_CE
@@ -742,14 +744,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				if( !quick_check )
 					continue;
 			}
-			//else
+			else
 			{
-#ifdef LOG_NOTICES
-				if( globalNetworkData.flags.bLogNotices )
-					lprintf( thread->parent_peer?"RESET THREAD EVENT":"RESET GLOBAL EVENT" );
-#endif
 				WSAResetEvent( thread->hThread );
 			}
+			// could maybe have new clients to schedule somewhere
 			return 1;
 		}
 	}
