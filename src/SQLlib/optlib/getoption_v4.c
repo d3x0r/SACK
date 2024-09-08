@@ -495,7 +495,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 			);
 			memcpy( insert + tmpOfs, newval, valLen );
 			tmpOfs += valLen;
-			tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert ), ", %d)"
+			tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert )-tmpOfs, ", %d)"
 				, segment
 			);
 
@@ -519,7 +519,7 @@ LOGICAL New4CreateValue( POPTION_TREE tree, POPTION_TREE_NODE value, CTEXTSTR pV
 				  );
 		memcpy( insert + tmpOfs, newval, valLen );
 		tmpOfs += valLen;
-		tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert ), ", %d)"
+		tmpOfs += tnprintf( insert + tmpOfs, sizeof( insert ) - tmpOfs, ", %d)"
 			, segment
 		);
 		if( SQLCommandExx( tree->odbc_writer, insert, tmpOfs DBG_SRC ) )
