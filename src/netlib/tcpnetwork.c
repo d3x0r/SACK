@@ -268,7 +268,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
 //#ifdef LOG_SOCKET_CREATION
-	lprintf( "Created new socket %d %d", pClient->Socket, errno );
+	lprintf( "Created new socket %p %d %d", pClient, pClient->Socket, errno );
 //#endif
 	if( pClient->Socket != INVALID_SOCKET )
 	{
@@ -365,6 +365,7 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 		return NULL;
 	}
 
+	AddActive( pListen );
 	pListen->saSource = DuplicateAddress( pAddr );
 	scheduleSocket( pListen, NULL );
 
@@ -380,14 +381,9 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 	}
 	NetworkUnlockEx( pListen, 0 DBG_SRC );
 	NetworkUnlockEx( pListen, 1 DBG_SRC );
-	AddActive( pListen );
 	// make sure to schedule this socket for events (connect)
 #ifdef USE_WSA_EVENTS
 	WSAEventSelect( pListen->Socket, pListen->event, FD_ACCEPT|FD_CLOSE );
-	if( globalNetworkData.flags.bLogNotices )
-		lprintf( "SET GLOBAL EVENT (listener added)" );
-	EnqueLink( &globalNetworkData.client_schedule, pListen );
-	WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 #endif
 	return pListen;
 }
