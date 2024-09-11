@@ -539,6 +539,46 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 		}
 		else
 		{
+			// if FD_CONNECT isn't selected, then this section is called
+			// otherwise this is mostly dead code in this block.
+			pc->dwFlags &= ~CF_CONNECTING;
+			pc->dwFlags |= CF_CONNECTED;
+
+			if( !pc->saSource ) {
+#ifdef __LINUX__
+				socklen_t
+#else
+				int
+#endif
+					nLen = MAGIC_SOCKADDR_LENGTH;
+				if( !pc->saSource )
+					pc->saSource = AllocAddr();
+				if( getsockname( pc->Socket, pc->saSource, &nLen ) ) {
+					lprintf( "getsockname errno = %d", errno );
+				}
+				SET_SOCKADDR_LENGTH( pc->saSource
+					, pc->saSource->sa_family == AF_INET
+					? IN_SOCKADDR_LENGTH
+					: IN6_SOCKADDR_LENGTH );
+			}
+
+
+			if( pc->connect.CPPThisConnected ) {
+				//lprintf( "connect callback dispatch... %p", pc->saClient );
+				if( pc->dwFlags & CF_CPPCONNECT )
+					pc->connect.CPPThisConnected( pc->psvConnect, 0 );
+				else
+					pc->connect.ThisConnected( pc, 0 );
+			}
+			if( pc->read.ReadComplete ) {
+				if( pc->dwFlags & CF_CPPREAD )
+					// process read to get data already pending...
+					pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );
+				else
+					// process read to get data already pending...
+					pc->read.ReadComplete( pc, NULL, 0 );
+			}
+
 //#ifdef VERBOSE_DEBUG
 			lprintf( "Connected before we even get a chance to wait" );
 //#endif
@@ -635,6 +675,9 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			//lprintf( "Leaving Client's critical section" );
 
 			scheduleSocket( pResult, this_thread );
+#ifdef USE_WSA_EVENTS
+			WSAEventSelect( pResult->Socket, pResult->event, FD_CONNECT|FD_READ|FD_WRITE|FD_CLOSE );
+#endif
 
 			// socket should now get scheduled for events, after unlocking it?
 			if (!(flags & OPEN_TCP_FLAG_DELAY_CONNECT)) {
