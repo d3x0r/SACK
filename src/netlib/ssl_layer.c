@@ -275,6 +275,10 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 
 void ssl_CloseSession( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
+	if( ses->inUse ) {
+		ses->deleteInUse++;
+		return;
+	} 
 	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
 		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
 	}else{
@@ -549,11 +553,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				len = 0;
 
 			ssl_handlePendingControlwrites( ses[0] );
-			ses[0]->inUse--;
 			LeaveCriticalSec( &ses[0]->csReadWrite );
-			if( ses[0] && ses[0]->deleteInUse ) {
-				lprintf( "Need to close this SSL layer?" );
-			}
 			if( !ses[0] ) {
 				return;
 			}
@@ -578,7 +578,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				}
 				if( ses[0] ) { // might have closed during read.
 					if( ses[0] && ses[0]->deleteInUse ){
-						lprintf( "Pending close(3)... was in-use when closed.");
+						//lprintf( "Pending close(3)... was in-use when closed.");
 					}
 					EnterCriticalSec( &ses[0]->csReadWrite );
 					goto read_more;
@@ -635,7 +635,8 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				ses[0]->inUse--;
 				LeaveCriticalSec( &ses[0]->csReadWrite );
 				if( ses[0]->deleteInUse ){
-					lprintf( "Pending close... was in-use when closed.");
+					lprintf( "Pending close... was in-use when closed. (DO CLOSE!)");
+					ssl_CloseSession( pc );
 				}
 			}
 		}
