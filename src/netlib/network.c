@@ -424,7 +424,7 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 		if( IsValid( pc->Socket ) )
 		{
 #ifdef VERBOSE_DEBUG
-			lprintf( "close soekcet." );
+			lprintf( "close socket: %p", pc );
 #endif
 #if !defined( SHUT_WR ) && defined( _WIN32 )
 #  define SHUT_WR SD_SEND
@@ -1336,9 +1336,9 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			return;
 		}
 		if( bLinger && ( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
-//#ifdef LOG_DEBUG_CLOSING
-			lprintf( "GRACEFUL CLOSE WHILE WAITING FOR WRITE TO FINISH..." );
-//#endif
+#ifdef LOG_DEBUG_CLOSING
+			lprintf( "GRACEFUL CLOSE WHILE WAITING FOR WRITE TO FINISH... %p", lpClient );
+#endif
 			lpClient->dwFlags |= CF_TOCLOSE;
 			return;
 			// continue on; otherwise the close event gets lost...
@@ -1387,7 +1387,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			if( !(lpClient->dwFlags & CF_CLOSING) ) // prevent multiple notifications...
 			{
 #ifdef LOG_DEBUG_CLOSING
-				lprintf( "Marked closing first, and dispatching callback?" );
+				lprintf( "Marked closing first, and dispatching callback? %p", lpClient );
 #endif
 				lpClient->dwFlags |= CF_CLOSING;
 				LeaveCriticalSec( &globalNetworkData.csNetwork );

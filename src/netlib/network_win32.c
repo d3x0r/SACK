@@ -369,6 +369,7 @@ static void HandleEvent( PCLIENT pClient )
 								pClient->dwFlags &= ~CF_TOCLOSE;
 								//lprintf( "Pending read failed - and wants to close." );
 								EnterCriticalSec( &globalNetworkData.csNetwork );
+								// remote shutdown triggered this... and somehow this shouldn't be the same as a graceful close.
 								InternalRemoveClientEx( pClient, FALSE, TRUE );
 								TerminateClosedClient( pClient );
 								LeaveCriticalSec( &globalNetworkData.csNetwork );

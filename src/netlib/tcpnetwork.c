@@ -1426,9 +1426,9 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			if (nSent == SOCKET_ERROR) {
 				if( dwError == WSAEWOULDBLOCK )  // this is alright.
 				{
-//#ifdef VERBOSE_DEBUG
-					lprintf( "Pending write...(EBLOCK) %p", pc );
-//#endif
+#ifdef VERBOSE_DEBUG
+					lprintf( "Pending write...(EBLOCK) %p %zd", pc, pc->lpFirstPending->dwAvail );
+#endif
 					pc->dwFlags &= ~CF_WRITEREADY;
 					pc->dwFlags |= CF_WRITEPENDING;
 					return TRUE;
