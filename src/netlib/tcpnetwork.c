@@ -1453,6 +1453,10 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
+				if( dwError == WSAECONNABORTED ) {
+					pc->dwFlags |= CF_TOCLOSE;
+					return FALSE;
+				}
 #endif
 				{
 					_lprintf(DBG_RELAY)(" Network Send Error: %5d(sock:%p, buffer:%p ofs: %" _size_f "  Len: %" _size_f ")",
