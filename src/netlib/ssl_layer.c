@@ -1168,6 +1168,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	struct ssl_session * ses;
 	struct internalCert* certStruc;
 	struct ssl_hostContext* ctx;
+	if( !pc ) return FALSE;
 	ses = pc->ssl_session;
 	if( !ses ) {
 		ses = New( struct ssl_session );
