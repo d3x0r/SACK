@@ -1204,9 +1204,11 @@ uintptr_t GetFileSize( int fd )
 				}
 				if( fd == -1 )
 				{
+#ifdef DEBUG_OPEN_SPACE
 					Log2( "Sorry - failed to open: %d %s"
 						, errno
 						, filename );
+#endif
 #ifndef USE_SIMPLE_LOCK_ON_OPEN
 					if( g.deadstart_finished )
 					{

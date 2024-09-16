@@ -2338,7 +2338,7 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 	INDEX idx;
 	if( !msg_data ) return;
 	level++;
-	if( level > 10 ) DebugBreak();
+	if( level > 100 ) DebugBreak();
 	DATA_FORALL( (*msg_data), idx, struct jsox_value_container*, val )
 	{
 		// names and string buffers for JSON parsed values in a single buffer

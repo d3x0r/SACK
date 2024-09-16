@@ -306,10 +306,16 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 				{
 					if( ((int)pos - (int)start - (int)pHttpState->bLine) < 0 )
 						continue;
-					if( c[pos] == '\r' )
-						pHttpState->bLine++;
+					if( c[pos] == '\r' ) 
+						if( !(pHttpState->bLine & 1 ) )
+							pHttpState->bLine++;
+						else
+							pHttpState->bLine=0;
 					else if( c[pos] == '\n' )
-						pHttpState->bLine++;
+						if( pHttpState->bLine & 1 )
+							pHttpState->bLine++;
+						else
+							pHttpState->bLine=0;
 					else // non end of line character....
 					{
 	FinalCheck:
@@ -369,7 +375,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 								}
 								else
 								{
-									lprintf( "Header field [%s] invalid(%s)", GetText( pLine ), GetText( pCurrent ) );
+									lprintf( "Header field [%.*s] invalid(%.*s)", GetTextSize(pLine),GetText( pLine ), GetTextSize(pCurrent), GetText( pCurrent ) );
 									LineRelease( pLine );
 								}
 							}
@@ -520,6 +526,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 							if( pHttpState->bLine == 2 )
 								pHttpState->bLine = 0;
 						}
+						else // 0 or 1
+							pHttpState->bLine = 0;
 						// may not receive anything other than header information?
 						if( pHttpState->bLine == 4 )
 						{
