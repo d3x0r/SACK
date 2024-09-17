@@ -267,9 +267,10 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 										, SOCK_STREAM
 										, (((*(uint16_t*)pAddr) == AF_INET)||((*(uint16_t*)pAddr) == AF_INET6))?IPPROTO_TCP:0 );
 #endif
-//#ifdef LOG_SOCKET_CREATION
+#ifdef LOG_SOCKET_CREATION
+	// accept() also is 'created new Socket'
 	lprintf( "Created new socket %p %d %d", pClient, pClient->Socket, errno );
-//#endif
+#endif
 	if( pClient->Socket != INVALID_SOCKET )
 	{
 		int err;
