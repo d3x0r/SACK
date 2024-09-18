@@ -269,7 +269,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 #endif
 #ifdef LOG_SOCKET_CREATION
 	// accept() also is 'created new Socket'
-	lprintf( "Created new socket %p %d %d", pClient, pClient->Socket, errno );
+	lprintf( "Created new socket %p %p %d %d", pClient, pFromAddr, pClient->Socket, errno );
 #endif
 	if( pClient->Socket != INVALID_SOCKET )
 	{
@@ -293,7 +293,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 					DumpAddr( "new from address is", pFromAddr );
 				}
 			}
-			//DumpAddr( "source", pResult->saSource );
+			//DumpAddr( " in pFromAddr source", pClient->saSource );
 			if( ( err = bind( pClient->Socket, pClient->saSource
 											, SOCKADDR_LENGTH( pClient->saSource ) ) ) )
 			{
@@ -496,6 +496,11 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 							//lprintf( "Re-open the socket... was %d", pc->Socket );
 							// if saSource == saClient (which it never should, they should be indepdenatly duplicated)
 							// this behaves like a listener 
+							if( pc->saSource ) {
+								lprintf( "Why is saSource not NULL? (if it wasn't... ) %p", pc->saSource );
+								ReleaseAddress( pc->saSource );
+								pc->saSource = NULL;
+							}
 							openSocket( pc, pc->saSource /* used to bind to an address on the client side */, pc->saClient /* just determins socket parameters with family */ );
 							//lprintf( "Re-open the socket... and is %d", pc->Socket );
 							// should kick the thread waiting to wait on the new one now...
@@ -641,6 +646,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 	{
 		struct peer_thread_info *this_thread = IsNetworkThread();
 		// use the sockaddr to switch what type of socket this is.
+		
 		openSocket( pResult, pFromAddr, lpAddr ); // addr determins some socket flags
 		if (pResult->Socket==INVALID_SOCKET)
 		{
@@ -759,6 +765,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 							nLen = MAGIC_SOCKADDR_LENGTH;
 						if( !pResult->saSource )
 							pResult->saSource = AllocAddr();
+						//lprintf( "Setup sa Source to connect (reconnect?) %p", pResult->saSource);
 						if( getsockname( pResult->Socket, pResult->saSource, &nLen ) )
 						{
 							lprintf( "getsockname errno = %d", errno );
