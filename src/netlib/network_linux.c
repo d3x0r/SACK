@@ -568,17 +568,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								int
 #endif
 									nLen = MAGIC_SOCKADDR_LENGTH;
-								if( !pc->saSource )
+								if( !pc->saSource ) {
 									pc->saSource = AllocAddr();
-								if( getsockname( pc->Socket, pc->saSource, &nLen ) ) {
-									lprintf( "getsockname errno = %d", errno );
+									//lprintf( "setup pc->saSource here(network events) %p", pc->saSource );
+									if( getsockname( pc->Socket, pc->saSource, &nLen ) ) {
+										lprintf( "getsockname errno = %d", errno );
+									}
+									if( pc->saSource->sa_family == AF_INET )
+										SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
+									else if( pc->saSource->sa_family == AF_INET6 )
+										SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
+									else
+										SET_SOCKADDR_LENGTH( pc->saSource, nLen );
+								} else {
+									lprintf( "Socket already had a source address? should be bound then, and address should be the same?");
 								}
-								if( pc->saSource->sa_family == AF_INET )
-									SET_SOCKADDR_LENGTH( pc->saSource, IN_SOCKADDR_LENGTH );
-								else if( pc->saSource->sa_family == AF_INET6 )
-									SET_SOCKADDR_LENGTH( pc->saSource, IN6_SOCKADDR_LENGTH );
-								else
-									SET_SOCKADDR_LENGTH( pc->saSource, nLen );
 							}
 
 							{
