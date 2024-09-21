@@ -443,7 +443,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					if( !ses[0]->ignoreVerification && SSL_get_peer_certificate( ses[0]->ssl ) ) {
 						int r;
 						if( ( r = SSL_get_verify_result( ses[0]->ssl ) ) != X509_V_OK ) {
-							lprintf( "Verify result - client connection: %d %p", r, ses[0]->errorCallback );
+							//lprintf( "Verify result - client connection: %d %p", r, ses[0]->errorCallback );
 							if( pc )
 								if( ses[0]->errorCallback )
 									ses[0]->errorCallback( ses[0]->psvErrorCallback, pc, SACK_NETWORK_ERROR_SSL_CERTCHAIN_FAIL );
@@ -460,6 +460,13 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					}
 
 					LeaveCriticalSec( &ses[0]->csReadWrite );
+					//lprintf( "Sending connect now, but the SSL server requet hasn't completed?");
+					// connect callback is where read callback is typically setup, so the initial read following this can work.
+
+					if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
+						pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
+					else
+						pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
 
 					//lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
 					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
@@ -600,6 +607,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 
 			ses[0]->ibuffer = NewArray( uint8_t, ses[0]->ibuflen = (4327 + 39) );
 			ses[0]->dbuffer = NewArray( uint8_t, ses[0]->dbuflen = 4096 );
+			// should probably just call handshake() function here too?
 			{
 				int r;
 				if( ( r = SSL_do_handshake( ses[0]->ssl ) ) < 0 ) {
@@ -877,6 +885,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ssl_InitSession( ses );
 
 	SSL_set_accept_state( ses->ssl );
+	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
 	AddLink( &pcServer->ssl_session->accepting, ses );
 
 	ses->errorCallback = pcServer->ssl_session?pcServer->ssl_session->errorCallback:pcServer->errorCallback;
@@ -910,11 +919,6 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	pcNew->close.CloseCallback = ssl_CloseCallback;
 	pcNew->dwFlags &= ~CF_CPPCLOSE;
 
-	if( pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
-		pcServer->ssl_session->cpp_user_connected( pcServer->psvConnect, pcNew );
-	else
-		pcServer->ssl_session->user_connected( pcServer, pcNew );
-
 }
 
 struct ssl_session* ssl_ClientPipeConnected( struct ssl_session* session, uintptr_t psvNew, void (*read)(uintptr_t psv, POINTER, size_t), void ( **write )( struct ssl_session *session, POINTER, size_t )
@@ -933,6 +937,7 @@ struct ssl_session* ssl_ClientPipeConnected( struct ssl_session* session, uintpt
 	ssl_InitSession( ses );
 
 	SSL_set_accept_state( ses->ssl );
+	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
 	AddLink( &session->accepting, ses);
 	//pcNew->ssl_session = ses;
 
@@ -1096,16 +1101,17 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	if( !ctxList[0] ) return SSL_TLSEXT_ERR_OK;
 	int t;
 	if( TLSEXT_NAMETYPE_host_name != (t =SSL_get_servername_type( ssl ) ) ) {
-		//lprintf( "Handshake sent bad hostname type... %d", t );
+		//lprintf( "Handshake sent bad hostname type... %d, %d", t, TLSEXT_NAMETYPE_host_name );
 		//return 0;
 	}
 	const char* host = NULL;
 	size_t strlen = 0;
-	if( t ) {
+	if( t >= 0 ) {
 		host = SSL_get_servername( ssl, t );
 		strlen = StrLen( host );
 		//lprintf( "ServerName;%s", host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
+		if( ssl_Accept->hostname ) Release( ssl_Accept->hostname );
 		ssl_Accept->hostname = DupCStrLen( host, strlen );
 	} else {
 		// allow connection, but without a hostanme set, the application may reject later?

@@ -118,6 +118,7 @@ void AcceptClient(PCLIENT pListen)
 	// length... usually didn't JAB: 980203
 	nTemp = MAGIC_SOCKADDR_LENGTH;
 	pNewClient->saClient = AllocAddr();
+	pNewClient->pcServer = pListen;
 	pNewClient->flags.bSecure = pListen->flags.bSecure;
 	pNewClient->flags.bAllowDowngrade = pListen->flags.bAllowDowngrade;
 	pNewClient->Socket = accept( pListen->Socket

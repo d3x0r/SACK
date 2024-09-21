@@ -360,7 +360,8 @@ struct NetworkClient
 	PendingBuffer *volatile lpFirstPending,*volatile lpLastPending; // outgoing buffers
 	uint32_t    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
-	PCLIENT pcOther; // listeners opened with port only have two connections, one IPV4 one IPV6
+	PCLIENT pcServer; // server this listen socket came from - because connect callback has to be delayed until after handshake of TLS.
+	PCLIENT pcOther; // listeners opened(was deprecated since most connections to v4 can be seen on v6) with port only have two connections, one IPV4 one IPV6
 	volatile struct network_client_flags {
 		BIT_FIELD bAddedToEvents : 1;
 		BIT_FIELD bRemoveFromEvents : 1;
