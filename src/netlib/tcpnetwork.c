@@ -1042,6 +1042,8 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					return (int)lpClient->RecvPending.dwUsed;
 #ifdef __LINUX__
 				case ECONNRESET:
+				// sometimes this leaks past connect and read happens?
+				case ECONNREFUSED: 
 #else
 				case WSAECONNRESET:
 				case WSAECONNABORTED:
@@ -1052,7 +1054,8 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					if(0)
 					{
 					default:
-						Log5( "Failed reading from %d (err:%d) into %p %" _size_f " bytes %" _size_f " read already.",
+						lprintf( "Failed reading from %p %d (err:%d) into %p %" _size_f " bytes %" _size_f " read already.",
+							  lpClient,
 							  lpClient->Socket,
 							  WSAGetLastError(),
 							  lpClient->RecvPending.buffer.p,
@@ -1443,7 +1446,7 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 					return TRUE;
 				}
 				if( dwError == EPIPE ) {
-					_lprintf(DBG_RELAY)( "EPIPE on send() to socket...");
+					//_lprintf(DBG_RELAY)( "EPIPE on send() to socket...");
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}

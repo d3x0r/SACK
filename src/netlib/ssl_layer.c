@@ -462,12 +462,14 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LeaveCriticalSec( &ses[0]->csReadWrite );
 					//lprintf( "Sending connect now, but the SSL server requet hasn't completed?");
 					// connect callback is where read callback is typically setup, so the initial read following this can work.
-
-					if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
-						pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
-					else
-						pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
-
+					if( pc->pcServer ) {
+						// clients use the same read callback.  They only get the initial read complete
+						// no callbacks to setup.
+						if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
+							pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
+						else
+							pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
+					}
 					//lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
 					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 						if( ses[0]->cpp_user_read )
@@ -1620,7 +1622,7 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 #if defined( DEBUG_SSL_FALLBACK )			
 			lprintf( "is ssl_session gone(yes)? %p %p %d %d", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1 );
 #endif		
-			if( buffer ) {
+			if( buffer && pc->read.CPPReadComplete ) {
 				if( pc->dwFlags & CF_CPPREAD ) {
 					pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
 					if( buffer )
