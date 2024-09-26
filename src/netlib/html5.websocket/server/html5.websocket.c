@@ -504,9 +504,9 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 					}
 				} else {
 					if( socket->pc )
-						WebSocketClose( socket->pc, 0, NULL );
+						WebSocketClose( socket->pc, 1006, "Protocol or resource not accepted" );
 					else
-						WebSocketPipeClose( socket, 0, NULL );
+						WebSocketPipeClose( socket, 1006, "Protocol or resource not accepted" );
 
 					return;
 				}
@@ -866,9 +866,9 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 
 		VarTextDestroy( &pvt_output );
 		if( socket->pc )
-			WebSocketClose( socket->pc, 0, NULL );
+			WebSocketClose( socket->pc, 1006, "Protocol or resource not accepted" );
 		else
-			WebSocketPipeClose( socket, 0, NULL );
+			WebSocketPipeClose( socket, 1006, "Protocol or resource not accepted" );
 
 		return;
 	}

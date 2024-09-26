@@ -361,7 +361,6 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 			serverSock->input_state.flags.closed = 1;
 		}
 		else {
-			lprintf( "Negotiation incomplete, don't send close; just close." );
 			if( serverSock->input_state.on_close )
 				serverSock->input_state.on_close( NULL, serverSock->input_state.psv_on, 1006, "Negotiation incomplete" ); 
 			else if( serverSock->pc )
