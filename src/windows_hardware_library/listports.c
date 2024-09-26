@@ -61,6 +61,7 @@ LOGICAL ListPorts( ListPortsCallback lpCallback, uintptr_t psv ) {
 		return WinNT40ListPorts( lpCallback, psv );
 	} else {
 		lprintf( "ListPorts is not supported on this platform..." );
+		return FALSE;
 	}
 
 #if 0
