@@ -597,7 +597,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	return 0;
 }
 
-
+#if 0
 static inline void waitScheduleSocket( PCLIENT pc ) {
 #ifdef _WIN32
 	int tries = 0;
@@ -620,7 +620,7 @@ static inline void waitScheduleSocket( PCLIENT pc ) {
 	//if( tries > 1 ) lprintf( "Took %d tries.", tries );
 #endif
 }
-
+#endif
 //----------------------------------------------------------------------------
 
 static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pFromAddr,
