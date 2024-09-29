@@ -248,6 +248,7 @@ struct ssl_session {
 	struct internalCert* cert;
 	LOGICAL ignoreVerification;
 	LOGICAL firstPacket;
+	LOGICAL noHost;
 	LOGICAL closed;
 	BIO *rbio;
 	BIO *wbio;

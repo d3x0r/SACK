@@ -302,7 +302,7 @@ static int handshake( struct ssl_session** ses ) {
 #endif
 		/* NOT INITIALISED */
 #ifdef DEBUG_SSL_IO
-		lprintf(" Handshake is not finished? %p", pc );
+		lprintf(" Handshake is not finished? %p", ses[0] );
 #endif
 		r = SSL_do_handshake(ses[0]->ssl);
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -345,9 +345,12 @@ static int handshake( struct ssl_session** ses ) {
 				}
 			}
 		}
+		//lprintf( "R here is %d", r );
 		if (r < 0) {
 
 			r = SSL_get_error(ses[0]->ssl, r);
+			//lprintf( "Get error %d %d %d %d %p", r, SSL_ERROR_SSL, SSL_ERROR_WANT_READ, ses[0]->noHost, ses[0] );
+
 			if( SSL_ERROR_SSL == r ) {
 #ifdef DEBUG_SSL_IO
 				lprintf( "SSL_Read failed... %d", r );
@@ -359,6 +362,10 @@ static int handshake( struct ssl_session** ses ) {
 			}
 			if (SSL_ERROR_WANT_READ == r)
 			{
+				if( ses[0]->noHost ) {
+					//lprintf( "No host, so no need to read more data." );
+					return -1;
+				}
 			}
 			else {
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -374,6 +381,11 @@ static int handshake( struct ssl_session** ses ) {
 #ifdef DEBUG_SSL_IO
 		lprintf(" Handshake is and has been finished?");
 #endif
+		if( ses[0]->noHost ) {
+			//lprintf( "No host, so no need to read more data." );
+			return -1;
+		}
+
 		return 1;
 	}
 }
@@ -413,7 +425,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 						RemoveClient( pc );
 				return;
 			}
-
+			//lprintf( "And session inbound is %p %p", ses, ses[0] );
 			if( !( hs_rc = handshake( ses ) ) ) {
 				// zero result is 'needs more data read'
 				if( !ses[0] ) {
@@ -524,11 +536,12 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 			}
 			else if( hs_rc == -1 ) {
 				//lprintf( "handshake failed - client connection: %zd %p", length, ses[0]->errorCallback );
-				if( pc && ses[0]->errorCallback )
-					ses[0]->errorCallback( ses[0]->psvErrorCallback, pc, ses[0]->firstPacket
-						? SACK_NETWORK_ERROR_SSL_HANDSHAKE
+				if( pc && ses[0]->errorCallback && !ses[0]->noHost ) {
+					ses[0]->errorCallback( ses[0]->psvErrorCallback, pc
+						, ses[0]->firstPacket ? SACK_NETWORK_ERROR_SSL_HANDSHAKE
 						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
 						, buffer, length );
+				}
 				// disableSSL call can happen during error callback
 				// in which case this will eventually fall back to non-SSL reading
 				// and the buffer will get passed back in (or a new buffer if someone really crafty uses it...)
@@ -542,7 +555,14 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 #if defined( DEBUG_SSL_FALLBACK )			
 						lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d", ses[0]->inUse, ses[0]->deleteInUse );
 #endif						
-						ssl_ClosePipeSession( ses );
+						if( ses[0]->noHost ){
+							if( pc ) {
+								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+									RemoveClient( pc );
+							}
+						}
+						else
+							ssl_ClosePipeSession( ses );
 					} else {
 						//ssl_CloseSession( pc );
 #if defined( DEBUG_SSL_FALLBACK )			
@@ -886,8 +906,8 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 		SSL_set_session_id_context( ses->ssl, (const unsigned char*)&tick, 4 );//sizeof( ses->ctx ) );
 	}
 	ssl_InitSession( ses );
-
 	SSL_set_accept_state( ses->ssl );
+
 	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
 	AddLink( &pcServer->ssl_session->accepting, ses );
 
@@ -1062,8 +1082,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 										}
 									}
 								}
-								if( ses->errorCallback )
-									ses]->errorCallback( ses->psvErrorCallback, pc, SACK_NETWORK_ERROR_HOST_NOT_FOUND, buf, buflen );
+								ses->noHost = TRUE;
 							}
 						}
 					}
@@ -1134,10 +1153,10 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			size_t namelen = nextName ? (nextName - checkName) : strlen;
 			if( nextName ) nextName++;
 			if( namelen != strlen ) {
-				lprintf( "%.*s is not %.*s", (int)namelen, checkName, (int)strlen, host );
+				//lprintf( "%.*s is not %.*s", (int)namelen, checkName, (int)strlen, host );
 				continue;
 			}
-			//lprintf( "Check:%.*s", )
+			//lprintf( "Check:%.*s  %.*s", strlen, host, namelen, checkName );
 			if( !host || ( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) ) {
 				SSL_set_SSL_CTX( ssl, hostctx->ctx );
 				return SSL_TLSEXT_ERR_OK;
@@ -1145,10 +1164,16 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		}
 	}
 	if( defaultHostctx ) {
+		lprintf( "Returning default context (without a host name?)");
 		SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
 		return SSL_TLSEXT_ERR_OK;
 	}
-
+	//lprintf( "NOACK! %p", ssl_Accept );
+	ssl_Accept->noHost = TRUE;
+	if( ses->errorCallback ) {
+		ses->errorCallback( ses->psvErrorCallback, NULL, SACK_NETWORK_ERROR_HOST_NOT_FOUND
+			, host, strlen );
+	}
 	//SSL_TLSEXT_ERR_NOACK
 	//SSL_TLSEXT_ERR_ALERT_FATAL
 	//SSL_TLSEXT_ERR_ALERT_WARNING
@@ -1175,7 +1200,7 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen ) {
 	struct internalCert* certStruc;
 	struct ssl_hostContext* ctx;
-
+lprintf( "Setuphost: %s", hosts );
 	if( !cert ) {
 		if( hosts ) {
 			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
@@ -1298,6 +1323,7 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, ses );
 #else
 	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
+	lprintf( "Session argument %p", ses );
 	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );
 #endif
 	return ctx;
@@ -1317,145 +1343,19 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	struct ssl_hostContext* ctx;
 	if( !pc ) return FALSE;
 	ses = pc->ssl_session;
+	// this can also be used to register additional hosts... the new function SHOULD be used instead though....
 	if( !ses ) {
+		ssl_InitLibrary();
 		ses = New( struct ssl_session );
 		MemSet( ses, 0, sizeof( struct ssl_session ) );
 	}
-	ssl_InitLibrary();
 	pc->flags.bSecure = 1;
 
 	// from here down can do 
 	ctx = ssl_setupHost( ses, (CTEXTSTR)hosts, (CTEXTSTR)cert, certlen, (CTEXTSTR)keypair, keylen, (CTEXTSTR)keypass, keypasslen );
 
-#if 0
-	struct internalCert* certStruc;
-	if( !cert ) {
-		if( hosts ) {
-			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
-		}
-		certStruc = ses->cert = MakeRequest();
-		ctx = New( struct ssl_hostContext );
-		ctx->host = StrDup( hosts );
-		ctx->ctx = NULL;
-		ctx->certToUse = certStruc;
-
-		AddLink( &ses->hosts, ctx );
-		if( !ses->cert )
-			ses->cert = certStruc;
-
-	} else {
-		certStruc = New( struct internalCert );
-		BIO *keybuf = BIO_new( BIO_s_mem() );
-		X509 *x509, *result;
-
-		certStruc->chain = sk_X509_new_null();
-		certStruc->pkey = NULL;
-		certStruc->x509 = NULL;
-		//PKCS12_parse( )
-		BIO_write( keybuf, cert, (int)certlen );
-		do {
-			if( !BIO_pending( keybuf ) )
-				break;
-			x509 = X509_new();
-			result = PEM_read_bio_X509( keybuf, &x509, NULL, NULL );
-			if( result )
-				sk_X509_push( certStruc->chain, x509 );
-			else {
-				ERR_print_errors_cb( logerr, (void*)__LINE__ );
-				X509_free( x509 );
-			}
-		} while( result );
-		BIO_free( keybuf );
-
-		{
-			ctx = New( struct ssl_hostContext );
-			ctx->host = StrDup( hosts );
-			ctx->ctx = NULL;
-			ctx->certToUse = certStruc;
-		}
-		AddLink( &ses->hosts, ctx );
-		if( !ses->cert )
-			ses->cert = certStruc;
-	}
-
-	if( !keypair ) {
-		if( !certStruc->pkey )
-			certStruc->pkey = genKey();
-	} else {
-		BIO *keybuf = BIO_new( BIO_s_mem() );
-		struct info_params params;
-		EVP_PKEY *result;
-		certStruc->pkey = EVP_PKEY_new();
-		BIO_write( keybuf, keypair, (int)keylen );
-		params.password = (char*)keypass;
-		params.passlen = (int)keypasslen;
-		result = PEM_read_bio_PrivateKey( keybuf, &certStruc->pkey, pem_password, &params );
-		if( !result ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		BIO_free( keybuf );
-	}
-
-#if NODE_MAJOR_VERSION < 10
-	ctx->ctx = SSL_CTX_new( TLSv1_2_server_method() );
-#else
-	ctx->ctx = SSL_CTX_new( TLS_server_method() );
-	SSL_CTX_set_min_proto_version( ctx->ctx, TLS1_2_VERSION );
-#endif
-	{
-		int r;
-		SSL_CTX_set_cipher_list( ctx->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
-
-		/*
-		r = SSL_CTX_set0_chain( ctx->ctx, ses->cert->chain );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		*/
-		r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		r = SSL_CTX_use_PrivateKey( ctx->ctx, certStruc->pkey );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		{
-			int n;
-			for( n = 1; n < sk_X509_num( certStruc->chain ); n++ ) {
-				r = SSL_CTX_add_extra_chain_cert( ctx->ctx, sk_X509_value( certStruc->chain, n ) );
-				if( r <= 0 ) {
-					ERR_print_errors_cb( logerr, (void*)__LINE__ );
-				}
-			}
-		}
-		r = SSL_CTX_check_private_key( ctx->ctx );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		r = SSL_CTX_set_session_id_context( ctx->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ctx->ctx ) );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		//r = SSL_CTX_get_session_cache_mode( ctx->ctx );
-		//r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_SERVER );
-		r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_OFF );
-		if( r <= 0 )
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-	}
-
-	// these are set per-context... but only the first context is actually used?
-
-#if !defined( LIBRESSL_VERSION_NUMBER )
-	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, ses );// &ses->hosts );
-#else
-	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
-	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );//&ses->hosts );
-#endif
-
-#endif
-
 	if( !pc->ssl_session ) {
+		lprintf( "Setting up with initial context: %p", ses );
 		ses->ctx = ctx->ctx;
 		ses->dwOriginalFlags = pc->dwFlags;
 
