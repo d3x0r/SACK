@@ -234,7 +234,9 @@ void AcceptClient(PCLIENT pListen)
 
 static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 {
+#ifdef __LINUX__	
 	int replaced = 0;
+#endif	
 	if( !IsInvalid( pClient->Socket ) )
 	{
 		//lprintf( "CLOSE SOCKET IN OPEN: %d", pClient->Socket );
@@ -242,8 +244,8 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 		// closing a handle and re-opening it doesn't trick epoll...  have to probably at last add the events...
 		// but there's other work associated with related sockets that needs to be done... not just reset epoll handle
 		RemoveThreadEvent( pClient );
-#endif
 		replaced = 1;
+#endif
 		closesocket( pClient->Socket );
 	}
 #ifndef _WIN32

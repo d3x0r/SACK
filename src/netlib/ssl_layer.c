@@ -144,9 +144,10 @@ verify_mydata_t verify_default = { FALSE, 100, FALSE };
 
 
 struct ssl_hostContext {
-	SSL_CTX* ctx;
-	struct internalCert* cert;
-	char* host;
+	SSL_CTX* ctx;   // contexxt to use if host matches this
+	struct internalCert* certToUse; // not sure I need this if the context is already setup...
+	char* host;  // list of hosts, separated by '~'
+	LOGICAL defaultHost; // if this is the default host
 };
 
 
@@ -1061,6 +1062,8 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 										}
 									}
 								}
+								if( ses->errorCallback )
+									ses]->errorCallback( ses->psvErrorCallback, pc, SACK_NETWORK_ERROR_HOST_NOT_FOUND, buf, buflen );
 							}
 						}
 					}
@@ -1169,12 +1172,148 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 	return len;
 }
 
+struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen ) {
+	struct internalCert* certStruc;
+	struct ssl_hostContext* ctx;
+
+	if( !cert ) {
+		if( hosts ) {
+			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
+		}
+		// should probably pass smme host names for certificate...
+		certStruc = MakeRequest();
+		ctx = New( struct ssl_hostContext );
+		ctx->defaultHost = FALSE;
+		ctx->host = StrDup( hosts );
+		ctx->ctx = NULL;
+		ctx->certToUse = certStruc;
+
+		AddLink( &ses->hosts, ctx );
+	} else {
+		certStruc = New( struct internalCert );
+		BIO *keybuf = BIO_new( BIO_s_mem() );
+		X509 *x509, *result;
+
+		certStruc->chain = sk_X509_new_null();
+		certStruc->pkey = NULL;
+		certStruc->x509 = NULL;
+		//PKCS12_parse( )
+		BIO_write( keybuf, cert, (int)certlen );
+		do {
+			if( !BIO_pending( keybuf ) )
+				break;
+			x509 = X509_new();
+			result = PEM_read_bio_X509( keybuf, &x509, NULL, NULL );
+			if( result )
+				sk_X509_push( certStruc->chain, x509 );
+			else {
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+				X509_free( x509 );
+			}
+		} while( result );
+		BIO_free( keybuf );
+
+		{
+			ctx = New( struct ssl_hostContext );
+			ctx->defaultHost = FALSE;
+			ctx->host = StrDup( hosts );
+			ctx->ctx = NULL;
+			ctx->certToUse = certStruc;
+		}
+		AddLink( &ses->hosts, ctx );
+	}
+	if( !ses->cert ) {
+		ses->cert = certStruc;
+		ctx->defaultHost = TRUE;
+	}
+
+	if( !keypair ) {
+		if( !certStruc->pkey )
+			certStruc->pkey = genKey();
+	} else {
+		BIO *keybuf = BIO_new( BIO_s_mem() );
+		struct info_params params;
+		EVP_PKEY *result;
+		certStruc->pkey = EVP_PKEY_new();
+		BIO_write( keybuf, keypair, (int)keylen );
+		params.password = (char*)keypass;
+		params.passlen = (int)keypasslen;
+		result = PEM_read_bio_PrivateKey( keybuf, &certStruc->pkey, pem_password, &params );
+		if( !result ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		BIO_free( keybuf );
+	}
+
+#if NODE_MAJOR_VERSION < 10
+	ctx->ctx = SSL_CTX_new( TLSv1_2_server_method() );
+#else
+	ctx->ctx = SSL_CTX_new( TLS_server_method() );
+	SSL_CTX_set_min_proto_version( ctx->ctx, TLS1_2_VERSION );
+#endif
+	{
+		int r;
+		SSL_CTX_set_cipher_list( ctx->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
+
+		/*
+		r = SSL_CTX_set0_chain( ctx->ctx, ses->cert->chain );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		*/
+		r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		r = SSL_CTX_use_PrivateKey( ctx->ctx, certStruc->pkey );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		{
+			int n;
+			for( n = 1; n < sk_X509_num( certStruc->chain ); n++ ) {
+				r = SSL_CTX_add_extra_chain_cert( ctx->ctx, sk_X509_value( certStruc->chain, n ) );
+				if( r <= 0 ) {
+					ERR_print_errors_cb( logerr, (void*)__LINE__ );
+				}
+			}
+		}
+		r = SSL_CTX_check_private_key( ctx->ctx );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		r = SSL_CTX_set_session_id_context( ctx->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ctx->ctx ) );
+		if( r <= 0 ) {
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		}
+		//r = SSL_CTX_get_session_cache_mode( ctx->ctx );
+		//r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_SERVER );
+		r = SSL_CTX_set_session_cache_mode( ctx->ctx, SSL_SESS_CACHE_OFF );
+		if( r <= 0 )
+			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+	}
+	// these are set per-context... but only the first context is actually used?
+
+#if !defined( LIBRESSL_VERSION_NUMBER )
+	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, ses );
+#else
+	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
+	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );
+#endif
+	return ctx;
+}
+
+struct ssl_hostContext* ssl_setupHostCert( PCLIENT pc, CTEXTSTR hosts, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen ) {
+	if( !pc ) return NULL;
+	struct ssl_session*	ses = pc->ssl_session;
+	return ssl_setupHost( ses, hosts, cert, certlen, keypair, keylen, keypass, keypasslen );
+}
+
 LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
                           , CPOINTER keypair, size_t keylen
                           , CPOINTER keypass, size_t keypasslen
                           , char *hosts ) {
 	struct ssl_session * ses;
-	struct internalCert* certStruc;
 	struct ssl_hostContext* ctx;
 	if( !pc ) return FALSE;
 	ses = pc->ssl_session;
@@ -1185,6 +1324,11 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	ssl_InitLibrary();
 	pc->flags.bSecure = 1;
 
+	// from here down can do 
+	ctx = ssl_setupHost( ses, (CTEXTSTR)hosts, (CTEXTSTR)cert, certlen, (CTEXTSTR)keypair, keylen, (CTEXTSTR)keypass, keypasslen );
+
+#if 0
+	struct internalCert* certStruc;
 	if( !cert ) {
 		if( hosts ) {
 			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
@@ -1193,7 +1337,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 		ctx = New( struct ssl_hostContext );
 		ctx->host = StrDup( hosts );
 		ctx->ctx = NULL;
-		ctx->cert = certStruc;
+		ctx->certToUse = certStruc;
 
 		AddLink( &ses->hosts, ctx );
 		if( !ses->cert )
@@ -1227,7 +1371,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 			ctx = New( struct ssl_hostContext );
 			ctx->host = StrDup( hosts );
 			ctx->ctx = NULL;
-			ctx->cert = certStruc;
+			ctx->certToUse = certStruc;
 		}
 		AddLink( &ses->hosts, ctx );
 		if( !ses->cert )
@@ -1307,6 +1451,8 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 #else
 	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
 	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );//&ses->hosts );
+#endif
+
 #endif
 
 	if( !pc->ssl_session ) {
