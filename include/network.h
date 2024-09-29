@@ -231,6 +231,7 @@ enum SackNetworkErrorIdentifier {
 	SACK_NETWORK_ERROR_SSL_FAIL, // other ssl error
 	SACK_NETWORK_ERROR_HTTP_CHUNK, // 
 	SACK_NETWORK_ERROR_HTTP_UNSUPPORTED, // command parsing resulted in invalid command.  (HTTPS request to HTTP)
+	SACK_NETWORK_ERROR_HOST_NOT_FOUND, // host name could not be resolved
 };
 typedef void (CPROC*cErrorCallback)(uintptr_t psvError, PCLIENT pc, enum SackNetworkErrorIdentifier error, ... );
 
@@ -958,6 +959,11 @@ NETWORK_PROC( LOGICAL, ssl_BeginServer_v2 )( PCLIENT pc, CPOINTER cert, size_t c
 	, CPOINTER keypair, size_t keylen
 	, CPOINTER keypass, size_t keypasslen
 	, char* hosts );
+
+// add more certificates to a server socket that it can use to resolve host requests
+NETWORK_PROC( struct ssl_hostContext*, ssl_setupHostCert )( PCLIENT pc, CTEXTSTR host, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen );
+// add more certificates to a server socket that it can use to resolve host requests (uses internal)
+NETWORK_PROC( struct ssl_hostContext*, ssl_setupHost )( struct ssl_session* session, CTEXTSTR host, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen );
 
 /*
 * Get the SSL session for a client
