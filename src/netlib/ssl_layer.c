@@ -1176,7 +1176,6 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		}
 	}
 	if( defaultHostctx ) {
-		lprintf( "Returning default context (without a host name?)");
 		SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
 		return SSL_TLSEXT_ERR_OK;
 	}
