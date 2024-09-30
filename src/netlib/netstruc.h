@@ -287,6 +287,7 @@ struct ssl_session {
 	verify_mydata_t verify_data;
 	uint32_t inUse;
 	uint32_t deleteInUse;
+	PCLIENT pc; // for the rare case that we only have session and no socket.
 	//CRITICALSECTION csReadWrite;
 	//CRITICALSECTION csWrite;
 };

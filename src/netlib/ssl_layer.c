@@ -279,11 +279,13 @@ void ssl_CloseSession( PCLIENT pc ) {
 	if( ses->inUse ) {
 		ses->deleteInUse++;
 		return;
-	} 
-	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
-		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
-	}else{
-		if( ses->user_close ) ses->user_close( pc );
+	}
+	if( !ses->noHost ) { 
+		if( ses->dwOriginalFlags & CF_CPPCLOSE ){
+			if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
+		}else{
+			if( ses->user_close ) ses->user_close( pc );
+		}
 	}
 
 	ssl_ClosePipeSession( &pc->ssl_session );
@@ -302,7 +304,7 @@ static int handshake( struct ssl_session** ses ) {
 #endif
 		/* NOT INITIALISED */
 #ifdef DEBUG_SSL_IO
-		lprintf(" Handshake is not finished? %p", ses[0] );
+		lprintf("Handshake is not finished? %p", ses[0] );
 #endif
 		r = SSL_do_handshake(ses[0]->ssl);
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -318,8 +320,10 @@ static int handshake( struct ssl_session** ses ) {
 #endif
 			return -1;
 		}
+		// error results sometimes have to send alerts, so r can't be checked.
 		//if( r >= 0 )
-		if( ses[0] )
+		//lprintf( "No host is false right? %d", ses[0]->noHost);
+		if( ses[0] && !(ses[0]->noHost))
 		{
 			size_t pending;
 			while( ( pending = BIO_ctrl_pending( ses[0]->wbio) ) > 0 ) {
@@ -382,7 +386,6 @@ static int handshake( struct ssl_session** ses ) {
 		lprintf(" Handshake is and has been finished?");
 #endif
 		if( ses[0]->noHost ) {
-			//lprintf( "No host, so no need to read more data." );
 			return -1;
 		}
 
@@ -557,8 +560,9 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 #endif						
 						if( ses[0]->noHost ){
 							if( pc ) {
-								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
-									RemoveClient( pc );
+								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) )
+									&& (pc->dwFlags & CF_CONNECTED ) )
+									RemoveClientEx( pc, TRUE, FALSE );
 							}
 						}
 						else
@@ -566,11 +570,11 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					} else {
 						//ssl_CloseSession( pc );
 #if defined( DEBUG_SSL_FALLBACK )			
-						lprintf( "This is a close anyway...");
+						lprintf( "This is a close anyway(BLOCK)... %p", pc );
 #endif						
 						if( pc ) {
 							if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
-								RemoveClient( pc );
+								RemoveClientEx( pc, TRUE, FALSE );
 						}
 					}
 				}
@@ -909,6 +913,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	SSL_set_accept_state( ses->ssl );
 
 	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
+	ses->pc = pcNew;
 	AddLink( &pcServer->ssl_session->accepting, ses );
 
 	ses->errorCallback = pcServer->ssl_session?pcServer->ssl_session->errorCallback:pcServer->errorCallback;
@@ -961,6 +966,7 @@ struct ssl_session* ssl_ClientPipeConnected( struct ssl_session* session, uintpt
 
 	SSL_set_accept_state( ses->ssl );
 	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
+	ses->pc = (PCLIENT)psvNew;
 	AddLink( &session->accepting, ses);
 	//pcNew->ssl_session = ses;
 
@@ -1124,6 +1130,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	// if no hosts to check.
 	if( !ctxList[0] ) return SSL_TLSEXT_ERR_OK;
 	int t;
+	// only valid type of name....
 	if( TLSEXT_NAMETYPE_host_name != (t =SSL_get_servername_type( ssl ) ) ) {
 		//lprintf( "Handshake sent bad hostname type... %d, %d", t, TLSEXT_NAMETYPE_host_name );
 		//return 0;
@@ -1133,7 +1140,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	if( t >= 0 ) {
 		host = SSL_get_servername( ssl, t );
 		strlen = StrLen( host );
-		//lprintf( "ServerName;%s", host );
+		//lprintf( "ServerName;%d %s", strlen, host );
 		//lprintf( "Have hostchange: %.*s", strlen, host );
 		if( ssl_Accept->hostname ) Release( ssl_Accept->hostname );
 		ssl_Accept->hostname = DupCStrLen( host, strlen );
@@ -1146,12 +1153,17 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 		char const* checkName;
 		char const* nextName;
+		size_t maxhosts = StrLen( hostctx->host );
 		if( !hostctx->host ) {
+			lprintf(" No host - setup default result?" );
 			defaultHostctx = hostctx;
 		}
+		//lprintf( "Host:%s", hostctx->host );
 		for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
-			size_t namelen = nextName ? (nextName - checkName) : strlen;
+			//lprintf( "check: %s next: %s %d", checkName, nextName, maxhosts );
+			size_t namelen = nextName ? (nextName - checkName) : maxhosts;
 			if( nextName ) nextName++;
+			maxhosts -= namelen - 1;
 			if( namelen != strlen ) {
 				//lprintf( "%.*s is not %.*s", (int)namelen, checkName, (int)strlen, host );
 				continue;
@@ -1171,7 +1183,8 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 	//lprintf( "NOACK! %p", ssl_Accept );
 	ssl_Accept->noHost = TRUE;
 	if( ses->errorCallback ) {
-		ses->errorCallback( ses->psvErrorCallback, NULL, SACK_NETWORK_ERROR_HOST_NOT_FOUND
+		//lprintf( "This should return NOACK!");
+		ses->errorCallback( ses->psvErrorCallback, ssl_Accept->pc, SACK_NETWORK_ERROR_HOST_NOT_FOUND
 			, host, strlen );
 	}
 	//SSL_TLSEXT_ERR_NOACK
@@ -1200,7 +1213,7 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen ) {
 	struct internalCert* certStruc;
 	struct ssl_hostContext* ctx;
-lprintf( "Setuphost: %s", hosts );
+	//lprintf( "Setuphost: %s", hosts );
 	if( !cert ) {
 		if( hosts ) {
 			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
@@ -1323,7 +1336,6 @@ lprintf( "Setuphost: %s", hosts );
 	SSL_CTX_set_client_hello_cb( ctx->ctx, handleServerName, ses );
 #else
 	SSL_CTX_set_tlsext_servername_callback( ctx->ctx, handleServerName );
-	lprintf( "Session argument %p", ses );
 	SSL_CTX_set_tlsext_servername_arg( ctx->ctx, ses );
 #endif
 	return ctx;
@@ -1355,7 +1367,6 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 	ctx = ssl_setupHost( ses, (CTEXTSTR)hosts, (CTEXTSTR)cert, certlen, (CTEXTSTR)keypair, keylen, (CTEXTSTR)keypass, keypasslen );
 
 	if( !pc->ssl_session ) {
-		lprintf( "Setting up with initial context: %p", ses );
 		ses->ctx = ctx->ctx;
 		ses->dwOriginalFlags = pc->dwFlags;
 
