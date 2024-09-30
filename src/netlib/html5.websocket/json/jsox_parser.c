@@ -2333,12 +2333,12 @@ const char *jsox_get_parse_buffer( struct jsox_parse_state *pState, const char *
 
 void _jsox_dispose_message( PDATALIST *msg_data )
 {
-	static int level;
+	//static int level;
 	struct jsox_value_container *val;
 	INDEX idx;
 	if( !msg_data ) return;
-	level++;
-	if( level > 100 ) DebugBreak();
+	//level++;
+	//if( level > 100 ) DebugBreak();
 	DATA_FORALL( (*msg_data), idx, struct jsox_value_container*, val )
 	{
 		// names and string buffers for JSON parsed values in a single buffer
@@ -2360,7 +2360,7 @@ void _jsox_dispose_message( PDATALIST *msg_data )
 	msg_data[0] = NULL;
 	DeleteFromSet( PDATALIST, jxpsd.dataLists, msg_data );
 	LeaveCriticalSec( &jxpsd.cs_states );
-	level--;
+	//level--;
 }
 
 static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
