@@ -71,17 +71,6 @@ SACK_NETWORK_NAMESPACE
 
 #define MAGIC_SOCKADDR_LENGTH ( sizeof(SOCKADDR_IN)< 256?256:sizeof( SOCKADDR_IN) )
 
-#define IN_SOCKADDR_LENGTH sizeof(struct sockaddr_in)
-#define IN6_SOCKADDR_LENGTH sizeof(struct sockaddr_in6)
-
-// this might have to be like sock_addr_len_t
-#define SOCKADDR_LENGTH(sa) ( (int)*(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) )
-#ifdef __MAC__
-#  define SET_SOCKADDR_LENGTH(sa,size) ( ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size ), ( sa->sa_len = size ) )
-#else
-#  define SET_SOCKADDR_LENGTH(sa,size) ( ( *(uintptr_t*)( ( (uintptr_t)(sa) ) - 2*sizeof(uintptr_t) ) ) = size )
-#endif
-
 #  define SOCKADDR_NAME(sa) (( ((TEXTSTR*)( ( (uintptr_t)(sa) ) - 1*sizeof(uintptr_t) ))[0] ))
 
 // used by the network thread dispatched network layer messages...
@@ -507,8 +496,6 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLi
 #define InternalRemoveClient(c) InternalRemoveClientEx(c, FALSE, FALSE )
 struct peer_thread_info *IsNetworkThread( void );
 
-SOCKADDR *AllocAddrEx( DBG_VOIDPASS );
-#define AllocAddr() AllocAddrEx( DBG_VOIDSRC )
 PCLIENT AddActive( PCLIENT pClient );
 
 void RemoveThreadEvent( PCLIENT pc );
