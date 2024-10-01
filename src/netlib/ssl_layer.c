@@ -556,8 +556,9 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LeaveCriticalSec( &ses[0]->csReadWrite );
 					if( ses[0]->deleteInUse ){
 #if defined( DEBUG_SSL_FALLBACK )			
-						lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d", ses[0]->inUse, ses[0]->deleteInUse );
+						lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d %d", ses[0]->inUse, ses[0]->deleteInUse, ses[0]->noHost );
 #endif						
+/*
 						if( ses[0]->noHost ){
 							if( pc ) {
 								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) )
@@ -566,6 +567,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 							}
 						}
 						else
+						*/
 							ssl_ClosePipeSession( ses );
 					} else {
 						//ssl_CloseSession( pc );
@@ -1628,7 +1630,7 @@ LOGICAL ssl_IsClientSecure( PCLIENT pc ) {
 void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 	if( pc && pc->ssl_session ) {
 #if defined( DEBUG_SSL_FALLBACK )			
-		lprintf( "Restoring old callbacks" );
+		lprintf( "Restoring old callbacks %p %p %p", buffer, pc->ssl_session->cpp_user_read, pc->ssl_session->user_read );
 #endif		
 		// revert native socket methods.
 		if( pc->ssl_session->user_read )
@@ -1668,16 +1670,21 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		tmp = pc->ssl_session->ibuffer;
 		pc->ssl_session->ibuffer = NULL;
 #if defined( DEBUG_SSL_FALLBACK )			
-		lprintf( "Invoke close callback?" );
-#endif		
-		ssl_CloseCallback( pc );
+		lprintf( "close ssl session?" );
+#endif	
+		pc->ssl_session->inUse = 0;
+		ssl_ClosePipe( &pc->ssl_session );
 		if( pc->dwFlags & CF_ACTIVE ) {
 
 			// SSL callback failed, but it may be possible to connect direct.
 			// and if so; setup to return a redirect.
 #if defined( DEBUG_SSL_FALLBACK )			
-			lprintf( "is ssl_session gone(yes)? %p %p %d %d", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1 );
+			lprintf( "is ssl_session gone(yes)? %p %p %d %d %p", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1, pc->read.CPPReadComplete );
 #endif		
+			if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
+				pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
+			else
+				pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
 			if( buffer && pc->read.CPPReadComplete ) {
 				if( pc->dwFlags & CF_CPPREAD ) {
 					pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
