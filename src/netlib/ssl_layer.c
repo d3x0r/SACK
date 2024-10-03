@@ -1,9 +1,13 @@
 
-
-
 #include <stdhdrs.h>
 #ifdef BUILD_NODE_ADDON
 #  include <node_version.h>
+#endif
+
+//#define DEBUG_FALLBACK
+//#define DEBUG_NO_HOST
+#if defined( DEBUG_NO_HOST ) && defined( DEBUG_FALLBACK )
+#  define DEBUG_NO_HOST_AND_FALLBACK
 #endif
 
 #ifdef BUILD_NODE_ADDON
@@ -74,7 +78,7 @@ const int kBits = 1024;// 4096;
 const int kExp = RSA_F4;
 
 struct internalCert {
-	X509_REQ *req;
+	//X509_REQ *req;
 	X509 * x509;
 	EVP_PKEY *pkey;
 	STACK_OF( X509 ) *chain;
@@ -244,6 +248,7 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 	if( ssl_session[0] )
 	{
 		struct ssl_session *ses = ssl_session[0];
+		struct ssl_hostContext* hostctx;
 		INDEX idx;
 		PTEXT seg;
 		SSL_shutdown( ses->ssl );
@@ -255,6 +260,22 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 			ssl_handlePendingControlwrites( ses );
 		}
 
+		// usually this isn't released... the server socket (LISTENER) 
+		// is very rarely closed (like never actually).
+		LIST_FORALL( ses->hosts, idx, struct ssl_hostContext*, hostctx ) {
+			Release( hostctx->host );
+			SSL_CTX_free( hostctx->ctx );
+
+			X509_free( hostctx->certToUse->x509 );
+			EVP_PKEY_free( hostctx->certToUse->pkey );
+			sk_X509_free( hostctx->certToUse->chain );
+	
+			Release( hostctx );
+		}
+		DeleteList( &ses->hosts );
+		// accepting is another listener structure; usually NULL.
+		DeleteList( &ses->accepting );
+		
 		LIST_FORALL( ses->protocols, idx, PTEXT, seg ) {
 			LineRelease( seg );
 		}
@@ -263,10 +284,7 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 			Release( ses->hostname );
 			ses->hostname = NULL;
 		}
-		ses->closed = TRUE;
 		/* this should probably have a do_close action event too like send/recv */
-		//Release( pc->ssl_session );
-		//pc->ssl_session = NULL;
 		ssl_session[0] = NULL;
 		Release( ses );
 	} else {
@@ -276,10 +294,18 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 
 void ssl_CloseSession( PCLIENT pc ) {
 	struct ssl_session *ses = pc->ssl_session;
+	// mark that this should be closed down to the socket.
+	ses->closed = TRUE;
 	if( ses->inUse ) {
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+		lprintf( "Setting close session for later" );
+#endif		
 		ses->deleteInUse++;
 		return;
 	}
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+	lprintf( "Close Session Callback: %p %p %d", pc, ses, ses->noHost );
+#endif	
 	if( !ses->noHost ) { 
 		if( ses->dwOriginalFlags & CF_CPPCLOSE ){
 			if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
@@ -290,8 +316,13 @@ void ssl_CloseSession( PCLIENT pc ) {
 
 	ssl_ClosePipeSession( &pc->ssl_session );
 	if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) ) {
-		//lprintf( "RemoveClient (Again?)");
-		RemoveClient( pc );
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+		lprintf( "RemoveClient (Again?) %s", NetworkExpandFlags( pc ));
+#endif
+		if( pc->dwFlags & CF_CONNECT_ISSUED )
+			RemoveClient( pc );
+		else
+			RemoveClientEx( pc, TRUE, FALSE );
 	}
 }
 
@@ -386,6 +417,7 @@ static int handshake( struct ssl_session** ses ) {
 		lprintf(" Handshake is and has been finished?");
 #endif
 		if( ses[0]->noHost ) {
+			lprintf( "Handshake no host status return -1");
 			return -1;
 		}
 
@@ -481,12 +513,14 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					if( pc->pcServer ) {
 						// clients use the same read callback.  They only get the initial read complete
 						// no callbacks to setup.
+						lprintf( "### Sent connect...");
+						pc->dwFlags |= CF_CONNECT_ISSUED;
 						if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 							pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 						else
 							pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
 					}
-					//lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
+					lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
 					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 						if( ses[0]->cpp_user_read )
 							ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
@@ -514,7 +548,6 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				//if( len < 0 )
 				//	lprintf( "error of 0 read is %d", SSL_get_error( ses[0]->ssl, len ) );
 				len = SSL_pending( ses[0]->ssl );
-				//lprintf( "do read.. pending %d", len );
 				if( len ) {
 					if( len > (int)ses[0]->dbuflen ) {
 						//lprintf( "Needed to expand buffer..." );
@@ -538,13 +571,17 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				}
 			}
 			else if( hs_rc == -1 ) {
-				//lprintf( "handshake failed - client connection: %zd %p", length, ses[0]->errorCallback );
+				//lprintf( "handshake failed - client connection: %zd %p %d", length, ses[0]->errorCallback, ses[0]->noHost );
 				if( pc && ses[0]->errorCallback && !ses[0]->noHost ) {
 					ses[0]->errorCallback( ses[0]->psvErrorCallback, pc
 						, ses[0]->firstPacket ? SACK_NETWORK_ERROR_SSL_HANDSHAKE
 						: SACK_NETWORK_ERROR_SSL_HANDSHAKE_2
 						, buffer, length );
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+					lprintf( "Sent error callback");
+#endif					
 				}
+			
 				// disableSSL call can happen during error callback
 				// in which case this will eventually fall back to non-SSL reading
 				// and the buffer will get passed back in (or a new buffer if someone really crafty uses it...)
@@ -554,31 +591,34 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				if( ses[0] ) {
 					ses[0]->inUse--;
 					LeaveCriticalSec( &ses[0]->csReadWrite );
-					if( ses[0]->deleteInUse ){
 #if defined( DEBUG_SSL_FALLBACK )			
-						lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d %d", ses[0]->inUse, ses[0]->deleteInUse, ses[0]->noHost );
+					lprintf( "Pending SSL (not socket close) close(2)... was in-use when closed. %d %d %d", ses[0]->inUse, ses[0]->deleteInUse, ses[0]->noHost );
 #endif						
-/*
-						if( ses[0]->noHost ){
-							if( pc ) {
-								if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) )
-									&& (pc->dwFlags & CF_CONNECTED ) )
-									RemoveClientEx( pc, TRUE, FALSE );
-							}
-						}
-						else
-						*/
-							ssl_ClosePipeSession( ses );
-					} else {
-						//ssl_CloseSession( pc );
-#if defined( DEBUG_SSL_FALLBACK )			
-						lprintf( "This is a close anyway(BLOCK)... %p", pc );
-#endif						
+					/*
+					if( ses[0]->noHost ){
 						if( pc ) {
-							if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) ) )
+							if( !( pc->dwFlags & ( CF_CLOSED | CF_CLOSING ) )
+								&& (pc->dwFlags & CF_CONNECTED ) )
 								RemoveClientEx( pc, TRUE, FALSE );
 						}
 					}
+					else
+					*/
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+					lprintf( "Handshake failed - close socket? %p %p %d", pc, pc->pcServer, pc->dwFlags & CF_CONNECT_ISSUED );
+#endif					
+					if( pc->dwFlags & CF_CONNECT_ISSUED )
+						RemoveClient( pc );
+					else {
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+						lprintf( "Sent connect that is blocked notify...");
+#endif						
+						RemoveClientEx( pc, TRUE, FALSE );
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+						lprintf( "so the socket really can/is closed here?" );
+#endif						
+					}
+					//ssl_ClosePipeSession( ses );
 				}
 #if defined( DEBUG_SSL_FALLBACK )			
 				lprintf( "done with failed handshake?");
@@ -602,7 +642,6 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					LogBinary( ses[0]->dbuffer, (( ssl_global.flags.bLogBuffers ) || ( 256 > len ))? len : 256 );
 				}
 #endif
-				//lprintf( "cpp read? %d ", ses[0]->dwOriginalFlags & CF_CPPREAD);
 				if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 					if( ses[0]->cpp_user_read )
 						ses[0]->cpp_user_read( ses[0]->psvRead, ses[0]->dbuffer, len );
@@ -834,6 +873,7 @@ void ssl_ClosePipe( struct ssl_session **ses ) {
 		//lprintf("(ClosePipe)already closed?");
 		return;
 	}
+	lprintf( "Close Pipe called...");
 	if( ses[0]->inUse ) {
 		ses[0]->deleteInUse++;
 		return;
@@ -866,12 +906,13 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		//lprintf("already closed?");
 		return;
 	}
+	lprintf( "ssl_closecallback and...");
 	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
 		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
 	}else{
 		if( ses->user_close ) ses->user_close( pc );
 	}
-
+	lprintf( "close callback into closepipe");
 	ssl_ClosePipe( &pc->ssl_session );
 	//pc->ssl_session = NULL;
 }
@@ -904,7 +945,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	struct ssl_session *ses;
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
-
+	pcNew->dwFlags &= ~CF_CONNECT_ISSUED;
 	ses->ssl = SSL_new( pcServer->ssl_session->ctx );
 	{
 		static uint32_t tick;
@@ -913,7 +954,9 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	}
 	ssl_InitSession( ses );
 	SSL_set_accept_state( ses->ssl );
-
+#ifdef DEBUG_NO_HOST_AND_FALLBACK
+	lprintf( "Server connected sockets: %p %p", pcServer, pcNew );
+#endif	
 	ses->hostname = DupCStrLen( (CTEXTSTR)"no extension", 12 );
 	ses->pc = pcNew;
 	AddLink( &pcServer->ssl_session->accepting, ses );
@@ -1673,14 +1716,16 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		lprintf( "close ssl session?" );
 #endif	
 		pc->ssl_session->inUse = 0;
+		lprintf( "EndSecure, closing SSL pipe...");
 		ssl_ClosePipe( &pc->ssl_session );
 		if( pc->dwFlags & CF_ACTIVE ) {
 
 			// SSL callback failed, but it may be possible to connect direct.
 			// and if so; setup to return a redirect.
-#if defined( DEBUG_SSL_FALLBACK )			
+//#if defined( DEBUG_SSL_FALLBACK )			
 			lprintf( "is ssl_session gone(yes)? %p %p %d %d %p", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1, pc->read.CPPReadComplete );
-#endif		
+//#endif		
+			pc->dwFlags |= CF_CONNECT_ISSUED;
 			if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 				pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 			else
@@ -1714,6 +1759,7 @@ void ssl_EndSecurePipe(struct ssl_session** session ) {
 		session[0]->cpp_user_close = NULL;
 		tmp = session[0]->ibuffer;
 		session[0]->ibuffer = NULL;
+		lprintf( "Also end secure pipe?");
 		ssl_ClosePipe( session );
 		// SSL callback failed, but it may be possible to connect direct.
 		// and if so; setup to return a redirect.

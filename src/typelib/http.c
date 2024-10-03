@@ -375,7 +375,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 								}
 								else
 								{
-									lprintf( "Header field [%.*s] invalid(%.*s)", GetTextSize(pLine),GetText( pLine ), GetTextSize(pCurrent), GetText( pCurrent ) );
+									lprintf( "Header field [%.*s] invalid(%.*s)", (int)GetTextSize(pLine),GetText( pLine ), (int)GetTextSize(pCurrent), GetText( pCurrent ) );
 									LineRelease( pLine );
 								}
 							}

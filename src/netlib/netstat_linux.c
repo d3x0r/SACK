@@ -65,7 +65,6 @@ static void ProcessProc( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags
 	if( f ) 
 		fclose(f);
 	else {
-		fclose(f);
 		return;
 	}
 	snprintf( path, 256, "%s/fd", name );

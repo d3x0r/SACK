@@ -1449,7 +1449,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 #  define SHUT_WR SD_SEND
 #endif
 	if( !lpClient ) return;
-
+	//_lprintf(DBG_RELAY)( "RemoveClient: %p %d %d", lpClient, bBlockNotify, bLinger );
 	if( !( lpClient->dwFlags & CF_UDP ) 
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) )
 		&& !( lpClient->dwFlags & CF_CONNECTERROR ) ) {
@@ -1459,6 +1459,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		if( ssl_IsClientSecure( lpClient ) ) {
 			if( !ssl_IsClosed( lpClient ) ) {
 				// let client notify_close actually close this...
+				//lprintf( "secure client, not closed, just close session... (no shutdown?)");
 				ssl_CloseSession( lpClient );
 				return;
 			}

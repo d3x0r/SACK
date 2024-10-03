@@ -498,8 +498,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									}
 									if( !locked ) break;
 								}
+								// finish pending read returned -1 (some sort of error)
 								if( locked ) {
-									InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+									if( event_data->pc->dwFlags & CF_CONNECT_ISSUED )
+										InternalRemoveClientEx( event_data->pc, FALSE, FALSE );
+									else
+										InternalRemoveClientEx( event_data->pc, TRUE, FALSE );
 									NetworkUnlock( event_data->pc, 0 );
 									TerminateClosedClient( event_data->pc );
 									LeaveCriticalSec( &globalNetworkData.csNetwork );

@@ -284,20 +284,18 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 
 #define MAGIC_SIZE sizeof( void* )
 
+#define PRI64_COMPAT_SUFFIX L
+
 #ifdef __64__
-#define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
+#  define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 0123456789ABCDEF
-#ifdef GNUC
 #  define TAG_FORMAT_MODIFIER __PRI64_PREFIX
+#  define BLOCK_TAG_ID pastejunk( 0xefcdab8967452301, PRI64_COMPAT_SUFFIX )
 #else
-#  define TAG_FORMAT_MODIFIER "ll"
-#endif
-#define BLOCK_TAG_ID 0xefcdab8967452301LL
-#else
-#define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
+#  define BLOCK_TAG(pc)  (*(uint32_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
 // so when we look at memory this stamp is 12345678
-#define TAG_FORMAT_MODIFIER __PRI32_PREFIX
-#define BLOCK_TAG_ID 0x78563412L
+#  define TAG_FORMAT_MODIFIER __PRI32_PREFIX
+#  define BLOCK_TAG_ID 0x78563412L
 #endif
 // file/line info are at the very end of the physical block...
 // block_tag is at the start of the padding...

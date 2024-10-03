@@ -122,8 +122,9 @@ enum NetworkConnectionFlags {
 	, CF_CONNECTED       = 0x00000020
 	, CF_CONNECTERROR    = 0x00000040
 	, CF_CONNECTING      = 0x00000080
-	, CF_CONNECT_WAITING = 0x00008000
+	, CF_CONNECT_WAITING = 0x00400000
 	, CF_CONNECT_CLOSED  = 0x00100000
+	, CF_CONNECT_ISSUED  = 0x00800000  // connection to socket callback for server connect was issued.
 	, CF_TOCLOSE         = 0x00000100  // wants to close at the next opportunity.
 	, CF_WANTCLOSE       = 0x00000200  // this flag is unused at this time
 	, CF_CLOSING         = 0x00000400

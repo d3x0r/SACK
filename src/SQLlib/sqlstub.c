@@ -274,7 +274,9 @@ static void SQLiteGetLastInsertID(sqlite3_context*onwhat,int n,sqlite3_value**so
 {
 	static TEXTCHAR str[20];
 	PODBC odbc = (PODBC)sqlite3_user_data(onwhat);
-	tnprintf( str, sizeof( str ), "%" _64fs, sqlite3_last_insert_rowid( odbc->db ) );
+	// last_insert_rowid already IS 64 bits, but not compatible with
+	// PRI64 inttypes format strings
+	tnprintf( str, sizeof( str ), "%" _64fs, (int64_t)sqlite3_last_insert_rowid( odbc->db ) );
 #ifdef _UNICODE
 	{
 		char *tmp_str = WcharConvert( str );

@@ -193,6 +193,8 @@ void AcceptClient(PCLIENT pListen)
 			}
 			if( pListen->connect.ClientConnected )
 			{
+				pNewClient->dwFlags |= CF_CONNECT_ISSUED;
+				// SSL layer(if hooked) will clear CONNECT_ISSUED, and track that state itself.
 				if( pListen->dwFlags & CF_CPPCONNECT )
 					pListen->connect.CPPClientConnected( pListen->psvConnect, pNewClient );
 				else
@@ -527,6 +529,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 				// is a union, either is valid to test
 				if( pc->connect.CPPThisConnected ) {
 					//lprintf( "connect callback dispatch... %p", pc->saClient );
+					pc->dwFlags |= CF_CONNECT_ISSUED;
 					if( pc->dwFlags & CF_CPPCONNECT )
 						pc->connect.CPPThisConnected( pc->psvConnect, dwError );
 					else
@@ -574,6 +577,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 
 			if( pc->connect.CPPThisConnected ) {
 				//lprintf( "connect callback dispatch... %p", pc->saClient );
+				pc->dwFlags |= CF_CONNECT_ISSUED;
 				if( pc->dwFlags & CF_CPPCONNECT )
 					pc->connect.CPPThisConnected( pc->psvConnect, 0 );
 				else
