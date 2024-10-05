@@ -154,6 +154,11 @@ HTML5_WEBSOCKET_PROC( void, WebSocketPipeAccept )( struct html5_web_socket* sock
 // when using async accept - this is used to accept the socket.
 HTML5_WEBSOCKET_PROC( void, WebSocketAccept )( PCLIENT pc, char *protocols, int yesno );
 
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetConnectPSV )( struct html5_web_socket* pipe, uintptr_t psvNew );
+HTML5_WEBSOCKET_PROC( void, WebSocketPipeSetOnPSV )( struct html5_web_socket* pipe, uintptr_t psvNew );
+
+HTML5_WEBSOCKET_PROC( void, WebSocketSetConnectPSV )( PCLIENT pc, uintptr_t psvNew );
+HTML5_WEBSOCKET_PROC( void, WebSocketSetOnPSV )( PCLIENT pc, uintptr_t psvNew );
 
 
 HTML5_WEBSOCKET_NAMESPACE_END

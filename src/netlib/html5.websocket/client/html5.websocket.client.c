@@ -361,29 +361,31 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 			serverSock->input_state.flags.closed = 1;
 		}
 		else {
+			// handshake not done, was rejected... can't send websock protocol, and shouldn't emit close, connect/open never happened.
+			/*
 			if( serverSock->input_state.on_close )
 				serverSock->input_state.on_close( NULL, serverSock->input_state.psv_on, 1006, "Negotiation incomplete" ); 
-			else if( serverSock->pc )
-				RemoveClientEx( serverSock->pc, 0, 1 );
+			else 
+			*/
+			if( serverSock->pc )
+				RemoveClientEx( serverSock->pc, 1, 0 );
 		}
 	}
-	else {
-		if( websock->Magic == 0x20130911 ) { // struct web_socket_client
-			//lprintf( "send client side close?" );
-			if( websock->flags.connected ) {
-				while( !NetworkLockEx( websock->pc, 1 DBG_SRC ) ){
-					// closing closed socket....
-					if( !sack_network_is_active( websock->pc) )
-						return;
-					Relinquish();
-				}
-				SendWebSocketMessage( &websock->input_state, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
-				websock->input_state.flags.closed = 1;
-				NetworkUnlock( websock->pc, 1 );
+	else if( websock->Magic == 0x20130911 ) { // struct web_socket_client
+		//lprintf( "send client side close?" );
+		if( websock->flags.connected ) {
+			while( !NetworkLockEx( websock->pc, 1 DBG_SRC ) ){
+				// closing closed socket....
+				if( !sack_network_is_active( websock->pc) )
+					return;
+				Relinquish();
 			}
-			else {
-				RemoveClientEx( websock->pc, 0, 1 );
-			}
+			SendWebSocketMessage( &websock->input_state, 8, 1, websock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
+			websock->input_state.flags.closed = 1;
+			NetworkUnlock( websock->pc, 1 );
+		}
+		else {
+			RemoveClientEx( websock->pc, 0, 1 );
 		}
 	}
 }

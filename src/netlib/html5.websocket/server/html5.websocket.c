@@ -680,6 +680,27 @@ void WebSocketPipeSetConnectPSV( struct html5_web_socket* pipe, uintptr_t psvNew
 	pipe->input_state.psvSender = psvNew;
 }
 
+void WebSocketSetConnectPSV( PCLIENT pc, uintptr_t psvNew ) {
+	struct html5_web_socket* socket = (struct html5_web_socket*)GetNetworkLong( pc, 0 );
+	if( socket && socket->Magic == 0x20130912 )
+		socket->input_state.psvSender = psvNew;
+	else
+		lprintf( "Socket is not a server socket %p", psvNew );
+}
+
+void WebSocketPipeSetOnPSV( struct html5_web_socket* pipe, uintptr_t psvNew ) {
+	pipe->input_state.psv_on = psvNew;
+}
+
+void WebSocketSetOnPSV( PCLIENT pc, uintptr_t psvNew ) {
+	struct html5_web_socket* socket = (struct html5_web_socket*)GetNetworkLong( pc, 0 );
+	if( socket && socket->Magic == 0x20130912 )
+		socket->input_state.psv_on = psvNew;
+	else
+		lprintf( "socket isn't a server side pipe..." );
+}
+
+
 
 HTML5WebSocket WebSocketCreateServerPipe( web_socket_opened on_open
                                         , web_socket_event on_event
@@ -739,7 +760,7 @@ void WebSocketPipeSend( HTML5WebSocket socket, CPOINTER buffer, size_t length ) 
 
 // just the command to do a close.
 void WebSocketPipeSocketClose( HTML5WebSocket socket ) {
-	lprintf( "Need to close this channel of ssh" );
+	//lprintf( "Need to close this channel of ssh" );
 	socket->input_state.do_close( socket->input_state.psvCloser );
 }
 
@@ -751,13 +772,36 @@ void WebSocketPipeEof( HTML5WebSocket pipe ) {
 void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 	PVARTEXT pvt_output = VarTextCreate();
 	PTEXT key1, key2, value;
-	key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
-	key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
 	if( !(socket->flags.accepted = yesno) ) {
 		vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
+		value = VarTextPeek( pvt_output );
+		if( socket->input_state.on_send )
+			socket->input_state.on_send( socket->input_state.psvSender, GetText( value ), GetTextSize( value ) );
+		// the following are actually unreachable code.... (probably?)
+		else if( socket->input_state.flags.use_ssl )
+			ssl_Send( socket->pc, GetText( value ), GetTextSize( value ) );
+		else
+			SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
+
+		VarTextDestroy( &pvt_output );
+		// this can't use protocol to close - we're rejecting the websocket connection.
+		if( socket->pc )
+			RemoveClientEx( socket->pc, TRUE, TRUE );
+		else {
+			lprintf( "On Accept rejected connection... this is just a pipe connection (event to SSH to close the channel, without closing the socket?)");
+		}
+		/*
+		if( socket->pc )
+			WebSocketClose( socket->pc, 1006, "Protocol or resource not accepted" );
+		else
+			WebSocketPipeClose( socket, 1006, "Protocol or resource not accepted" );
+		*/
+		return;
 	} else {
 		socket->protocols = protocols;
 		//lprintf( "Is socket dying or something? %p %p", key1, key2 );
+		key1 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key1" );
+		key2 = GetHTTPField( socket->http_state, "Sec-WebSocket-Key2" );
 		if( key1 && key2 )
 			vtprintf( pvt_output, "HTTP/1.1 101 WebSocket Protocol Handshake\r\n" );
 		else
@@ -765,23 +809,20 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 		vtprintf( pvt_output, "Upgrade: WebSocket\r\n" );
 		vtprintf( pvt_output, "content-length: 0\r\n" );
 		vtprintf( pvt_output, "Connection: Upgrade\r\n" );
-	}
 
-	value = GetHTTPField( socket->http_state, "Origin" );
-	if( value ) {
-		if( key1 && key2 )
-			vtprintf( pvt_output, "Sec-WebSocket-Origin: %s\r\n", GetText( value ) );
-		else
-			vtprintf( pvt_output, "WebSocket-Origin: %s\r\n", GetText( value ) );
-	}
-
-	if( key1 && key2 ) {
-		vtprintf( pvt_output, "Sec-WebSocket-Location: ws://%s%s\r\n"
-			, GetText( GetHTTPField( socket->http_state, "Host" ) )
-			, GetText( GetHttpRequest( socket->http_state ) )
-		);
-	}
-	if( socket->flags.accepted ) {
+		value = GetHTTPField( socket->http_state, "Origin" );
+		if( value ) {
+			if( key1 && key2 )
+				vtprintf( pvt_output, "Sec-WebSocket-Origin: %s\r\n", GetText( value ) );
+			else
+				vtprintf( pvt_output, "WebSocket-Origin: %s\r\n", GetText( value ) );
+		}
+		if( key1 && key2 ) {
+			vtprintf( pvt_output, "Sec-WebSocket-Location: ws://%s%s\r\n"
+				, GetText( GetHTTPField( socket->http_state, "Host" ) )
+				, GetText( GetHttpRequest( socket->http_state ) )
+			);
+		}
 		value = GetHTTPField( socket->http_state, "Sec-webSocket-Key" );
 		if( value ) {
 			const char guid[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -828,7 +869,6 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 		if( key1 && key2 ) {
 			ComputeReplyKey2( pvt_output, socket, key1, key2 );
 		}
-
 		value = VarTextPeek( pvt_output );
 		if( socket->input_state.on_send )
 			socket->input_state.on_send( socket->input_state.psvSender, GetText( value ), GetTextSize( value ) );
@@ -854,27 +894,8 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 			destroyHttpState( socket, NULL );
 			return;
 		}
-	} else {
-		value = VarTextPeek( pvt_output );
-		if( socket->input_state.on_send )
-			socket->input_state.on_send( socket->input_state.psvSender, GetText( value ), GetTextSize( value ) );
-		// the following are actually unreachable code.... (probably?)
-		else if( socket->input_state.flags.use_ssl )
-			ssl_Send( socket->pc, GetText( value ), GetTextSize( value ) );
-		else
-			SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
-
-		VarTextDestroy( &pvt_output );
-		if( socket->pc )
-			WebSocketClose( socket->pc, 1006, "Protocol or resource not accepted" );
-		else
-			WebSocketPipeClose( socket, 1006, "Protocol or resource not accepted" );
-
-		return;
+		socket->flags.initial_handshake_done = 1;
 	}
-	// keep this until close, application might want resource and/or headers from this.
-	//EndHttp( socket->http_state );
-	socket->flags.initial_handshake_done = 1;
 }
 
 void WebSocketAccept( PCLIENT pc, char *protocols, int yesno ) {

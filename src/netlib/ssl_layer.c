@@ -513,14 +513,14 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 					if( pc->pcServer ) {
 						// clients use the same read callback.  They only get the initial read complete
 						// no callbacks to setup.
-						lprintf( "### Sent connect...");
+						//lprintf( "### Sent connect...");
 						pc->dwFlags |= CF_CONNECT_ISSUED;
 						if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 							pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 						else
 							pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
 					}
-					lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
+					//lprintf( "Initial read dispatch.. %d", ses[0]->dwOriginalFlags & CF_CPPREAD );
 					if( ses[0]->dwOriginalFlags & CF_CPPREAD ) {
 						if( ses[0]->cpp_user_read )
 							ses[0]->cpp_user_read( ses[0]->psvRead, NULL, 0 );
@@ -873,7 +873,7 @@ void ssl_ClosePipe( struct ssl_session **ses ) {
 		//lprintf("(ClosePipe)already closed?");
 		return;
 	}
-	lprintf( "Close Pipe called...");
+	//lprintf( "Close Pipe called...");
 	if( ses[0]->inUse ) {
 		ses[0]->deleteInUse++;
 		return;
@@ -906,13 +906,13 @@ static void ssl_CloseCallback( PCLIENT pc ) {
 		//lprintf("already closed?");
 		return;
 	}
-	lprintf( "ssl_closecallback and...");
+	//lprintf( "ssl_closecallback and...");
 	if( ses->dwOriginalFlags & CF_CPPCLOSE ){
 		if( ses->cpp_user_close ) ses->cpp_user_close( pc->psvClose );
 	}else{
 		if( ses->user_close ) ses->user_close( pc );
 	}
-	lprintf( "close callback into closepipe");
+	//lprintf( "close callback into closepipe");
 	ssl_ClosePipe( &pc->ssl_session );
 	//pc->ssl_session = NULL;
 }
@@ -1716,15 +1716,15 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		lprintf( "close ssl session?" );
 #endif	
 		pc->ssl_session->inUse = 0;
-		lprintf( "EndSecure, closing SSL pipe...");
+		//lprintf( "EndSecure, closing SSL pipe...");
 		ssl_ClosePipe( &pc->ssl_session );
 		if( pc->dwFlags & CF_ACTIVE ) {
 
 			// SSL callback failed, but it may be possible to connect direct.
 			// and if so; setup to return a redirect.
-//#if defined( DEBUG_SSL_FALLBACK )			
+#if defined( DEBUG_SSL_FALLBACK )			
 			lprintf( "is ssl_session gone(yes)? %p %p %d %d %p", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1, pc->read.CPPReadComplete );
-//#endif		
+#endif		
 			pc->dwFlags |= CF_CONNECT_ISSUED;
 			if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 				pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
