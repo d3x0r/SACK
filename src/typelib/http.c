@@ -235,9 +235,8 @@ void GatherHttpData( struct HttpState *pHttpState )
 							//
 							pHttpState->flags.success = 1;
 							pHttpState->content_length = GetTextSize( pHttpState->content  = VarTextGet( pHttpState->pvt_chunk ) );
-							lprintf( "This may or may not be the end of content? %d", pHttpState->content_length );
+							//lprintf( "This may or may not be the end of content? %d", pHttpState->content_length );
 							if( pHttpState->waiter ) {
-								lprintf( "Waking waiting to return with result." );
 								WakeThread( pHttpState->waiter );
 							}
 							LineRelease( pMergedLine );
