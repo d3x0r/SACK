@@ -272,6 +272,8 @@ static void HandleEvent( PCLIENT pClient )
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Post connect to application %p  error:%d", pClient, wError );
 #endif
+							// have to allow SSL to clear this... so set it before calling the connect callback.
+							pClient->dwFlags |= CF_CONNECT_ISSUED;
 							if( pClient->dwFlags & CF_CPPCONNECT )
 								pClient->connect.CPPThisConnected( pClient->psvConnect, wError );
 							else

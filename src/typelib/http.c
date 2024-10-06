@@ -49,6 +49,7 @@ struct HttpState {
 	size_t read_chunk_byte;
 	size_t read_chunk_length;
 	size_t read_chunk_total_length;
+	PVARTEXT pvt_chunk;
 	enum ReadChunkState read_chunk_state;
 	uint32_t last_read_tick;
 	PTHREAD waiter;
@@ -134,15 +135,158 @@ void GatherHttpData( struct HttpState *pHttpState )
 	}
 	else
 	{
-		PTEXT pMergedLine;
-		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
-		PTEXT pNewLine = SegAppend( pHttpState->partial, pInput );
-		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
-		LineRelease( pNewLine );
-		pHttpState->partial = pMergedLine;
-		if( !pHttpState->flags.no_content_length ) {
-			pHttpState->content = pHttpState->partial;
-			pHttpState->content_length = GetTextSize( pHttpState->content );
+		if( pHttpState->read_chunks )
+		{
+			PTEXT pMergedLine;
+			PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
+			PTEXT pNewLine = SegAppend( pHttpState->partial, pInput );
+			pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
+			LineRelease( pNewLine );
+			pHttpState->partial = NULL;
+
+			const uint8_t* buf = (const uint8_t*)GetText( pMergedLine );//(const uint8_t*)buffer;
+			size_t size = GetTextSize( pMergedLine );
+			size_t ofs = 0;
+			while( ofs < size )
+			{
+				switch( pHttpState->read_chunk_state )
+				{
+				case READ_VALUE:
+					if( buf[0] >= '0' && buf[0] <= '9' )
+					{
+						pHttpState->read_chunk_length *= 16;
+						pHttpState->read_chunk_length += buf[0] - '0';
+					}
+					else if( ( buf[0] | 0x20 ) >= 'a' && (buf[0] | 0x20) <= 'f' )
+					{
+						pHttpState->read_chunk_length *= 16;
+						pHttpState->read_chunk_length += (buf[0] | 0x20) - 'a' + 10;
+					}
+					else if( buf[0] == '\r' )
+					{
+						pHttpState->read_chunk_byte = 0;
+						pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
+	#ifdef _DEBUG
+						if( l.flags.bLogReceived ) {
+							lprintf( "Chunck will be %zd", pHttpState->read_chunk_length );
+						}
+	#endif
+						pHttpState->read_chunk_state = READ_VALUE_LF;
+					}
+					else
+					{
+						lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+						TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
+						unlockHttp( pHttpState );
+						RemoveClient( pHttpState->request_socket );
+						LineRelease( pMergedLine );
+						return;// FALSE;
+					}
+					break;
+				case READ_VALUE_CR:
+					// didn't actually implement to get into this state... just looks for newlines really.
+					break;
+				case READ_VALUE_LF:
+					if( buf[0] == '\n' )
+					{
+						if( pHttpState->read_chunk_length == 0 )
+							pHttpState->read_chunk_state = READ_CR;
+						else
+							pHttpState->read_chunk_state = READ_BYTES;
+					}
+					else
+					{
+						lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+						TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
+						unlockHttp( pHttpState );
+						RemoveClient( pHttpState->request_socket );
+						LineRelease( pMergedLine );
+						return;// FALSE;
+					}
+					break;
+				case READ_CR:
+					if( buf[0] == '\r' )
+					{
+						pHttpState->read_chunk_state = READ_LF;
+					}
+					else
+					{
+						lprintf( "Chunk Processing Error expected \\r, found %d(%c)", buf[0], buf[0] );
+						LogBinary( buf-16, 16 );
+						LogBinary( buf, size-ofs );
+						TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
+						unlockHttp( pHttpState );
+						RemoveClient( pHttpState->request_socket );
+						LineRelease( pMergedLine );
+						return;// FALSE;
+					}
+					break;
+				case READ_LF:
+					if( buf[0] == '\n' )
+					{
+						if( pHttpState->read_chunk_length )
+						{
+							pHttpState->read_chunk_length = 0;
+							pHttpState->read_chunk_state = READ_VALUE;
+						}
+						else
+						{
+							// this would be last chunk (0\r\n) val (\r\n) data
+							//
+							pHttpState->flags.success = 1;
+							pHttpState->content_length = GetTextSize( pHttpState->content  = VarTextGet( pHttpState->pvt_chunk ) );
+							lprintf( "This may or may not be the end of content? %d", pHttpState->content_length );
+							if( pHttpState->waiter ) {
+								lprintf( "Waking waiting to return with result." );
+								WakeThread( pHttpState->waiter );
+							}
+							LineRelease( pMergedLine );
+							unlockHttp( pHttpState );
+							return;// TRUE;
+						}
+					}
+					else
+					{
+						lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
+						TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
+						unlockHttp( pHttpState );
+						RemoveClient( pHttpState->request_socket );
+						LineRelease( pMergedLine );
+						return;// FALSE;
+					}
+					break;
+				case READ_BYTES:
+					VarTextAddData( pHttpState->pvt_chunk, (CTEXTSTR)(buf), 1 );
+					pHttpState->read_chunk_byte++;
+					if( pHttpState->read_chunk_byte >= pHttpState->read_chunk_length ) {
+						//lprintf( "Gathered the bytes required in the first packet... %d %zd", ofs, GetTextSize( VarTextPeek( pHttpState->pvt_chunk)));
+						pHttpState->read_chunk_state = READ_CR;
+					}
+					break;
+				}
+				ofs++;
+				buf++;
+			}
+			if( l.flags.bLogReceived ) {
+				lprintf( "chunk read is %zd of %zd", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
+			}
+			// chunked reading is going to read the full block, and have no partial...
+			LineRelease( pMergedLine );
+			unlockHttp( pHttpState );
+			//lprintf( "Gathered some of the chunk? %d %zd", ofs, GetTextSize( VarTextPeek( pHttpState->pvt_chunk)));
+			return;// FALSE;
+		}
+		else{
+			PTEXT pMergedLine;
+			PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
+			PTEXT pNewLine = SegAppend( pHttpState->partial, pInput );
+			pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
+			LineRelease( pNewLine );
+			pHttpState->partial = pMergedLine;
+			if( !pHttpState->flags.no_content_length ) {
+				pHttpState->content = pHttpState->partial;
+				pHttpState->content_length = GetTextSize( pHttpState->content );
+			}
 		}
 	}
 	unlockHttp( pHttpState );
@@ -244,8 +388,6 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
-		//lprintf( "Process HTTP in final..." );
-		//if( !pHttpState->method )
 		{
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
 			if( pHttpState->response_version ) {
@@ -259,6 +401,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 				}
 			}
 			else {
+				// this is a request not a response we are processing...
 				if( pHttpState->content_length ) {
 					GatherHttpData( pHttpState );
 					if( ((GetTextSize( pHttpState->partial ) >= pHttpState->content_length)
@@ -531,7 +674,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 						// may not receive anything other than header information?
 						if( pHttpState->bLine == 4 )
 						{
-							// end of header
+							// end of header (after finalcheck:)
 							// copy the previous line out...
 							//pStart = pCurrent;
 							//len = size - pos; // remaing size
@@ -562,6 +705,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		{
 			/*PTEXT tmp = */SegSplit( &pCurrent, start );
 			pHttpState->partial = NEXTLINE( pCurrent );
+			//lprintf( "Partial HTTP data put back...");
+			//LogBinary( (const uint8_t*)GetText( pHttpState->partial ), GetTextSize( pHttpState->partial ) );
 			LineRelease( SegGrab( pCurrent ) );
 			start = 0;
 		}
@@ -604,12 +749,15 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 				{
 					if( TextLike( field->value, "chunked" ) )
 					{
-						pHttpState->content_length = 0xFFFFFFF;
+						//lprintf( "Setup state to read chunked data - final should still be set? %d"
+						//		, pHttpState->final );
+						pHttpState->content_length = 0;
 						pHttpState->flags.no_content_length = 0;
 						pHttpState->read_chunks = TRUE;
 						pHttpState->read_chunk_state = READ_VALUE;
 						pHttpState->read_chunk_length = 0;
 						pHttpState->read_chunk_total_length = 0;
+						pHttpState->pvt_chunk = VarTextCreate();
 					}
 				}
 				else if( TextLike( field->name, "Expect" ) )
@@ -629,6 +777,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 	unlockHttp( pHttpState );
 
 	if( pHttpState->final &&
+		( !pHttpState->read_chunks ) && 
 		( ( pHttpState->content_length
 			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
 				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) )
@@ -659,132 +808,13 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size 
 	lockHttp( pHttpState );
 	//lprintf( "AddHttpData:%d", size );
 	pHttpState->last_read_tick = timeGetTime();
-	if( pHttpState->read_chunks )
-	{
-		const uint8_t* buf = (const uint8_t*)buffer;
-		size_t ofs = 0;
-      //lprintf( "Add Chunk HTTP Data:%d", size );
-
-		while( ofs < size )
-		{
-			switch( pHttpState->read_chunk_state )
-			{
-			case READ_VALUE:
-				if( buf[0] >= '0' && buf[0] <= '9' )
-				{
-					pHttpState->read_chunk_length *= 16;
-					pHttpState->read_chunk_length += buf[0] - '0';
-				}
-				else if( ( buf[0] | 0x20 ) >= 'a' && (buf[0] | 0x20) <= 'f' )
-				{
-					pHttpState->read_chunk_length *= 16;
-					pHttpState->read_chunk_length += (buf[0] | 0x20) - 'a' + 10;
-				}
-				else if( buf[0] == '\r' )
-				{
-					pHttpState->read_chunk_total_length += pHttpState->read_chunk_length;
-#ifdef _DEBUG
-					if( l.flags.bLogReceived ) {
-						lprintf( "Chunck will be %zd", pHttpState->read_chunk_length );
-					}
-#endif
-					pHttpState->read_chunk_state = READ_VALUE_LF;
-				}
-				else
-				{
-					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
-					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
-					unlockHttp( pHttpState );
-					RemoveClient( pHttpState->request_socket );
-					return FALSE;
-				}
-				break;
-			case READ_VALUE_CR:
-				// didn't actually implement to get into this state... just looks for newlines really.
-				break;
-			case READ_VALUE_LF:
-				if( buf[0] == '\n' )
-				{
-					if( pHttpState->read_chunk_length == 0 )
-						pHttpState->read_chunk_state = READ_CR;
-					else
-						pHttpState->read_chunk_state = READ_BYTES;
-				}
-				else
-				{
-					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
-					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
-					unlockHttp( pHttpState );
-					RemoveClient( pHttpState->request_socket );
-					return FALSE;
-				}
-				break;
-			case READ_CR:
-				if( buf[0] == '\r' )
-				{
-					pHttpState->read_chunk_state = READ_LF;
-				}
-				else
-				{
-					lprintf( "Chunk Processing Error expected \\r, found %d(%c)", buf[0], buf[0] );
-					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
-					unlockHttp( pHttpState );
-					RemoveClient( pHttpState->request_socket );
-					return FALSE;
-				}
-				break;
-			case READ_LF:
-				if( buf[0] == '\n' )
-				{
-					if( pHttpState->read_chunk_length )
-					{
-						pHttpState->read_chunk_length = 0;
-						pHttpState->read_chunk_state = READ_VALUE;
-					}
-					else
-					{
-						pHttpState->content_length = GetTextSize( VarTextPeek( pHttpState->pvt_collector ) );
-						//lprintf( "This may or may not be the end of content? %d", pHttpState->content_length );
-						if( pHttpState->waiter ) {
-							//lprintf( "Waking waiting to return with result." );
-							WakeThread( pHttpState->waiter );
-						}
-						unlockHttp( pHttpState );
-						return TRUE;
-					}
-				}
-				else
-				{
-					lprintf( "Chunk Processing Error expected \\n, found %d(%c)", buf[0], buf[0] );
-					TriggerNetworkErrorCallback( pHttpState->request_socket, SACK_NETWORK_ERROR_HTTP_CHUNK );
-					unlockHttp( pHttpState );
-					RemoveClient( pHttpState->request_socket );
-					return FALSE;
-				}
-				break;
-			case READ_BYTES:
-				VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)(buf), 1 );
-				pHttpState->read_chunk_byte++;
-				if( pHttpState->read_chunk_byte == pHttpState->read_chunk_length )
-					pHttpState->read_chunk_state = READ_CR;
-				break;
-			}
-			ofs++;
-			buf++;
-		}
-		if( l.flags.bLogReceived ) {
-			lprintf( "chunk read is %zd of %zd", pHttpState->read_chunk_byte, pHttpState->read_chunk_total_length );
-		}
-		unlockHttp( pHttpState );
-		return FALSE;
-	}
-	else
 	{
 		//lprintf( "Add HTTP Data:%p %d", pHttpState->pc[0], size );
 		//LogBinary( (uint8_t*)buffer, 256>size?size:256 );
 		if( size )
 			VarTextAddData( pHttpState->pvt_collector, (CTEXTSTR)buffer, size );
 		unlockHttp( pHttpState );
+		if(0)
 		if( pHttpState->final ) {
 			// this will cause it to wait until 'endhttp' to process next block.
 			//lprintf( "still handling a previous request in add data", pHttpState->pc[0] );
@@ -962,6 +992,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	DeleteList( &pHttpState->cgi_fields );
 	VarTextDestroy( &pHttpState->pvtOut );
 	VarTextDestroy( &pHttpState->pvt_collector );
+	VarTextDestroy( &pHttpState->pvt_chunk );
 	if( pHttpState->buffer )
 		Release( pHttpState->buffer );
 	unlockHttp( pHttpState );
@@ -1082,7 +1113,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 #ifdef _DEBUG
 		if( l.flags.bLogReceived )
 		{
-			lprintf( "Received web request... %zu", size );
+			lprintf( "Received web data... %zu", size );
 			LogBinary( (const uint8_t*) buffer, size );
 		}
 #endif
@@ -1401,7 +1432,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.0" );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			vtprintf( state->pvtOut, "Host:%s\r\n", GetText( address ) );
+			vtprintf( state->pvtOut, "Host:%s\r\n", options->hostname?options->hostname:GetText( address ) );
 			
 			LIST_FORALL( options->headers, idx, char*, header ) {
 				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
@@ -1416,7 +1447,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
 			if( !hadUserAgent )
-				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK(System)" );
+				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK/1.3" );
 			vtprintf( state->pvtOut, "\r\n" ); // send blank header
 #ifndef NO_SSL
 			if( options->ssl ) {

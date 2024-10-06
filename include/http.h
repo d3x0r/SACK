@@ -80,6 +80,7 @@ struct HTTPRequestOptions {
 	uintptr_t userData;
 	LOGICAL connected; // did get a connect state, so connectError is not checked... (timeout before connect complete?)
 	int connectError;  // feedback to application if there was an error connecting.
+	const char *hostname;
 };
 
 typedef struct HttpState *HTTPState;

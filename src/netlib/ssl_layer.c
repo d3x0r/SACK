@@ -464,8 +464,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 			if( !( hs_rc = handshake( ses ) ) ) {
 				// zero result is 'needs more data read'
 				if( !ses[0] ) {
-					ses[0]->inUse--;
-					LeaveCriticalSec( &ses[0]->csReadWrite ); //-V522
+					lprintf( "IN handshake, the session disappeared?");
 					return;
 				}
 #ifdef DEBUG_SSL_IO_VERBOSE
@@ -654,9 +653,13 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				if( ses[0] ) { // might have closed during read.
 					if( ses[0] && ses[0]->deleteInUse ){
 						//lprintf( "Pending close(3)... was in-use when closed.");
+						ses[0]->inUse--;
+						RemoveClient( pc );
 					}
-					EnterCriticalSec( &ses[0]->csReadWrite );
-					goto read_more;
+					else {
+						EnterCriticalSec( &ses[0]->csReadWrite );
+						goto read_more;
+					}
 				} else {
 					//lprintf( "Session closed during read." );
 				}
@@ -664,7 +667,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 			else if( len == 0 ) {
 				ses[0]->inUse--;
 #ifdef DEBUG_SSL_IO_VERBOSE
-				lprintf( "incomplete read" );
+				lprintf( "incomplete read (no more data to read)" );
 #endif
 			}
 

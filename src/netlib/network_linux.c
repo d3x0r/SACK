@@ -595,6 +595,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								getsockopt( event_data->pc->Socket, SOL_SOCKET
 									, SO_ERROR
 									, &error, &errlen );
+								// errors like EHOSTUNREACH/ENETUNREACH happen in connect()
+								// and result immediately so they do not get delayed until here.
 								//lprintf( "Error checking for connect is: %s on %p", strerror( error ), event_data->pc );
 								if( event_data->pc->pWaiting ) {
 #ifdef LOG_NOTICES
@@ -606,6 +608,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								if( error ) {
 									event_data->pc->dwFlags |= CF_CONNECTERROR;
 								}
+								// have to allow SSL to clear this... so set it before calling the connect callback.
+								event_data->pc->dwFlags |= CF_CONNECT_ISSUED;
 								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
 									if( event_data->pc->connect.CPPThisConnected )
 										event_data->pc->connect.CPPThisConnected( event_data->pc->psvConnect, error );
