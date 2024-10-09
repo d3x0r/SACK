@@ -561,8 +561,14 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 									WakeThread( event_data->pc->pWaiting );
 								}
-								if( event_data->pc->connect.ThisConnected )
-									event_data->pc->connect.ThisConnected( event_data->pc, error );
+								event_data->pc->dwFlags |= CF_CONNECT_ISSUED;
+								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
+									if( event_data->pc->connect.CPPThisConnected )
+										event_data->pc->connect.CPPThisConnected( event_data->pc->psvConnect, error );
+								}else {
+									if( event_data->pc->connect.ThisConnected )
+										event_data->pc->connect.ThisConnected( event_data->pc, error );
+								}
 #ifdef LOG_NOTICES
 								if( globalNetworkData.flags.bLogNotices )
 									lprintf( "Connect error was: %d", error );
