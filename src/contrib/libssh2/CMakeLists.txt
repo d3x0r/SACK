@@ -92,6 +92,7 @@ option(LIBSSH2_SKIP_INSTALL "Skip installation" OFF)
 option(LIBSSH2_BUILD_STATIC_LIBS "Build libssh2 static libraries(default if not set)" ${BUILD_STATIC_LIBS})
 option(LIBSSH2_BUILD_SHARED_LIBS "Build libssh2 shared libraries" ${BUILD_SHARED_LIBS})
 option(LIBSSH2_BUILD_OBJECT_LIBRARY "Build static library as an object library instead of static library" OFF)
+option( CRYPTO_NO_OPENSSL "OpenSSL Should not be used, even if somewhat auto found" ON )
 
 if( NOT LIBSSH2_SKIP_INSTALL )
 include(GNUInstallDirs)
@@ -306,7 +307,7 @@ if(CRYPTO_BACKEND)
   set(SPECIFIC_CRYPTO_REQUIREMENT "REQUIRED")
 endif()
 
-if(CRYPTO_BACKEND STREQUAL "OpenSSL" OR NOT CRYPTO_BACKEND)
+if(CRYPTO_BACKEND STREQUAL "OpenSSL" OR NOT CRYPTO_BACKEND AND NOT CRYPTO_NO_OPENSSL )
 
   find_package(OpenSSL ${SPECIFIC_CRYPTO_REQUIREMENT})
 
