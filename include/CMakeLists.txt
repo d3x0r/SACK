@@ -15,9 +15,9 @@ SET( SYS_IPC_HEADERS
 sys.sack/ipc.h sys.sack/msg.h
 )
 
-if( USE_HARDWARE_INFO)
+#if( USE_HARDWARE_INFO)
 	set( MORE_HEADERS hidtables.h listports.h listhids.h )
-endif( USE_HARDWARE_INFO)
+#endif( USE_HARDWARE_INFO)
 
 SET( SACK_HEADERS
 salty_generator.h
@@ -86,6 +86,7 @@ json_emitter.h
 jsox_parser.h
 printer.h
 vesl_emitter.h
+${MORE_HEADERS}
 )
 
 # sqlite3.h

@@ -658,7 +658,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientExEx )( CTEXTSTR, uint16_t, cReadComplete,
 
 /* Do the connect to
 */
-int NetworkConnectTCPEx( PCLIENT pc DBG_PASS );
+NETWORK_PROC( int, NetworkConnectTCPEx )( PCLIENT pc DBG_PASS );
 #define NetworkConnectTCP( pc ) NetworkConnectTCPEx( pc DBG_SRC )
 
 
