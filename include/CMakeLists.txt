@@ -86,6 +86,7 @@ json_emitter.h
 jsox_parser.h
 printer.h
 vesl_emitter.h
+${MORE_HEADERS}
 )
 
 # sqlite3.h
