@@ -1,6 +1,7 @@
 #define SACKCOMMLIST_SOURCE
 #include "listports.h"
 #include <sharemem.h>
+#include <filesys.h>
 #ifdef _WIN32
 #include <VersionHelpers.h>
 //#define LISTPORTS_SUPPORT_WIN9X
