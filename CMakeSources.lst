@@ -90,13 +90,13 @@ endif( WIN32 )
 
 if( NOT __ANDROID__ AND NOT EMSCRIPTEN )
   set( COMM_SOURCES ${SOURCES_ROOT}src/commlib/sackcomm.c )
-  if( USE_HARDWARE_INFO AND NOT __LINUX__ )
+  if( USE_HARDWARE_INFO  )
     set( COMM_SOURCES ${COMM_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listports.c )
-  endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
+  endif( USE_HARDWARE_INFO  )
 endif( NOT __ANDROID__ AND NOT EMSCRIPTEN )
-if( USE_HARDWARE_INFO AND NOT __LINUX__ )
+if( USE_HARDWARE_INFO  )
   set( BASE_SOURCES  ${BASE_SOURCES} ${SOURCES_ROOT}src/windows_hardware_library/listhids.c )
-endif( USE_HARDWARE_INFO AND NOT __LINUX__ )
+endif( USE_HARDWARE_INFO  )
 
 
 if( WIN32 )
