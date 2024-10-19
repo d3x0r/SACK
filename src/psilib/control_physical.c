@@ -302,7 +302,7 @@ static void CPROC FrameFocusProc( uintptr_t psvFrame, PRENDERER loss )
 		added_use = 1;
 		AddUse( pc );
 	}
-	lprintf( "Frame focus - probably 0 or 1? %p", loss );
+	//lprintf( "Frame focus - probably 0 or 1? %p", loss );
 	GetCurrentDisplaySurface(frame);
 	if( loss )
 	{
@@ -639,6 +639,7 @@ PPHYSICAL_DEVICE OpenPhysicalDevice( PSI_CONTROL pc, PSI_CONTROL over, PRENDERER
 #ifdef WIN32
 				WinShell_AcceptDroppedFiles( device->pActImg, FileDroppedOnFrame, (uintptr_t)pc );
 #endif
+				WillUpdatePortions( device->pActImg, TRUE );
 				AddLink( &g.shown_frames, pc );
 				SetRendererTitle( device->pActImg, GetText( pc->caption.text ) );
 #ifdef DEBUG_CREATE

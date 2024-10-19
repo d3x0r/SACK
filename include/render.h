@@ -1589,6 +1589,7 @@ struct render_interface_tag
 	// where ever the current mouse is, lock the mouse to the window, and allow the mouse to move it.
 	//
 	RENDER_PROC_PTR( void, BeginSizeDisplay )(PRENDERER pRenderer, enum sizeDisplayValues sizeFrom );
+   RENDER_PROC_PTR( void, WillUpdatePortions)( PRENDERER pRenderer, LOGICAL disableAutoDraw );
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1734,6 +1735,7 @@ typedef int check_this_variable;
 
 #define BeginMoveDisplay(r)   ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_BeginMoveDisplay)?((USE_RENDER_INTERFACE)->_BeginMoveDisplay(r),1):0:0)
 #define BeginSizeDisplay(r,m)   ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_BeginSizeDisplay)?((USE_RENDER_INTERFACE)->_BeginSizeDisplay(r,m),1):0:0)
+#define WillUpdatePortions(r,v) ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_WillUpdatePortions)?((USE_RENDER_INTERFACE)->_WillUpdatePortions(r,v),1):0:0)
 
 #endif
 

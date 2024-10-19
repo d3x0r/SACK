@@ -13,7 +13,7 @@
 #include "global.h"
 #include <psi.h>
 
-#define DEBUG_CAPTION_DRAW
+//#define DEBUG_CAPTION_DRAW
 
 PSI_NAMESPACE
 
