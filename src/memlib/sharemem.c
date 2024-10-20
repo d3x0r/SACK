@@ -285,6 +285,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #define MAGIC_SIZE sizeof( void* )
 
 #define PRI64_COMPAT_SUFFIX L
+#ifndef __PRI64_PREFIX
+#  ifdef _MSC_VER
+#    define __PRI64_PREFIX "ll"
+#  endif
+#endif
 
 #ifdef __64__
 #  define BLOCK_TAG(pc)  (*(uint64_t*)((pc)->byData + (pc)->dwSize - (pc)->info.dwPad ))
