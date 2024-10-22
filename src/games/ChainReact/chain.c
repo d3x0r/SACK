@@ -4,7 +4,9 @@
 #define CHAIN_REACT_MAIN
 #include <stdhdrs.h>
 #undef timeGetTime
+#ifdef _WIN32
 #include <mmsystem.h>
+#endif
 #include <logging.h>
 
 #include "global.h"
