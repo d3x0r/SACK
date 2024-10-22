@@ -330,6 +330,9 @@ SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
+#set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/pngimage.c )
+set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/png_simp_image.c )
+
 set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/alphastab.c
   ${SOURCES_ROOT}src/imglib/alphatab.c
@@ -346,7 +349,7 @@ set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/jpgimage.c
   ${SOURCES_ROOT}src/imglib/line.c
   ${SOURCES_ROOT}src/imglib/lucidaconsole2.c
-  ${SOURCES_ROOT}src/imglib/pngimage.c
+  ${IMAGE_SOURCES_PNG_DECODER}
   ${SOURCES_ROOT}src/imglib/sprite_common.c
   ${SOURCES_ROOT}src/imglib/sprite.c
 )

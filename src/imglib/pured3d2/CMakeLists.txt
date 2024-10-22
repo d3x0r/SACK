@@ -17,7 +17,7 @@ set( font_sources
         ../fntcache.c 
         ../fntrender.c 
         ../lucidaconsole2.c 
-        ../pngimage.c 
+        ${IMAGE_SOURCES_PNG_DECODER} 
         ../bmpimage.c 
         ../gifimage.c 
         ../jpgimage.c 

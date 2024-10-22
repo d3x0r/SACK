@@ -15,7 +15,7 @@ if( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
 endif( ( __NO_ODBC__ AND NOT USE_SQLITE ) OR NOT USE_OPTIONS )
 
 set( font_sources ../font.c ../fntcache.c ../fntrender.c ../lucidaconsole2.c )
-set( loader_sources ../bmpimage.c ../gifimage.c ../pngimage.c ../jpgimage.c )
+set( loader_sources ../bmpimage.c ../gifimage.c ${IMAGE_SOURCES_PNG_DECODER} ../jpgimage.c )
 set( sprite_sources ../sprite_common.c )
 
 if( EMSCRIPTEN )
