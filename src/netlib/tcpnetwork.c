@@ -128,7 +128,7 @@ void AcceptClient(PCLIENT pListen)
 	SET_SOCKADDR_LENGTH( pNewClient->saClient, pNewClient->saClient->sa_family == AF_INET6?IN6_SOCKADDR_LENGTH:IN_SOCKADDR_LENGTH );
 
 	//lprintf( "Accept new client...%p %d", pNewClient, pNewClient->Socket );
-#ifdef WIN32
+#ifdef _WIN32
 	SetHandleInformation( (HANDLE)pNewClient->Socket, HANDLE_FLAG_INHERIT, 0 );
 #else
 	{ 
@@ -258,7 +258,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 	}
 #endif
 	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );
-#ifdef WIN32
+#ifdef _WIN32
 	pClient->event = WSACreateEvent();
 	pClient->Socket = OpenSocket( ((*(uint16_t*)pAddr) == AF_INET)?TRUE:FALSE, TRUE, FALSE, 0 );
 	if( pClient->Socket == INVALID_SOCKET )
@@ -308,6 +308,26 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 				DumpAddr( "Bind address:", pAddr );
 				closesocket( pClient->Socket );
 				pClient->Socket = INVALID_SOCKET;
+			}
+
+			if( pClient->saSource->sa_family == AF_INET ) {
+#ifdef _WIN32
+				if( !(*(uint32_t*)(pClient->saSource->sa_data+2) ) ) {
+					// have to have the base one open or pcOther cannot be set.
+					SOCKADDR* lpMyAddr = CreateSockAddress( ":::", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
+					pClient->pcOther = CPPOpenTCPListenerAddr_v2d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting DBG_SRC );
+					ReleaseAddress( lpMyAddr );
+				}
+#endif
+			} else if( pClient->saSource->sa_family == AF_INET6 ) {
+				// maybe we only do the 'other' for IPV4 source?
+#if 0			
+				if( MemCmp( pClient->saSource->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 ) {
+					lpMyAddr = CreateSockAddress( "0.0.0.0", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
+					pClient->pcOther = CPPOpenTCPListenerAddr_v2d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnected, pListen->flags.bWaiting DBG_RELAY );
+					ReleaseAddress( lpMyAddr );
+				}
+#endif
 			}
 		}
 
@@ -432,17 +452,8 @@ PCLIENT CPPOpenTCPListenerExx( uint16_t wPort
                              )
 {
 	SOCKADDR *lpMyAddr = CreateLocal(wPort);
-	PCLIENT pc = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
+	PCLIENT pc = CPPOpenTCPListenerAddr_v2d( lpMyAddr, NotifyCallback, psvConnect, FALSE DBG_RELAY );
 	ReleaseAddress( lpMyAddr );
-	/*
-	if( pc )
-	{
-		// have to have the base one open or pcOther cannot be set.
-		lpMyAddr = CreateSockAddress( ":::", wPort );
-		pc->pcOther = CPPOpenTCPListenerAddrExx( lpMyAddr, NotifyCallback, psvConnect DBG_RELAY );
-		ReleaseAddress( lpMyAddr );
-	}
-	*/
 	return pc;
 }
 
