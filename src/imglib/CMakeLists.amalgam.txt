@@ -45,6 +45,10 @@ SET( EXTRA_HEADERS
 	${CMAKE_CURRENT_LIST_DIR}/../include/image.h
 )
 
+#set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/pngimage.c )
+set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/png_simp_image.c )
+
+
 SET( EXTRA_SOURCES 
 	${CMAKE_CURRENT_LIST_DIR}/alphastab.c
 	${CMAKE_CURRENT_LIST_DIR}/alphatab.c
@@ -61,7 +65,7 @@ SET( EXTRA_SOURCES
 	${CMAKE_CURRENT_LIST_DIR}/line.c
 	${CMAKE_CURRENT_LIST_DIR}/lucidaconsole2.c
 	# ${CMAKE_CURRENT_LIST_DIR}/mngsprite.c
-	${CMAKE_CURRENT_LIST_DIR}/pngimage.c
+	${IMAGE_SOURCES_PNG_DECODER}
 	# ${CMAKE_CURRENT_LIST_DIR}/smooth_sprite.c
 	${CMAKE_CURRENT_LIST_DIR}/sprite_common.c
 	${CMAKE_CURRENT_LIST_DIR}/sprite.c
