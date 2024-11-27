@@ -1203,7 +1203,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		char const* nextName;
 		size_t maxhosts = StrLen( hostctx->host );
 		if( !hostctx->host ) {
-			lprintf(" No host - setup default result?" );
+			//lprintf(" No host - setup default result?" );
 			defaultHostctx = hostctx;
 		}
 		//lprintf( "Host:%s", hostctx->host );
