@@ -52,6 +52,7 @@
 #  define donothing
 #  define inline donothing
 #endif
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libavutil/time.h>
@@ -59,9 +60,9 @@
 #include <libavutil/opt.h>
 
 #ifdef WIN32
-#define PIX_FMT  PIX_FMT_BGRA
+#define PIX_FMT  AV_PIX_FMT_BGRA
 #else
-#define PIX_FMT  PIX_FMT_RGBA
+#define PIX_FMT  AV_PIX_FMT_RGBA
 #endif
 
 #ifdef WIN32
@@ -134,8 +135,13 @@ static struct fmpeg_interface
 	declare_func( AVCodec *, avcodec_find_decoder, (enum AVCodecID id) );
 
 
-	declare_func( int, avpicture_fill, (AVPicture *picture, const uint8_t *ptr,
-                   enum AVPixelFormat pix_fmt, int width, int height) );
+	declare_func( int, ab_image_fill_arrays, (uint8_t* dst_data[4],
+		int 	dst_linesize[4],
+		const uint8_t* src,
+		enum AVPixelFormat 	pix_fmt,
+		int 	width,
+		int 	height,
+		int 	align) );
 	declare_func( int, 	av_image_fill_arrays, (uint8_t *dst_data[4], int dst_linesize[4], const uint8_t *src
 															 , enum AVPixelFormat pix_fmt, int width, int height, int align) );
 	declare_func( void*, av_malloc, (size_t));
@@ -1094,22 +1100,22 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	EnterCriticalSec( &l.cs_audio_out );
 
 	file->audio_converter = ffmpeg.swr_alloc();
-	if( !file->pAudioCodecCtx->channels )
+	if( !file->pAudioCodecCtx->ch_layout.nb_channels )
 	{
-		lprintf( "input audio had no channels... %x", file->pAudioCodecCtx->channel_layout );
-		file->pAudioCodecCtx->channels = ffmpeg.av_get_channel_layout_nb_channels( file->pAudioCodecCtx->channel_layout );
-		lprintf( "Channel found in channel_layout (%d)",file->pAudioCodecCtx->channels );
-		if( !file->pAudioCodecCtx->channels )
-			file->pAudioCodecCtx->channels = 1;
-		//file->pAudioCodecCtx->channels = 1;
+		lprintf( "input audio had no channels... %x", file->pAudioCodecCtx->ch_layout.u.mask );
+		//file->pAudioCodecCtx->ch_layout.nb_channels = ffmpeg.av_get_channel_layout_nb_channels( file->pAudioCodecCtx->channel_layout );
+		//lprintf( "Channel found in channel_layout (%d)",file->pAudioCodecCtx->ch_layout.nb_channels );
+		//if( !file->pAudioCodecCtx->ch_layout.nb_channels )
+		//	file->pAudioCodecCtx->ch_layout.nb_channels = 1;
+		//file->pAudioCodecCtx->ch_layout.nb_channels = 1;
 		//= file->pAudioCodecCtx->request_channels;
 	}
-	if (file->pAudioCodecCtx->channels == 1)
+	if (file->pAudioCodecCtx->ch_layout.nb_channels == 1)
 	{
 		file->use_channels = 1;
 		file->al_format = AL_FORMAT_MONO16;
 	}
-	else if( file->pAudioCodecCtx->channels >= 2)
+	else if( file->pAudioCodecCtx->ch_layout.nb_channels >= 2)
 	{
 	}
 	file->use_channels = 2;
@@ -1121,30 +1127,30 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 
 	//lprintf( "thing %s", openal.alcGetString(file->alc_device, ALC_DEVICE_SPECIFIER) );
 #ifdef DEBUG_LOG_INFO
-	lprintf( "Pretending channels is %d", file->pAudioCodecCtx->channels );
+	lprintf( "Pretending channels is %d", file->pAudioCodecCtx->ch_layout.nb_channels );
 #endif
-	if( file->pAudioCodecCtx->channels == 2 )
+	if( file->pAudioCodecCtx->ch_layout.nb_channels == 2 )
 	{
 #ifdef DEBUG_LOG_INFO
 		lprintf( "Stereo format" );
 #endif
 		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
 	}
-	else if( file->pAudioCodecCtx->channels == 4 )
+	else if( file->pAudioCodecCtx->ch_layout.nb_channels == 4 )
 	{
 #ifdef DEBUG_LOG_INFO
 		lprintf( "quad input format, using Stereo format" );
 #endif
 		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_STEREO, 1 );
 	}
-	else if( file->pAudioCodecCtx->channels == 1 )
+	else if( file->pAudioCodecCtx->ch_layout.nb_channels == 1 )
 	{
 		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_MONO, 1 );
 	}
-	else if( file->pAudioCodecCtx->channels == 6 )
+	else if( file->pAudioCodecCtx->ch_layout.nb_channels == 6 )
 		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  AV_CH_LAYOUT_5POINT1, 1 );
 	else
-		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  file->pAudioCodecCtx->channel_layout, 1 );
+		ffmpeg.av_opt_set_int(file->audio_converter, "in_channel_layout",  file->pAudioCodecCtx->ch_layout.order, 1 );
 
 
 	if( file->use_channels == 2 )
@@ -1161,7 +1167,7 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	lprintf( "codec is : %d %d", file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC );
 	lprintf( " sample is : %d  %d", file->pAudioCodecCtx->sample_fmt, AV_SAMPLE_FMT_S16 );
 #endif
-	if(file->pAudioCodecCtx->codec_id == CODEC_ID_MP3 )
+	if(file->pAudioCodecCtx->codec_id == AV_CODEC_ID_MP3 )
 	{
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16, 0);
 		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
@@ -1170,9 +1176,9 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
 		//ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLT, 0);
 	}
-	else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AAC )
+	else if( file->pAudioCodecCtx->codec_id == AV_CODEC_ID_AAC )
 		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
-	else if( file->pAudioCodecCtx->codec_id, AV_CODEC_ID_AC3 )
+	else if( file->pAudioCodecCtx->codec_id == AV_CODEC_ID_AC3 )
 		ffmpeg.av_opt_set_sample_fmt(file->audio_converter, "in_sample_fmt",  AV_SAMPLE_FMT_S16P, 0);
 	else
 
@@ -1778,14 +1784,14 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		file->audioStream=-1;
 		for(i = 0; i < (int)(file->pFormatCtx->nb_streams); i++)
 		{
-			if(file->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) 
+			if(file->pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) 
 			{
 				if( file->videoStream > -1 )
 					lprintf( "Found a second video stream original:%d  this:%d", file->videoStream, i );
 				else
 					file->videoStream = i;
 			}
-			if(file->pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) 
+			if(file->pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
 			{
 				if( file->audioStream > -1 )
 					lprintf( "Found a second audio stream original:%d  this:%d", file->audioStream, i );
@@ -1807,7 +1813,10 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		if( file->videoStream >= 0 )
 		{
 			// Get a pointer to the codec context for the video stream
-			file->pVideoCodecCtx = file->pFormatCtx->streams[file->videoStream]->codec;
+			file->pVideoCodecCtx = avcodec_alloc_context3(NULL);
+			avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->videoStream]->codecpar);
+			//file->pVideoCodecCtx = file->pFormatCtx->streams[file->videoStream]->codec;
+
 			if( file->pVideoCodecCtx->ticks_per_frame == 1 )
 				file->frame_del = ( 1000* 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 			else
@@ -1861,7 +1870,10 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		if( file->audioStream >= 0 )
 		{
 			// Get a pointer to the codec context for the video stream
-			file->pAudioCodecCtx = file->pFormatCtx->streams[file->audioStream]->codec;
+			file->pAudioCodecCtx = avcodec_alloc_context3(NULL);
+
+			avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->audioStream]->codecpar);
+			//file->pAudioCodecCtx = file->pFormatCtx->;// streams[file->audioStream]->codecpar->codec;
 
 			// Find the decoder for the video stream
 			file->pAudioCodec = ffmpeg.avcodec_find_decoder(file->pAudioCodecCtx->codec_id);
@@ -1912,7 +1924,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 //#endif
 				if( !file->frame_del )
 				{
-					file->frame_del = 1000000.0 / r2d( ic->codec->time_base );
+					file->frame_del = 1000000.0 / r2d( ic->time_base );
 					lprintf( "And it was too small? %lld", file->frame_del );
 				}
 
@@ -1938,7 +1950,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 #endif
 				if( file->pFormatCtx->duration_estimation_method == AVFMT_DURATION_FROM_PTS )
 				{
-					if( file->pVideoCodec && file->pVideoCodec->id == CODEC_ID_H264 )
+					if( file->pVideoCodec && file->pVideoCodec->id == AV_CODEC_ID_H264 )
 					{
 						if( file->pVideoCodecCtx->time_base.num == 1 && file->pVideoCodecCtx->time_base.den > 50000 )
 						{
@@ -1966,7 +1978,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 			{
 				if( file->pFormatCtx->duration_estimation_method == AVFMT_DURATION_FROM_PTS )
 				{
-					if( file->pVideoCodec && file->pVideoCodec->id == CODEC_ID_H264 )
+					if( file->pVideoCodec && file->pVideoCodec->id == AV_CODEC_ID_H264 )
 					{
 						if( file->pVideoCodecCtx->time_base.num == 1 && file->pVideoCodecCtx->time_base.den > 5000 )
 						{
@@ -2707,24 +2719,23 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				LogTime(file, TRUE, "video", pause_resume DBG_SRC );
 
 				if( pause_resume )
-					lprintf("Frame [%" _64fs "][%d](%d): s.pts=%" _64fs " p.pts=%" _64fs " pts=%" _64fx ", pkt_pts=%" _64fs ", pkt_dts=%" _64fs
+					lprintf("Frame [%" _64fs "](%d): s.pts=%" _64fs " p.pts=%" _64fs " pts=%" _64fx ", pkt_dts=%" _64fs
 						 , file->videoFrame
-						 , file->pVideoFrame->coded_picture_number
+						 //, file->pVideoFrame->coded_picture_number
 						 , file->pVideoFrame->repeat_pict
 
 					, file->video_current_pts
 					, packet_pts
 					, file->pVideoFrame->pts
-					, file->pVideoFrame->pkt_pts
 						 , file->pVideoFrame->pkt_dts);
 				if( file->flags.force_pkt_pts_in_ms ) {
 					lprintf( "forcing time in milliseconds" );
-					file->video_next_pts_time = file->pVideoFrame->pkt_pts * 1000 + file->media_start_time;
+					file->video_next_pts_time = file->pVideoFrame->pts * 1000 + file->media_start_time;
 				}
 				if( file->flags.force_pkt_pts_in_ticks )
 				{
 					lprintf( "Forcing time from ticks." );
-					file->video_next_pts_time = ( 1000000LL * file->pVideoFrame->pkt_pts
+					file->video_next_pts_time = ( 1000000LL * file->pVideoFrame->pts
 														  * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den
 						+ file->media_start_time;
 #ifdef DEBUG_VIDEO_PACKET_READ
@@ -2738,7 +2749,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 					// equate real time to video time....
 					//lprintf( "First frame" );
 					//if( file->flags.use_internal_tick )
-					//	file->video_current_pts = file->pVideoFrame->pkt_pts;
+					//	file->video_current_pts = file->pVideoFrame->pts;
 					file->video_decode_start = file->media_start_time;
 					file->video_current_pts_time = file->video_decode_start; // when we started decoding.
 					//lprintf( "Set current to %" _64fs "  %" _64fs " %" _64fs, file->video_current_pts_time, file->frame_del, file->video_current_pts_time - ffmpeg.av_gettime() );
@@ -2750,7 +2761,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				{
 					if( pause_resume )
 						lprintf( " something %" _64fs "  %" _64fs
-								, ( file->pVideoFrame->pkt_pts - file->video_current_pts )
+								, ( file->pVideoFrame->pts - file->video_current_pts )
 								, file->video_next_pts_time - processed_time );
 
 					{
@@ -2758,7 +2769,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 							lprintf( "now is %" _64fs "  %" _64fs "  to be is %" _64fs " and that's a span of %" _64fs
 							       , file->frame_del
 							       , file->video_current_pts
-							       , file->pVideoFrame->pkt_pts 
+							       , file->pVideoFrame->pts 
 									 , file->frame_del - ((ffmpeg.av_gettime() - file->video_current_pts_time)/1000) );
 
 					}
