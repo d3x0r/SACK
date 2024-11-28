@@ -558,7 +558,9 @@ static void Init( void )
 #endif
 }
 
+#ifndef __NO_INTERFACE_SUPPORT__
 static void ReadConfiguration( void );
+#endif
 
 //PRIORITY_UNLOAD( InitProcreg, NAMESPACE_PRELOAD_PRIORITY )
 //{
@@ -2326,7 +2328,9 @@ POINTER GetInterface_v4( CTEXTSTR pServiceName, LOGICAL ReadConfig, int quietFai
 {
 	TEXTCHAR interface_name[256];
 	POINTER (CPROC *load)( void );
+#ifndef __NO_INTERFACE_SUPPORT__
 	static int reading_configuration;
+#endif
 	// this might be the first clean chance to run deadstarts
 	// for ill behaved platforms that have forgotten to do this.
 	if( !IsRootDeadstartStarted() )

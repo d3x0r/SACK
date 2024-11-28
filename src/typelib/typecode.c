@@ -713,7 +713,11 @@ namespace sack {
 				//#if !USE_CUSTOM_ALLOCER
 				volatile PTHREAD thread;
 				//#endif
-			} s_link_queue_local, * _link_queue_local;
+			} s_link_queue_local
+#ifndef __STATIC_GLOBALS__
+					, * _link_queue_local
+#endif
+				;
 
 #ifdef __STATIC_GLOBALS__
 #  define link_queue_local  ((s_link_queue_local))
