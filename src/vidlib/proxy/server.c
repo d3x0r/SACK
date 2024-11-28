@@ -18,7 +18,7 @@ IMAGE_NAMESPACE
 #ifdef __cplusplus
 namespace loader {
 #endif
-	extern LOGICAL vid_proxy_PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
+	extern LOGICAL VidlibProxy_PngImageFile ( Image pImage, uint8_t ** buf, size_t *size);
 #ifdef __cplusplus
 };
 #endif
@@ -315,7 +315,7 @@ static uint8_t* EncodeImage( Image image, LOGICAL bmp, size_t *outsize )
 		if( image )
 		{
 			uint8_t *buf;
-			if( vid_proxy_PngImageFile( image, &buf, outsize ) )
+			if( VidlibProxy_PngImageFile( image, &buf, outsize ) )
 			{
 				if( 1 )
 				{
@@ -1410,7 +1410,8 @@ static PVPImage WrapImageFile( Image native )
 }
 
 
-static Image CPROC VidlibProxy_MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
+//static 
+Image CPROC VidlibProxy_MakeImageFileEx (uint32_t Width, uint32_t Height DBG_PASS)
 {
 	return (Image)Internal_MakeImageFileEx( INVALID_INDEX, Width, Height DBG_RELAY );
 }
@@ -3062,7 +3063,8 @@ IMAGE_DATA_PROC( CDATA, ColorAverage,( CDATA c1, CDATA c2
 	Internal
 	Interface index 49					*/	IMAGE_PROC_PTR( void, SyncImage )					  ( void );
 
-static PCDATA CPROC VidlibProxy_GetImageSurface 		 ( Image pImage )
+//static 
+PCDATA CPROC VidlibProxy_GetImageSurface 		 ( Image pImage )
 {
 	if( pImage )
 	{

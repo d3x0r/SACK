@@ -298,9 +298,7 @@ static int PrintChar( int bits, int charnum, PCHARACTER character, int height )
 
 static void PrintFontTable( CTEXTSTR name, PFONT font )
 {
-	int idx;
 	uint32_t i, maxwidth;
-	idx = 0;
 	maxwidth = 0;
 	for( i = 0; i < font->characters; i++ )
 	{
@@ -414,7 +412,7 @@ void IMGVER(DumpFontFile)( CTEXTSTR name, SFTFont font_to_dump )
 					void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, INDEX idx );
 					IMGVER(InternalRenderFontCharacter)( NULL, font_to_dump, charid );
 					character = font->character[charid];
-						PrintChar( (font->flags&3) == FONT_FLAG_8BIT?8
+						printChar( (font->flags&3) == FONT_FLAG_8BIT?8
 									 :(font->flags&3) == FONT_FLAG_2BIT?2
 									 :1
 									, charid, character, font->height );
@@ -761,7 +759,7 @@ static void RenderMonoChar( PFONT font
 		INDEX bit, line, linetop, linebottom;
 		INDEX charleft, charright;
 
-		char *data, *chartop;
+		char* data;// , * chartop;
 		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
 		//											* ((bitmap->width+7)/8) ) );
 		character->render_flags = 0;
@@ -824,7 +822,7 @@ static void RenderMonoChar( PFONT font
 		//		 , character->descent );
 
 		// for all horizontal lines which are blank - decrement ascent...
-		chartop = NULL;
+		//chartop = NULL;
 		if( bitmap->buffer )
 		{
 			data = (char*)bitmap->buffer;
@@ -850,7 +848,7 @@ static void RenderMonoChar( PFONT font
 				{
 					//lprintf( "New top will be %d", line );
 					linetop = line;
-					chartop = data;
+					//chartop = data;
 					break;
 				}
 			}
@@ -998,7 +996,7 @@ static void RenderGreyChar( PFONT font
 		INDEX bit, line, linetop, linebottom;
 		INDEX charleft, charright;
 
-		char *data, *chartop;
+		char* data;//, * chartop;
 		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
 		//											  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
 		//										  + 512 );
@@ -1057,7 +1055,7 @@ static void RenderGreyChar( PFONT font
 		//			 , character->descent );
 
 		// for all horizontal lines which are blank - decrement ascent...
-		chartop = NULL;
+		//chartop = NULL;
 		data = (char*)bitmap->buffer;
 
 		linetop = 0;
@@ -1081,7 +1079,7 @@ static void RenderGreyChar( PFONT font
 			else
 			{
 				linetop = line;
-				chartop = data;
+				//chartop = data;
 				break;
 			}
 		}
@@ -1230,7 +1228,7 @@ static void RenderColorChar( PFONT font
 		INDEX bit, line, linetop, linebottom;
 		INDEX charleft, charright;
 
-		char *data, *chartop;
+		char* data;// , * chartop;
 		//lprintf( "character %c(%d) is %dx%d = %d", idx, idx, bitmap->width, bitmap->rows, ( bitmap->rows
 		//											  * (bitmap->width+(bits==8?0:bits==2?3:7)/(8/bits)) )
 		//										  + 512 );
@@ -1288,7 +1286,7 @@ static void RenderColorChar( PFONT font
 		//			 , character->descent );
 
 		// for all horizontal lines which are blank - decrement ascent...
-		chartop = NULL;
+		//chartop = NULL;
 		data = (char*)bitmap->buffer;
 
 		linetop = 0;
@@ -1312,7 +1310,7 @@ static void RenderColorChar( PFONT font
 			else
 			{
 				linetop = line;
-				chartop = data;
+				//chartop = data;
 				break;
 			}
 		}

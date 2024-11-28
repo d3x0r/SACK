@@ -177,7 +177,6 @@ Image IMGVER(ImageJpgFile) (uint8_t * buf, size_t size)
   struct my_error_mgr jerr;
   int row_stride;    /* physical row width in output buffer */
   JSAMPARRAY buffer;
-  int bufp;
   int i;
 //  RGBcolor *out;
 
@@ -245,9 +244,8 @@ Image IMGVER(ImageJpgFile) (uint8_t * buf, size_t size)
   /* Here we use the library's state variable cinfo.output_scanline as the
    * loop counter, so that we don't have to keep track ourselves.
    */
-  bufp = 0;
-   while (cinfo.output_scanline < cinfo.output_height)
-      jpeg_read_scanlines( &cinfo, buffer + cinfo.output_scanline, cinfo.image_height );
+	while (cinfo.output_scanline < cinfo.output_height)
+		jpeg_read_scanlines( &cinfo, buffer + cinfo.output_scanline, cinfo.image_height );
 
 
   /* blah! we're in 32 bit color space - and this reads 

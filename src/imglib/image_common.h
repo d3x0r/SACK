@@ -26,7 +26,7 @@ uint32_t DOALPHA( uint32_t over, uint32_t in, uint8_t a );
 )
 
 //CDATA *po;
-//int r, g, b, aout;                                                                                    \
+//int r, g, b, aout;
 
 #define plotalpha_( pi, x_, y_, c ) (                         \
 	( !pi || !pi->image )?0:(                                   \

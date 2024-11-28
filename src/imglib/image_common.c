@@ -1297,7 +1297,6 @@ Image IMGVER(GetInvertedImage)( Image child_image )
 		struct shade_cache_element *ce;
 		if( node )
 		{
-			struct shade_cache_element *ce;
 			INDEX idx;
 			int count = 0;
 			struct shade_cache_element *oldest = NULL;

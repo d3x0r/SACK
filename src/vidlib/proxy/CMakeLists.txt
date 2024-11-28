@@ -29,19 +29,21 @@ endif( UNIX )
 sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} server.c ${IMAGE_SOURCES_PNG_DECODER} ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
+
+set_source_files_properties( ${IMAGE_SOURCES_PNG_DECODER} PROPERTIES COMPILE_DEFINITIONS "USE_API_ALIAS_PREFIX=VidlibProxy_" )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
-       COMPILER_DEFINITIONS TARGET_LABEL=bag_video_proxyy_server 
+       COMPILE_DEFINITIONS "TARGET_LABEL=bag_video_proxy_server"
    )
 
 set( PROJECT bag.video.proxy.instance.server )
 if( UNIX )
 set( MORE_SOURCES keymap_linux.c )
 endif( UNIX )
-sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} instance_server.c  ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
+sack_add_library( ${PROJECT} SHARED ${FIRST_GCC_LIBRARY_SOURCE} instance_server.c ${MORE_SOURCES} ${LAST_GCC_LIBRARY_SOURCE})
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} bag.image )
 install_default_dest( ${PROJECT} )
   SET_TARGET_PROPERTIES( ${PROJECT} PROPERTIES	FOLDER "Video Renderer"   
-       COMPILER_DEFINITIONS TARGET_LABEL=bag_video_proxyy_instance_server 
+       COMPILE_DEFINITIONS TARGET_LABEL=bag_video_proxy_instance_server 
    )
    
 set( PROJECT bag.video.proxy.client )

@@ -520,7 +520,7 @@ namespace image {
 		TranslateCoord( pifDest, &xd, &yd );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
-			int glDepth = 1;
+			//int glDepth = 1;
 			double x_size, x_size2, y_size, y_size2;
 			VECTOR v1[2], v3[2],v4[2],v2[2];
 			int v = 0;
@@ -550,7 +550,7 @@ namespace image {
 			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
-				glDepth = 0;
+				//glDepth = 0;
 				if( pifDest->transform )
 				{
 					Apply( pifDest->transform, v1[1-v], v1[v] );
@@ -595,19 +595,19 @@ namespace image {
 				InitShader();
 				if( l.glActiveSurface->shader.multi_shader )
 				{
-					int err;
+					//int err;
 					CDATA r = va_arg( colors, CDATA );
 					CDATA g = va_arg( colors, CDATA );
 					CDATA b = va_arg( colors, CDATA );
 		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.multi_shader );
-					err = glGetError();
+					//err = glGetError();
 					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 0, (float)GetRedValue( r )/255.0f, (float)GetGreenValue( r )/255.0f, (float)GetBlueValue( r )/255.0f, (float)GetAlphaValue( r )/255.0f );
-					err = glGetError();
+					//err = glGetError();
 					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 1, (float)GetRedValue( g )/255.0f, (float)GetGreenValue( g )/255.0f, (float)GetBlueValue( g )/255.0f, (float)GetAlphaValue( g )/255.0f );
-					err = glGetError();
+					//err = glGetError();
 					glProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 2, (float)GetRedValue( b )/255.0f, (float)GetGreenValue( b )/255.0f, (float)GetBlueValue( b )/255.0f, (float)GetAlphaValue( b )/255.0f );					
-					err = glGetError();
+					//err = glGetError();
 				}
 				else
 #endif
@@ -627,10 +627,10 @@ namespace image {
 				InitShader();
 				if( l.glActiveSurface->shader.inverse_shader )
 				{
-					int err;
+					//int err;
 		 			glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.inverse_shader );
-					err = glGetError();
+					//err = glGetError();
 				}
 				else
 #endif

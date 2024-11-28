@@ -175,41 +175,6 @@ static void CPROC DestroyFontEntry( PCACHE_FONT_ENTRY pfe, TEXTCHAR *key )
 
 //-------------------------------------------------------------------------
 
-static int UniqueStrCmp( TEXTCHAR *s1, INDEX s1_length, TEXTCHAR *s2 )
-{
-	int dir;
-	int num;
-	TEXTCHAR name[256];
-	dir = strcmp( s1, s2 );
-	if( dir == 0 )
-	{
-		TEXTCHAR *numstart;
-#ifndef __cplusplus
-		// strchr results with a CTEXTSTR type, override to remove warning
-		// we're passing a non ctextstr in.. so result will be a non ctextstr
-      // C++ has an overloaded function that returns the same type as what's passed
-#define SANECAST (TEXTSTR)
-#else
-#define SANECAST
-#endif
-		if( ( numstart = SANECAST StrChr( s1, '[' ) ) )
-		{
-			numstart[0] = 0;
-			num = (int)IntCreateFromText( numstart+1 );
-			StrCpyEx( name, s1, 256 );
-			tnprintf( s1, sizeof( name ), "%s[%d]", name, num+1 );
-		}
-		else
-		{
-			tnprintf( s1, s1_length, "%s[1]", s2 ); // s1 and s2 are equal, so this works...
-		}
-		return 1;
-	}
-	return dir;
-}
-
-//-------------------------------------------------------------------------
-
 static void CPROC DestroyDictEntry( CPOINTER psvEntry, uintptr_t key )
 {
    Deallocate( POINTER, (POINTER)psvEntry );
@@ -257,7 +222,7 @@ static PCACHE_DICT_ENTRY AddPath( CTEXTSTR filepath, PCACHE_DICT_ENTRY *file )
 	TEXTCHAR save;
 	if( file )
 	{
-		p = SANECAST pathrchr( tmp );
+		p = (TEXTSTR)pathrchr(tmp);
 		if( !p )
 			return NULL;
 		filename= p+1;
@@ -313,6 +278,8 @@ static PCACHE_FONT_ENTRY AddFontEntry( PCACHE_DICT_ENTRY name )
 
 //-------------------------------------------------------------------------
 
+
+#if 0
 static void AddAlternateSizeFile( PCACHE_SIZE_FILE psfBase, PCACHE_DICT_ENTRY path, PCACHE_DICT_ENTRY file )
 {
 	PCACHE_ALT_SIZE_FILE psf = New( CACHE_ALT_SIZE_FILE );
@@ -321,6 +288,7 @@ static void AddAlternateSizeFile( PCACHE_SIZE_FILE psfBase, PCACHE_DICT_ENTRY pa
 	psfBase->nAlternate++;
 	AddLink( &psfBase->pAlternate, psf );
 }
+#endif
 
 //-------------------------------------------------------------------------
 
@@ -442,7 +410,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 	size_t temp_filename_len = 0;
 	uintptr_t size = 0;
 	size_t _font_memory_size;
-	LOGICAL logged_error;
+	//LOGICAL logged_error;
 	TEXTSTR name_ = ExpandPath( name );
 	//lprintf( "Path converted from %s to %s", name, name_ );
 	if( !font_memory )
@@ -655,8 +623,8 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 		}
 		if( error )
 		{
-			logged_error = 1;
 #ifdef DEBUG_OPENFONTFILE
+			logged_error = 1;
 			lprintf( "Failed to open font %s or %s Result %d"
 					 , name?name:"<nofile>"
 					 , temp_filename?temp_filename:"<nofile>"
@@ -1098,20 +1066,22 @@ static void OutputFontCache( void )
 
 #ifdef _DEBUG
 
-static INDEX IndexOf( TEXTCHAR **list, uint32_t count, POINTER item )
+//-------------------------------------------------------------------------
+/// this was for debugging the font cache load/unload to make sure we could save the same thing again from a loaded one
+#  if 0 
+
+static INDEX IndexOf(TEXTCHAR** list, uint32_t count, POINTER item)
 {
 	INDEX idx;
-	for( idx = 0; idx < count; idx++)
+	for (idx = 0; idx < count; idx++)
 	{
-		if( list[idx] == item )
-         return idx;
+		if (list[idx] == item)
+			return idx;
 	}
 	return INVALID_INDEX;
 }
 
-//-------------------------------------------------------------------------
-/// this was for debugging the font cache load/unload to make sure we could save the same thing again from a loaded one
-#  if 0 
+
 void DumpLoadedFontCache( void )
 {
 	FILE *out;
@@ -1439,19 +1409,6 @@ static void BuildFontCache( void )
 #ifdef __CAN_USE_CACHE_DIALOG__
 	DestroyFrame( &status );
 #endif
-}
-
-//-------------------------------------------------------------------------
-
-static int IsNumber( char *num )
-{
-	while( num[0] )
-	{
-		if( !isdigit( num[0] ) )
-         return FALSE;
-      num++;
-	}
-	return TRUE;
 }
 
 //-------------------------------------------------------------------------

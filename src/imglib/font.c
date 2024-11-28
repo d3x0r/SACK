@@ -318,7 +318,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		TranslateCoord( pifDest, &xd_back, &yd_back );
 		TranslateCoord( pifSrc, &xs, &ys );
 		{
-			int glDepth = 1;
+			//int glDepth = 1;
 			float x_size, x_size2, y_size, y_size2;
 			VECTOR v[2][4], v2[2][4];
 			int vi = 0;
@@ -493,7 +493,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 			//lprintf( "Texture size is %g,%g to %g,%g", x_size, y_size, x_size2, y_size2 );
 			while( pifDest && pifDest->pParent )
 			{
-				glDepth = 0;
+				//glDepth = 0;
 				if( pifDest->transform )
 				{
 					Apply( pifDest->transform, v[1-vi][0], v[vi][0] );
