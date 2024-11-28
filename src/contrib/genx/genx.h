@@ -72,7 +72,7 @@ typedef enum
 
 /* a UTF-8 string */
 #if defined( __cplusplus )
-#define UTFTYPE char
+#define UTFTYPE unsigned char
 #else
 #define UTFTYPE unsigned char
 #endif
