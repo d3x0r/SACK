@@ -393,9 +393,8 @@ static int RelateOpNode( POPNODE *root, POPNODE node )
 //          2 = invalid number...
 static int GetInteger( LONGEST_INT *result, int *length )
 {
-	unsigned char *p = GetText( GetCurrentWord() );
+	char *p = GetText( GetCurrentWord() );
 	LONGEST_INT accum = 0;
-	int neg = 0;
 	int unsigned_value = 0;
 	int long_value = 0;
 
@@ -519,7 +518,7 @@ static int GetInteger( LONGEST_INT *result, int *length )
 // seperate symbols.
 static int GetFloat( LONGEST_FLT *result, int *length )
 {
-	LONGEST_FLT accum = 0;
+	//LONGEST_FLT accum = 0;
 	//fprintf( stderr, "At this time 'expr.c' does not do float conversion...\n" );
 	return 0;
 }
@@ -570,8 +569,6 @@ void LogExpression( POPNODE root )
 POPNODE BuildExpression( void ) // expression is queued
 {
 	char *pExp;
-	int nLastLogical = 0;
-	int nResult = 0;
 	int quote = 0;
 	int overflow = 0;
 	POPNODE ThisOp = GetOpNode();

@@ -70,12 +70,12 @@ typedef struct global_tag
 	int bAutoDepend; // include 'system' dependancies
 	FILE *AutoDependFile;
 	VARTEXT vt; // safe junk buffer to print into...
-	unsigned char CurrentOutName[256];
+	char CurrentOutName[256];
 	int nIfLevels;
 	unsigned long nAllocates;
 	unsigned long nReleases;
 	size_t nAllocSize;
-	unsigned char AutoTargetName[256]; // target name to reference when
+	char AutoTargetName[256]; // target name to reference when
 	                                   //building auto depend...
 	PLINKSTACK pIncludeList;
 	FILE *dbgout;

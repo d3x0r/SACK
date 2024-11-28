@@ -5,11 +5,11 @@
 #include "links.h"
 
 #ifdef _DEBUG
-#pragma message ("Setting DBG_PASS and DBG_FORWARD to work" )
+//#pragma message ("Setting DBG_PASS and DBG_FORWARD to work" )
 #define DBG_PASS , char *pFile, int nLine
 #define DBG_SRC , __FILE__, __LINE__
 #else
-#pragma message ("Setting DBG_PASS and DBG_FORWARD to be ignored" )
+//#pragma message ("Setting DBG_PASS and DBG_FORWARD to be ignored" )
 #define DBG_PASS
 #define DBG_SRC
 #endif

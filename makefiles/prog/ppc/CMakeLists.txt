@@ -17,6 +17,22 @@ endif( PLATFORM_LIBRARIES )
 
 PROJECT( Panthers_pre_cpp )
 
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  # MESSAGE( "THIS FIXES COMPILER IS GNUCC - ${CMAKE_CXX_COMPILER_ID}" )
+  ADD_DEFINITIONS( -Wno-parentheses )
+  ADD_DEFINITIONS( -Wno-null-dereference )
+  ADD_DEFINITIONS( -Wno-self-assign ) # so what if a variable is assigned to itself - that's what optimizers are for?
+  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
+  ADD_DEFINITIONS( -Wno-null-dereference )
+  set( GCC 1 )
+  ADD_DEFINITIONS( -D_GNU_SOURCE )
+  set( CMAKE_COMPILER_IS_GNUCC 0 )
+endif()
+
+if( WIN32 )
+   ADD_DEFINITIONS( -D_CRT_NONSTDC_NO_DEPRECATE )
+endif()
+
 if(MSVC)
 # We statically link to reduce dependencies
 foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO

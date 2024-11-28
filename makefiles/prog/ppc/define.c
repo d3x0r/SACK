@@ -19,7 +19,9 @@
 static PDEF pDefineRoot, pCurrentDefine;
 static DEF DefineLine  // static symbol....
 , DefineFile // static symbol....
+#ifdef DEFINE_STDC_VERSION
 , DefineStdCVersion // 199901L
+#endif
 , DefineTime        // "00:00:00.000"
 , DefineDate;       // "mmm dd, yyyy"
 static int nDefines;
@@ -233,7 +235,7 @@ void DeinitDefines( void )
 PDEF FindDefineName( PTEXT pName, int params )
 {
 	PDEF p;
-	int levels = 1;
+	//int levels = 1;
 	if( TextIs( pName, "__LINE__" ) )
 	{
 		if( DefineLine.pData )
@@ -338,7 +340,7 @@ PDEF FindDefineName( PTEXT pName, int params )
 			p = p->pGreater;
 		else
 			p = p->pLesser;
-		levels++;
+		//levels++;
 	}
 	//if( g.bDebugLog )
 	//   fprintf( stderr, "levels checked for name: %d/%d\n", levels, nDefines );
@@ -1178,13 +1180,13 @@ void EvalSubstitutions( PTEXT *subst, int more )
 	PTEXT pStart, pWord, pReset;
 	PDEF pDefine;
 	int Quote = 0, Escape = 0;
-	static int nSubstLevel;
+	//static int nSubstLevel;
 
 	// get word first....
 	if( !subst || !*subst )
 		return;
 
-	nSubstLevel++;
+	//nSubstLevel++;
 
 	if( g.bDebugLog & DEBUG_SUBST )
 	{
@@ -1349,10 +1351,10 @@ void EvalSubstitutions( PTEXT *subst, int more )
 				int bVarArg = 0;
 				int bNoArgs = 1;
 				PTEXT pVal = NULL;
-				char *file_start;
-				int line_start;
-				file_start = GetCurrentFileName();
-				line_start = GetCurrentLine();
+				//char *file_start;
+				//int line_start;
+				//file_start = GetCurrentFileName();
+				//line_start = GetCurrentLine();
 				if( !NEXTLINE( pWord ) && more )
 					pReset = pWord = ReadLine( TRUE );
 				else
@@ -1897,7 +1899,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 			fprintf( stddbg, "Resulting No content.\n" );
 		}
 	}
-	nSubstLevel--;
+	//nSubstLevel--;
 	return;
 }
 

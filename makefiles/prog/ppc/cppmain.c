@@ -48,11 +48,11 @@
 #define ARG_GEN_STDOUT       9
 
 /******************************
-/* this portion is mainly for testing the CPP program
-/* defines which are not used...
-/* comments in various order
-/* although these must succeed...
-/******************************/
+ * this portion is mainly for testing the CPP program
+ * defines which are not used...
+ * comments in various order
+ * although these must succeed...
+ ******************************/
 
 //----------------------------------------------------------------------
 
@@ -1084,14 +1084,8 @@ void RunProcessFile( void )
 {
 	while( ReadLine( FALSE ) )
 	{
-		int depth = CurrentFileDepth();
 		if( PreProcessLine() )
 		{
-			//if( g.flags.keep_includes )
-			{
-			//	if( depth > 1 )
-			//		continue;
-			}
 			if( ProcessStatement() )
 			{
 				PTEXT pOut;
@@ -1183,7 +1177,7 @@ void ProcessFile( char *file )
 	{
 		return;
 	}
-	if( g.CurrentOutName[0] != 0xFF )
+	if( g.CurrentOutName[0] != (char)0xFF )
 	{
 		if( !g.flags.bStdout )
 		{

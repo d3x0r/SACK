@@ -63,12 +63,12 @@ typedef void  *POINTER;
 typedef const void *CPOINTER;
 typedef uint32_t LOGICAL;
 
-#define DECLDATA(name,sz) struct {uintptr_t size; uint8_t data[sz];} name
+#define DECLDATA(name,sz) struct {uintptr_t size; char data[sz];} name
 
 typedef struct DataBlock {
-	uintptr_t size;     // size is sometimes a pointer value...
-                 // this means bad thing when we change platforms...
-	uint8_t  data[1]; // beginning of var data - this is created size+sizeof(VPA)
+	uintptr_t size;  // size is sometimes a pointer value...
+	                 // this means bad thing when we change platforms...
+	char  data[1];   // beginning of var data - this is created size+sizeof(VPA)
 } DATA, *PDATA;
 
 typedef struct LinkBlock

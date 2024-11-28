@@ -686,10 +686,7 @@ Restart:
 			int escape = 0; // if(quote) and prior == '\' skip " or ' chars
 			int nSlash = 0;
 			int nStar  = 0;
-			int nLessthan = 0;
-			int nGreaterthan = 0;
-			int nPercent = 0;
-
+			
 			for( p = pNew; p; p = NEXTLINE( p ) )
 			{
 				char *pText;

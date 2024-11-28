@@ -11,7 +11,7 @@ void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 	char *args = lpCmdLine;
 	char  *p;
 	char **pp;
-	char argc; // result variable, count is a temp counter...
+	//char argc; // result variable, count is a temp counter...
 	char **argv; // result variable, pp is a temp pointer
 	char quote = 0;
 	int count = 0;
@@ -54,14 +54,14 @@ void ParseIntoArgs( char *lpCmdLine, int *pArgc, char ***pArgv )
 	if( quote )
 		count++; // complete this argument
 	else if( p != args )
-      count++;
+		count++;
 	if( count )
 	{
 		char *start;
 		lastchar = ' '; // auto continue spaces...
-      //lprintf( "Array is %d (+2?)", count );
+		//lprintf( "Array is %d (+2?)", count );
 		pp = argv = NewArray( char*, count + 2 );
-		argc = count - 2;
+		//argc = count - 2;
 		p = args;
 		quote = 0;
 		count = 0;

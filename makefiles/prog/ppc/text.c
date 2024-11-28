@@ -692,7 +692,7 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
 	char *buf;
 	int   TopSingle = bSingle;
 	PTEXT pStack[32];
-	int   nStack, spaces = 0, tabs = 0, firstadded;
+	int   nStack, spaces = 0;
 	int   skipspaces = ( PRIORLINE(pt) == NULL );
 	PTEXT pOut;
 	uintptr_t ofs;
@@ -704,7 +704,6 @@ PTEXT BuildLineEx( PTEXT pt, int bSingle DBG_PASS )
 		if( !len )
 			return NULL;
 		pOut = SegCreateEx( len DBG_RELAY );
-		firstadded = TRUE;
 		buf = GetText( pOut );
 	}
 
