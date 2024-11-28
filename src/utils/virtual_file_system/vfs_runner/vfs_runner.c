@@ -75,10 +75,18 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 #endif
 			if( sz && tmp )
 			{
+#ifdef DEBUG_LIBRARY_LOADING
 				size_t written, read ;
+#endif
 				POINTER data = NewArray( uint8_t, sz );
-				read = sack_fread( data, sz, 1, file );
-				written = sack_fwrite( data, sz, 1, tmp );
+#ifdef DEBUG_LIBRARY_LOADING
+				read =
+#endif
+					sack_fread( data, sz, 1, file );
+#ifdef DEBUG_LIBRARY_LOADING
+				written =
+#endif
+					sack_fwrite( data, sz, 1, tmp );
 				sack_fclose( tmp );
 #ifdef DEBUG_LIBRARY_LOADING
 				lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
@@ -177,6 +185,7 @@ static LOGICAL CPROC LoadLibraryDependant( CTEXTSTR name )
 
 #endif
 
+#ifdef STANDALONE_HEADER
 static char * FindProgram( const char *name ) {
 	if( sack_existsEx( name, l.rom ) )
 	{
@@ -204,10 +213,12 @@ static char * FindProgram( const char *name ) {
 #endif
 				if( tmp )
 				{
-					size_t written, read ;
+					//size_t written, read ;
 					POINTER data = NewArray( uint8_t, sz );
-					read = sack_fread( data, sz, 1, file );
-					written = sack_fwrite( data, sz, 1, tmp );
+					//read = 
+						sack_fread( data, sz, 1, file );
+					//written = 
+						sack_fwrite( data, sz, 1, tmp );
 					sack_fclose( tmp );
 #ifdef DEBUG_LIBRARY_LOADING
 					lprintf( "written file... closed file...now scanning and then load %d %d", read, written );
@@ -220,9 +231,15 @@ static char * FindProgram( const char *name ) {
 	}
 	return NULL;
 }
+#endif
 
 void FixupMyTLS( void )
 {
+	/* This didn't actually work... manually loading a DLL into memory that uses TLS
+	 * and then trying to fixup the TLS directory didn't work.
+	 * TLS directory is not actually used by the loader? but is
+	 * used by the program itself to initialize TLS data?
+	 */
 #if _WIN32
 	#define Seek(a,b) (((uintptr_t)a)+(b))
 
@@ -242,7 +259,9 @@ void FixupMyTLS( void )
 		for( n = 0; n < count; n++ )
 		{
 			//POINTER data;
-			DWORD dwInit;
+#if defined( _MSC_VER )
+			//DWORD dwInit;
+#endif
 			//size_t size_init = ( tls->EndAddressOfRawData - tls->StartAddressOfRawData );
 			//size_t size = size_init + tls->SizeOfZeroFill;
 			/*
@@ -253,7 +272,7 @@ void FixupMyTLS( void )
 						, tls->AddressOfIndex );
 				*/
 #if defined( _MSC_VER )
-			dwInit = (*((DWORD*)tls->AddressOfIndex));
+			//dwInit = (*((DWORD*)tls->AddressOfIndex));
 			{
 #  ifdef __64__
 #  else
@@ -317,7 +336,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
 		POINTER vfs_memory;
 		struct sack_vfs_volume *vol;
-		struct sack_vfs_volume *vol2;
+		//struct sack_vfs_volume *vol2;
 		SetSystemLog( SYSLOG_FILE, stderr ); 
 		vfs_memory = memory;
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
@@ -327,7 +346,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetProgramName( "program" );
 		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
+		//vol2 = 
+			sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{
@@ -344,7 +364,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 #else
 	{
 		struct sack_vfs_volume *vol;
-		struct sack_vfs_volume *vol2;
+		//struct sack_vfs_volume *vol2;
 		TEXTSTR cmd = GetCommandLine();
 		int argc;
 		char **argv;
@@ -360,7 +380,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		SetProgramName( "program" );
 		vol = sack_vfs_load_crypt_volume( "test.scvfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
+		//vol2 = 
+			sack_vfs_load_crypt_volume( "external.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 		if( vol )
 		{

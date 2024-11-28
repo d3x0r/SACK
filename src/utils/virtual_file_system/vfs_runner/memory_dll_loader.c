@@ -87,13 +87,15 @@ POINTER GetExtraData( POINTER block )
 maybe it returns the library base... */
 POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, int library, LOGICAL (CPROC*Callback)(CTEXTSTR library) )
 {
+#ifdef DEBUG_LIBRARY_LOADING
 	static int generation;
-	uintptr_t source_memory_length = block_len;
+#endif
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
-	static int level;
+	//static int level;
 	//if( level == 0 )
 	//	generation++;
-	level++;
+	//level++;
 #ifdef DEBUG_LIBRARY_LOADING
 	lprintf( "Load %s (%d:%d)\n", name, generation, level );
 #endif
@@ -140,8 +142,8 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 				+ source_nt_header->FileHeader.SizeOfOptionalHeader;
 			PIMAGE_SECTION_HEADER source_section;
 			PIMAGE_IMPORT_DESCRIPTOR real_import_base;
-			PIMAGE_SECTION_HEADER source_import_section = NULL;
-			PIMAGE_SECTION_HEADER source_text_section = NULL;
+			//PIMAGE_SECTION_HEADER source_import_section = NULL;
+			//PIMAGE_SECTION_HEADER source_text_section = NULL;
 			uintptr_t dwSize = 0;
 			uintptr_t newSize;
 			source_section = (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections );
@@ -152,13 +154,13 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 				newSize = (source_section[n].VirtualAddress) + source_section[n].SizeOfRawData;
 				if( newSize > dwSize )
 					dwSize = newSize;
-				if( StrCmpEx( (char*)source_section[n].Name, ".text", sizeof( source_section[n].Name ) ) == 0 )
+				//if( StrCmpEx( (char*)source_section[n].Name, ".text", sizeof( source_section[n].Name ) ) == 0 )
 				{
-					source_text_section = source_section + n;
+					//source_text_section = source_section + n;
 				}
-				if( StrCmpEx( (char*)source_section[n].Name, ".idata", sizeof( source_section[n].Name ) ) == 0 )
+				//if( StrCmpEx( (char*)source_section[n].Name, ".idata", sizeof( source_section[n].Name ) ) == 0 )
 				{
-					source_import_section = source_section + n;
+					//source_import_section = source_section + n;
 				}
 				if( StrCmpEx( (char*)source_section[n].Name, ".rdata", sizeof( source_section[n].Name ) ) == 0 )
 				{
@@ -201,7 +203,7 @@ POINTER ScanLoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_le
 
 		}
 	}
-	level--;
+	//level--;
 	return 0;
 }
 
@@ -211,7 +213,7 @@ void DumpSystemMemory( POINTER p_match )
 	{
 		DWORD nHeaps;
 		HANDLE pHeaps[1024];
-		HANDLE hHeap = GetProcessHeap();
+		//HANDLE hHeap = GetProcessHeap();
 		PROCESS_HEAP_ENTRY entry;
 		size_t total = 0;
 		DWORD nHeap;
@@ -234,7 +236,7 @@ void DumpSystemMemory( POINTER p_match )
 				PIMAGE_EXPORT_DIRECTORY exp_dir = (PIMAGE_EXPORT_DIRECTORY)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress );
 				char *dll_name = (char*) Seek( real_memory, exp_dir->Name );
 				MEMORY_BASIC_INFORMATION info;
-				PIMAGE_IMPORT_DESCRIPTOR imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
+				//PIMAGE_IMPORT_DESCRIPTOR imp_des = (PIMAGE_IMPORT_DESCRIPTOR)Seek( real_memory, dir[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress );
 				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
 					lprintf( "has TLS" );
 				VirtualQueryEx( GetCurrentProcess(), real_memory, &info, sizeof( info ) );
@@ -274,14 +276,14 @@ POINTER LoadLibraryFromMemory( CTEXTSTR name, POINTER block, size_t block_len, i
 {
 /* This returns the entry point to the library
 maybe it returns the library base... */
-	static int generation;
-	uintptr_t source_memory_length = block_len;
+	//static int generation;
+	//uintptr_t source_memory_length = block_len;
 	POINTER source_memory = block;
 	POINTER real_memory;
-	static int level;
+	//static int level;
 	//if( level == 0 )
 	//	generation++;
-	level++;
+	//level++;
 	//lprintf( "Load %s (%d:%d)\n", name, generation, level );
 	{
 		PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)source_memory;
@@ -444,13 +446,13 @@ maybe it returns the library base... */
 					int num_reloc;
 					DWORD section_offset = 0;
 					IMAGE_BASE_RELOCATION *ibr = NULL;
-					IMAGE_BASE_RELOCATION *real_ibr = NULL;
+					//IMAGE_BASE_RELOCATION *real_ibr = NULL;
 					while( section_offset < source_section[0].SizeOfRawData )
 					{
 						int reloc_entry;
 						WORD *pb;
 						ibr = (IMAGE_BASE_RELOCATION *)Seek( source_memory, source_section[0].PointerToRawData + section_offset );
-						real_ibr = (IMAGE_BASE_RELOCATION *)Seek( real_memory, source_section[0].VirtualAddress + section_offset );
+						//real_ibr = (IMAGE_BASE_RELOCATION *)Seek( real_memory, source_section[0].VirtualAddress + section_offset );
 
 						if( !ibr->SizeOfBlock )
 							break;
@@ -465,7 +467,7 @@ maybe it returns the library base... */
 							// Need to do things with real_offset
 							uintptr_t *real_offset = (uintptr_t *)Seek( real_memory, ibr->VirtualAddress + ( pb[reloc_entry] & 0xFFF ) );
 							uintptr_t source_address = ConvertVirtualToPhysical( (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections ), source_nt_header->FileHeader.NumberOfSections, ibr->VirtualAddress );
-							uintptr_t *source_offset = (uintptr_t *)Seek( source_memory, source_address + ( pb[reloc_entry] & 0xFFF ) );
+							//uintptr_t *source_offset = (uintptr_t *)Seek( source_memory, source_address + ( pb[reloc_entry] & 0xFFF ) );
 							switch( mode )
 							{
 							case IMAGE_REL_BASED_ABSOLUTE:
@@ -624,7 +626,7 @@ maybe it returns the library base... */
 		}
 		//AddMappedLibrary( name, real_memory );
 	}
-	level--;
+	//level--;
 	return 0;
 }
 

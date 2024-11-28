@@ -12,6 +12,8 @@ endif( PLATFORM_CMAKE_DEFINES )
 
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
+include( ${SACK_BASE}/makefiles/cmake/CMakeDefs.txt )
+
 STRING( REPLACE " " ";" PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} )
 if( PLATFORM_DEFINES )
 STRING( REPLACE " " ";" PLATFORM_DEFINES ${PLATFORM_DEFINES} )

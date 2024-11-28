@@ -162,7 +162,7 @@ static void testVolume( void ) {
 		}
 	}
 
-	l.current_vol;
+	//l.current_vol;
 }
 
 static void testVolume_alt( void ) {
@@ -222,7 +222,7 @@ static void testVolume_alt( void ) {
 		}
 	}
 
-	l.current_vol;
+	//l.current_vol;
 }
 
 static void testVolume_slow( void ) {
@@ -850,7 +850,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	struct scanFileInfo *pInfo = (struct scanFileInfo*)psv;
 	uint64_t ctime;
 	uint64_t wtime;
-	size_t ofs = 0;
+	//size_t ofs = 0;
 	SACK_TIME ct, wt;
 	size_t size;
 	struct find_cursor * cursor = GetScanFileCursor( pInfo->ppInfo[0] );
@@ -867,7 +867,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 	//if( !ctime )DebugBreak();
 	ConvertTickToTime( ctime, &ct );
 	ConvertTickToTime( wtime, &wt );
-	if( file[0] == '.' && file[1] == '/' ) ofs = 2;
+	//if( file[0] == '.' && file[1] == '/' ) ofs = 2;
 	//printf( "%9zd %s %" PRId64 "  %" PRId64 "\n", l.fsi->size( f ), file, ctime, wtime );
 	//if( !size ) DebugBreak();
 	printf( "%9zd   %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %d-%02d-%02d %02d:%02d:%02d.%03d %d"  "  %s\n"

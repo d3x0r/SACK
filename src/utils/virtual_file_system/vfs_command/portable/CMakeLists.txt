@@ -13,6 +13,7 @@ endif( PLATFORM_CMAKE_DEFINES )
 
 include( ${SACK_BASE}/makefiles/cmake/DefaultInstall.cmake )
 include_directories( ${SACK_BASE}/include )
+include( ${SACK_BASE}/makefiles/cmake/CMakeDefs.txt )
 
 STRING( REPLACE " " ";" K12_SOURCES ${K12_SOURCES} )
 

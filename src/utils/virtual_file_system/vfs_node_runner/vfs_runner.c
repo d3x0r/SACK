@@ -45,10 +45,12 @@ static TEXTSTR CPROC LoadLibraryDependant( CTEXTSTR name )
 #endif
 			if( sz && tmp )
 			{
-				size_t written, read ;
+				//size_t written, read ;
 				POINTER data = NewArray( uint8_t, sz );
-				read = sack_fread( data, sz, 1, file );
-				written = sack_fwrite( data, sz, 1, tmp );
+				//read = 
+					sack_fread( data, sz, 1, file );
+				//written = 
+					sack_fwrite( data, sz, 1, tmp );
 				sack_fclose( tmp );
 				Release( data );
 			}
@@ -73,14 +75,15 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER memory = OpenSpace( NULL, argv[0], &sz );
 		POINTER vfs_memory;
 		struct sack_vfs_volume *vol;
-		struct sack_vfs_volume *vol2;
+		//struct sack_vfs_volume *vol2;
 		SetSystemLog( SYSLOG_FILE, stderr ); 
 		vfs_memory = memory;
 		l.fsi = sack_get_filesystem_interface( "sack_shmem.runner" );
 		sack_set_default_filesystem_interface( l.fsi );
 		vol = sack_vfs_use_crypt_volume( vfs_memory, sz-((uintptr_t)vfs_memory-(uintptr_t)memory), REPLACE_ME_2a, REPLACE_ME_2b, REPLACE_ME_3 );
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
-		vol2 = sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2a, REPLACE_ME_2b, REPLACE_ME_3 );
+		//vol2 = 
+			sack_vfs_load_crypt_volume( "external.vfs", REPLACE_ME_2a, REPLACE_ME_2b, REPLACE_ME_3 );
 		l.ram = sack_mount_filesystem( "extra", l.fsi, 110, (uintptr_t)vol, TRUE );
 
 		if( vol )
