@@ -195,6 +195,8 @@ static struct fmpeg_interface
 	declare_func( Image, GetControlSurface, ( PSI_CONTROL pc ) ); 
 	declare_func( void, GetFrameSize, ( PSI_CONTROL pf, uint32_t *w, uint32_t *h ) );
 	declare_func( void, UpdateFrameEx, ( PSI_CONTROL pc, int x, int y, int w, int h DBG_PASS ) );
+	declare_func( int, avcodec_parameters_to_context, (AVCodecContext* codec, const struct AVCodecParameters* par) );
+	declare_func( AVCodecContext*, avcodec_alloc_context3, (const AVCodec* codec) );
 } ffmpeg;
 
 #ifndef USE_OPENSL
@@ -1813,14 +1815,14 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		if( file->videoStream >= 0 )
 		{
 			// Get a pointer to the codec context for the video stream
-			file->pVideoCodecCtx = avcodec_alloc_context3(NULL);
-			avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->videoStream]->codecpar);
+			file->pVideoCodecCtx = ffmpeg.avcodec_alloc_context3(NULL);
+			ffmpeg.avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->videoStream]->codecpar);
 			//file->pVideoCodecCtx = file->pFormatCtx->streams[file->videoStream]->codec;
 
-			if( file->pVideoCodecCtx->ticks_per_frame == 1 )
-				file->frame_del = ( 1000* 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
+			if (av_q2d(file->pVideoCodecCtx->framerate) == 0)
+				file->frame_del = (1000 * 1000LL) * 1000LL * 1.0 / av_q2d(file->pVideoCodecCtx->framerate);// *(uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->framerate.den;
 			else
-				file->frame_del = (1000LL) * 1000LL * file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
+				file->frame_del = (1000LL) * 1000LL * 1.0 / av_q2d(file->pVideoCodecCtx->framerate);// *(uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 
 			//lprintf( "scale %d ", ( 1000 * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den );
 			// Find the decoder for the video stream
@@ -1870,9 +1872,9 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		if( file->audioStream >= 0 )
 		{
 			// Get a pointer to the codec context for the video stream
-			file->pAudioCodecCtx = avcodec_alloc_context3(NULL);
+			file->pAudioCodecCtx = ffmpeg.avcodec_alloc_context3(NULL);
 
-			avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->audioStream]->codecpar);
+			ffmpeg.avcodec_parameters_to_context(file->pAudioCodecCtx, file->pFormatCtx->streams[file->audioStream]->codecpar);
 			//file->pAudioCodecCtx = file->pFormatCtx->;// streams[file->audioStream]->codecpar->codec;
 
 			// Find the decoder for the video stream
@@ -2004,15 +2006,15 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 	int64_t video_time_now = ( file->videoFrame ) * file->frame_del / 1000;
 	// in MS
 	uint64_t audio_time = file->pAudioCodecCtx?(1000 * file->audioSamplesPlayed / file->pAudioCodecCtx->sample_rate):0;
-	uint64_t audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
+	//uint64_t audio_time2 = file->al_last_buffer_reclaim - file->media_start_time;
 	uint64_t audio_time_pending = file->pAudioCodecCtx ? (1000 * file->audioSamplesPending / file->pAudioCodecCtx->sample_rate ):0;
 	uint64_t clock_time = ffmpeg.av_gettime();
 	uint64_t real_time = ( clock_time - file->media_start_time ) / 1000;
 	// between now and last audio finish
-	int64_t delta_audio = (int64_t)clock_time - (int64_t)file->al_last_buffer_reclaim;
+	//int64_t delta_audio = (int64_t)clock_time - (int64_t)file->al_last_buffer_reclaim;
 
 	// the (av) time of 1 video frame
-	int64_t video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
+	int64_t video_time_tick = ( 1000LL ) * 1000LL * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
 	// the (av)real time of 1k sound samples
 	int64_t audio_time_pending_1000_tick = 1000 * 1000 * 1000 / (file->pAudioCodecCtx ? (file->pAudioCodecCtx->sample_rate):44100);
 
@@ -2084,7 +2086,7 @@ static void LogTime( struct ffmpeg_file *file, LOGICAL video, CTEXTSTR leader, i
 					;
 			} 
 			else {
-				int64_t tmp = clock_time - file->media_start_time;
+				//int64_t tmp = clock_time - file->media_start_time;
 					//		+(video_time_tick * file->video_adjust_ticks)) - file->video_next_pts_time;
 //#ifdef DEBUG_WIN8_REDRAW
 				lprintf( "next tick is built from %" _64fs "  %"  _64fs  " %" _64fs, file->media_start_time, video_time_now, video_time_tick * 1000 );
@@ -2447,7 +2449,7 @@ static void ClearPendingVideo( struct ffmpeg_file *file )
 }
 
 //---------------------------------------------------------------------------------------------
-
+#if 0
 static uintptr_t CPROC internal_stop_thread( PTHREAD thread )
 {
 	ffmpeg_StopFile((struct ffmpeg_file *)GetThreadParam( thread  ) );
@@ -2466,7 +2468,7 @@ static void stop( struct ffmpeg_file *file )
 	}
 
 }
-
+#endif
 //---------------------------------------------------------------------------------------------
 
 static void OutputFrame( struct ffmpeg_file * file, struct ffmpeg_video_frame *frame ) {
@@ -2735,8 +2737,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 				if( file->flags.force_pkt_pts_in_ticks )
 				{
 					lprintf( "Forcing time from ticks." );
-					file->video_next_pts_time = ( 1000000LL * file->pVideoFrame->pts
-														  * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den
+					file->video_next_pts_time = ( 1000000LL * file->pVideoFrame->pts * file->pVideoCodecCtx->time_base.num ) / file->pVideoCodecCtx->time_base.den
 						+ file->media_start_time;
 #ifdef DEBUG_VIDEO_PACKET_READ
 					lprintf( "Setting next time to %" _64fs " %" _64fs, file->video_next_pts_time, file->video_next_pts_time - file->media_start_time );
@@ -2866,7 +2867,7 @@ static uintptr_t CPROC ProcessFrames( PTHREAD thread )
 {
 	struct ffmpeg_file * file = (struct ffmpeg_file *)GetThreadParam( thread );
 	AVPacket *packet;
-	int pending = 0;
+	//int pending = 0;
 	file->packet_queue = CreateLinkQueue();
 #ifdef DEBUG_LOG_INFO
 	lprintf(" This thread is playing %p %s", file, file->filename );
@@ -2927,7 +2928,7 @@ static uintptr_t CPROC ProcessFrames( PTHREAD thread )
 					AVSEEK_FLAG_BACKWARD: Seek backward
 					AV: Seeking based on position in bytes
 					*/
-				file->videoFrame = 0;// (file->seek_position * (file->pFormatCtx->duration/1000) * file->pVideoCodecCtx->time_base.den) / ( 1000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num * (1000000000LL)  );
+				file->videoFrame = 0;// (file->seek_position * (file->pFormatCtx->duration/1000) * file->pVideoCodecCtx->time_base.den) / ( 1000LL * file->pVideoCodecCtx->time_base.num * (1000000000LL)  );
 				file->audioSamplesPlayed = 0;//file->seek_position * file->pFormatCtx->duration * file->pAudioCodecCtx->sample_rate / 1000000000;
 #ifdef DEBUG_LOW_LEVEL_PACKET_READ
 				lprintf( "---------- Set Start Time -------------" );
@@ -3247,14 +3248,6 @@ void ffmpeg_PlayFile( struct ffmpeg_file *file )
 {
 	if( file->flags.paused )
 	{
-		int64_t video_frame_time = 1000000LL * file->pVideoCodecCtx->ticks_per_frame * file->pVideoCodecCtx->time_base.num / file->pVideoCodecCtx->time_base.den;
-		int64_t video_time_now = ( file->videoFrame ) * video_frame_time;
-		int64_t audio_time_pending_1000_tick = file->pAudioCodecCtx?(1000 * 1000 * 1000 / file->pAudioCodecCtx->sample_rate):video_frame_time;
-		int64_t video_time_in_audio_frames	= 1000 * video_time_now / audio_time_pending_1000_tick;
-		int64_t audio_time_now = file->pAudioCodecCtx?(( ( video_time_in_audio_frames - file->audioSamplesPlayed ) * 1000LL ) / file->pAudioCodecCtx->sample_rate):video_time_now;
-		int64_t video_time_tick = ( 1000LL ) * 1000LL *  file->pVideoCodecCtx->ticks_per_frame * (uint64_t)file->pVideoCodecCtx->time_base.num / (uint64_t)file->pVideoCodecCtx->time_base.den;
-		int64_t frame_tick_adjust =  ( video_time_tick * file->video_adjust_ticks );
-
 		file->media_start_time = ffmpeg.av_gettime();// - ( video_time_now + audio_time_now + frame_tick_adjust );
 		file->videoFrame = 0;
 		file->audioSamplesPlayed = 0;

@@ -9,13 +9,7 @@
 #ifndef	GSM_H
 #define	GSM_H
 
-#ifdef __cplusplus
-#	define	NeedFunctionPrototypes	1
-#endif
-
-#if __STDC__
-#	define	NeedFunctionPrototypes	1
-#endif
+#define	NeedFunctionPrototypes	1
 
 #ifdef _NO_PROTO
 #	undef	NeedFunctionPrototypes
@@ -29,7 +23,7 @@
 #if NeedFunctionPrototypes
 #	define	GSM_P( protos )	protos
 #else
-#	define  GSM_P( protos )	( /* protos */ )
+#	define  GSM_P( protos )	   protos
 #endif
 
 /*
