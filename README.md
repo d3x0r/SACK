@@ -117,9 +117,9 @@ to disable the dependancy of the odbc libraries... many more.
 
 ### Dependencies
 
- - unixodbc (cmake options using ccmake in core can disable this dependancy);
+ - (linux) unixodbc (cmake options using ccmake in core can disable this dependancy);
  
- - OpenSSL/LibreSSL  (has LibreSSL 3.2.1 included)
+ - (OpenSSL?)/LibreSSL  (has LibreSSL 3.2.1(latest) included)
 
  - Gui Parts (Ubuntu package names, may differ for other systems)
     - (opt) system freetype-dev, png, jpeg, zlib (has latest versions included)
@@ -131,6 +131,28 @@ to disable the dependancy of the odbc libraries... many more.
     - libglew-dev  
     - libxext-dev 
     - libxxf86vm-dev
+
+### 
+
+`ffmpeg` can be used by some of the code to generate video/audio streaming players.  The ffmpeg interface module dynamically loads ffmpeg.dll, which should
+be available for windows in the repository; or can be built...
+
+I got it to build with wsl 2; (wsl --install).  and Arch linux image (https://github.com/yuk7/ArchWSL); assuming build tools as approriate are installed
+
+pacman -S make diffutils mingw-w64-gcc
+
+and maybe mingw-w64-pkg-config(AUR) mingw-w64-environment(AUR)  mingw-w64-cmake(AUR)
+
+
+```
+
+git clone https://github.com/FFmpeg/FFmpeg.git
+cd FFmpeg
+mkdir build
+../configure --arch=x86_64 --target-os=mingw32 --cross-prefix=x86_64-w64-mingw32- --prefix=output --enable-shared --disable-static
+
+
+```
 
 ----
 
