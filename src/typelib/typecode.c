@@ -714,12 +714,12 @@ namespace sack {
 				volatile PTHREAD thread;
 				//#endif
 			} s_link_queue_local
-#ifndef __STATIC_GLOBALS__
+#if !defined( __STATIC_GLOBALS__ ) || defined( USE_CUSTOM_ALLOCER )
 					, * _link_queue_local
 #endif
 				;
 
-#ifdef __STATIC_GLOBALS__
+#if defined( __STATIC_GLOBALS__ ) && !defined( USE_CUSTOM_ALLOCER )
 #  define link_queue_local  ((s_link_queue_local))
 #  define link_queue_local_thread  ((s_link_queue_local.thread))
 #  define link_queue_local_lock  ((&s_link_queue_local.lock))
