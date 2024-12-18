@@ -212,7 +212,7 @@ static void CPROC GetOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, si
 
 //---------------------------------------------------------------------------
 
-void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArgs )
+void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArgs, int options )
 {
 	TEXTCHAR **args;
 	int nArgs;
@@ -220,9 +220,9 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 
 	CTEXTSTR pname = GetProgramName();
 	CTEXTSTR ppath = GetProgramPath();
-
-	vtprintf( pvt_cmd,  "sc create \"%s\" start= auto binpath= \"" 
+	vtprintf( pvt_cmd,  "sc create \"%s\" start= auto %sbinpath= \"" 
 			  , ServiceName
+			  , (options&1) ? "type= interact type= own " : ""
 			  );
 
 	if( StrChr( pname, ' ' ) || StrChr( ppath, ' ' ) )
@@ -273,7 +273,7 @@ void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR descrip, CTEXTSTR extraArg
 
 void ServiceInstall( CTEXTSTR ServiceName )
 {
-	ServiceInstallEx( ServiceName, NULL, NULL );
+	ServiceInstallEx( ServiceName, NULL, NULL, 0 );
 }
 
 //---------------------------------------------------------------------------

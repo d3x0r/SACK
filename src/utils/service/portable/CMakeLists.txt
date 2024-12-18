@@ -82,10 +82,10 @@ if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 else()
     SET( SERVICE_MORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../service.manifest )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
-if( MSVC )
-    SET( SERVICE_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
 
-endif( MSVC )
+if( WIN32 )
+    SET( SERVICE_LINK_FLAGS "/level='requireAdministrator' /uiAccess='false'" )
+endif( WIN32 )
 
 
 set( TIMERLIB_SOURCES     
@@ -151,14 +151,14 @@ if( NOT CMAKE_COMPILER_IS_GNUCC )
   set( CMAKE_COMPILER_IS_GNUCC OFF ) # set non-blank option for the following
 endif( NOT CMAKE_COMPILER_IS_GNUCC )
   
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+if( ( WIN32 AND CMAKE_COMPILER_IS_GNUCC ) OR ( WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
 STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command(TARGET
                      ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${SRCDIR}\\..\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT_NAME}.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\..\\service.manifest\" -outputresource:\"$<TARGET_FILE:${PROJECT_NAME}>\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )

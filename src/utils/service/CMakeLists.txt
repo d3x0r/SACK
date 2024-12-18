@@ -39,14 +39,14 @@ COMPILE_FLAGS  "-DTARGET_LABEL=${PROJECT}"
 target_link_libraries( ${PROJECT} ${SACK_LIBRARIES} )
 install_default_dest( ${PROJECT} )
 
-if( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+if( ( WIN32 AND CMAKE_COMPILER_IS_GNUCC ) OR ( WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 STRING ( REPLACE "/" "\\" THISDIR ${CMAKE_CURRENT_BINARY_DIR} )
 STRING ( REPLACE "/" "\\" SRCDIR ${CMAKE_CURRENT_SOURCE_DIR} )
 add_custom_command(TARGET
                      ${PROJECT}
                    POST_BUILD
                    COMMAND
-                     "mt.exe" -manifest \"${SRCDIR}\\service.manifest\" -outputresource:\"${THISDIR}\\${PROJECT}.exe\"\;\#1
+                     "mt.exe" -manifest \"${SRCDIR}\\service.manifest\" -outputresource:\"$<TARGET_FILE:${PROJECT}>\"\;\#1
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )

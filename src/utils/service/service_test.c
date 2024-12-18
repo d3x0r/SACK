@@ -18,6 +18,7 @@ static HANDLE hRestartEvent;
 #endif
 static LOGICAL useBreak;
 static LOGICAL useSignal;
+static LOGICAL useInteract;
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task );
 
@@ -34,12 +35,14 @@ static void logOutput( uintptr_t psv, PTASK_INFO task, CTEXTSTR buffer, size_t s
 
 static void runTask( void ) {
 	lprintf( "Launching service process..." );
-	//task = LaunchUserProcess( progname, NULL, args, 0, NULL, MyTaskDone, 0 DBG_SRC );
+	// task = LaunchUserProcess( progname, NULL, args, 0, NULL, MyTaskDone, 0 DBG_SRC );
 	task = LaunchPeerProgramExx( progname, startin, args
-		, (useBreak?LPP_OPTION_USE_CONTROL_BREAK:0)
-		| ( useSignal ? LPP_OPTION_USE_SIGNAL : 0 )
-		| LPP_OPTION_NEW_GROUP
-		, logOutput, MyTaskDone, 0 DBG_SRC );
+	                           , ( useBreak ? LPP_OPTION_USE_CONTROL_BREAK : 0 )
+	                           | ( useSignal ? LPP_OPTION_USE_SIGNAL : 0 )
+	                           | LPP_OPTION_NEW_GROUP
+	                           | LPP_OPTION_NEW_CONSOLE
+	                                  | LPP_OPTION_IMPERSONATE_EXPLORER
+	                           , logOutput, MyTaskDone, 0 DBG_SRC );
 }
 
 static void CPROC MyTaskDone( uintptr_t psv, PTASK_INFO task_done )
@@ -110,11 +113,13 @@ int main( int argc, char **argv )
 	SETFLAG( opts, SYSLOG_OPT_LOG_SOURCE_FILE );
 	SystemLogTime( SYSLOG_TIME_LOG_DAY | SYSLOG_TIME_HIGH );
 	SetSyslogOptions( opts );
-	SetSystemLog( SYSLOG_AUTO_FILE, 0 );
+	SetSystemLog( SYSLOG_FILE, stderr );
 	SetSystemLoggingLevel( 2000 );
 
 	if( argc == 1 ) {
-		lprintf( "usage: [install/uninstall] <options> [service_description] <task> <start-in path> <environment... --> <arguments....>" );
+		lprintf( "usage: <service options> [install/uninstall] <options> [service_description] <task> <start-in path> <environment... --> <arguments....>" );
+		lprintf( "   service options:" );
+		lprintf( "       -interact : configures self as an interactive service.\n" );
 		lprintf( "   options:" );
 		lprintf( "       -break : use ctrl-break to terminate child." );
 		lprintf( "       -signal : use process signal to terminate child." );
@@ -122,7 +127,9 @@ int main( int argc, char **argv )
 		lprintf( "      if an argument to the process looks like an environment value '--' can be used to terminate the environment list." );
 		lprintf( "     install [service_description] <task> <start-in path> <arguments....>" );
 		lprintf( "     uninstall" );
-		printf( "usage: [install/uninstall] [service_description] <task> <start-in path> <environment... --> <arguments....>\n" );
+		printf( "usage: <service options> [install/uninstall] <options> [service_description] <task> <start-in path> <environment... --> <arguments....>\n" );
+		printf( "   service options:\n" );
+		printf( "       -interact : configures self as an interactive service.\n" );
 		printf( "   options:\n" );
 		printf( "       -break : use ctrl-break to terminate child.\n" );
 		printf( "       -signal : use process signal to terminate child.\n" );
@@ -134,7 +141,7 @@ int main( int argc, char **argv )
 	}
 	snprintf( eventName, 256, "Global\\%s:restart", GetProgramName() );
 
-	if( argc > 1 )
+	while( argc > 1 )
 	{
 		if( StrCaseCmp( argv[1], "uninstall" ) == 0 ) {
 			ServiceUninstall( GetProgramName() );
@@ -154,7 +161,33 @@ int main( int argc, char **argv )
 					//lprintf( "arg is %s", args[0] );
 					if( args[0][0] == 0 )
 						vtprintf( pvt,  "%s\"\"" , first ? "" : " " );
-					else if( StrChr( args[0], ' ' ) )
+					else if( StrChr( args[ 0 ], '\\' ) ) {
+						char c;
+						char *str = args[ 0 ];
+						int inQuotes = 0;
+						if( StrChr( args[ 0 ], ' ' ) )
+							inQuotes = 1;
+
+						if( !first )
+							VarTextAddCharacter( pvt, ' ' );
+						if( inQuotes )
+							VarTextAddCharacter( pvt, '"' );
+						for( ; ( c = *str ); str++ ) {
+							if( c == '\\' ) {
+								VarTextAddCharacter( pvt, '\\' );
+								VarTextAddCharacter( pvt, '\\' );
+							} else if( c == '\"' ) {
+								VarTextAddCharacter( pvt, '\\' );
+								VarTextAddCharacter( pvt, '\"' );
+							} else if( c == '\'' ) {
+								VarTextAddCharacter( pvt, '\\' );
+								VarTextAddCharacter( pvt, '\'' );
+							} else
+								VarTextAddCharacter( pvt, c );
+						}
+						if( inQuotes )
+							VarTextAddCharacter( pvt, '"' );
+					} else if( StrChr( args[ 0 ], ' ' ) )
 						vtprintf( pvt, "%s\\\"%s\\\"", first?"":" ", args[0] );
 					else
 						vtprintf( pvt, "%s%s", first ? "" : " ", args[0] );
@@ -163,11 +196,11 @@ int main( int argc, char **argv )
 					argofs++;
 				}
 			}
-			//lprintf( "args string is [%s]", GetText( VarTextPeek( pvt ) ) );
-			ServiceInstallEx( GetProgramName(), argv[2], GetText( VarTextGet( pvt ) ) );
+			ServiceInstallEx( GetProgramName(), argv[2], GetText( VarTextGet( pvt ) ), useInteract?1:0 );
 			return 0;
-		}
-		else {
+		} else if( StrCaseCmp( argv[1], "-interact" ) == 0 ) {
+			useInteract = 1;
+		} else {
 			int argofs = 3;
 			progname = argv[1];
 			startin = argv[2];
@@ -207,7 +240,10 @@ int main( int argc, char **argv )
 				}
 				args[n-(argofs-1)] = NULL;
 			}
+			break;
 		}
+		argc--;
+		argv++;
 	}
 	
 	{
@@ -227,6 +263,7 @@ int main( int argc, char **argv )
 		hDebugMemEvent = CreateEvent( &sa, FALSE, FALSE, eventName );
 #endif
 		LocalFree( psd );
+
 	}
 	ThreadTo( WaitRestart, 0 );
 #ifdef DEBUG_MEMORY_LEAKS
