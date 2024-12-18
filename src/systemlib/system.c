@@ -1821,6 +1821,8 @@ DWORD GetExplorerProcessID()
 	{
 #ifndef __NO_OPTIONS__
 		SACK_GetProfileStringEx( GetProgramName(), "SACK/System/Impersonate Process", "explorer.exe", process_find, sizeof( process_find ), TRUE );
+#else
+		strcpy( process_find, "explorer.exe" );	
 #endif
 	}
 	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
