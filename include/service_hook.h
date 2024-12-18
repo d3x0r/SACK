@@ -44,7 +44,9 @@ SERVICE_EXPORT void SetupServiceThread( TEXTSTR name, uintptr_t (CPROC*Start)( P
 SERVICE_EXPORT void ServiceInstall( CTEXTSTR ServiceName );
 
 // install the current executable as a service of the specified name.  (and starts the service)
-SERVICE_EXPORT void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR description, CTEXTSTR extraArgs );
+// options is
+//    1 - interact with desktop
+SERVICE_EXPORT void ServiceInstallEx( CTEXTSTR ServiceName, CTEXTSTR description, CTEXTSTR extraArgs, int opts );
 
 // uninstall the current executable as a service of the specified name.  (and stops the service)
 SERVICE_EXPORT void ServiceUninstall( CTEXTSTR ServiceName );
