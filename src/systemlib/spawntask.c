@@ -486,6 +486,38 @@ static BOOL _CreateProcess(
 
 #endif
 
+SYSTEM_PROC( PTASK_INFO, MonitorTaskEx )( int pid, int flags, TaskEnd EndNotice, uintptr_t psv DBG_PASS ) {
+	PTASK_INFO task = NULL;
+	task            = (PTASK_INFO)AllocateEx( sizeof( TASK_INFO ) DBG_RELAY );
+	MemSet( task, 0, sizeof( TASK_INFO ) );
+	task->spawn_flags          = 0;
+#if defined(WIN32)
+	task->launch_flags         = 0;
+#endif
+	task->flags.useCtrlBreak   = ( flags & LPP_OPTION_USE_CONTROL_BREAK ) ? 1 : 0;
+	task->flags.useEventSignal = ( flags & LPP_OPTION_USE_SIGNAL ) ? 1 : 0;
+	task->psvEnd           = psv;
+	task->flags.runas_root = ( flags & LPP_OPTION_ELEVATE ) != 0;
+	task->EndNotice        = EndNotice;
+
+#ifdef WIN32
+	task->pi.hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pid );
+	//lprintf( "Newly monitored process: %08x", task->pi.hProcess );
+	if( task->pi.hProcess )
+		ThreadTo( WaitForTaskEnd, (uintptr_t)task );
+	else if( EndNotice ) {
+		EndNotice( psv, NULL );
+		Deallocate( PTASK_INFO, task );
+		task = NULL;
+	}
+#elif defined( __LINUX__ )
+	task->pid = pid;
+	ThreadTo( WaitForTaskEnd, (uintptr_t)task );
+#endif
+	return task;
+}
+
+
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
 // No way at all to know if the program works or fails.
