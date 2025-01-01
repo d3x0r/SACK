@@ -50,7 +50,7 @@ if( EXISTS ${SACK_BASE} )
 set( INCLUDES
 	-I${SACK_BASE}/include
 	-I${SACK_BASE}/src/contrib/sha1lib
-	-I${SACK_BASE}/src/contrib/sqlite/3.23.0-MySqlite
+	-I${SACK_BASE}/src/contrib/sqlite/3.45.0-MySqlite
  )
 
 FILE( WRITE ${CMAKE_BINARY_DIR}/config.ppc "/*CMake Option defined*/\n" )

@@ -294,9 +294,10 @@ else( __ANDROID__ )
 #        	set( NEED_FUSE ON )
         endif( NOT ${FUSE_FOUND} )
 
-        if( NOT ${SQLITE3_FOUND} )
+#        if( NOT ${SQLITE3_FOUND} )
+#   Always need sqlite3 - since they REFUSE to add a few lines of code OMG so frustrating 10 friggin years!
         	set( NEED_SQLITE ON )
-        endif( NOT ${SQLITE3_FOUND} )
+#        endif( NOT ${SQLITE3_FOUND} )
 	#find_package( Threads REQUIRED )
      else()
         Message( "Not WIN32, not UNIX" )
