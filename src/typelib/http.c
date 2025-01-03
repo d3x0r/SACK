@@ -298,8 +298,9 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 	//while( url = urlword )
 	{
 		char *_url = GetText(url);
+		char *start = _url;
 		TEXTRUNE ch;
-		char *newUrl = _url;
+		char *newUrl = start;
 		int decode = 0;
 		while( _url[0] ) {
 			if( decode ) {
@@ -332,7 +333,7 @@ static PTEXT  resolvePercents( PTEXT urlword ) {
 			_url++;
 		}
 		newUrl[0] = _url[0];
-		SetTextSize( url, _url - GetText( url ) );
+		SetTextSize( url, newUrl - start );
 		urlword = NEXTLINE( url );
 	}
 	return url;
