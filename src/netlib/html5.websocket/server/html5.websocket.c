@@ -527,7 +527,9 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 	if( buffer )
 	{
 		CTEXTSTR tmp = (CTEXTSTR)buffer;
-		if( !socket->flags.initial_handshake_done || socket->flags.http_request_only )
+		if( !( socket->flags.initial_handshake_done 
+             || socket->flags.in_open_event )
+          || socket->flags.http_request_only )
 		{
 			if( AddHttpData( socket->http_state, tmp, length ) )
 				read_complete_process_data( socket );
