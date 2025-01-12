@@ -913,6 +913,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			task->args1.stdErr     = FALSE;
 			task->args2.task       = task;
 			task->args2.stdErr     = TRUE;
+			task->pty              = -1;
 			if( OutputHandler )
 			{
 				if( !(flags & LPP_OPTION_INTERACTIVE ) ) {
@@ -1079,7 +1080,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			char buf;
 			int rc = read( waitPipe[0], &buf, 1 );
-			lprintf( "Waited on child to start?" );
 			close( waitPipe[0] );
 			close( waitPipe[1] );
 			
@@ -1088,11 +1088,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			if( OutputHandler2 ) { // only if it was opened as a separate handle...
 				ThreadTo( HandleTaskOutput, (uintptr_t)&task->args2 );
 			} 
-
 			task->pid = newpid;
-			// how can I know if the command failed?
-			// well I can't - but the user's callback will be invoked
-			// when the above exits.
 		}
 #endif
 	}
