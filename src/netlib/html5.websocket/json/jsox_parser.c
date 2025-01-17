@@ -1027,9 +1027,14 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 				state->gatheringString = TRUE;
 			}
 		}
-		else if( cInt == 44/*','*/ || cInt == 125/*'}'*/ || cInt == 93/*']'*/ || cInt == 58/*':'*/ )
-			vtprintf( state->pvtError, "invalid character; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, cInt, state->n, state->line, state->col );
-		else {
+		else if( cInt == 44/*','*/ || cInt == 125/*'}'*/ || cInt == 93/*']'*/ || cInt == 58/*':'*/ ) {
+			if( !state->val.string )  state->val.string = output->pos;
+			state->val.value_type = JSOX_VALUE_STRING;
+			state->word = JSOX_WORD_POS_END;
+			state->val.stringLen = output->pos - state->val.string;
+			// don't add the cInt; but do commit the rest of the string.
+			//vtprintf( state->pvtError, "invalid character; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, cInt, state->n, state->line, state->col );
+		} else {
 			if( !state->val.string )  state->val.string = output->pos;
 			state->val.value_type = JSOX_VALUE_STRING;
 			state->word = JSOX_WORD_POS_END;
@@ -1440,9 +1445,14 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.value_type != JSOX_VALUE_UNSET )
 							pushValue( state, state->elements, &state->val );
 						else {
-							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "Fault while parsing(2); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-							state->status = FALSE;
+							if( state->word != JSOX_WORD_POS_RESET ) {
+								recoverIdent( state, output, c );
+								pushValue( state, state->elements, &state->val );
+							} else {
+								if( !state->pvtError ) state->pvtError = VarTextCreate();
+								vtprintf( state->pvtError, "Fault while parsing no value on field object before closing '}'; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+								state->status = FALSE;
+							}
 						}
 					}
 					else {
