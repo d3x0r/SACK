@@ -1511,7 +1511,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				}
 				break;
 			case ']':
-				state->word = JSOX_WORD_POS_RESET;
 				if( state->parse_context == JSOX_CONTEXT_IN_ARRAY )
 				{
 #ifdef DEBUG_PARSING
@@ -1532,6 +1531,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 						pushValue( state, state->elements, &state->val );
 						JSOX_RESET_STATE_VAL();
+						state->word = JSOX_WORD_POS_RESET;
+					} else {
+						if( state->word != JSOX_WORD_POS_RESET ) {
+							recoverIdent( state, output, c );
+							pushValue( state, state->elements, &state->val );
+							JSOX_RESET_STATE_VAL();
+							state->word = JSOX_WORD_POS_RESET;
+						} else {
+							// probaby a `,]` sort of thing, empty value, trailing comma, no extra element pushed
+							// but not a syntax error
+						}
 					}
 
 					if( state->arrayType >= 0 ) {
