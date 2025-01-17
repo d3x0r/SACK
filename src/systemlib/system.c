@@ -1694,8 +1694,9 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 		//lprintf( "Task Exit didn't finish - output threads are stuck." );
 		if( task->EndNotice )
 			task->EndNotice( task->psvEnd, task );
-#if defined( __LINUX__ )			
-		close( task->pty );
+#if defined( __LINUX__ )	
+		if( task->pty > 0 )		
+			close( task->pty );
 		//lprintf( "Never did close that handle?");
 #endif
 #if defined( WIN32 )
