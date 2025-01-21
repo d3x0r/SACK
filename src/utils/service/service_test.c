@@ -113,7 +113,7 @@ int main( int argc, char **argv )
 	SETFLAG( opts, SYSLOG_OPT_LOG_SOURCE_FILE );
 	SystemLogTime( SYSLOG_TIME_LOG_DAY | SYSLOG_TIME_HIGH );
 	SetSyslogOptions( opts );
-	SetSystemLog( SYSLOG_FILE, stderr );
+	SetSystemLog( SYSLOG_AUTO_FILE, NULL );
 	SetSystemLoggingLevel( 2000 );
 
 	if( argc == 1 ) {
