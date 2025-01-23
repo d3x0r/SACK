@@ -152,6 +152,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 			//lprintf( "reply is %d", result );
 			if( (int)result == 101 )
 			{
+				websock->input_state.flags.initial_handshake_done = 1;
 				websock->flags.connected = 1;
 				{
 					PTEXT content = GetHttpContent( websock->pHttpState );
@@ -355,7 +356,7 @@ static void WebSocketClose_( WebSocketClient wsc, int code, const char *reason )
 	}
 	if( websock->Magic == 0x20130912 ) { // struct html5_web_socket
 		struct html5_web_socket *serverSock = (struct html5_web_socket*)websock;
-		if( serverSock->flags.initial_handshake_done ) {
+		if( serverSock->input_state.flags.initial_handshake_done ) {
 			//lprintf( "Send server side close with no payload." );
 			SendWebSocketMessage( &serverSock->input_state, 8, 1, serverSock->input_state.flags.expect_masking, (const uint8_t*)buf, buflen );
 			serverSock->input_state.flags.closed = 1;

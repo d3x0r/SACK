@@ -365,6 +365,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 					/// single packet, final...
 					//LogBinary( websock->fragment_collection, websock->fragment_collection_length );
 					if( websock->on_event ) {
+						while( !websock->flags.initial_handshake_done || websock->flags.in_open_event ) Relinquish();
 #ifndef __NO_WEBSOCK_COMPRESSION__
 						if( websock->flags.deflate && ( websock->RSV1 & 0x40 ) ) {
 							int r;

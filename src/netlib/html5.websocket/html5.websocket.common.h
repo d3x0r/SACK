@@ -34,7 +34,9 @@ struct web_socket_input_state
 		BIT_FIELD use_ssl : 1;
 		BIT_FIELD want_close : 1; // schedule to close (moved from client; client only)
 		BIT_FIELD pipe : 1;
-	} flags;
+		BIT_FIELD initial_handshake_done : 1;
+		BIT_FIELD in_open_event : 1;
+	} volatile flags;
 	uint32_t last_reception; // (last message tick) for automatic ping/keep alive/idle death
 
 #ifndef __NO_WEBSOCK_COMPRESSION__
@@ -100,14 +102,12 @@ struct html5_web_socket {
 	uint32_t Magic; // this value must be 0x20130912
 	struct web_socket_flags
 	{
-		BIT_FIELD initial_handshake_done : 1;
 		BIT_FIELD rfc6455 : 1;
 		BIT_FIELD accepted : 1;
 		BIT_FIELD http_request_only : 1;
-		BIT_FIELD in_open_event : 1; // set when sent to client, which can write and close before return; no further read must be done.
 		BIT_FIELD closed : 1; // was already closed (during in_read_event)
 		BIT_FIELD skip_read : 1; 
-	} flags;
+	} volatile flags;
 	HTTPState http_state;
 	PCLIENT pc;
 	POINTER buffer;
@@ -124,7 +124,7 @@ struct web_socket_client
 	{
 		BIT_FIELD connected : 1; // if not connected, then parse data as http, otherwise process as websock protocol.
 		//BIT_FIELD use_ssl : 1;
-	} flags;
+	} volatile flags;
 	PCLIENT pc;
 
 	CTEXTSTR host;

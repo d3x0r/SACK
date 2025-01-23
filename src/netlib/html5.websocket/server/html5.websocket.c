@@ -197,14 +197,14 @@ static void HandleData( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 void ResetWebsocketRequestHandler( PCLIENT pc ) {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( !socket ) return; // closing/closed....
-	socket->flags.initial_handshake_done = 0;
+	socket->input_state.flags.initial_handshake_done = 0;
 	socket->flags.http_request_only = 0;
 	EndHttp( socket->http_state );
 }
 
 void ResetWebsocketPipeRequestHandler( HTML5WebSocket socket ) {
 	if( !socket ) return; // closing/closed....
-	socket->flags.initial_handshake_done = 0;
+	socket->input_state.flags.initial_handshake_done = 0;
 	socket->flags.http_request_only = 0;
 	EndHttp( socket->http_state );
 }
@@ -223,7 +223,7 @@ uintptr_t WebSocketPipeGetServerData( HTML5WebSocket socket ) {
 
 static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
-	if( socket->flags.in_open_event ) {
+	if( socket->input_state.flags.in_open_event ) {
 		socket->flags.closed = 1;
 		return;
 	}
@@ -269,16 +269,16 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				|| !StrCaseStr( GetText( value ), "upgrade" )
 				|| !TextLike( value2, "websocket" ) ) {
 				//lprintf( "request is not an upgrade for websocket." );
-				socket->flags.initial_handshake_done = 1;
+				socket->input_state.flags.initial_handshake_done = 1;
 				socket->flags.http_request_only = 1;
-				socket->flags.in_open_event = 1;
+				socket->input_state.flags.in_open_event = 1;
 				if( socket->input_state.on_request ) {
 					if( socket->Magic == 0x20240310 )
 						socket->input_state.on_request( (PCLIENT)socket, socket->input_state.psv_on );
 					else
 						socket->input_state.on_request( socket->pc, socket->input_state.psv_on );
 				} else {
-					socket->flags.in_open_event = 0;
+					socket->input_state.flags.in_open_event = 0;
 					if( socket->pc )
 						RemoveClient( socket->pc );
 					else if( socket->input_state.do_close )
@@ -286,7 +286,7 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 
 					return;
 				}
-				socket->flags.in_open_event = 0;
+				socket->input_state.flags.in_open_event = 0;
 				if( socket->flags.closed ) {
 					destroyHttpState( socket, NULL );
 					return;
@@ -488,7 +488,7 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 						SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
 					//lprintf( "Sent http reply." );
 					VarTextDestroy( &pvt_output );
-					socket->flags.in_open_event = 1;
+					socket->input_state.flags.in_open_event = 1;
 
 					if( socket->input_state.on_open ) {
 						if( socket->Magic == 0x20240310 ) {
@@ -497,7 +497,7 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 							socket->input_state.psv_open = socket->input_state.on_open( socket->pc, socket->input_state.psv_on );
 						}
 					}
-					socket->flags.in_open_event = 0;
+					socket->input_state.flags.in_open_event = 0;
 					if( socket->flags.closed ) {
 						destroyHttpState( socket, NULL );
 						return;
@@ -512,7 +512,7 @@ static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 				}
 				// keep this until close, application might want resource and/or headers from this.
 				//EndHttp( socket->http_state );
-				socket->flags.initial_handshake_done = 1;
+				socket->input_state.flags.initial_handshake_done = 1;
 			}
 			break;
 		}
@@ -527,8 +527,8 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 	if( buffer )
 	{
 		CTEXTSTR tmp = (CTEXTSTR)buffer;
-		if( !( socket->flags.initial_handshake_done 
-             || socket->flags.in_open_event )
+		if( !( socket->input_state.flags.initial_handshake_done 
+             || socket->input_state.flags.in_open_event )
           || socket->flags.http_request_only )
 		{
 			if( AddHttpData( socket->http_state, tmp, length ) )
@@ -608,7 +608,11 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20130912;
 	socket->pc = pc_new;
+#ifdef __cplusplus
+	MemCpy( &socket->input_state, &server_socket->input_state, sizeof( socket->input_state ) ); // clone callback methods and config flags )
+#else
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+#endif	
 	socket->input_state.close_code = 1006;
 	socket->input_state.close_reason = StrDup( "Because I don't Like You?");
 	socket->input_state.psvSender = (uintptr_t)pc_new;
@@ -670,7 +674,11 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 	MemSet( socket, 0, sizeof( struct html5_web_socket ) );
 	socket->Magic = 0x20240310;
 	socket->pc = NULL;
+#ifdef __cplusplus
+	MemCpy( &socket->input_state, &server_socket->input_state, sizeof( socket->input_state ) ); // clone callback methods and config flags )
+#else
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
+#endif	
 	socket->input_state.psvSender = psvNew;
 	// this new socket gets a http state.
 	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
@@ -881,7 +889,7 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 			SendTCP( socket->pc, GetText( value ), GetTextSize( value ) );
 		//lprintf( "Sent http reply." );
 		VarTextDestroy( &pvt_output );
-		socket->flags.in_open_event = 1;
+		socket->input_state.flags.in_open_event = 1;
 
 		if( socket->input_state.on_open ) {
 			//lprintf( "Doing open event too (this will be in the self-JS thread)");
@@ -891,12 +899,12 @@ void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 				socket->input_state.psv_open = socket->input_state.on_open( socket->pc, socket->input_state.psv_on );
 			}
 		}
-		socket->flags.in_open_event = 0;
+		socket->input_state.flags.in_open_event = 0;
 		if( socket->flags.closed ) {
 			destroyHttpState( socket, NULL );
 			return;
 		}
-		socket->flags.initial_handshake_done = 1;
+		socket->input_state.flags.initial_handshake_done = 1;
 	}
 }
 
