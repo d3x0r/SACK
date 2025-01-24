@@ -74,7 +74,16 @@ namespace sack {
 			}
 
 			//--------------------------------------------------------------------------
-			PLIST  DeleteListEx( PLIST* pList DBG_PASS )
+			void  MakeListEx( PLIST *into DBG_PASS )
+			{
+				PLIST pl;
+				INDEX size;
+				(*into) = pl = (PLIST)AllocateEx( (size = (INDEX)offsetof( LIST, pNode[0] )) DBG_RELAY );
+				MemSet( (POINTER)pl, 0, size );
+			}
+
+			//--------------------------------------------------------------------------
+			void  DeleteListEx( PLIST* pList DBG_PASS )
 			{
 				PLIST ppList;
 				while (LockedExchange( list_local_lock, 1 ))
@@ -86,19 +95,18 @@ namespace sack {
 					ReleaseEx( (POINTER)ppList DBG_RELAY );
 				}
 				list_local_lock[0] = 0;
-				return NULL;
 			}
 
 			//--------------------------------------------------------------------------
 
-			static PLIST ExpandListEx( PLIST* pList, INDEX amount DBG_PASS )
+			static void ExpandListEx( PLIST* pList, INDEX amount DBG_PASS )
 			{
 				PLIST old_list = (*pList); //-V595
 				PLIST pl;
 				uintptr_t size;
 				uintptr_t old_size;
 				if (!pList)
-					return NULL;
+					return;
 				if (*pList)
 				{
 					old_size = ((uintptr_t) & ((*pList)->pNode[(*pList)->Cnt])) - ((uintptr_t)(*pList));
@@ -136,16 +144,15 @@ namespace sack {
 					// brand new list.
 					*pList = pl;
 				}
-				return pl;
 			}
 
 			//--------------------------------------------------------------------------
 
-			PLIST  AddLinkEx( PLIST* pList, POINTER p DBG_PASS )
+			void AddLinkEx( PLIST* pList, POINTER p DBG_PASS )
 			{
 				INDEX i;
 				if (!pList)
-					return NULL;
+					return;
 				if (!(*pList))
 				{
 				retry1:
@@ -161,7 +168,7 @@ namespace sack {
 					if (!(*pList))
 					{
 						list_local_lock[0] = 0;
-						return NULL;
+						return;
 					}
 				}
 
@@ -176,16 +183,15 @@ namespace sack {
 				if (i == (*pList)->Cnt)
 					goto retry1;  // pList->Cnt changes - don't test in WHILE
 				list_local_lock[0] = 0;
-				return *pList; // might be a NEW list...
 			}
 
 			//--------------------------------------------------------------------------
 
-			PLIST  SetLinkEx( PLIST* pList, INDEX idx, POINTER p DBG_PASS )
+			void  SetLinkEx( PLIST* pList, INDEX idx, POINTER p DBG_PASS )
 			{
 				INDEX sz;
 				if (!pList)
-					return NULL;
+					return;
 				if (*pList)
 				{
 					while (LockedExchange( list_local_lock, 1 ))
@@ -193,20 +199,19 @@ namespace sack {
 					if (!(*pList))
 					{
 						list_local_lock[0] = 0;
-						return NULL;
+						return;
 					}
 				}
 				if (idx == INVALID_INDEX)
 				{
 					list_local_lock[0] = 0;
-					return *pList; // not set...
+					return; // not set...
 				}
 				sz = 0;
 				while (!(*pList) || (sz = (*pList)->Cnt) <= idx)
 					ExpandListEx( pList, (idx - sz) + 1 DBG_RELAY );
 				(*pList)->pNode[idx] = p;
 				list_local_lock[0] = 0;
-				return *pList; // might be a NEW list...
 			}
 
 			//--------------------------------------------------------------------------
@@ -280,11 +285,23 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			INDEX GetLinkCount( PLIST pList ) {
+			INDEX GetLinkCount_( PLIST pList ) {
 				INDEX i;
 				POINTER p;
 				INDEX count = 0;
 				LIST_FORALL( pList, i, POINTER, p ) {
+					count++;
+				}
+				return count;
+			}
+
+			//--------------------------------------------------------------------------
+
+			INDEX GetLinksUsed( PLIST *pList ) {
+				INDEX i;
+				POINTER p;
+				INDEX count = 0;
+				LIST_FORALL( (*pList), i, POINTER, p ) {
 					count++;
 				}
 				return count;
@@ -468,6 +485,15 @@ namespace sack {
 		};//		namespace data_list {
 		namespace link_stack {
 #endif
+			void		MakeLinkStackLimitedEx( PLINKSTACK *into, int max_entries  DBG_PASS )
+			{
+				PLINKSTACK pls;
+				(*into) = pls = (PLINKSTACK)AllocateEx( sizeof( LINKSTACK ) DBG_RELAY );
+				pls->Top = 0;
+				pls->Cnt = 0;
+				pls->Max = max_entries;
+			}
+
 
 			PLINKSTACK		CreateLinkStackLimitedEx( int max_entries  DBG_PASS )
 			{
@@ -477,6 +503,13 @@ namespace sack {
 				pls->Cnt = 0;
 				pls->Max = max_entries;
 				return pls;
+			}
+
+			//--------------------------------------------------------------------------
+
+			void  MakeLinkStackEx( PLINKSTACK *into DBG_PASS )
+			{
+				MakeLinkStackLimitedEx( into, 0 DBG_RELAY );
 			}
 
 			//--------------------------------------------------------------------------
@@ -526,7 +559,7 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			static PLINKSTACK ExpandStackEx( PLINKSTACK* stack, INDEX entries DBG_PASS )
+			static void ExpandStackEx( PLINKSTACK* stack, INDEX entries DBG_PASS )
 			{
 				PLINKSTACK pNewStack;
 				if (*stack)
@@ -548,15 +581,15 @@ namespace sack {
 					*stack = pNewStack;
 				}
 				pNewStack->Cnt = entries;
-				return pNewStack;
+				//return pNewStack;
 			}
 
 			//--------------------------------------------------------------------------
 
-			PLINKSTACK  PushLinkEx( PLINKSTACK* pls, POINTER p DBG_PASS )
+			void  PushLinkEx( PLINKSTACK* pls, POINTER p DBG_PASS )
 			{
 				if (!pls)
-					return NULL;
+					return;
 				// should lock this thing :)
 				if (!*pls ||
 					(*pls)->Top == (*pls)->Cnt)
@@ -571,7 +604,6 @@ namespace sack {
 					}
 				(*pls)->pNode[(*pls)->Top] = p;
 				(*pls)->Top++;
-				return (*pls);
 			}
 #ifdef __cplusplus
 		}//namespace link_stack
@@ -616,7 +648,7 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PDATASTACK  PushDataEx( PDATASTACK* pds, POINTER pdata DBG_PASS )
+			void  PushDataEx( PDATASTACK* pds, POINTER pdata DBG_PASS )
 			{
 				if (pds && *pds)
 				{
@@ -632,11 +664,8 @@ namespace sack {
 						}
 					MemCpy( (POINTER)((*pds)->data + ((*pds)->Top * (*pds)->Size)), pdata, (*pds)->Size );
 					(*pds)->Top++;
-					return (*pds);
+					return;
 				}
-				if (pds)
-					return *pds;
-				return NULL;
 			}
 
 			//--------------------------------------------------------------------------
@@ -840,7 +869,7 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PLINKQUEUE  EnqueLinkEx( PLINKQUEUE* pplq, POINTER link DBG_PASS )
+			void  EnqueLinkEx( PLINKQUEUE* pplq, POINTER link DBG_PASS )
 			{
 				INDEX tmp;
 				PLINKQUEUE plq;
@@ -848,7 +877,7 @@ namespace sack {
 				int keep_lock = 0;
 #endif
 				if (!pplq)
-					return NULL;
+					return;
 				if (!(*pplq))
 					*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
 #if USE_CUSTOM_ALLOCER
@@ -872,7 +901,7 @@ namespace sack {
 				{
 					if (!keep_lock)
 						link_queue_local_lock[0] = 0;
-					return (*pplq);
+					return;
 				}
 				if ((*pplq)->Lock)
 				{
@@ -893,7 +922,7 @@ namespace sack {
 				{
 					//it could have been deallocated
 					link_queue_local_lock[0] = 0;
-					return (*pplq);
+					return;
 				}
 #endif
 
@@ -919,7 +948,6 @@ namespace sack {
 				plq->Lock = 0;
 #endif
 				link_queue_local_lock[0] = 0;
-				return plq;
 			}
 
 			//--------------------------------------------------------------------------
@@ -951,12 +979,12 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PLINKQUEUE  PrequeLinkEx( PLINKQUEUE* pplq, POINTER link DBG_PASS )
+			void  PrequeLinkEx( PLINKQUEUE* pplq, POINTER link DBG_PASS )
 			{
 				INDEX tmp;
 				PLINKQUEUE plq;
 				if (!pplq)
-					return NULL;
+					return;
 				if (!(*pplq))
 					*pplq = CreateLinkQueueEx( DBG_VOIDRELAY );
 #if USE_CUSTOM_ALLOCER
@@ -968,7 +996,7 @@ namespace sack {
 				if (!(*pplq))
 				{
 					link_queue_local_lock[0] = 0;
-					return NULL;
+					return;
 				}
 				if ((*pplq)->Lock)
 				{
@@ -983,7 +1011,7 @@ namespace sack {
 				{
 					//it could have been deallocated
 					link_queue_local_lock[0] = 0;
-					return (*pplq);
+					return;
 				}
 #endif
 
@@ -1006,7 +1034,6 @@ namespace sack {
 				plq->Lock = 0;
 #endif
 				link_queue_local_lock[0] = 0;
-				return plq;
 			}
 
 			//--------------------------------------------------------------------------
@@ -1274,14 +1301,14 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PDATAQUEUE  EnqueDataEx( PDATAQUEUE* ppdq, POINTER link DBG_PASS )
+			void  EnqueDataEx( PDATAQUEUE* ppdq, POINTER link DBG_PASS )
 			{
 				INDEX tmp;
 				PDATAQUEUE pdq;
 				if (!ppdq)
-					return NULL;
+					return;
 				if (!(*ppdq))
-					return NULL; // cannot create this - no idea how big.
+					return; // cannot create this - no idea how big.
 
 				while (LockedExchange( data_queue_local_lock, 1 ))
 					Relinquish();
@@ -1302,19 +1329,18 @@ namespace sack {
 					pdq->Top = tmp;
 				}
 				data_queue_local_lock[0] = 0;
-				return pdq;
 			}
 
 			//--------------------------------------------------------------------------
 
-			PDATAQUEUE  PrequeDataEx( PDATAQUEUE* ppdq, POINTER link DBG_PASS )
+			void PrequeDataEx( PDATAQUEUE* ppdq, POINTER link DBG_PASS )
 			{
 				INDEX tmp;
 				PDATAQUEUE pdq;
 				if (!ppdq)
-					return NULL;
+					return;
 				if (!(*ppdq))
-					return NULL; // cannot create this - no idea how big.
+					return; // cannot create this - no idea how big.
 
 				while (LockedExchange( data_queue_local_lock, 1 ))
 					Relinquish();
@@ -1337,7 +1363,6 @@ namespace sack {
 					pdq->Bottom = tmp;
 				}
 				data_queue_local_lock[0] = 0;
-				return pdq;
 			}
 
 			//--------------------------------------------------------------------------
