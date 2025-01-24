@@ -18,6 +18,7 @@
 #endif
 
 #ifndef NO_SSL
+#  define LIBRESSL_DISABLE_OVERRIDE_WINCRYPT_DEFINES_WARNING
 #  define _LIB
 #    if NODE_MAJOR_VERSION >= 17
 // this can't work?
