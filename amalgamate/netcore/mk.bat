@@ -103,8 +103,10 @@ cd h
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_networking.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o sack_ucb_networking.c
-gcc -c -O3 -o a-opt.o  sack_ucb_networking.c
+@set FLAGS=-D_WIN32_WINNT=0x603
+
+gcc -c -g %FLAGS% -o a.o sack_ucb_networking.c
+gcc -c -O3 %FLAGS% -o a-opt.o  sack_ucb_networking.c
 
 @set LIBS=
 @set LIBS=%LIBS% -lwinmm 
@@ -117,10 +119,11 @@ gcc -c -O3 -o a-opt.o  sack_ucb_networking.c
 @set LIBS=%LIBS% -lcrypt32
 @set LIBS=%LIBS% -lole32
 
-gcc -g -o a.exe sack_ucb_networking.c test.c %LIBS%
-gcc -O3 -o a-opt.exe sack_ucb_networking.c test.c %LIBS%
 
-gcc -g -o a.exe a.o test.c %LIBS%
-gcc -O3 -o a-opt.exe a-opt.o test.c %LIBS%
+gcc -g %FLAGS% -o a.exe sack_ucb_networking.c test.c %LIBS%
+gcc -O3 %FLAGS% -o a-opt.exe sack_ucb_networking.c test.c %LIBS%
+
+gcc -g -o   a.exe a.o test.c %LIBS%
+gcc -O3 -o   a-opt.exe a-opt.o test.c %LIBS%
 
 :_CRT_NONSTDC_NO_DEPRECATE;NO_OPEN_MACRO;_DEBUG;NO_OPEN_MACRO;__STATIC__;USE_SQLITE;USE_SQLITE_INTERFACE;FORCE_COLOR_MACROS;NO_OPEN_MACRO;__STATIC__;NO_FILEOP_ALIAS;_CRT_SECURE_NO_WARNINGS;NEED_SHLAPI;NEED_SHLOBJ;JSON_PARSER_MAIN_SOURCE;SQLITE_ENABLE_LOCKING_STYLE=0;MINIMAL_JSON_PARSE_ALLOCATE

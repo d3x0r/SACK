@@ -14,10 +14,11 @@ call mksrc.bat
 
 @set SQLITE_OPTS=-I../../src/contrib/sqlite/3.33.0-TableAlias -DSQLITE_ENABLE_COLUMN_METADATA
 
-gcc %SQLITE_OPTS% -c -g -o ac.o sack_ucb_full.c
-gcc %SQLITE_OPTS% -c -O3 -o ac-opt.o sack_ucb_full.c
-gcc %SQLITE_OPTS% -lstdc++ -c -g -o a.o sack_ucb_full.cc
-gcc %SQLITE_OPTS% -lstdc++ -c -O3 -o a-opt.o sack_ucb_full.cc
+
+gcc  %SQLITE_OPTS% -c -g -o ac.o sack_ucb_full.c
+gcc  %SQLITE_OPTS% -c -O3 -o ac-opt.o sack_ucb_full.c
+gcc  %SQLITE_OPTS% -lstdc++ -c -g -o a.o sack_ucb_full.cc
+gcc  %SQLITE_OPTS% -lstdc++ -c -O3 -o a-opt.o sack_ucb_full.cc
 
 @set LIBS=
 @set LIBS=%LIBS% -lwinmm 
@@ -32,8 +33,8 @@ gcc %SQLITE_OPTS% -lstdc++ -c -O3 -o a-opt.o sack_ucb_full.cc
 
 @set LIBS=%LIBS% ../../src/contrib/sqlite/3.33.0-TableAlias/sqlite3.c
 
-gcc %SQLITE_OPTS% -g -o a.exe sack_ucb_full.cc test.cc %LIBS% -lstdc++ 
-gcc %SQLITE_OPTS% -lstdc++ -O3 -o a-opt.exe sack_ucb_full.cc test.cc %LIBS%
+gcc  %SQLITE_OPTS% -g -o a.exe sack_ucb_full.cc test.cc %LIBS% -lstdc++ 
+gcc  %SQLITE_OPTS% -lstdc++ -O3 -o a-opt.exe sack_ucb_full.cc test.cc %LIBS%
 
 gcc %SQLITE_OPTS% -g -o ac.exe ac.o test.c %LIBS%
 gcc %SQLITE_OPTS% -O3 -o ac-opt.exe ac-opt.o test.c %LIBS%
