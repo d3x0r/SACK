@@ -1205,7 +1205,7 @@ struct find_monitor_data {
 	int* width; int* height;
 	int found;
 };
-static BOOL addMonitor( HMONITOR hMonitor,
+static BOOL WINAPI addMonitor( HMONITOR hMonitor,
 	HDC hDC_null,
 	LPRECT pRect,
 	LPARAM dwParam
