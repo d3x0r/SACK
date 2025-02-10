@@ -490,14 +490,13 @@ static void DumpSection( PCRITICALSECTION pcs )
 //#  endif
 		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
-			THREAD_ID dwCurProc;
+			THREAD_ID dwCurProc = GetThisThreadID();
 			// need to aquire lock on section...
 			// otherwise our old mechanism allowed an enter in another thread
 			// to falsely identify the section as its own while the real owner
 			// tried to exit...
 
 			if( XCHG( &pcs->dwUpdating, 1 ) ) return -1;
-			dwCurProc = GetThisThreadID();
 
 			if( !pcs->dwLocks ) {
 				// section is unowned...
