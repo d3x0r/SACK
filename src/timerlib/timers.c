@@ -148,7 +148,7 @@ struct threads_tag
 };
 
 typedef struct threads_tag THREAD;
-#define MAXTHREADSPERSET 16
+#define MAXTHREADSPERSET 64
 DeclareSet( THREAD );
 
 struct thread_event
