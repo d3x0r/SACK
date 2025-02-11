@@ -82,6 +82,8 @@ namespace sack {
 const char *default_thread_name = "ThreadSignal";
 typedef struct thread_event THREAD_EVENT;
 typedef struct thread_event *PTHREAD_EVENT;
+#define MAXTHREAD_EVENTSPERSET 64
+DeclareSet( THREAD_EVENT );
 
 struct timer_tag
 {
@@ -164,6 +166,7 @@ struct timer_local_data {
 	uint32_t timerID;
 	LOGICAL wrappedTimerID;
 	PTIMERSET timer_pool;
+	PTHREAD_EVENTSET thread_event_pool;
 	PTIMER timers;
 	PTIMER add_timer; // this timer is scheduled to be added...
 	PTIMER current_timer;
@@ -441,8 +444,8 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 #ifdef LOG_CREATE_EVENT_OBJECT
 		lprintf( "Thread Event created is: %s everyone should use this...", name );
 #endif
-		thread_event = New( THREAD_EVENT );
-		thread_event->name = StrDup( name );
+		thread_event         = GetFromSet( THREAD_EVENT, &globalTimerData.thread_event_pool ); // New( THREAD_EVENT );
+		thread_event->name   = StrDup( name );
 		thread_event->hEvent = CreateEvent( NULL, TRUE, FALSE, name );
 		AddLink( &globalTimerData.thread_events, thread_event );
 		thread->thread_event = thread_event;
@@ -703,8 +706,8 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 #endif
 		if( !thread_event )
 		{
-			thread_event = New( THREAD_EVENT );
-			thread_event->name = StrDup( name );
+			thread_event         = GetFromSet( THREAD_EVENT, &globalTimerData.thread_event_pool ); // New( THREAD_EVENT );
+			thread_event->name   = StrDup( name );
 			thread_event->hEvent = OpenEvent( EVENT_ALL_ACCESS /*EVENT_MODIFY_STATE */, FALSE, name );
 			AddLink( &globalTimerData.thread_events, thread_event );
 			thread->thread_event = thread_event;
@@ -1150,6 +1153,7 @@ static void  UnmakeThread( void )
 			Deallocate( TEXTSTR, pThread->thread_event->name );
 			if( global_timer_structure )
 				DeleteLink( &globalTimerData.thread_events, pThread->thread_event );
+			DropFromSet( THREAD_EVENT, globalTimerData.thread_event_pool, pThread->thread_event );
 			Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
 			if( global_timer_structure )
