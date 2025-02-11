@@ -82,6 +82,16 @@ namespace sack {
 const char *default_thread_name = "ThreadSignal";
 typedef struct thread_event THREAD_EVENT;
 typedef struct thread_event *PTHREAD_EVENT;
+
+struct thread_event
+{
+	TEXTSTR name;
+#ifdef _WIN32
+	HANDLE hEvent;
+#endif
+};
+
+
 #define MAXTHREAD_EVENTSPERSET 64
 DeclareSet( THREAD_EVENT );
 
@@ -152,14 +162,6 @@ struct threads_tag
 typedef struct threads_tag THREAD;
 #define MAXTHREADSPERSET 64
 DeclareSet( THREAD );
-
-struct thread_event
-{
-	TEXTSTR name;
-#ifdef _WIN32
-	HANDLE hEvent;
-#endif
-};
 
 
 struct timer_local_data {
@@ -1153,7 +1155,7 @@ static void  UnmakeThread( void )
 			Deallocate( TEXTSTR, pThread->thread_event->name );
 			if( global_timer_structure )
 				DeleteLink( &globalTimerData.thread_events, pThread->thread_event );
-			DropFromSet( THREAD_EVENT, globalTimerData.thread_event_pool, pThread->thread_event );
+			DeleteFromSet( THREAD_EVENT, globalTimerData.thread_event_pool, pThread->thread_event );
 			Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
 			if( global_timer_structure )
