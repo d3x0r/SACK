@@ -117,8 +117,8 @@ static void OnRevealCommon( CLOCK_NAME )( PSI_CONTROL pc )
 	ValidatedControlData( PCLOCK_CONTROL, clock_control.TypeID, clock, (PSI_CONTROL)pc );
 	if( clock )
 	{
-		PANALOG_CLOCK analog = clock->analog_clock;
 #if draw_on_renderer
+		PANALOG_CLOCK analog = clock->analog_clock;
 		if( analog )
 		{
 			RestoreDisplay( analog->render );
@@ -151,8 +151,8 @@ static void MoveSurface( PSI_CONTROL pc )
 		PANALOG_CLOCK analog = clock->analog_clock;
 		if( analog )
 		{
-			Image surface = GetControlSurface( pc );
-			PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
+			//Image surface = GetControlSurface( pc );
+			//PRENDERER r = GetFrameRenderer( GetFrame( pc ) );
 			int32_t x = 0;
 			int32_t y = 0;
 			GetPhysicalCoordinate( pc, &x, &y, TRUE, FALSE );
@@ -187,8 +187,8 @@ static void OnSizeCommon( CLOCK_NAME )( PSI_CONTROL pc, LOGICAL changing )
 		PANALOG_CLOCK analog = clock->analog_clock;
 		if( analog )
 		{
-			Image surface = GetControlSurface( pc );
 #if draw_on_renderer
+			Image surface = GetControlSurface( pc );
 			if( analog->render )
 				SizeDisplay( analog->render, surface->width, surface->height );
 #endif

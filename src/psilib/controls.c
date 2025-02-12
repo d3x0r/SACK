@@ -823,7 +823,6 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 		CTEXTSTR default_name;
 
 		uint32_t w, h;
-		int bias_x, bias_y;
 		GetFileGroup( "Resources", "?/" );
 		//GetDisplaySize( &w, &h );
 		//g.default_font = RenderFontFileScaledEx( "%resources%/fonts/rod.ttf", 20, 20, NULL, NULL, 0*2/*FONT_FLAG_8BIT*/, NULL, NULL );
@@ -838,10 +837,6 @@ PSI_PROC( PIMAGE_INTERFACE, SetControlImageInterface )( PIMAGE_INTERFACE Display
 		w = SACK_GetProfileInt( "SACK/PSI/Font", "Default Width", 18 );
 		h = SACK_GetProfileInt( "SACK/PSI/Font", "Default Height", 18 );
 		g.default_font = RenderFontFileScaledEx( buffer, w, h, NULL, NULL, 2/*FONT_FLAG_8BIT*/, NULL, NULL );
-		bias_x = SACK_GetProfileInt( "SACK/PSI/Font", "Bias X", 0 );
-		bias_y = SACK_GetProfileInt( "SACK/PSI/Font", "Bias Y", 0 );
-		//lprintf( "default font %p %d,%d", g.default_font, bias_x, bias_y );
-		//SetFontBias( g.default_font, bias_x, bias_y );
 	}
 #endif
 
@@ -1180,7 +1175,6 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 {
 	IMAGE_RECTANGLE wind_rect;
 	IMAGE_RECTANGLE surf_rect;
-	int drewBorder = 0;
 
 	for( ; pc; pc = pc->next ) {
 		{
@@ -1234,7 +1228,6 @@ void SmudgeSomeControlsWork( PSI_CONTROL pc, P_IMAGE_RECTANGLE pRect )
 			// AFTER the update... and well....
 			//Log( "Hit the rectange, but didn't hit the content... so update border only." );
 			if( !pc->flags.bHidden && ( pc->flags.bInitial || pc->flags.bDirtyBorder ) ) {
-				drewBorder = 1;
 				if( pc->DrawBorder ) {
 #ifdef DEBUG_BORDER_DRAWING
 					lprintf( "Drawing border ..." );
@@ -1389,7 +1382,9 @@ static void DoUpdateFrame( PSI_CONTROL pc
 								 , int surface_bias
 								  DBG_PASS)
 {
+#if DEBUG_UPDAATE_DRAW > 2
 	static int level;
+#endif
 	PPHYSICAL_DEVICE pf = NULL;
 
 	if( pc )
@@ -1406,8 +1401,8 @@ static void DoUpdateFrame( PSI_CONTROL pc
 #if DEBUG_UPDAATE_DRAW > 2
 	if( g.flags.bLogDebugUpdate )
 		_lprintf(DBG_RELAY)( "Do Update frame.. x, y on frame of %d,%d,%d,%d ", x, y, w, h );
-#endif
 	level++;
+#endif
 	if( pc && !pf ) // might just not have a device but be a root?
 	{
 #ifdef DEBUG_UPDAATE_DRAW
@@ -1443,8 +1438,8 @@ static void DoUpdateFrame( PSI_CONTROL pc
 			if( g.flags.bLogDebugUpdate )
 				lprintf( "Failing to update to screen cause %s and/or %s", pc->flags.bInitial?"it's initial":""
 						 , pc->flags.bNoUpdate ?"it's no update...":"...");
-#endif
 			level--;
+#endif
 			return;
 		}
 
@@ -1470,7 +1465,9 @@ static void DoUpdateFrame( PSI_CONTROL pc
 									  , w, h );
 		}
 	}
+#ifdef DEBUG_UPDAATE_DRAW
 	level--;
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2004,7 +2001,6 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 			if( !pc->flags.bNoUpdate && ( g.flags.always_draw || pc->flags.bDirty || bDraw ) && !pc->flags.bHidden )
 			{
 				int drewBorder = FALSE;
-				Image current = NULL;
 #ifdef DEBUG_UPDAATE_DRAW
 				if( g.flags.bLogDebugUpdate ) {
 					_lprintf( DBG_RELAY )( "Invoking a draw self for %p level %d", pc, level );
@@ -2111,7 +2107,6 @@ static void DoUpdateCommonEx( PPSI_PENDING_RECT upd, PSI_CONTROL pc, int bDraw, 
 					lprintf( "draw result is... %d", pc->draw_result );
 #endif
 
-				//if( current )
 				{
 					if( !pc->draw_result )
 					{
@@ -2941,7 +2936,6 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 		int parent_hidden = 0;
 		int parent_initial = 0;
 		int was_hidden = pc->flags.bHidden || pc->flags.bInitial;
-		int revealed = 0;
 		PSI_CONTROL parent;
 		for( parent = pc?pc->parent:NULL; parent; parent = parent->parent )
 		{
@@ -2965,7 +2959,7 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 			if( g.flags.bLogDebugUpdate )
 				lprintf( "showing a renderer..." );
 #endif
-			revealed = was_hidden;
+			//revealed = was_hidden;
 			if( was_hidden ) {
 				pc->flags.bHidden = 0;
 				pc->flags.bNoUpdate = 0;
@@ -2978,7 +2972,6 @@ PSI_PROC( void, RevealCommonEx )( PSI_CONTROL pc DBG_PASS )
 		if( was_hidden && ( (level > 1)?1:(pc->flags.bHiddenParent) ) )
 		{
 			PSI_CONTROL child;
-			revealed = 1;
 			if( !parent_hidden && !parent_initial )
 				InvokeControlRevealed( pc );
 
@@ -3313,7 +3306,6 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, uint32_t width, uint32_t height )
 		//ValidatedControlData( PFRAME, CONTROL_FRAME, pFrame, GetFrame( pc ) );
 		IMAGE_RECTANGLE old;
 		PEDIT_STATE pEditState;
-		int32_t delw, delh;
 
 		{
 			PFRACTION ix, iy;
@@ -3345,8 +3337,8 @@ PSI_PROC( void, SizeCommon )( PSI_CONTROL pc, uint32_t width, uint32_t height )
 			}
 			SizeDisplay( pc->device->pActImg, width, height );
 		}
-		delw = (int32_t)width - (int32_t)pc->rect.width;
-		delh = (int32_t)height - (int32_t)pc->rect.height;
+		//delw = (int32_t)width - (int32_t)pc->rect.width;
+		//delh = (int32_t)height - (int32_t)pc->rect.height;
 
 		old = pc->rect;
 		if( pFrame )
@@ -4034,7 +4026,7 @@ void LinkInNewControl( PSI_CONTROL parent, PSI_CONTROL elder, PSI_CONTROL child 
 			child->next = elder;
 			if( !( child->prior = elder->prior ) )
 				parent->child = child;
-				elder->prior = child;
+			elder->prior = child;
 		}
 		else
 		{
@@ -4637,7 +4629,6 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		int w = pf->rect.width;//FrameBorderX( pf->BorderType );
 		int h = pf->rect.height;//FrameBorderY( pf, pf->BorderType, NULL );
 		PPSI_COMMON_BUTTON_DATA pcbd;
-		PSI_CONTROL pc;
 		int x, x2;
 		int y;
 		//  lprintf( "Buttons will be added at... %d, %d"
@@ -4667,7 +4658,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 
 		if( okay && okaytext )
 		{
-			pc = MakeButton( pf
+			MakeButton( pf
 								, x, y
 								, COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
 								, BTN_OKAY, okaytext, 0, ButtonOkay, (uintptr_t)okay );
@@ -4675,7 +4666,7 @@ void AddCommonButtonsEx( PSI_CONTROL pf
 		}
 		if( done && donetext )
 		{
-			pc = MakeButton( pf
+			MakeButton( pf
 						  , x2, y
 						  , COMMON_BUTTON_WIDTH, COMMON_BUTTON_HEIGHT
 						  , BTN_CANCEL, donetext, 0, ButtonOkay, (uintptr_t)done );

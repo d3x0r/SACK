@@ -567,8 +567,8 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 	// input x, y relative to the current frame bias on input.
 	// _x, _y are the saved input values to this function
 	// they are not modified. __x, __y are used as a temporary save spot
-	int _x = x, __x;
-	int _y = y, __y;
+	int _x = x;
+	int _y = y;
 	struct
 	{
 		uint32_t was_in_surface : 1;
@@ -624,8 +624,6 @@ static PSI_CONTROL FindControl( PSI_CONTROL pfc, PSI_CONTROL pc, int x, int y, i
 			pf->CurrentBias.x = _bias[0] + pc->rect.x;
 			pf->CurrentBias.y = _bias[1] + pc->rect.y;
 			pf->CurrentBias.flags.bias_is_surface = 0;
-			__x = x;
-			__y = y;
 #ifdef DETAILED_MOUSE_DEBUG
 			if( g.flags.bLogDetailedMouse )
 				lprintf( "Okay coordinate within a control..." );
@@ -794,9 +792,9 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 				int do_drag = 0;
 				if( pc->border && ( pc->border->BorderHeight > 10 ) )
 					do_drag = 1;
-					if( x < pc->surface_rect.x ) // left side edge
-					{
-						SetDisplayCursor( IDC_SIZENWSE );
+				if( x < pc->surface_rect.x ) // left side edge
+				{
+					SetDisplayCursor( IDC_SIZENWSE );
 				}
 				else if( (int64_t)x > ( ( pc->surface_rect.x
 										+ pc->surface_rect.width ) ) ) // right side edge
@@ -817,9 +815,9 @@ static void UpdateCursor( PSI_CONTROL pc, int x, int y, int caption_height, int 
 			}
 			else
 			{  // top within caption band
-					if( x < pc->surface_rect.x ) // left side edge
-					{
-						SetDisplayCursor( IDC_SIZENWSE );
+				if( x < pc->surface_rect.x ) // left side edge
+				{
+					SetDisplayCursor( IDC_SIZENWSE );
 				}
 				else if( (int64_t)x > ( pc->surface_rect.x
 								+ pc->surface_rect.width ) )

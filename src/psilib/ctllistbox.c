@@ -241,13 +241,12 @@ static void AdjustItemsIntoBox( PSI_CONTROL pc )
 {
 	// current item must be shown in the list...
 	uint32_t w, h;
-	int x, y, maxchars;
+	int y, maxchars;
 	PLISTITEM pli;
 	ValidatedControlData( PLISTBOX, LISTBOX_CONTROL, plb, pc );
 	GetStringSize( " ", &w, &h );
 	maxchars = ( pc->surface_rect.width - 8 ) / w;
 	y = 2;
-	x = 4;
 	// if no current, then the cursor line need not be shown
 	// in fact first shown is first item...
 	if( plb->current )

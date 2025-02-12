@@ -421,7 +421,6 @@ void HandleOption1( uintptr_t psv, int cmd ) {
 
 int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 {
-	static int32_t _x, _y;
 	static uint32_t _b;
 	//lprintf( "Mouse thing...%ld,%ld %08lx", x, y, b );
 	{
@@ -569,8 +568,8 @@ int CPROC MouseHandler( PSI_CONTROL pc, int32_t x, int32_t y, uint32_t b )
 		TrackPopup_v2( hChildMenu, console->psicon.frame, HandleOption1, (uintptr_t)console );
 	 }
 
-	 _x = x;
-	 _y = y;
+	 //_x = x;
+	 //_y = y;
 	 _b = b;
 	 return TRUE;
 }

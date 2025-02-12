@@ -611,7 +611,7 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                                  ,{CONTROLKEY,{(PTEXT)KeyShift}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyShift}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyShift}}} } // 0x10
-                      , {"control",0,0, {{CONTROLKEY,(PTEXT)KeyControl}
+                      , {"control",0,0, {{CONTROLKEY,{(PTEXT)KeyControl}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}
@@ -619,14 +619,14 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}
                                                  ,{CONTROLKEY,{(PTEXT)KeyControl}}} }
-                      , {"menu",0,0, {{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}
-                                                 ,{CONTROLKEY,(PTEXT)KeyAlt}} }
+                      , {"menu",0,0, {{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}
+                                                 ,{CONTROLKEY,{(PTEXT)KeyAlt}}} }
                       , {"pause",0,0 }
                       , {"captial",0,0 }
                       , NONAMES, NONAMES, NONAMES, NONAMES, NONAMES, NONAMES
@@ -641,23 +641,23 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                               ,{KEYDATA}
                                               ,{KEYDATA}
                                               ,{KEYDATA}} } //0x20
-                      , {"prior", "pgup", 0, {{HISTORYKEY,(PTEXT)HistoryPageUp}} }
-                      , {"next", "pgdn", 0, {{HISTORYKEY,(PTEXT)HistoryPageDown}} }
-                      , {"end", 0, 0, {{COMMANDKEY, (PTEXT)KeyEndCmd}}}
-                      , {"home", 0, 0, {{COMMANDKEY, (PTEXT)KeyHome}}}
-                      , {"left", 0, 0, {{COMMANDKEY, (PTEXT)KeyLeft}}}
+                      , {"prior", "pgup", 0, {{HISTORYKEY,{(PTEXT)HistoryPageUp}} }}
+                      , {"next", "pgdn", 0, {{HISTORYKEY,{(PTEXT)HistoryPageDown}} }}
+                      , {"end", 0, 0, {{COMMANDKEY, {(PTEXT)KeyEndCmd}}}}
+                      , {"home", 0, 0, {{COMMANDKEY, {(PTEXT)KeyHome}}}}
+                      , {"left", 0, 0, {{COMMANDKEY, {(PTEXT)KeyLeft}}}}
 
-                      , {"up" , 0, 0, { {COMMANDKEY, (PTEXT)CommandKeyUp}
-                                       , {HISTORYKEY, (PTEXT)HistoryLineUp}}}
-                      , {"right", 0, 0, {{COMMANDKEY, (PTEXT)KeyRight}}}
-                      , {"down", 0, 0, {{COMMANDKEY, (PTEXT)HandleKeyDown}
-                                       , {HISTORYKEY, (PTEXT)HistoryLineDown}}}
+                      , {"up" , 0, 0, { {COMMANDKEY, {(PTEXT)CommandKeyUp}}
+                                       , {HISTORYKEY, {(PTEXT)HistoryLineUp}}}}
+                      , {"right", 0, 0, {{COMMANDKEY, {(PTEXT)KeyRight}}}}
+                      , {"down", 0, 0, {{COMMANDKEY, {(PTEXT)HandleKeyDown}}
+                                       , {HISTORYKEY, {(PTEXT)HistoryLineDown}}}}
                       , {"select"}
                       , {"print"}
                       , {"execute"}
                       , {"snapshot"}
-                      , {"insert", 0, 0, {{COMMANDKEY, (PTEXT)KeyInsert}}}
-                      , {"delete", 0, 0, {{KEYDATA_DEFINED, (PTEXT)&KeyStroke}}}
+                      , {"insert", 0, 0, {{COMMANDKEY, {(PTEXT)KeyInsert}}}}
+                      , {"delete", 0, 0, {{KEYDATA_DEFINED, {(PTEXT)&KeyStroke}}}}
                       , {"help"}
                       , {"0", 0, 0, {{KEYDATA}
                                     ,{KEYDATA}}}      //0x30
@@ -752,8 +752,8 @@ PSIKEYDEFINE ConsoleKeyDefs[] = { NONAMES
                                            ,{KEYDATA}}}
                       , {"v",0,0,{{KEYDATA}
 											,{KEYDATA}
-											,{SPECIALKEY,(PTEXT)_Key_KeystrokePaste}
-											,{SPECIALKEY,(PTEXT)_Key_KeystrokePaste}
+											,{SPECIALKEY,{(PTEXT)_Key_KeystrokePaste}}
+											,{SPECIALKEY,{(PTEXT)_Key_KeystrokePaste}}
 											//,{KEYDATA}
 							 }}
                       , {"w",0,0,{{KEYDATA}
