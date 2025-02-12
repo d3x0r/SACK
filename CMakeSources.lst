@@ -330,8 +330,8 @@ SET_SOURCE_FILES_PROPERTIES( ${OPTION_SOURCE} PROPERTIES
 
 endif( NOT __NO_ODBC__ OR USE_SQLITE )
 
-#set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/pngimage.c )
-set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/png_simp_image.c )
+set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/pngimage.c )
+#set( IMAGE_SOURCES_PNG_DECODER   ${SOURCES_ROOT}src/imglib/png_simp_image.c )
 
 set( IMAGE_SOURCES
   ${SOURCES_ROOT}src/imglib/alphastab.c
