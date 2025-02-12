@@ -82,6 +82,9 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 #ifndef NO_TOUCH
 													, ogl_SetTouchHandler
 #endif
+    #ifndef NO_PEN
+     , ogl_SetPenHandler
+    #endif
                                        , ogl_MarkDisplayUpdated
 									   , ogl_SetHideHandler
 									   , ogl_SetRestoreHandler

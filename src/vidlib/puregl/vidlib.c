@@ -5010,6 +5010,13 @@ RENDER_PROC (void, SetTouchHandler) (PVIDEO hVideo,
 }
 #endif
 //----------------------------------------------------------------------------
+#ifndef NO_PEN
+RENDER_PROC( void, SetPenHandler )( PVIDEO hVideo, PenCallback pPenCallback, uintptr_t dwUser ) {
+	hVideo->dwPenData    = dwUser;
+	hVideo->pPenCallback = pPenCallback;
+}
+#endif
+//----------------------------------------------------------------------------
 
 
 void  SetRedrawHandler (PVIDEO hVideo,
@@ -5642,6 +5649,9 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
                                        , RequiresDrawAll
 #ifndef NO_TOUCH
 													, SetTouchHandler
+#endif
+#ifndef NO_PEN
+       , SetPenHandler
 #endif
 													, MarkDisplayUpdated
 													, SetHideHandler

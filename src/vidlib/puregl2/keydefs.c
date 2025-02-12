@@ -300,8 +300,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 {
 	PRENDERER hVidOriginal = hVideo;
 	uint32_t keyOriginal = key;
-   int dispatch_handled;
-   int keymod = 0;
+	int dispatch_handled;
 
 	// this really will be calling OpenGLKey above....
 			if (key & 0x80000000)   // test keydown...
@@ -321,7 +320,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				key |= ( KEY_MOD_SHIFT << 28 );
 				l.mouse_b |= MK_SHIFT;
-				keymod |= 1;
+				//keymod |= 1;
 			}
 			else
 				l.mouse_b &= ~MK_SHIFT;
@@ -329,7 +328,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				key |= ( KEY_MOD_CTRL << 28 );
 				l.mouse_b |= MK_CONTROL;
-				keymod |= 2;
+				//keymod |= 2;
 			}
 			else
 				l.mouse_b &= ~MK_CONTROL;
@@ -337,7 +336,7 @@ int DispatchKeyEvent( PRENDERER hVideo, uint32_t key )
 			{
 				key |= ( KEY_MOD_ALT << 28 );
 				l.mouse_b |= MK_ALT;
-				keymod |= 4;
+				//keymod |= 4;
 			}
 			else
 				l.mouse_b &= ~MK_ALT;

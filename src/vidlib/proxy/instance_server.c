@@ -32,7 +32,6 @@ extern
 #endif
 IMAGE_INTERFACE InstanceProxyImageInterface;
 
-
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
 {
 	vtprintf( pvt, "\"rgba(%u,%u,%u,%g)\""
@@ -58,6 +57,9 @@ static struct json_context_object *WebSockInitReplyJson( enum proxy_message_id m
 	ofs = 0;
 	switch( message )
 	{
+	default:
+		lprintf( "Reply JSON unknown message %d", message );
+		break;
 	case PMID_ClientSessionId :
 		json_add_object_member( cto_data, "client_id", ofs = 0, JSON_Element_String, 0 );
 		break;
@@ -95,6 +97,9 @@ static struct json_context_object *WebSockInitJson( enum proxy_message_id messag
 	ofs = 0;
 	switch( message )
 	{
+	default:
+		lprintf( "Reply JSON unknown message %d", message );
+		break;
 	case PMID_Version:
 		json_add_object_member( cto_data, "version", 0, JSON_Element_Unsigned_Integer_32, 0 );
 		break;
@@ -345,6 +350,9 @@ static void SendTCPMessage( struct server_socket_state *state, LOGICAL websock, 
 		cto = NULL;
 	switch( message )
 	{
+	default:
+		lprintf( "Send TCP unknown message %d", message );
+		break;
 	case PMID_Version:
 		{
 			msg = NewArray( uint8_t, sendlen = ( 4 + 1 + StrLen( l.application_title ) + 1 ) );
@@ -1372,7 +1380,6 @@ static  void CPROC VidlibProxy_UnmakeImageFileEx( Image pif DBG_PASS )
 {
 	if( pif )
 	{
-		PVPImage image = (PVPImage)pif;
 		SendClientMessage( PMID_UnmakeImage, pif );
 		//lprintf( "UNMake proxy image %p %d(%d,%d)", image, image->id, image->w, image->w );
 		SetLink( &ThreadNetworkState.app->application_instance->images, ((PVPImage)pif)->id, NULL );
@@ -1728,8 +1735,7 @@ static LOGICAL CPROC VidlibProxy_IsDisplayHidden( PRENDERER r )
 
 #ifdef WIN32
 static HWND CPROC VidlibProxy_GetNativeHandle( PRENDERER r )
-{
-}
+{ return NULL; }
 #endif
 
 static void CPROC VidlibProxy_GetDisplaySizeEx( int nDisplay
@@ -1767,6 +1773,14 @@ static void CPROC VidlibProxy_IssueUpdateLayeredEx( PRENDERER r, LOGICAL bConten
 static void CPROC VidlibProxy_SetTouchHandler  ( PRENDERER r, TouchCallback c, uintptr_t p )
 {
 }
+#endif
+
+#ifndef NO_PEN
+/* <combine sack::image::render::SetTouchHandler@PRENDERER@fte inc asdfl;kj
+ fteTouchCallback@uintptr_t>
+
+ \ \																									  */
+static void CPROC VidlibProxy_SetPenHandler( PRENDERER r, PenCallback c, uintptr_t p ) {}
 #endif
 
 static void CPROC VidlibProxy_MarkDisplayUpdated( PRENDERER r  )
@@ -1878,6 +1892,9 @@ static RENDER_INTERFACE ProxyInterface = {
 #ifndef NO_TOUCH
 													  , VidlibProxy_SetTouchHandler
 #endif
+	#ifndef NO_PEN
+		, VidlibProxy_SetPenHandler
+	#endif
 													  , VidlibProxy_MarkDisplayUpdated
 													  , VidlibProxy_SetHideHandler
 													  , VidlibProxy_SetRestoreHandler
@@ -2914,9 +2931,7 @@ static void CPROC VidlibProxy_GetImageSize ( Image pImage, uint32_t *width, uint
 		(*height) = ((PVPImage)pImage)->h;
 }
 
-static SFTFont CPROC VidlibProxy_LoadFont ( SFTFont font )
-{
-}
+static SFTFont CPROC VidlibProxy_LoadFont ( SFTFont font ) { return GetDefaultFont(); }
 			/* <combine sack::image::UnloadFont@SFTFont>
 				
 				\ \												*/
@@ -3019,10 +3034,6 @@ static void CPROC VidlibProxy_AdoptSubImage ( Image pFoster, Image pOrphan )
 {
 	PVPImage foster = (PVPImage)pFoster;
 	PVPImage orphan = (PVPImage)pOrphan;
-	if( foster->id == 1 )
-	{
-		int a =3 ;
-	}
 	if( foster && orphan )
 	{
 		if( ( orphan->next = foster->child ) )
@@ -3429,6 +3440,9 @@ static void InitImageInterface( void )
 	InstanceProxyImageInterface._ResetImageBuffers = (void(CPROC*)(Image,LOGICAL))ClearImageBuffers;
 	InstanceProxyImageInterface._SetFontBias = l.real_interface->_SetFontBias;
 }
+
+int VidlibProxy_bGLColorMode = 0; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
+
 
 static IMAGE_3D_INTERFACE Proxy3dImageInterface = {
 	NULL

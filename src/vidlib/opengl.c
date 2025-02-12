@@ -451,8 +451,7 @@ int EnableOpenGL( PVIDEO hVideo )
 			static HMODULE hMe;
 			if( hMe == NULL )
 				hMe = GetModuleHandle (TARGETNAME);
-			hVideo->hWndOutputFake = CreateWindowEx( 0
-																, (TEXTCHAR *) l.aClass2
+			hVideo->hWndOutputFake = CreateWindowEx( 0, MAKEINTATOM( l.aClass2 )
 																, "InvisiGlWindow"
 																, WS_POPUP
 																, 10000, 0
@@ -561,7 +560,7 @@ RENDER_PROC( int, EnableOpenGLView )( PVIDEO hVideo, int x, int y, int w, int h 
 		if( hMe == NULL )
 			hMe = GetModuleHandle (TARGETNAME);
 		hVideo->hWndOutputFake = CreateWindowEx( 0
-						  , (TEXTCHAR*)l.aClass2
+						  , MAKEINTATOM( l.aClass2 )
 						  , "InvisiGlWindow"
 						  , WS_POPUP
 						  , x, y

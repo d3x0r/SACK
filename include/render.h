@@ -249,6 +249,7 @@ enum {
 
 #ifndef WIN32
 #define NO_TOUCH
+#define NO_PEN
 #endif
 
 
@@ -287,6 +288,35 @@ typedef struct input_point
 	} flags;
 } *PINPUT_POINT;
 
+enum pen_event_flags {
+	PEN_EVENT_FLAG_NONE = 0x00000000      // Default
+	,PEN_EVENT_FLAG_BARREL = 0x00000001   // The barrel button is pressed
+	,PEN_EVENT_FLAG_INVERTED = 0x00000002 // The pen is inverted
+	,PEN_EVENT_FLAG_ERASER = 0x00000004   // The eraser button is pressed
+	,PEN_EVENT_FLAG_NEW    = 0x00000010      // is a new event
+	,PEN_EVENT_FLAG_END    = 0x00000020      // is an end event
+};
+
+enum pen_event_mask {
+	PEN_EVENT_MASK_NONE = 0x00000000       // Default - none of the optional fields are valid
+	,PEN_EVENT_MASK_PRESSURE = 0x00000001  // The pressure field is valid
+	,PEN_EVENT_MASK_ROTATION = 0x00000002  // The rotation field is valid
+	,PEN_EVENT_MASK_TILT_X = 0x00000004    // The tiltX field is valid
+	,PEN_EVENT_MASK_TILT_Y = 0x00000008    // The tiltY field is valid
+};
+typedef struct pen_event {
+	enum pen_event_flags penFlags;
+	enum pen_event_mask penMask;
+	uint32_t pressure;
+	uint32_t rotation;
+	int32_t x;
+	int32_t y;
+	int32_t tiltX;
+	int32_t tiltY;
+	int nOverflow;
+	struct pen_event *pOverflow;
+} *PPEN_EVENT;
+
 #ifndef NO_TOUCH
 
 #if defined( MINGW_SUX )
@@ -312,6 +342,8 @@ typedef HANDLE HTOUCHINPUT;
   important as a note of the control touch event handerer.
   */
 typedef int  (CPROC*TouchCallback)( uintptr_t psvUser, PINPUT_POINT pTouches, int nTouches );
+typedef int ( CPROC *PenCallback )( uintptr_t psvUser, PPEN_EVENT penEvent );
+
 
 #endif
 /* function signature for the close callback  which can be specified to handle events to redraw the display.  see SetLoseFocusHandler. */
@@ -765,7 +797,16 @@ enum DisplayAttributes {
                     it is called.                                     */
  	  RENDER_PROC( void , SetTouchHandler)      ( PRENDERER, TouchCallback, uintptr_t );
 #endif
-	 /* Sets the function to call when a redraw event is required.
+#ifndef NO_PEN
+     /* Specifies the pen event handler for a display.
+        Parameters
+        hVideo :     display to set the touch handler for
+        callback :   the routine to call when a touch event happens.
+        user_data :  this value is passed to the callback routine when
+                     it is called.                                     */
+     RENDER_PROC( void, SetPenHandler )( PRENDERER, PenCallback, uintptr_t );
+#endif
+     /* Sets the function to call when a redraw event is required.
 	    Parameters
 	    hVideo :     display to set the handler for
 	    callback :   function to call when a redraw is required (or
@@ -1530,6 +1571,13 @@ struct render_interface_tag
        \ \                                                                             */
 			RENDER_PROC_PTR( void, SetTouchHandler)      ( PRENDERER, TouchCallback, uintptr_t );
 #endif
+#ifndef NO_TOUCH
+		/* <combine sack::image::render::SetPenHandler@PRENDERER@fte inc asdfl;kj
+		 fteTouchCallback@uintptr_t>
+
+       \ \                                                                             */
+			RENDER_PROC_PTR( void, SetPenHandler)      ( PRENDERER, PenCallback, uintptr_t );
+#endif
     RENDER_PROC_PTR( void, MarkDisplayUpdated )( PRENDERER );
     /* <combine sack::image::render::SetHideHandler@PRENDERER@HideAndRestoreCallback@uintptr_t>
 
@@ -1678,6 +1726,7 @@ typedef int check_this_variable;
 #define VidlibRenderAllowsCopy()        ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_VidlibRenderAllowsCopy)?(USE_RENDER_INTERFACE)->_VidlibRenderAllowsCopy():1:1)
 #ifndef __LINUX__
 #define SetTouchHandler           REND_PROC_ALIAS(SetTouchHandler)
+#define SetPenHandler           REND_PROC_ALIAS(SetPenHandler)
 #endif
 #define SetRedrawHandler          REND_PROC_ALIAS(SetRedrawHandler)
 #define SetKeyboardHandler        REND_PROC_ALIAS(SetKeyboardHandler)
@@ -1723,6 +1772,7 @@ typedef int check_this_variable;
 #define DisableMouseOnIdle      REND_PROC_ALIAS(DisableMouseOnIdle )
 #define SetDisplayNoMouse      REND_PROC_ALIAS(SetDisplayNoMouse )
 #define SetTouchHandler        REND_PROC_ALIAS(SetTouchHandler)
+#define SetPenHandler        REND_PROC_ALIAS(SetPenHandler)
 #define ReplyCloseDisplay      if(USE_RENDER_INTERFACE) if((USE_RENDER_INTERFACE)->_ReplyCloseDisplay) (USE_RENDER_INTERFACE)->_ReplyCloseDisplay
 #define SetClipboardEventCallback   REND_PROC_ALIAS( SetClipboardEventCallback )
 

@@ -58,11 +58,11 @@ void WantRender3D( void )
 		lprintf( "Begin Want Render" );
 
 	{
-		PRENDERER other = NULL;
+		//PRENDERER other = NULL;
 		PRENDERER hVideo;
 		for( hVideo = l.bottom; hVideo; hVideo = hVideo->pBelow )
 		{
-			other = hVideo;
+			//other = hVideo;
 			if( l.flags.bLogWrites )
 				lprintf( "Have a video in stack..." );
 			if( hVideo->flags.bDestroy )

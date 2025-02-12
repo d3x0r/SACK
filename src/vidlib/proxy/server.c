@@ -33,6 +33,8 @@ static
 extern
 #endif
 IMAGE_INTERFACE ProxyImageInterface;
+int VidlibProxy_bGLColorMode = 0; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
+
 
 
 static void FormatColor( PVARTEXT pvt, CPOINTER data )
@@ -1971,6 +1973,9 @@ static RENDER_INTERFACE ProxyInterface = {
 #ifndef NO_TOUCH
 													  , VidlibProxy_SetTouchHandler
 #endif
+	#ifndef NO_PEN
+       , NULL // SetPenHandler
+	#endif
 													  , VidlibProxy_MarkDisplayUpdated
 													  , VidlibProxy_SetHideHandler
 													  , VidlibProxy_SetRestoreHandler

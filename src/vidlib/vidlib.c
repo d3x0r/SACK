@@ -2834,6 +2834,99 @@ WM_DROPFILES
 		}
 		Return 0;
 #endif
+		/*
+		* DM_POINTERHITTEST
+		* WM_NCPOINTERDOWN
+		* WM_NCPOINTERUP
+		* WM_NCPOINTERUPDATE
+		* WM_PARENTNOTIFY
+		* WM_POINTERACTIVATE
+		* WM_POINTERCAPTURECHANGED
+		* WM_POINTERDEVICECHANGE
+		* WM_POINTERDEVICEINRANGE
+		* WM_POINTERDEVICEOUTOFRANGE
+		* WM_POINTERDOWN
+		* WM_POINTERENTER
+		* WM_POINTERLEAVE
+		* WM_POINTERROUTEDAWAY  // crosschained
+		* WM_POINTERROUTEDRELEASED // crosschained
+		* WM_POINTERROUTEDTO  // crosschained
+		* WM_POINTERUP
+		* WM_POINTERUPDATE
+		* WM_POINTERWHEEL
+		* WM_POINTERHWHEEL
+		* WM_TOUCHHITTESTING
+		*/
+		case WM_POINTERDOWN:
+		case WM_POINTERUP:
+			hVideo           = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
+			UINT32 PointerID = GET_POINTERID_WPARAM( wParam );
+			LOGICAL isNew = IS_POINTER_NEW_WPARAM( wParam );
+			LOGICAL isInRange = IS_POINTER_INRANGE_WPARAM( wParam );
+			LOGICAL isInContact     = IS_POINTER_INCONTACT_WPARAM( wParam );
+			LOGICAL isPrimary = IS_POINTER_PRIMARY_WPARAM( wParam );
+			LOGICAL isPrimaryButton = IS_POINTER_FIRSTBUTTON_WPARAM( wParam );
+			LOGICAL isSecondaryButton = IS_POINTER_SECONDBUTTON_WPARAM( wParam );
+			LOGICAL isTertiaryButton  = IS_POINTER_THIRDBUTTON_WPARAM( wParam );
+			LOGICAL isFourthButton    = IS_POINTER_FOURTHBUTTON_WPARAM( wParam );
+			LOGICAL isFifthButton     = IS_POINTER_FIFTHBUTTON_WPARAM( wParam );
+
+			int x = ((int16_t)(lParam&0xFFFF));// the x (horizontal point) coordinate.
+			int y = ((int16_t)(lParam >> 16));//: the y (vertical point) coordinate.
+			struct pen_event Info;
+			Info.x = x;
+			Info.y = y;
+			break;
+		case WM_POINTERUPDATE: {
+			hVideo           = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
+
+			UINT32 PointerID = GET_POINTERID_WPARAM( wParam );
+			// ResumeThread(ThreadHandle);
+
+			POINTER_PEN_INFO Info = { 0 };
+			if( IS_POINTER_INRANGE_WPARAM( wParam ) && GetPointerPenInfo( PointerID, &Info ) ) {
+				lprintf( "FLAGS: %x\r", Info.pointerInfo.pointerFlags );
+				/*
+				*     POINTER_INFO    pointerInfo;
+					PEN_FLAGS       penFlags;
+					PEN_MASK        penMask;
+					UINT32          pressure;
+					UINT32          rotation;
+					INT32           tiltX;
+					INT32           tiltY;
+
+				*/
+				struct pen_event event;
+				event.penFlags = Info.penFlags;
+				event.penMask  = Info.penMask;
+				event.pressure = Info.pressure;
+				event.rotation = Info.rotation;
+				event.tiltX    = Info.tiltX;
+				event.tiltY    = Info.tiltY;
+				event.nOverflow = 0;
+				POINTER_PEN_INFO infos[ 10 ];
+				UINT32 points;
+				if( GetPointerFramePenInfo( PointerID, &points, infos ) ) {
+				}
+				SkipPointerFrameMessages( PointerID );
+
+				if( hVideo->pPenCallback ) {
+					hVideo->pPenCallback( hVideo->dwPenData, &event );
+				}
+				// PointerInfo struct + pressure (set touchmask + flags appropriately)
+				//unsigned char *spreadStruct = serialize( &Info );
+
+			   /*printf("(%5d,%5d) %5u\r",
+			      Info.pointerInfo.ptPixelLocation.x,
+			      Info.pointerInfo.ptPixelLocation.y,
+			      Info.pressure);*/
+
+			   // sendInput(&Info, ...)
+			   // Or add to thread's work queue (maybe use GetPointerPenInfoHistory()?)
+		   }
+
+	   } break;
+
 #ifndef UNDER_CE
 	case WM_NCMOUSEMOVE:
 #endif
@@ -3083,9 +3176,9 @@ WM_DROPFILES
 #endif
 			DeleteLink( &l.invalidated_windows, hVideo );
 			ValidateRect( hWnd, NULL );
-//#ifdef NOISY_LOGGING
+#ifdef NOISY_LOGGING
 			lprintf( "Validated rect... will you stop calling paint!?" );
-//#endif
+#endif
 			Return 0;
 		}
 		{
@@ -3447,7 +3540,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #ifdef UNICODE
 												  , (LPWSTR)l.aClass
 #else
-												  , (LPSTR)l.aClass
+												  , MAKEINTATOM(l.aClass)
 #endif
 												  , (l.gpTitle && l.gpTitle[0]) ? l.gpTitle : hVideo->pTitle
 												  , WINDOW_STYLE
@@ -3508,7 +3601,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #ifdef UNICODE
 									  , (LPWSTR)l.aClass
 #else
-									  , (LPSTR)l.aClass
+									  , MAKEINTATOM(l.aClass)
 #endif
 									  , (l.gpTitle&&l.gpTitle[0])?l.gpTitle:hVideo->pTitle
 									  , (hVideo->hWndContainer)?WS_CHILD:(hVideo->flags.bFull ? (WS_SYSMENU|WS_POPUP|WS_MAXIMIZEBOX|WS_MINIMIZEBOX) : (WINDOW_STYLE))
@@ -5104,6 +5197,13 @@ RENDER_PROC (void, SetTouchHandler) (PVIDEO hVideo,
 }
 #endif
 //----------------------------------------------------------------------------
+#ifndef NO_PEN
+RENDER_PROC( void, SetPenHandler )( PVIDEO hVideo, PenCallback pPenCallback, uintptr_t dwUser ) {
+	hVideo->dwPenData    = dwUser;
+	hVideo->pPenCallback = pPenCallback;
+}
+#endif
+//----------------------------------------------------------------------------
 
 RENDER_PROC (void, SetRedrawHandler) (PVIDEO hVideo,
 												  RedrawCallback pRedrawCallback,
@@ -5239,9 +5339,6 @@ RENDER_PROC (void, HideDisplay) (PVIDEO hVideo)
 				//lprintf( "Checking thread..." );
 				if( ( GetCurrentThreadId () == l.dwThreadID ) && IsThisThread( thread ) )
 				{
-					HWND hWndActive = GetActiveWindow();
-					HWND hWndFocus = GetFocus ();
-					HWND hWndFore = GetForegroundWindow();
 					found = 1;
 					//lprintf( "..." );
 					if( hVideo->hWndOutput == GetForegroundWindow() ||
@@ -5880,7 +5977,10 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 #ifndef NO_TOUCH
 													, SetTouchHandler
 #endif
-													, MarkDisplayUpdated
+#ifndef NO_PEN
+       , SetPenHandler
+#endif
+       , MarkDisplayUpdated
 													, SetHideHandler
 													, SetRestoreHandler
 													, RestoreDisplayEx

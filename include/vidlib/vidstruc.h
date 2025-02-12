@@ -273,6 +273,10 @@ typedef struct HVIDEO_tag
 	TouchCallback pTouchCallback;
 	uintptr_t dwTouchData;
 #endif
+#if !defined( NO_PEN )
+	PenCallback pPenCallback;
+	uintptr_t dwPenData;
+#endif
 	RedrawCallback pRedrawCallback;
 	uintptr_t dwRedrawData;
 

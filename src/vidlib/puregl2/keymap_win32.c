@@ -76,7 +76,7 @@ LRESULT CALLBACK
 	{
 		int dispatch_handled = 0;
 		PVIDEO hVid;
-		int key, scancode, keymod = 0;
+		int key, scancode;
 		HWND hWndFocus = GetFocus ();
 		HWND hWndFore = GetForegroundWindow();
 		ATOM aThisClass;
@@ -235,16 +235,16 @@ LRESULT CALLBACK
 	int dispatch_handled = 0;
 	{
 		PVIDEO hVid;
-		int key, scancode, keymod = 0;
+		int key, scancode;
 		int vkcode;
 		KBDLLHOOKSTRUCT *kbhook = (KBDLLHOOKSTRUCT*)lParam;
 		HWND hWndFocus = GetFocus ();
 		//HWND hWndFore = GetForegroundWindow();
-		ATOM aThisClass;
+		//ATOM aThisClass;
 		//LogBinary( kbhook, sizeof( *kbhook ) );
 		//lprintf( "Received key to %p %p", hWndFocus, hWndFore );
 		//lprintf( "Received key %08x %08x", wParam, lParam );
-		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
+		//aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 
 		if( l.flags.bLogKeyEvent )
 			lprintf( "KeyHook2 %d %08lx %d %d %d %d %p"

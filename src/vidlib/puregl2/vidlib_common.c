@@ -1285,6 +1285,13 @@ RENDER_PROC (void, SetTouchHandler) (PVIDEO hVideo,
 }
 #endif
 //----------------------------------------------------------------------------
+#ifndef NO_PEN
+RENDER_PROC( void, SetPenHandler )( PVIDEO hVideo, PenCallback pPenCallback, uintptr_t dwUser ) {
+	hVideo->dwPenData    = dwUser;
+	hVideo->pPenCallback = pPenCallback;
+}
+#endif
+//----------------------------------------------------------------------------
 
 
 void  ogl_SetRedrawHandler (PVIDEO hVideo,
