@@ -43,7 +43,7 @@ IMAGE_NAMESPACE
 void CPROC IMGVER(MarkImageUpdated)( Image child_image )
 {
 	Image image;
-	for( image = child_image; image && image->pParent; image = image->pParent );
+	for( image = child_image; image && image->pParent; image = image->pParent ) /*no body*/;
 
 	{
 		if( image_common_local.tint_cache )

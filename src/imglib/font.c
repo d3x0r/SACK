@@ -197,7 +197,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 	int size;
 	PCHARACTER pchar;
 	uint8_t* data;
-	uint8_t* dataline;
+	//uint8_t* dataline;
 	void (*CharPlotAlphax)( Image pRealImage, int32_t x, int32_t y, uint32_t data, CDATA fore, CDATA back );
 	uint32_t (*CharDatax)( uint8_t *bits, uint8_t bit );
 	if( !UseFont )
@@ -242,8 +242,8 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		Image pifSrc = pchar->cell;
 #if defined( __3D__ )
 		Image pifSrcReal;
-#endif
 		Image pifDest = pImage;
+#endif
 		switch( order )
 		{
 		default:
@@ -832,7 +832,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 			}
 			for(; line <= ((int16_t)UseFont->baseline - pchar->descent); line++ )
 			{
-				dataline = data;
+				//dataline = data;
 				col = 0;
 				for( col = 0; col < pchar->offset; col++ )
 					CharPlotAlpha( pImage, StepX(x,col,line), StepY(y,line,col), background );
@@ -873,7 +873,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 				 line <= line_target;
 				 line++ )
 			{
-				dataline = data;
+				//dataline = data;
 				col = pchar->offset;
 				for( bit = 0; bit < size; col++, bit++ )
 				{
@@ -1383,8 +1383,8 @@ void PutStringFontEx( ImageFile *pImage
 											 , int32_t height, CDATA color, CDATA background
 											 , CTEXTSTR pc, size_t nLen, PFONT font )
 {
-	uint32_t _x = x;
-	uint32_t _y = y;
+	uint32_t _x;
+	//uint32_t _y = y;
 	CDATA tmp1 = 0;
 	CDATA tmp2 = 0;
 	int ch;

@@ -128,7 +128,7 @@
    <link sack::image::SFTFont, SFTFont>
    
    <link Colors>
-                                    */
+									*/
 
 #define ASM_IMAGE_NAMESPACE_END
 #endif
@@ -157,7 +157,7 @@ namespace sack {
    render namespace is contained in image, because without
    image, there could be no render. see PRENDERER.         */
 #ifdef __cplusplus
-    namespace image {
+	namespace image {
 #endif
 
 /* A fixed point decimal number (for freetype font rendering) */
@@ -173,7 +173,7 @@ typedef int64_t fixed;
    /* An array of 2 IMAGE_COORDINATES - [0] = x, [1] = y */
    typedef IMAGE_COORDINATE IMAGE_POINT[2];
    /* An unsigned value coordinate pair to track the size of
-      images.                                                */
+	  images.                                                */
    typedef IMAGE_SIZE_COORDINATE IMAGE_EXTENT[2];
    /* Pointer to an <link sack::image::IMAGE_POINT, IMAGE_POINT> */
    typedef IMAGE_COORDINATE *P_IMAGE_POINT;
@@ -184,16 +184,16 @@ typedef int64_t fixed;
 typedef struct boundry_rectangle_tag
 {  
    union {
-      IMAGE_POINT position;
-      struct {
-         IMAGE_COORDINATE x, y;
-      };
+	  IMAGE_POINT position;
+	  struct {
+		 IMAGE_COORDINATE x, y;
+	  };
    };
    union {
-      IMAGE_EXTENT size;
-      struct {
-         IMAGE_SIZE_COORDINATE width, height;
-      };
+	  IMAGE_EXTENT size;
+	  struct {
+		 IMAGE_SIZE_COORDINATE width, height;
+	  };
    };
 } IMAGE_RECTANGLE, *P_IMAGE_RECTANGLE;
 #else
@@ -203,24 +203,24 @@ typedef struct boundry_rectangle_tag
 {  
    /* anonymous union containing position information. */
    union {
-      /* An anonymous structure containing x,y and width,height of a
-         rectangle.                                                  */
-      struct {
-         /* the left coordinate of a rectangle. */
-         /* the top coordinate of a rectangle */
-         IMAGE_COORDINATE x, y;
-         /* The Y span of the rectangle */
-         /* the X Span of the rectangle */
-         IMAGE_SIZE_COORDINATE width, height;
-      };
-      /* Anonymous structure containing position (x,y) and size
-         (width,height).                                        */
-      struct {
-         /* The location of a rectangle (upper left x, y) */
-         IMAGE_POINT position;
-         /* the size of a rectangle (width and height) */
-         IMAGE_EXTENT size;
-      };
+	  /* An anonymous structure containing x,y and width,height of a
+		 rectangle.                                                  */
+	  struct {
+		 /* the left coordinate of a rectangle. */
+		 /* the top coordinate of a rectangle */
+		 IMAGE_COORDINATE x, y;
+		 /* The Y span of the rectangle */
+		 /* the X Span of the rectangle */
+		 IMAGE_SIZE_COORDINATE width, height;
+	  };
+	  /* Anonymous structure containing position (x,y) and size
+		 (width,height).                                        */
+	  struct {
+		 /* The location of a rectangle (upper left x, y) */
+		 IMAGE_POINT position;
+		 /* the size of a rectangle (width and height) */
+		 IMAGE_EXTENT size;
+	  };
    };
 } IMAGE_RECTANGLE, *P_IMAGE_RECTANGLE;
 #endif
@@ -234,14 +234,14 @@ typedef struct boundry_rectangle_tag
 // may vary depending on use (a sub-image outside the
 // boundry of its parent).
 #define ImageData union {                           \
-      struct {                                      \
-         IMAGE_COORDINATE x, y;                     \
-         IMAGE_SIZE_COORDINATE width, height;       \
-      };                                            \
-      struct {                                      \
-         IMAGE_POINT position;                      \
-         IMAGE_EXTENT size;                         \
-      };                                            \
+	  struct {                                      \
+		 IMAGE_COORDINATE x, y;                     \
+		 IMAGE_SIZE_COORDINATE width, height;       \
+	  };                                            \
+	  struct {                                      \
+		 IMAGE_POINT position;                      \
+		 IMAGE_EXTENT size;                         \
+	  };                                            \
    }
 
 
@@ -253,11 +253,11 @@ typedef struct boundry_rectangle_tag
    <code lang="c++">
    void LoadImage( char *name )
    {
-       Image image = LoadImageFile( name );
-       if( image )
-       {
-          // the image file loaded successfully.
-       }
+	   Image image = LoadImageFile( name );
+	   if( image )
+	   {
+		  // the image file loaded successfully.
+	   }
    }
    </code>                                                   */
 typedef struct ImageFile_tag *Image;
@@ -304,7 +304,7 @@ typedef struct data_transfer_state_tag {
    /* size of this block of data. */
    uint32_t size;
    /* offset of the data in the total message. Have to break up
-      large buffers into smaller chunks for transfer.           */
+	  large buffers into smaller chunks for transfer.           */
    uint32_t offset;
    /* buffer containing the data to transfer. */
    CDATA buffer;
@@ -317,24 +317,24 @@ enum string_behavior {
    ,STRING_PRINT_CONTROL // control characters perform 'typical' actions - newline, tab, backspace...
    ,STRING_PRINT_C  // c style escape characters are handled \n \b \x## - literal text
    ,STRING_PRINT_MENU /* &amp; performs an underline, also does C style handling. \\&amp;
-                         == &amp;                                                         */
+						 == &amp;                                                         */
 };
 
 /* Definitions of symbols to pass to <link SetBlotMethod> to
    specify optimization method.                              */
 enum blot_methods {
-    /* A Symbol to pass to <link SetBlotMethod> to specify using C
-      coded primitives. (for shading and alpha blending).         */
-    BLOT_C    
+	/* A Symbol to pass to <link SetBlotMethod> to specify using C
+	  coded primitives. (for shading and alpha blending).         */
+	BLOT_C    
    , BLOT_ASM/* A Symbol to pass to <link SetBlotMethod> to specify using
-      primitives with assembly optimization (for shading and alpha
-      blending).                                                   */
+	  primitives with assembly optimization (for shading and alpha
+	  blending).                                                   */
 						,
-                  /* A Symbol to pass to <link SetBlotMethod> to specify using
-      primitives with MMX optimization (for shading and alpha
-      blending).                                                */
-    BLOT_MMX 
-              
+				  /* A Symbol to pass to <link SetBlotMethod> to specify using
+	  primitives with MMX optimization (for shading and alpha
+	  blending).                                                */
+	BLOT_MMX 
+			  
 }; 
 
 // specify the method that pixels are copied from one image to another
@@ -379,16 +379,20 @@ enum BlotOperation {
    max will be clipped to max this will make very high values
    opaque totally...                                             */
 enum AlphaModifier {
-   /* Direct alpha copy - whatever the alpha is is what the output will be.  Adding a value of 0-255 here will increase the base opacity by that much */
-	ALPHA_TRANSPARENT = 0x100,
-   // Inverse alpha copy - whatever the alpha is is what the output will be.  Adding a value of 0-255 here will decrease the base opacity by that much
-ALPHA_TRANSPARENT_INVERT = 0x200,
-
-   // more than this clips to total transparency
+	/* Direct alpha copy - (Alpha of different layers is added). whatever the alpha is is what the output will be.  Adding a value of 0-255 here will increase the base opacity by that much */
+	ALPHA_TRANSPARENT = 0x100
+	// Inverse alpha copy - whatever the alpha is is what the output will be.  Adding a value of 0-255 here will decrease the base opacity by that much
+	, ALPHA_TRANSPARENT_INVERT = 0x200
+	/* Direct alpha copy - (Alpha of different layers is multiplied).  Adding a value of 0-255 here will
+	   increase
+	   the base opacity by that much */
+	, ALPHA_TRANSPARENT_MUL = 0x400
+	
+	// more than this clips to total transparency
 	// for line, plot more than 255 will
-// be total opaque... this max only
+	// be total opaque... this max only
 	// applies to blotted images
-ALPHA_TRANSPARENT_MAX = 0x2FF
+	, ALPHA_TRANSPARENT_MAX = 0x2FF
 };
 
 /* library global changes. string behavior cannot be tracked per
@@ -400,185 +404,185 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    <link sack::image::string_behavior, String Behaviors>         */
    IMAGE_PROC  void IMAGE_API  IMGVER(SetStringBehavior)( Image pImage, uint32_t behavior );
    /* Specify the optimized code to draw with. There are 3 levels,
-      C - routines coded in C, ASM - assembly optimization (32bit
-      NASM), MMX assembly but taking advantage of MMX features.    */
+	  C - routines coded in C, ASM - assembly optimization (32bit
+	  NASM), MMX assembly but taking advantage of MMX features.    */
    IMAGE_PROC  void IMAGE_API  IMGVER(SetBlotMethod)    ( uint32_t method );
    /* This routine can be used to generically scale to any point
-      between two colors.
-      Parameters
-      Color 1 :   CDATA color to scale from
-      Color 2 :   CDATA color to scale to
-      distance :  How from from 0 to max distance to scale.
-      max :       How wide the scalar is.
-      
-      Remarks
-      Max is the scale that distance can go from. Distance 0 is the
-      first color, Distance == max is the second color. The
-      distance from 0 to max proportionately scaled the color....
-      Example
-      <code lang="c++">
-      CDATA green = BASE_COLOR_GREEN;
-      CDATA blue = BASE_COLOR_BLUE;
-      CDATA red = BASE_COLOR_RED;
-      </code>
-      
-      Compute a color that is halfway from blue to green. (if the
-      total distance is 100, then 50 is half way).
-      <code lang="c++">
-      CDATA blue_green = ColorAverage( blue, green, 50, 100 );
-      </code>
-      
-      Compute a color that's mostly red.
-      <code lang="c++">
-      CDATA red_blue_green = ColorAverage( blue_green, red, 240, 255 );
-      </code>
-      
-      Iterate through a whole scaled range...
-      <code lang="c++">
-      int n;
-      for( n = 0; n \< 100; n++ )
-      {
-          CDATA scaled = ColorAverage( BASE_COLOR_WHITE, BASE_COLOR_BLACK, n, 100 );
-          // as n increases, the color slowly goes from WHITE to BLACK.
-      }
-      </code>                                                                        */
+	  between two colors.
+	  Parameters
+	  Color 1 :   CDATA color to scale from
+	  Color 2 :   CDATA color to scale to
+	  distance :  How from from 0 to max distance to scale.
+	  max :       How wide the scalar is.
+	  
+	  Remarks
+	  Max is the scale that distance can go from. Distance 0 is the
+	  first color, Distance == max is the second color. The
+	  distance from 0 to max proportionately scaled the color....
+	  Example
+	  <code lang="c++">
+	  CDATA green = BASE_COLOR_GREEN;
+	  CDATA blue = BASE_COLOR_BLUE;
+	  CDATA red = BASE_COLOR_RED;
+	  </code>
+	  
+	  Compute a color that is halfway from blue to green. (if the
+	  total distance is 100, then 50 is half way).
+	  <code lang="c++">
+	  CDATA blue_green = ColorAverage( blue, green, 50, 100 );
+	  </code>
+	  
+	  Compute a color that's mostly red.
+	  <code lang="c++">
+	  CDATA red_blue_green = ColorAverage( blue_green, red, 240, 255 );
+	  </code>
+	  
+	  Iterate through a whole scaled range...
+	  <code lang="c++">
+	  int n;
+	  for( n = 0; n \< 100; n++ )
+	  {
+		  CDATA scaled = ColorAverage( BASE_COLOR_WHITE, BASE_COLOR_BLACK, n, 100 );
+		  // as n increases, the color slowly goes from WHITE to BLACK.
+	  }
+	  </code>                                                                        */
    IMAGE_PROC  CDATA IMGVER(ColorAverage)( CDATA c1, CDATA c2, int d, int max );
 
    /* Creates an image from user defined parts. The buffer used is
-      from the user. This was used by the video library, but
-      RemakeImage accomplishes this also.
-      Parameters
-      pc :      the color buffer to use for the image.
-      width :   how wide the color buffer is
-      height :  How tall the color buffer is                       */
+	  from the user. This was used by the video library, but
+	  RemakeImage accomplishes this also.
+	  Parameters
+	  pc :      the color buffer to use for the image.
+	  width :   how wide the color buffer is
+	  height :  How tall the color buffer is                       */
    IMAGE_PROC  Image IMAGE_API IMGVER(BuildImageFileEx) ( PCOLOR pc, uint32_t width, uint32_t height DBG_PASS); 
    /* <combine sack::image::MakeImageFile>
-      
-      Adds <link sack::DBG_PASS, DBG_PASS> parameter. */
+	  
+	  Adds <link sack::DBG_PASS, DBG_PASS> parameter. */
    /* Creates an Image with a specified width and height. The
-      image's color is undefined to start.
-      
-      
-      Parameters
-      Width :     how wide to make the image. Cannot be negative.
-      Height :    how tall to make the image. Cannot be negative.
-      DBG_PASS :  _nt_
-      
-      Example
-      See <link sack::image::Image, Image>                        */
+	  image's color is undefined to start.
+	  
+	  
+	  Parameters
+	  Width :     how wide to make the image. Cannot be negative.
+	  Height :    how tall to make the image. Cannot be negative.
+	  DBG_PASS :  _nt_
+	  
+	  Example
+	  See <link sack::image::Image, Image>                        */
    IMAGE_PROC  Image IMAGE_API IMGVER(MakeImageFileEx  )(uint32_t Width, uint32_t Height DBG_PASS);
    /* Creates a sub image region on an image. Sub-images may be
-      used like any other image. There are two uses for this sort
-      of thing. OH, the sub image shares the exact data of the
-      parent image, and is not a copy.
-      Parameters
-      pImage :  image to make the sub image in
-      x :       signed location of the top side of the sub\-image
-      y :       signed location of the left side of the sub\-image
-      width :   how wide to make the sub\-image
-      height :  how tall to make the sub\-image
-      
-      Returns
-      NULL if the input image is NULL.
-      
-      Otherwise returns an Image.
-      Example
-      Use 1: An image might contain a grid of symbols or
-      characters, each exactly the same size. These may be token
-      pieces used in a game or a special graphic font.
-      <code lang="c++">
-      Image pieces_image = LoadImageFile( "Game Pieces.image" );
-      PLIST pieces = NULL;
-      int x, y;
-      \#define PIECE_WIDTH 32
-      \#define PIECE_HEIGHT 32
-      for( x = 0; x \< 10; x++ )
-         for( y = 0; y \< 2; y++ )
-         {
-             AddLink( &amp;pieces, MakeSubImage( pieces_image
-                                           , x * PIECE_WIDTH, y * PIECE_HEIGHT
-                                           , PIECE_WIDTH, PIECE_HEIGHT );
-         }
-      
-      // at this point there we have a list with all the tokens,
-      // which were 32x32 pixels each.
-      // Any of these piece images may be output using a scaled or direct blot.
-      </code>
-      
-      Use 2: Partitioning views on an image for things like
-      controls and other clipped regions.
-      <code lang="c++">
-      Image image = MakeImageFile( 1024, 768 );
-      Image clock = MakeSubImage( image, 32, 32, 150, 16 );
-      
-      DrawString( clock, 0, 0, BASE_COLOR_WHITE, BASE_COLOR_BLACK, "Current Time..." );
-      </code>                                                                           */
+	  used like any other image. There are two uses for this sort
+	  of thing. OH, the sub image shares the exact data of the
+	  parent image, and is not a copy.
+	  Parameters
+	  pImage :  image to make the sub image in
+	  x :       signed location of the top side of the sub\-image
+	  y :       signed location of the left side of the sub\-image
+	  width :   how wide to make the sub\-image
+	  height :  how tall to make the sub\-image
+	  
+	  Returns
+	  NULL if the input image is NULL.
+	  
+	  Otherwise returns an Image.
+	  Example
+	  Use 1: An image might contain a grid of symbols or
+	  characters, each exactly the same size. These may be token
+	  pieces used in a game or a special graphic font.
+	  <code lang="c++">
+	  Image pieces_image = LoadImageFile( "Game Pieces.image" );
+	  PLIST pieces = NULL;
+	  int x, y;
+	  \#define PIECE_WIDTH 32
+	  \#define PIECE_HEIGHT 32
+	  for( x = 0; x \< 10; x++ )
+		 for( y = 0; y \< 2; y++ )
+		 {
+			 AddLink( &amp;pieces, MakeSubImage( pieces_image
+										   , x * PIECE_WIDTH, y * PIECE_HEIGHT
+										   , PIECE_WIDTH, PIECE_HEIGHT );
+		 }
+	  
+	  // at this point there we have a list with all the tokens,
+	  // which were 32x32 pixels each.
+	  // Any of these piece images may be output using a scaled or direct blot.
+	  </code>
+	  
+	  Use 2: Partitioning views on an image for things like
+	  controls and other clipped regions.
+	  <code lang="c++">
+	  Image image = MakeImageFile( 1024, 768 );
+	  Image clock = MakeSubImage( image, 32, 32, 150, 16 );
+	  
+	  DrawString( clock, 0, 0, BASE_COLOR_WHITE, BASE_COLOR_BLACK, "Current Time..." );
+	  </code>                                                                           */
    IMAGE_PROC  Image IMAGE_API IMGVER(MakeSubImageEx   )( Image pImage, int32_t x, int32_t y, uint32_t width, uint32_t height DBG_PASS );
    /* Adds an image as a sub-image of another image. The image
-      being added as a sub image must not already have a parent.
-      Sub-images are like views into the parent, and share the same
-      pixel buffer that the parent has.
-      Parameters
-      pFoster :  This is the parent image to received the new
-                 subimage
-      pOrphan :  this is the subimage to be added                   */
+	  being added as a sub image must not already have a parent.
+	  Sub-images are like views into the parent, and share the same
+	  pixel buffer that the parent has.
+	  Parameters
+	  pFoster :  This is the parent image to received the new
+				 subimage
+	  pOrphan :  this is the subimage to be added                   */
    IMAGE_PROC  void IMAGE_API IMGVER(AdoptSubImage    )( Image pFoster, Image pOrphan );
    /* Removes a sub-image (child image) from a parent image. The
-      sub image my then be moved to another image with
-      AdoptSubImage.
-      Parameters
-      pImage :  the sub\-image to orphan.                        */
+	  sub image my then be moved to another image with
+	  AdoptSubImage.
+	  Parameters
+	  pImage :  the sub\-image to orphan.                        */
    IMAGE_PROC  void IMAGE_API IMGVER(OrphanSubImage   )( Image pImage );
    /* Create or recreate an image using the specified color buffer,
-      and size. All sub-images have their color data reference
-      updated.
-      Example
-      <code>
-      Image image = NULL;
-      
-      POINTER data = NewArray( CDATA, 100* 100 );
-      image = RemakeImage( image, data, 100, 100 );
-      
-      
-      
-      </code>
-      Remarks
-      If the source image is NULL, a new image will be built using
-      the color buffer and size specified.
-      
-      Image.flags has IF_FLAG_EXTERN_COLORS set if made this way,
-      since the color buffer is an external resource. This causes
-      UnmakeImage() to not attempt to free the color buffer.
-      
-      If the original image does exist, its color buffer is swapped
-      for the one specified, and coordinates are updated. The video
-      system uses this to create an image that has the color data
-      surface the surface of the display.
-      See Also
-      <link sack::image::BuildImageFile, BuildImageFile>
-      
-      GetDisplayImage
-      Parameters
-      data :    Pointer to a buffer of 32 bit color data. ARGB and
-                ABGR available via compile option.
-      width :   the width of the data in pixels.
-      height :  the height of the data in pixels.
-      Returns
-      \Returns the original image if not NULL, otherwise results
-      with an image who's color plane is defined by a user defined
-      buffer of width by height size. The user must have allocated
-      this buffer appropriately, and is responsible for its
-      destruction.                                                  */
+	  and size. All sub-images have their color data reference
+	  updated.
+	  Example
+	  <code>
+	  Image image = NULL;
+	  
+	  POINTER data = NewArray( CDATA, 100* 100 );
+	  image = RemakeImage( image, data, 100, 100 );
+	  
+	  
+	  
+	  </code>
+	  Remarks
+	  If the source image is NULL, a new image will be built using
+	  the color buffer and size specified.
+	  
+	  Image.flags has IF_FLAG_EXTERN_COLORS set if made this way,
+	  since the color buffer is an external resource. This causes
+	  UnmakeImage() to not attempt to free the color buffer.
+	  
+	  If the original image does exist, its color buffer is swapped
+	  for the one specified, and coordinates are updated. The video
+	  system uses this to create an image that has the color data
+	  surface the surface of the display.
+	  See Also
+	  <link sack::image::BuildImageFile, BuildImageFile>
+	  
+	  GetDisplayImage
+	  Parameters
+	  data :    Pointer to a buffer of 32 bit color data. ARGB and
+				ABGR available via compile option.
+	  width :   the width of the data in pixels.
+	  height :  the height of the data in pixels.
+	  Returns
+	  \Returns the original image if not NULL, otherwise results
+	  with an image who's color plane is defined by a user defined
+	  buffer of width by height size. The user must have allocated
+	  this buffer appropriately, and is responsible for its
+	  destruction.                                                  */
    IMAGE_PROC  Image IMAGE_API IMGVER(RemakeImageEx    )( Image pImage, PCOLOR pc, uint32_t width, uint32_t height DBG_PASS);
    /* Load an image file. Today we support PNG, JPG, GIF, BMP.
-      Tomorrow consider tapping into that FreeImage project on
-      sourceforge, that combines all readers into one.
-      Parameters
-      name :      Filename to read from. Opens in 'Current Directory'
-                  if not an absolute path.
-      DBG_PASS :  _nt_
-      Example
-      See <link sack::image::Image, Image>                            */
+	  Tomorrow consider tapping into that FreeImage project on
+	  sourceforge, that combines all readers into one.
+	  Parameters
+	  name :      Filename to read from. Opens in 'Current Directory'
+				  if not an absolute path.
+	  DBG_PASS :  _nt_
+	  Example
+	  See <link sack::image::Image, Image>                            */
 	IMAGE_PROC  Image IMAGE_API IMGVER(LoadImageFileEx  )( CTEXTSTR name DBG_PASS );
 
 	/* <combinewith sack::image::LoadImageFileEx@CTEXTSTR name>
@@ -594,31 +598,31 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 	IMAGE_PROC Image  IMAGE_API IMGVER(LoadImageFileFromGroupEx )( INDEX group, CTEXTSTR filename DBG_PASS );
 
    /* Decodes a block of memory into an image. This is used
-      internally so, LoadImageFile() opens the file and reads it
-      into a buffer, which it then passes to DecodeMemoryToImage().
-      Images stored in custom user structures may be passed for
-      decoding also.
-      Parameters
-      buf :   Pointer to bytes of data to decode
-      size :  the size of the buffer to decode
-      Returns
-      NULL is returned if the data does not decode as an image.
-      
-      an Image is returned otherwise.
-      Example
-      This pretends that you have a FILE* open to some image
-      already, and that the image is tiny (less than 4k bytes).
-      <code lang="c#">
-      char buffer[4096];
-      int length;
-      length = fread( buffer, 1, 4096, some_file );
-      
-      Image image = DecodeMemoryToImage( buffer, length );
-      if( image )
-      {
-         // buffer decoded okay.
-      }
-      </code>                                                       */
+	  internally so, LoadImageFile() opens the file and reads it
+	  into a buffer, which it then passes to DecodeMemoryToImage().
+	  Images stored in custom user structures may be passed for
+	  decoding also.
+	  Parameters
+	  buf :   Pointer to bytes of data to decode
+	  size :  the size of the buffer to decode
+	  Returns
+	  NULL is returned if the data does not decode as an image.
+	  
+	  an Image is returned otherwise.
+	  Example
+	  This pretends that you have a FILE* open to some image
+	  already, and that the image is tiny (less than 4k bytes).
+	  <code lang="c#">
+	  char buffer[4096];
+	  int length;
+	  length = fread( buffer, 1, 4096, some_file );
+	  
+	  Image image = DecodeMemoryToImage( buffer, length );
+	  if( image )
+	  {
+		 // buffer decoded okay.
+	  }
+	  </code>                                                       */
 			IMAGE_PROC  Image IMAGE_API IMGVER(DecodeMemoryToImage )( uint8_t* buf, size_t size );
 #ifdef __cplusplus
 		namespace loader{
@@ -628,24 +632,24 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 #ifdef __cplusplus
 		}
 #endif
-      /* direct hack for processing clipboard data... probably does some massaging of the databefore calling DecodeMemoryToImage */
+	  /* direct hack for processing clipboard data... probably does some massaging of the databefore calling DecodeMemoryToImage */
    IMAGE_PROC  Image IMAGE_API IMGVER(ImageRawBMPFile )(uint8_t* ptr, uint32_t filesize); 
 
 	/* Releases an image, has extra debug parameters.
 	   Parameters
 	   Image :     the Image to release.
 	   DBG_PASS :  Adds <link sack::DBG_PASS, DBG_PASS> parameter for
-	               the release memory tracking.                       */
+				   the release memory tracking.                       */
 	IMAGE_PROC  void IMAGE_API IMGVER(UnmakeImageFileEx )( Image pif DBG_PASS );
    /* Sets the active image rectangle to the bounding rectangle
-      specified. This can be used to limit artificially drawing
-      onto an image. (It is easier to track to create a subimage in
-      the location to draw instead of masking with a bound rect,
-      which has problems restoring back to initial conditions)
-      Parameters
-      pImage :  Image to set the drawing clipping rectangle.
-      bound :   a pointer to an IMAGE_RECTANGLE to set the image
-                boundaries to.                                      */
+	  specified. This can be used to limit artificially drawing
+	  onto an image. (It is easier to track to create a subimage in
+	  the location to draw instead of masking with a bound rect,
+	  which has problems restoring back to initial conditions)
+	  Parameters
+	  pImage :  Image to set the drawing clipping rectangle.
+	  bound :   a pointer to an IMAGE_RECTANGLE to set the image
+				boundaries to.                                      */
    IMAGE_PROC  void  IMAGE_API IMGVER(SetImageBound    )( Image pImage, P_IMAGE_RECTANGLE bound );
 // reset clip rectangle to the full image (subimage part )
 // Some operations (move, resize) will also reset the bound rect, 
@@ -677,131 +681,131 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    well for subimages though.                                    */
    IMAGE_PROC  void IMAGE_API IMGVER(ResizeImageEx     )( Image pImage, int32_t width, int32_t height DBG_PASS);
    /* Moves an image within a parent image. Top level images and
-      images which have a user color buffer do not move.
-      Parameters
-      pImage :  The image to move.
-      x :       the new X coordinate of the image.
-      y :       the new Y coordinate of the image.               */
+	  images which have a user color buffer do not move.
+	  Parameters
+	  pImage :  The image to move.
+	  x :       the new X coordinate of the image.
+	  y :       the new Y coordinate of the image.               */
    IMAGE_PROC  void IMAGE_API IMGVER(MoveImage         )( Image pImage, int32_t x, int32_t y );
 
 //-----------------------------------------------------
 
    IMAGE_PROC  void IMAGE_API IMGVER(BlatColor         )( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color );
    /* Blat is the sound a trumpet makes when it spews forth
-      noise... so Blat color is just fill a rectangle with a color,
-      quickly. Apply alpha transparency of the color specified.
-      Parameters
-      pifDest :  The destination image to fill the rectangle on
-      x :        left coordinate of the rectangle
-      y :        right coordinate of the rectangle
-      w :        width of the rectangle
-      h :        height of the rectangle
-      color :    color to fill the rectangle with. The alpha of this
-                 color will be applied.                              */
+	  noise... so Blat color is just fill a rectangle with a color,
+	  quickly. Apply alpha transparency of the color specified.
+	  Parameters
+	  pifDest :  The destination image to fill the rectangle on
+	  x :        left coordinate of the rectangle
+	  y :        right coordinate of the rectangle
+	  w :        width of the rectangle
+	  h :        height of the rectangle
+	  color :    color to fill the rectangle with. The alpha of this
+				 color will be applied.                              */
    IMAGE_PROC  void IMAGE_API IMGVER(BlatColorAlpha    )( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color );
 
    /* \ \ 
-      Parameters
-      pDest :         destination image (the one to copy to)
-      pIF :           source image 
-      x :             destination top coordinate
-      y :             destination left coordinate
-      nTransparent :  <link sack::image::AlphaModifier, Alpha Operation>
-      method :        <link sack::image::blot_methods, Blot Method>
-      _nt_ :          _nt_                                               */
+	  Parameters
+	  pDest :         destination image (the one to copy to)
+	  pIF :           source image 
+	  x :             destination top coordinate
+	  y :             destination left coordinate
+	  nTransparent :  <link sack::image::AlphaModifier, Alpha Operation>
+	  method :        <link sack::image::blot_methods, Blot Method>
+	  _nt_ :          _nt_                                               */
    IMAGE_PROC  void IMAGE_API IMGVER(BlotImageEx       )( Image pDest, Image pIF, int32_t x, int32_t y, uint32_t nTransparent, uint32_t method, ... ); 
    /* Copies an image from one image onto another. The copy is done
-      directly and no scaling is applied. If a width or height
-      larget than the image to copy is specified, only the amount
-      of the image that is valid is copied.
-      
-      
-      Parameters
-      pDest :         Destination image
-      pIF :           Image file to copy
-      x :             X position to put copy at
-      y :             Y position to put copy at
-      xs :            X position to copy from.
-      ys :            Y position to copy from.
-      wd :            how much of the image horizontally to copy
-      ht :            how much of the image vertically to copy
-      nTransparent :  <link sack::image::AlphaModifier, Alpha Transparency method>
-      method :        <link sack::image::blot_methods, BlotMethods>
-      <b>Method == BLOT_SHADED extra parameters</b>
-      red :    Color to use the red channel to output the scale from
-               black to color
-      green :  Color to use the red channel to output the scale from
-               black to color
-      blue :   Color to use the red channel to output the scale from
-               black to color 
-      <b>Method == BLOT_SHADED extra parameters</b>
-      shade :  _nt_
-      
-      See Also                                                                     */
+	  directly and no scaling is applied. If a width or height
+	  larget than the image to copy is specified, only the amount
+	  of the image that is valid is copied.
+	  
+	  
+	  Parameters
+	  pDest :         Destination image
+	  pIF :           Image file to copy
+	  x :             X position to put copy at
+	  y :             Y position to put copy at
+	  xs :            X position to copy from.
+	  ys :            Y position to copy from.
+	  wd :            how much of the image horizontally to copy
+	  ht :            how much of the image vertically to copy
+	  nTransparent :  <link sack::image::AlphaModifier, Alpha Transparency method>
+	  method :        <link sack::image::blot_methods, BlotMethods>
+	  <b>Method == BLOT_SHADED extra parameters</b>
+	  red :    Color to use the red channel to output the scale from
+			   black to color
+	  green :  Color to use the red channel to output the scale from
+			   black to color
+	  blue :   Color to use the red channel to output the scale from
+			   black to color 
+	  <b>Method == BLOT_SHADED extra parameters</b>
+	  shade :  _nt_
+	  
+	  See Also                                                                     */
    IMAGE_PROC  void IMAGE_API IMGVER(BlotImageSizedEx  )( Image pDest, Image pIF, int32_t x, int32_t y, int32_t xs, int32_t ys, uint32_t wd, uint32_t ht, uint32_t nTransparent, uint32_t method, ... );
 
    /* Copies some or all of an image to a destination image of
-      specified width and height. This does linear interpolation
-      scaling.
-      
-      
-      
-      There are simple forms of this function as macros, since
-      commonly you want to output the entire image, a macro which
-      automatically sets (0,0),(width,height) as the source
-      \parameters to output the whole image exists.
-      Parameters
-      \ \ 
-      pifDest :       Destination image
-      pifSrc :        image to copy from
-      xd :            destination x coordinate
-      yd :            destination y coordinate
-      wd :            destination width (source image width will be
-                      scaled to this)
-      hd :            destination height (source image height will
-                      be scaled to this)
-      xs :            source x coordinate (where to copy from)
-      ys :            source y coordinate (where to copy from)
-      ws :            source width (how much of the image to copy)
-      hs :            source height (how much of the image to copy)
-      nTransparent :  Alpha method...
-      method :        specifies how the source color data is
-                      transformed if at all. See BlotMethods
-      ... :           possible extra parameters depending on method
-      <b>Method == BLOT_MULTISHADE extra parameters</b>
-      red :    Color to use the red channel to output the scale from
-               black to color
-      green :  Color to use the red channel to output the scale from
-               black to color
-      blue :   Color to use the red channel to output the scale from
-               black to color
-      <b>Method == BLOT_SHADED extra parameters</b>
-      shade :  _nt_
-      
-      See Also
-      <link sack::image::AlphaModifier, Alpha Methods>
-      
-      <link sack::image::blot_methods, Blot Methods>
-      
-      
-      
-      <link sack::image::BlotScaledImage, BlotScaledImage>
-      
-      <link sack::image::BlotScaledImageShaded, BlotScaledImageShaded>
-      
-      <link sack::image::BlotScaledImageShadedAlpha, BlotScaledImageShadedAlpha>
-      
-      
-      
-      
-                                                                                 */
+	  specified width and height. This does linear interpolation
+	  scaling.
+	  
+	  
+	  
+	  There are simple forms of this function as macros, since
+	  commonly you want to output the entire image, a macro which
+	  automatically sets (0,0),(width,height) as the source
+	  \parameters to output the whole image exists.
+	  Parameters
+	  \ \ 
+	  pifDest :       Destination image
+	  pifSrc :        image to copy from
+	  xd :            destination x coordinate
+	  yd :            destination y coordinate
+	  wd :            destination width (source image width will be
+					  scaled to this)
+	  hd :            destination height (source image height will
+					  be scaled to this)
+	  xs :            source x coordinate (where to copy from)
+	  ys :            source y coordinate (where to copy from)
+	  ws :            source width (how much of the image to copy)
+	  hs :            source height (how much of the image to copy)
+	  nTransparent :  Alpha method...
+	  method :        specifies how the source color data is
+					  transformed if at all. See BlotMethods
+	  ... :           possible extra parameters depending on method
+	  <b>Method == BLOT_MULTISHADE extra parameters</b>
+	  red :    Color to use the red channel to output the scale from
+			   black to color
+	  green :  Color to use the red channel to output the scale from
+			   black to color
+	  blue :   Color to use the red channel to output the scale from
+			   black to color
+	  <b>Method == BLOT_SHADED extra parameters</b>
+	  shade :  _nt_
+	  
+	  See Also
+	  <link sack::image::AlphaModifier, Alpha Methods>
+	  
+	  <link sack::image::blot_methods, Blot Methods>
+	  
+	  
+	  
+	  <link sack::image::BlotScaledImage, BlotScaledImage>
+	  
+	  <link sack::image::BlotScaledImageShaded, BlotScaledImageShaded>
+	  
+	  <link sack::image::BlotScaledImageShadedAlpha, BlotScaledImageShadedAlpha>
+	  
+	  
+	  
+	  
+																				 */
    IMAGE_PROC  void IMAGE_API IMGVER(BlotScaledImageSizedEx)( Image pifDest, Image pifSrc
-                                   , int32_t xd, int32_t yd
-                                   , uint32_t wd, uint32_t hd
-                                   , int32_t xs, int32_t ys
-                                   , uint32_t ws, uint32_t hs
-                                   , uint32_t nTransparent
-                                   , uint32_t method, ... );
+								   , int32_t xd, int32_t yd
+								   , uint32_t wd, uint32_t hd
+								   , int32_t xs, int32_t ys
+								   , uint32_t ws, uint32_t hs
+								   , uint32_t nTransparent
+								   , uint32_t method, ... );
 
 
 /* Your basic PLOT functions (Image.C, plotasm.asm)
@@ -813,27 +817,27 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    X :      x coordinate to get pixel color
    Y :      y coordinate to get pixel color
    Color :  color to put at the coordinate. image will be set
-            exactly to this color, and whatever the alpha of the
-            color is.                                            */
+			exactly to this color, and whatever the alpha of the
+			color is.                                            */
    IMAGE_PROC  void plot       ( Image pi, int32_t x, int32_t y, CDATA c );
    /* A function pointer to the function which sets a pixel in an
-      image at a specified x, y coordinate.
-      Parameters
-      Image :  The image to get the pixel from
-      X :      x coordinate to get pixel color
-      Y :      y coordinate to get pixel color
-      Color :  color to put at the coordinate. Alpha blending will be
-               done.                                                  */
+	  image at a specified x, y coordinate.
+	  Parameters
+	  Image :  The image to get the pixel from
+	  X :      x coordinate to get pixel color
+	  Y :      y coordinate to get pixel color
+	  Color :  color to put at the coordinate. Alpha blending will be
+			   done.                                                  */
    IMAGE_PROC  void plotalpha  ( Image pi, int32_t x, int32_t y, CDATA c );
    /* A function pointer to the function which gets a pixel from an
-      image at a specified x, y coordinate.
-      Parameters
-      Image :  The image to get the pixel from
-      X :      x coordinate to get pixel color
-      Y :      y coordinate to get pixel color
-      
-      Returns
-      CDATA color in the Image at the specified coordinate.         */
+	  image at a specified x, y coordinate.
+	  Parameters
+	  Image :  The image to get the pixel from
+	  X :      x coordinate to get pixel color
+	  Y :      y coordinate to get pixel color
+	  
+	  Returns
+	  CDATA color in the Image at the specified coordinate.         */
    IMAGE_PROC  CDATA getpixel  ( Image pi, int32_t x, int32_t y );
 //-------------------------------
 // Line functions  (lineasm.asm) // should include a line.c ... for now core was assembly...
@@ -842,58 +846,58 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    IMAGE_PROC  void do_lineAlpha ( Image pBuffer, int32_t x, int32_t y, int32_t xto, int32_t yto, CDATA color);  // d is color data...
 
    /* This is a function pointer that references a function to do
-      optimized horizontal lines. The function pointer is updated
-      when SetBlotMethod() is called.
-      Parameters
-      Image :   the image to draw to
-      Y :       the y coordinate of the line (how far down from top to
-                draw it)
-      x_from :  X coordinate to draw from
-      x_to :    X coordinate to draw to
-      color :   the color of the line. This color will be set to the
-                surface, the alpha result will be the alpha of this
-                color.                                                 */
+	  optimized horizontal lines. The function pointer is updated
+	  when SetBlotMethod() is called.
+	  Parameters
+	  Image :   the image to draw to
+	  Y :       the y coordinate of the line (how far down from top to
+				draw it)
+	  x_from :  X coordinate to draw from
+	  x_to :    X coordinate to draw to
+	  color :   the color of the line. This color will be set to the
+				surface, the alpha result will be the alpha of this
+				color.                                                 */
    IMAGE_PROC  void do_hline      ( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color );
    /* This is a function pointer that references a function to do
-      optimized vertical lines. The function pointer is updated
-      when SetBlotMethod() is called.
-      
-      
-      Parameters
-      Image :   the image to draw to
-      X :       the x coordinate of the line (how far over to draw
-                it)
-      y_from :  Y coordinate to draw from
-      y_to :    Y coordinate to draw to
-      color :   the color of the line. This color will be set to the
-                surface, the alpha result will be the alpha of this
-                color.                                               */
+	  optimized vertical lines. The function pointer is updated
+	  when SetBlotMethod() is called.
+	  
+	  
+	  Parameters
+	  Image :   the image to draw to
+	  X :       the x coordinate of the line (how far over to draw
+				it)
+	  y_from :  Y coordinate to draw from
+	  y_to :    Y coordinate to draw to
+	  color :   the color of the line. This color will be set to the
+				surface, the alpha result will be the alpha of this
+				color.                                               */
    IMAGE_PROC  void do_vline      ( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color );
    /* This is a function pointer that references a function to do
-      optimized horizontal lines with alpha blending. The function
-      pointer is updated when SetBlotMethod() is called.
-      Parameters
-      Image :   the image to draw to
-      Y :       the Y coordinate of the line (how far down from top
-                of image to draw it)
-      x_from :  X coordinate to draw from
-      x_to :    X coordinate to draw to
-      color :   the color of the line (alpha component of the color
-                will be applied)                                    */
+	  optimized horizontal lines with alpha blending. The function
+	  pointer is updated when SetBlotMethod() is called.
+	  Parameters
+	  Image :   the image to draw to
+	  Y :       the Y coordinate of the line (how far down from top
+				of image to draw it)
+	  x_from :  X coordinate to draw from
+	  x_to :    X coordinate to draw to
+	  color :   the color of the line (alpha component of the color
+				will be applied)                                    */
    IMAGE_PROC  void do_hlineAlpha ( Image pImage, int32_t y, int32_t xfrom, int32_t xto, CDATA color );
    /* This is a function pointer that references a function to do
-      optimized vertical lines with alpha blending. The function
-      pointer is updated when SetBlotMethod() is called.
-      
-      
-      Parameters
-      Image :   the image to draw to
-      X :       the x coordinate of the line (how far over to draw
-                it)
-      y_from :  Y coordinate to draw from
-      y_to :    Y coordinate to draw to
-      color :   the color of the line (alpha component of the color
-                will be applied)                                    */
+	  optimized vertical lines with alpha blending. The function
+	  pointer is updated when SetBlotMethod() is called.
+	  
+	  
+	  Parameters
+	  Image :   the image to draw to
+	  X :       the x coordinate of the line (how far over to draw
+				it)
+	  y_from :  Y coordinate to draw from
+	  y_to :    Y coordinate to draw to
+	  color :   the color of the line (alpha component of the color
+				will be applied)                                    */
    IMAGE_PROC  void do_vlineAlpha ( Image pImage, int32_t x, int32_t yfrom, int32_t yto, CDATA color );
 	/* routine which iterates through the points along a lone from
 	   x,y to xto,yto, calling a user function at each point.
@@ -905,7 +909,7 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 	   yto :    draw to this y coordinate
 	   d :      userdata (color data)
 	   func :   user callback function to a function of type...<p />void
-	            func( Image pif, int32_t x, int32_t y, int d ) ;
+				func( Image pif, int32_t x, int32_t y, int d ) ;
 	   
 	   Remarks
 	   The Image passed does not HAVE to be an Image, it can be any
@@ -919,181 +923,181 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
 	   
 	   void MyPlotter( Image image, int32_t x, int32_t y, CDATA color )
 	   {
-	       // do something with the image at x,y
+		   // do something with the image at x,y
 	   }
 	   
 	   void UseMyPlotter( Image image )
 	   {
-	       do_lineExV( image, 10, 10, 80, 80, BASE_COLOR_BLACK, MyPlotter );
+		   do_lineExV( image, 10, 10, 80, 80, BASE_COLOR_BLACK, MyPlotter );
 	   }
 	   </code>                                                               */
 	IMAGE_PROC  void do_lineExV    ( Image pImage, int32_t x, int32_t y
 									, int32_t xto, int32_t yto, uintptr_t color
-		                            , void (*func)( Image pif, int32_t x, int32_t y, uintptr_t d ) );
+									, void (*func)( Image pif, int32_t x, int32_t y, uintptr_t d ) );
    /* \Returns the correct SFTFont pointer to the default font. In all
-      font functions, NULL may be used as the font, and this is the
-      font that will be used.
-      Parameters
-      None.
-      Example
-      <code lang="c++">
-      SFTFont font = GetDefaultFont();
-      </code>                                                       */
+	  font functions, NULL may be used as the font, and this is the
+	  font that will be used.
+	  Parameters
+	  None.
+	  Example
+	  <code lang="c++">
+	  SFTFont font = GetDefaultFont();
+	  </code>                                                       */
    IMAGE_PROC  SFTFont IMAGE_API IMGVER(GetDefaultFont )( void );
    /* \Returns the height of a font for purposes of spacing between
-      lines. Characters may render outside of this height.
-      
-      
-      Parameters
-      SFTFont :  SFTFont to get the height of. if NULL returns an internal
-              font's height.
-      
-      Returns
-      the height of the font.                                        */
+	  lines. Characters may render outside of this height.
+	  
+	  
+	  Parameters
+	  SFTFont :  SFTFont to get the height of. if NULL returns an internal
+			  font's height.
+	  
+	  Returns
+	  the height of the font.                                        */
    IMAGE_PROC  uint32_t  IMAGE_API IMGVER(GetFontHeight  )( SFTFont );
    /* \Returns the approximate rectangle that would be used for a
-      string. It only counts using the line measurement. Newlines
-      in strings count to wrap text to subsequent lines and start
-      recounting the width, returning the maximum length of string
-      horizontally.
-      Parameters
-      pString :  The string to measure
-      len :      the length of characters to count in string
-      width :    a pointer to a uint32_t to receive the width of the
-                 string
-      height :   a pointer to a uint32_t to receive the height of the
-                 string
-      UseFont :  A SFTFont to use. 
-      
-      Returns
-      \Returns the width parameter. If NULL are passed for width
-      and height, this is OK. One of the simple macros just passes
-      the string and gets the return - this is for how wide the
-      string would be.                                             */
+	  string. It only counts using the line measurement. Newlines
+	  in strings count to wrap text to subsequent lines and start
+	  recounting the width, returning the maximum length of string
+	  horizontally.
+	  Parameters
+	  pString :  The string to measure
+	  len :      the length of characters to count in string
+	  width :    a pointer to a uint32_t to receive the width of the
+				 string
+	  height :   a pointer to a uint32_t to receive the height of the
+				 string
+	  UseFont :  A SFTFont to use. 
+	  
+	  Returns
+	  \Returns the width parameter. If NULL are passed for width
+	  and height, this is OK. One of the simple macros just passes
+	  the string and gets the return - this is for how wide the
+	  string would be.                                             */
    IMAGE_PROC  uint32_t  IMAGE_API IMGVER(GetStringSizeFontEx)( CTEXTSTR pString, size_t len, uint32_t *width, uint32_t *height, SFTFont UseFont );
    /* Fill the width and height with the actual size of the string
-      as it is drawn. (may be above or below the original
-      rectangle)
-      Parameters
-      pString :     the string to measure
-      nLen :        the number of characters in the string
-      width :       a pointer to a 32 bit value to get resulting
-                    width
-      height :      a pointer to a 32 bit value to get resulting
-                    height
-      charheight :  the actual height of the characters (as reports
-                    by line)
-      UseFont :     a SFTFont to use. If NULL use a default internal
-                    font.                                           */
+	  as it is drawn. (may be above or below the original
+	  rectangle)
+	  Parameters
+	  pString :     the string to measure
+	  nLen :        the number of characters in the string
+	  width :       a pointer to a 32 bit value to get resulting
+					width
+	  height :      a pointer to a 32 bit value to get resulting
+					height
+	  charheight :  the actual height of the characters (as reports
+					by line)
+	  UseFont :     a SFTFont to use. If NULL use a default internal
+					font.                                           */
    IMAGE_PROC  uint32_t IMAGE_API IMGVER(GetStringRenderSizeFontEx )( CTEXTSTR pString, size_t nLen, uint32_t *width, uint32_t *height, uint32_t *charheight, SFTFont UseFont );
 
 // background of color 0,0,0 is transparent - alpha component does not
 // matter....
    IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterFont              )( Image pImage
-                                                  , int32_t x, int32_t y, int32_t height
-                                                  , CDATA color, CDATA background,
-                                                   TEXTCHAR c, SFTFont font );
+												  , int32_t x, int32_t y, int32_t height
+												  , CDATA color, CDATA background,
+												   TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn from the point up, with the characters
-      aligned with the top to the left; it goes up from the point.
-      the point becomes the bottom left of the rectangle output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      c :           the character to output
-      font :        the font to use. NULL use an internal default
-                    font.                                          */
+	  point, text is drawn from the point up, with the characters
+	  aligned with the top to the left; it goes up from the point.
+	  the point becomes the bottom left of the rectangle output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  c :           the character to output
+	  font :        the font to use. NULL use an internal default
+					font.                                          */
    IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalFont      )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn from the point to the left, with the
-      characters aligned with the top to the left; it goes up from
-      the point. the point becomes the bottom left of the rectangle
-      \output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      pc :          pointer to constant text
-      nLen :        length of text to output
-      font :        the font to use. NULL use an internal default
-                    font.                                           */
+	  point, text is drawn from the point to the left, with the
+	  characters aligned with the top to the left; it goes up from
+	  the point. the point becomes the bottom left of the rectangle
+	  \output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  pc :          pointer to constant text
+	  nLen :        length of text to output
+	  font :        the font to use. NULL use an internal default
+					font.                                           */
    IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterInvertFont        )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
    /* Outputs a character in the specified font, from the specified
-      point, text is drawn from the point up, with the characters
-      aligned with the top to the left; it goes up from the point. the
-      point becomes the bottom left of the rectangle output.
-      Parameters
-                                                                       */
+	  point, text is drawn from the point up, with the characters
+	  aligned with the top to the left; it goes up from the point. the
+	  point becomes the bottom left of the rectangle output.
+	  Parameters
+																	   */
    IMAGE_PROC  void IMAGE_API IMGVER(PutCharacterVerticalInvertFont)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, TEXTCHAR c, SFTFont font );
 
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn right side up and godes from left to
-      right. The point becomes the top left of the rectangle
-      \output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      pc :          pointer to constant text
-      nLen :        length of text to output
-      font :        the font to use. NULL use an internal default
-                    font.                                         */
+	  point, text is drawn right side up and godes from left to
+	  right. The point becomes the top left of the rectangle
+	  \output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  pc :          pointer to constant text
+	  nLen :        length of text to output
+	  font :        the font to use. NULL use an internal default
+					font.                                         */
    IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontEx              )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
    /* justification 0 is left, 1 is right, 2 is center */
    IMAGE_PROC  void IMAGE_API IMGVER(PutStringFontExx              )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font, int justication, uint32_t _width );
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn from the point down, with the characters
-      aligned with the top to the right; it goes down from the
-      point. the point becomes the top right of the rectangle
-      \output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      pc :          pointer to constant text
-      nLen :        length of text to output
-      font :        the font to use. NULL use an internal default
-                    font.                                           */
+	  point, text is drawn from the point down, with the characters
+	  aligned with the top to the right; it goes down from the
+	  point. the point becomes the top right of the rectangle
+	  \output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  pc :          pointer to constant text
+	  nLen :        length of text to output
+	  font :        the font to use. NULL use an internal default
+					font.                                           */
    IMAGE_PROC  void IMAGE_API IMGVER(PutStringVerticalFontEx      )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn upside down, and goes to the left from
-      the point. the point becomes the bottom right of the
-      rectangle output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      pc :          pointer to constant text
-      nLen :        length of text to output
-      font :        the font to use. NULL use an internal default
-                    font.                                         */
+	  point, text is drawn upside down, and goes to the left from
+	  the point. the point becomes the bottom right of the
+	  rectangle output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  pc :          pointer to constant text
+	  nLen :        length of text to output
+	  font :        the font to use. NULL use an internal default
+					font.                                         */
    IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertFontEx        )( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
    /* Outputs a string in the specified font, from the specified
-      point, text is drawn from the point up, with the characters
-      aligned with the top to the left; it goes up from the point. the
-      point becomes the bottom left of the rectangle output.
-      Parameters
-      pImage :      image to draw string into
-      x :           x position of the string
-      y :           y position of the string
-      color :       color of the data drawn in the font
-      background :  color of the data not drawn in the font
-      pc :          pointer to constant text
-      nLen :        length of text to output
-      font :        the font to use. NULL use an internal default
-                    font.                                              */
+	  point, text is drawn from the point up, with the characters
+	  aligned with the top to the left; it goes up from the point. the
+	  point becomes the bottom left of the rectangle output.
+	  Parameters
+	  pImage :      image to draw string into
+	  x :           x position of the string
+	  y :           y position of the string
+	  color :       color of the data drawn in the font
+	  background :  color of the data not drawn in the font
+	  pc :          pointer to constant text
+	  nLen :        length of text to output
+	  font :        the font to use. NULL use an internal default
+					font.                                              */
    IMAGE_PROC  void IMAGE_API IMGVER(PutStringInvertVerticalFontEx)( Image pImage, int32_t x, int32_t y, int32_t height, CDATA color, CDATA background, CTEXTSTR pc, size_t nLen, SFTFont font );
 
    //uint32_t (*PutMenuStringFontEx)            ( Image pImage, int32_t x, int32_t y, CDATA color, CDATA background, CTEXTSTR pc, uint32_t nLen, SFTFont font );
@@ -1101,38 +1105,38 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    IMAGE_PROC  uint32_t IMAGE_API IMGVER(GetMaxStringLengthFont  )( uint32_t width, SFTFont UseFont );
 
    /* Used as a proper accessor method to get an image's width and
-      height. Decided to allow the image structure to be mostly
-      public, so the first 4 members are the images x,y, width and
-      height, and are immediately accessable by the Image pointer.
-      Parameters
-      pImage :  image to get the size of
-      width :   pointer to a 32 bit unsigned value to result with the
-                width, if NULL ignored.
-      height :  pointer to a 32 bit unsigned value to result with the
-                height, if NULL ignored.                              */
+	  height. Decided to allow the image structure to be mostly
+	  public, so the first 4 members are the images x,y, width and
+	  height, and are immediately accessable by the Image pointer.
+	  Parameters
+	  pImage :  image to get the size of
+	  width :   pointer to a 32 bit unsigned value to result with the
+				width, if NULL ignored.
+	  height :  pointer to a 32 bit unsigned value to result with the
+				height, if NULL ignored.                              */
    IMAGE_PROC  void IMAGE_API IMGVER(GetImageSize            )( Image pImage, uint32_t *width, uint32_t *height );
    /* \Returns the pointer to the color buffer currently used
-      \internal to the image.
-      Parameters
-      pImage :  Image to get the surface of.
-      
-      Example
-      <code lang="c#">
-      Image image = MakeImageFile( 100, 100 );
-      PCDATA pointer_color_data = GetImageSurface( image );
-      </code>
-      Note
-      This might be used to do an optimized output routine. Drawing
-      to the image with plot and line are not necessarily the best
-      for things like circles. Provides ability for user to output
-      directly to the color buffer.                                 */
+	  \internal to the image.
+	  Parameters
+	  pImage :  Image to get the surface of.
+	  
+	  Example
+	  <code lang="c#">
+	  Image image = MakeImageFile( 100, 100 );
+	  PCDATA pointer_color_data = GetImageSurface( image );
+	  </code>
+	  Note
+	  This might be used to do an optimized output routine. Drawing
+	  to the image with plot and line are not necessarily the best
+	  for things like circles. Provides ability for user to output
+	  directly to the color buffer.                                 */
    IMAGE_PROC  PCDATA IMAGE_API IMGVER(GetImageSurface        )( Image pImage );
 
    // would seem silly to load fonts - but for server implementations
    // the handle received is not the same as the font sent.
    IMAGE_PROC  SFTFont IMAGE_API IMGVER(LoadFont                )( SFTFont font );
    /* Destroys a font, releasing all resources associated with
-      character data and font rendering.                       */
+	  character data and font rendering.                       */
    IMAGE_PROC  void IMAGE_API IMGVER(UnloadFont              )( SFTFont font );
 	/* This is a function used to synchronize image operations when
 	   the image interface is across a message server.              */
@@ -1141,36 +1145,36 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    // into R ...
    IMAGE_PROC  int IMAGE_API IMGVER(IntersectRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
    /* Merges two image rectangles. The resulting rectangle is a
-      rectangle that includes both rectangles.
-      Parameters
-      r :   Pointer to an IMAGE_RECTANGLE for the result.
-      r1 :  PIMAGE_RECTANGLE one rectangle.
-      r2 :  PIMAGE_RECTANGLE the other rectangle.               */
+	  rectangle that includes both rectangles.
+	  Parameters
+	  r :   Pointer to an IMAGE_RECTANGLE for the result.
+	  r1 :  PIMAGE_RECTANGLE one rectangle.
+	  r2 :  PIMAGE_RECTANGLE the other rectangle.               */
    IMAGE_PROC  int IMAGE_API IMGVER(MergeRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
    /* User applications may use an aux rect attatched to an image. The
-      'Display' render library used this itself however, making
-      this mostly an internal feature.
-      Parameters
-      pImage :  image to get the aux rect of.
-      pRect :   pointer to an IMAGE_RECTANGLE to get the aux
-                rectangle data in.                                     */
+	  'Display' render library used this itself however, making
+	  this mostly an internal feature.
+	  Parameters
+	  pImage :  image to get the aux rect of.
+	  pRect :   pointer to an IMAGE_RECTANGLE to get the aux
+				rectangle data in.                                     */
    IMAGE_PROC  void IMAGE_API IMGVER(GetImageAuxRect    )( Image pImage, P_IMAGE_RECTANGLE pRect );
    /* User applications may use an aux rect attatched to an image.
-      The 'Display' render library used this itself however, making
-      this mostly an internal feature.
-      Parameters
-      pImage :  image to set the aux rect of.
-      pRect :   pointer to an IMAGE_RECTANGLE to set the aux
-                rectangle to.                                       */
+	  The 'Display' render library used this itself however, making
+	  this mostly an internal feature.
+	  Parameters
+	  pImage :  image to set the aux rect of.
+	  pRect :   pointer to an IMAGE_RECTANGLE to set the aux
+				rectangle to.                                       */
    IMAGE_PROC  void IMAGE_API IMGVER(SetImageAuxRect    )( Image pImage, P_IMAGE_RECTANGLE pRect );
 
 	/* \ \ 
 	   Parameters
 	   Filename :  \file name of image to load. Converts image into
-	               sprite automatically, resulting with a sprite.
+				   sprite automatically, resulting with a sprite.
 	   DBG_PASS :  See <link sack::DBG_PASS, DBG_PASS>              */
 		IMAGE_PROC  PSPRITE IMAGE_API IMGVER(MakeSpriteImageFileEx )( CTEXTSTR fname DBG_PASS );
-      /* create a sprite from an Image */
+	  /* create a sprite from an Image */
 	IMAGE_PROC  PSPRITE IMAGE_API IMGVER(MakeSpriteImageEx )( Image image DBG_PASS );
 	/* Release a Sprite. */
 	IMAGE_PROC  void IMAGE_API IMGVER(UnmakeSprite )( PSPRITE sprite, int bForceImageAlso );
@@ -1188,9 +1192,9 @@ ALPHA_TRANSPARENT_MAX = 0x2FF
    Parameters
    sprite :  The PSPRITE to set the hotspot of.
    x :       x coordinate in the sprite's image that becomes the
-             hotspot.
+			 hotspot.
    y :       y coordinate in the sprite's image that becomes the
-             hotspot.                                            */
+			 hotspot.                                            */
 IMAGE_PROC  PSPRITE IMAGE_API IMGVER(SetSpriteHotspot )( PSPRITE sprite, int32_t x, int32_t y );
 /* This function sets the current location of a sprite. When
    asked to render, the sprite will draw itself here.
@@ -1218,7 +1222,7 @@ IMAGE_PROC  SFTFont IMAGE_API IMGVER(InternalRenderFontFile )( CTEXTSTR file
 IMAGE_PROC void IMAGE_API IMGVER(RerenderFont)( SFTFont font, int32_t width, int32_t height, PFRACTION width_scale, PFRACTION height_scale );
 
 	/* Dumps the whole cache to log file, shows family, style, path and filename.
-    Is the same sort of dump that OpenFontFile uses.
+	Is the same sort of dump that OpenFontFile uses.
 	 */
 IMAGE_PROC void IMAGE_API IMGVER(DumpFontCache)( void );
 
@@ -1238,9 +1242,9 @@ IMAGE_PROC void IMAGE_API IMGVER(DumpFontFile)( CTEXTSTR name, SFTFont font_to_d
    nStyle :   The number of the style in the cache.
    nFile :    The number of the file in the cache.
    nWidth :   the width to use for rendering characters (in
-              pixels)
+			  pixels)
    nHeight :  the height to use for rendering characters (in
-              pixels)
+			  pixels)
    flags :    0 = render mono. 2=render 2 bits, 3=render 8 bit.
    
    Returns
@@ -1275,11 +1279,11 @@ typedef struct render_font_data_tag *PRENDER_FONTDATA;
    Parameters
    pfd :           pointer to font data.
    width_scale :   FRACTION to scale the original font height
-                   \description by. if NULL uses the original
-                   font's size.
+				   \description by. if NULL uses the original
+				   font's size.
    height_scale :  FRACTION to scale the original font height
-                   \description by.  if NULL uses the original
-                   font's size.
+				   \description by.  if NULL uses the original
+				   font's size.
    
    Example
    <code lang="c++">
@@ -1324,26 +1328,26 @@ IMAGE_PROC SFTFont IMAGE_API IMGVER(RenderScaledFontEx)( CTEXTSTR name, uint32_t
    width_scale :   scalar to apply to the width
    height_scale :  scalar to apply to the height
    flags :         Flags specifying how many bits to render the
-                   font with (and other info?) See enum
-                   FontFlags.                                   */
+				   font with (and other info?) See enum
+				   FontFlags.                                   */
 IMAGE_PROC SFTFont IMAGE_API IMGVER(RenderScaledFont)( CTEXTSTR name, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags );
 #define RenderScaledFont(n,w,h,ws,hs) RenderScaledFontEx(n,w,h,ws,hs,NULL,NULL)
 /* Renders a font file and returns a SFTFont. The font can then be
    used in string output functions to images.
    Parameters
    file\ :           \File name of a font to render. Any font
-                     that freetype supports.
+					 that freetype supports.
    width :           width of characters to render in.
    height :          height of characters to render.
    flags :           if( ( flags &amp; 3 ) == 3 )<p /> font\-\>flags
-                     = FONT_FLAG_8BIT;<p /> else if( ( flags &amp;
-                     3 ) == 2 )<p /> font\-\>flags =
-                     FONT_FLAG_2BIT;<p /> else<p /> font\-\>flags
-                     = FONT_FLAG_MONO;<p />
+					 = FONT_FLAG_8BIT;<p /> else if( ( flags &amp;
+					 3 ) == 2 )<p /> font\-\>flags =
+					 FONT_FLAG_2BIT;<p /> else<p /> font\-\>flags
+					 = FONT_FLAG_MONO;<p />
    pnFontDataSize :  optional pointer to a 32 bit value to
-                     receive the size of rendered data.
+					 receive the size of rendered data.
    pFontData :       The render data. This data can be used to
-                     recreate this font.                             */
+					 recreate this font.                             */
 IMAGE_PROC  SFTFont IMAGE_API IMGVER(RenderFontFileScaledEx )( CTEXTSTR file, uint32_t width, uint32_t height, PFRACTION width_scale, PFRACTION height_scale, uint32_t flags, size_t *pnFontDataSize, POINTER *pFontData );
 /* <combine sack::image::RenderFontFileEx@CTEXTSTR@uint32_t@uint32_t@uint32_t@uint32_t*@POINTER *>
    
@@ -1357,9 +1361,9 @@ IMAGE_PROC  SFTFont IMAGE_API IMGVER(RenderFontFileScaledEx )( CTEXTSTR file, ui
 		   Parameters
 		   font :         SFTFont to get the render description from.
 		   fontdata :     a pointer to a pointer which will be filled
-		                  with a pointer buffer that has the font data.
+						  with a pointer buffer that has the font data.
 		   fontdatalen :  a pointer to 32 bit value to receive the length
-		                  of data.                                        */
+						  of data.                                        */
 		IMAGE_PROC  int IMAGE_API IMGVER(GetFontRenderData )( SFTFont font, POINTER *fontdata, size_t *fontdatalen );
 // exported for the PSI font chooser to set the data for the font
 // to be retreived later when only the font handle remains.
@@ -1465,7 +1469,7 @@ enum image_translation_relation
 /*
  This sets flags on the image, so when it's called for rendering to the screen
  this is how
-    */
+	*/
 IMAGE_PROC  void IMAGE_API IMGVER(SetImageTransformRelation)( Image pImage, enum image_translation_relation relation, PRCOORD aux );
 
 /*
@@ -1517,11 +1521,11 @@ IMAGE_PROC void IMAGE_API IMGVER(SetImageRotation)( Image pImage, int edge_flag,
    pImage :     image to rotate
    edge_flag :  see enum image_rotation_flags
    offset_x :   offset from top left of image to center the
-                rotation
+				rotation
    offset_y :   offset from top left of image to center the
-                rotation
+				rotation
    vAxis :      axis to rotate around, can be any arbitrary
-                direction
+				direction
    angle :      angle of rotation around the axis.
    
    Remarks
@@ -1606,7 +1610,7 @@ typedef struct image_interface_tag
    Interface index 17                                                                  */   IMAGE_PROC_PTR( void,BlatColorAlpha)( Image pifDest, int32_t x, int32_t y, uint32_t w, uint32_t h, CDATA color );
 
 /* <combine sack::image::BlotImageEx@Image@Image@int32_t@int32_t@uint32_t@uint32_t@...>
-                                                                                                                   
+																												   
    Internal
 	Interface index 18*/   IMAGE_PROC_PTR( void,BlotImageEx)     ( Image pDest, Image pIF, int32_t x, int32_t y, uint32_t nTransparent, uint32_t method, ... );
 
@@ -1619,12 +1623,12 @@ typedef struct image_interface_tag
    
   Internal
    Interface index  20                                                                                                        */   IMAGE_PROC_PTR( void,BlotScaledImageSizedEx)( Image pifDest, Image pifSrc
-                                   , int32_t xd, int32_t yd
-                                   , uint32_t wd, uint32_t hd
-                                   , int32_t xs, int32_t ys
-                                   , uint32_t ws, uint32_t hs
-                                   , uint32_t nTransparent
-                                   , uint32_t method, ... );
+								   , int32_t xd, int32_t yd
+								   , uint32_t wd, uint32_t hd
+								   , int32_t xs, int32_t ys
+								   , uint32_t ws, uint32_t hs
+								   , uint32_t nTransparent
+								   , uint32_t method, ... );
 
 
 /*Internal
@@ -1707,10 +1711,10 @@ typedef struct image_interface_tag
    
    Internal
    Interface index 43                                   */   IMAGE_PROC_PTR( SFTFont, LoadFont )                   ( SFTFont font );
-         /* <combine sack::image::UnloadFont@SFTFont>
-            
-            \ \                                    */
-         IMAGE_PROC_PTR( void, UnloadFont )                 ( SFTFont font );
+		 /* <combine sack::image::UnloadFont@SFTFont>
+			
+			\ \                                    */
+		 IMAGE_PROC_PTR( void, UnloadFont )                 ( SFTFont font );
 
 /* Internal
    Interface index 44
@@ -1731,38 +1735,38 @@ typedef struct image_interface_tag
    Interface index 47                                      */   IMAGE_PROC_PTR( SFTFont, AcceptTransferredFont )     ( DataState state );
 /*Internal
    Interface index 48*/   IMAGE_PROC_PTR( CDATA, ColorAverage )( CDATA c1, CDATA c2
-                                              , int d, int max );
+											  , int d, int max );
 /* <combine sack::image::SyncImage>
    
    Internal
    Interface index 49               */   IMAGE_PROC_PTR( void, SyncImage )                 ( void );
-         /* <combine sack::image::GetImageSurface@Image>
-            
-            \ \                                          */
-         IMAGE_PROC_PTR( PCDATA, GetImageSurface )       ( Image pImage );
-         /* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-            
-            \ \                                                                                             */
-         IMAGE_PROC_PTR( int, IntersectRectangle )      ( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
+		 /* <combine sack::image::GetImageSurface@Image>
+			
+			\ \                                          */
+		 IMAGE_PROC_PTR( PCDATA, GetImageSurface )       ( Image pImage );
+		 /* <combine sack::image::IntersectRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
+			
+			\ \                                                                                             */
+		 IMAGE_PROC_PTR( int, IntersectRectangle )      ( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
    /* <combine sack::image::MergeRectangle@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *@IMAGE_RECTANGLE *>
-      
-      \ \                                                                                         */
+	  
+	  \ \                                                                                         */
    IMAGE_PROC_PTR( int, MergeRectangle )( IMAGE_RECTANGLE *r, IMAGE_RECTANGLE *r1, IMAGE_RECTANGLE *r2 );
    /* <combine sack::image::GetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
+	  
+	  \ \                                                            */
    IMAGE_PROC_PTR( void, GetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
    /* <combine sack::image::SetImageAuxRect@Image@P_IMAGE_RECTANGLE>
-      
-      \ \                                                            */
+	  
+	  \ \                                                            */
    IMAGE_PROC_PTR( void, SetImageAuxRect )   ( Image pImage, P_IMAGE_RECTANGLE pRect );
    /* <combine sack::image::OrphanSubImage@Image>
-      
-      \ \                                         */
+	  
+	  \ \                                         */
    IMAGE_PROC_PTR( void, OrphanSubImage )  ( Image pImage );
    /* <combine sack::image::AdoptSubImage@Image@Image>
-      
-      \ \                                              */
+	  
+	  \ \                                              */
    IMAGE_PROC_PTR( void, AdoptSubImage )   ( Image pFoster, Image pOrphan );
 	/* <combine sack::image::MakeSpriteImageFileEx@CTEXTSTR fname>
 	   
@@ -1781,18 +1785,18 @@ typedef struct image_interface_tag
 	   \ \                                                      */
 	IMAGE_PROC_PTR( void   , rotate_sprite )(Image bmp, PSPRITE sprite, fixed angle);
  /* <combine sack::image::BlotSprite@Image@PSPRITE>
-	                                                  
+													  
 	 Internal
    Interface index 61                                              */
 		IMAGE_PROC_PTR( void   , BlotSprite )( Image pdest, PSPRITE ps );
-    /* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
-       
-       \ \                                                */
-    IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( uint8_t* buf, size_t size );
+	/* <combine sack::image::DecodeMemoryToImage@uint8_t*@uint32_t>
+	   
+	   \ \                                                */
+	IMAGE_PROC_PTR( Image, DecodeMemoryToImage )( uint8_t* buf, size_t size );
 
    /* <combine sack::image::InternalRenderFontFile@CTEXTSTR@int32_t@int32_t@uint32_t>
-      
-      \returns a SFTFont                                                      */
+	  
+	  \returns a SFTFont                                                      */
 	IMAGE_PROC_PTR( SFTFont, InternalRenderFontFile )( CTEXTSTR file
 																 , int32_t nWidth
 																 , int32_t nHeight
@@ -1801,8 +1805,8 @@ typedef struct image_interface_tag
 																 , uint32_t flags 
 																 );
    /* <combine sack::image::InternalRenderFont@uint32_t@uint32_t@uint32_t@int32_t@int32_t@uint32_t>
-      
-      requires knowing the font cache....                                 */
+	  
+	  requires knowing the font cache....                                 */
 	IMAGE_PROC_PTR( SFTFont, InternalRenderFont )( uint32_t nFamily
 															, uint32_t nStyle
 															, uint32_t nFile
@@ -2378,7 +2382,7 @@ IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
    Source :       Image to copy
    X :            Location to copy to
    Y :            Location to copy to <link sack::image::AlphaModifier, Alpha>
-                  \: Specify how to write the alpha                            */
+				  \: Specify how to write the alpha                            */
 #define BlotImageAlpha( pd, ps, x, y, a ) BlotImageEx( pd, ps, x, y, a, BLOT_COPY )
 /* <combine sack::image::BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@...>
    
@@ -2404,7 +2408,7 @@ IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
    X :            Location to copy to
    Y :            Location to copy to
    Color :        color to multiply the source color by to shade
-                  on copy.                                       */
+				  on copy.                                       */
 #define BlotImageShaded( pd, ps, xd, yd, c ) BlotImageEx( pd, ps, xd, yd, TRUE, BLOT_SHADED, c )
 /* <combine sack::image::BlotImageSizedEx@Image@Image@int32_t@int32_t@int32_t@int32_t@uint32_t@uint32_t@uint32_t@uint32_t@...>
    
@@ -2609,7 +2613,7 @@ IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
 
 #ifdef __cplusplus
 #ifdef IMAGE_EXTRA_CLOSE
-    }
+	}
 #endif
 } } // IMAGE_NAMESPACE_END
 

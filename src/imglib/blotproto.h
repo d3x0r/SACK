@@ -41,15 +41,44 @@ static uint32_t _XXr, _XXg, _XXb, aout, atmp, atmp2;
    (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
    (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
    (aout|(CLAMP(_XXb)<<16)|(CLAMP(_XXg)<<8)|(CLAMP(_XXr)))))
+#define DOALPHA2_MUL( over, in, a )                                                                                        \
+	( ( atmp = ( a ) )                                                                                                  \
+	     , ( !( atmp ) ) ? ( over )                                                                                     \
+	       : ( ( atmp ) >= 255 )                                                                                        \
+	            ? ( ( in ) | 0xFF000000UL )                                                                             \
+	            : ( ( atmp2 = 256U - atmp ), ( atmp++ )                                                                 \
+	              , ( aout = ( (uint32_t)AlphaScalarTable[ atmp ][ AlphaVal( over ) ] ) << 24 )                               \
+	              , ( _XXr = ( ( ( RedVal( in ) ) * ( atmp ) ) + ( ( RedVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )        \
+	              , ( _XXg = ( ( ( GreenVal( in ) ) * ( atmp ) ) + ( ( GreenVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )    \
+	              , ( _XXb = ( ( ( BlueVal( in ) ) * ( atmp ) ) + ( ( BlueVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )      \
+	              , ( aout | ( CLAMP( _XXb ) << 16 ) | ( CLAMP( _XXg ) << 8 ) | ( CLAMP( _XXr ) ) ) ) )
+
 #else
-#define DOALPHA2( over, in, a ) (  (atmp=(a)),                                             \
-(!(atmp))?(over):((atmp)>=255)?((in)| 0xFF000000UL):(               \
-   (atmp2=256U-atmp),(atmp++),(aout = ((uint32_t)AlphaTable[atmp][AlphaVal( over )]) << 24),                                \
-   (_XXr = (((RedVal(in))   *(atmp)) + ((RedVal(over))  *((atmp2)))) >> 8 ),         \
-   (_XXg = (((GreenVal(in)) *(atmp)) + ((GreenVal(over))*((atmp2)))) >> 8 ),            \
-   (_XXb = (((BlueVal(in))  *(atmp)) + ((BlueVal(over)) *((atmp2)))) >> 8 ),         \
-   (aout|(CLAMP(_XXr)<<16)|(CLAMP(_XXg)<<8)|(CLAMP(_XXb)))))
+#define DOALPHA2( over, in, a )                                                                                        \
+	( ( atmp = ( a ) )                                                                                                  \
+	     , ( !( atmp ) ) ? ( over )                                                                                     \
+	       : ( ( atmp ) >= 255 )                                                                                        \
+	            ? ( ( in ) | 0xFF000000UL )                                                                             \
+	            : ( ( atmp2 = 256U - atmp ), ( atmp++ )                                                                 \
+	              , ( aout = ( (uint32_t)AlphaTable[ atmp ][ AlphaVal( over ) ] ) << 24 )                               \
+	              , ( _XXr = ( ( ( RedVal( in ) ) * ( atmp ) ) + ( ( RedVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )        \
+	              , ( _XXg = ( ( ( GreenVal( in ) ) * ( atmp ) ) + ( ( GreenVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )    \
+	              , ( _XXb = ( ( ( BlueVal( in ) ) * ( atmp ) ) + ( ( BlueVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )      \
+	              , ( aout | ( CLAMP( _XXr ) << 16 ) | ( CLAMP( _XXg ) << 8 ) | ( CLAMP( _XXb ) ) ) ) )
+
+#define DOALPHA2_MUL( over, in, a )                                                                                    \
+	( ( atmp = ( a ) )                                                                                                  \
+	     , ( !( atmp ) ) ? ( over )                                                                                     \
+	       : ( ( atmp ) >= 255 )                                                                                        \
+	            ? ( ( in ) | 0xFF000000UL )                                                                             \
+	            : ( ( atmp2 = 256U - atmp ), ( atmp++ )                                                                 \
+	              , ( aout = ( (uint32_t)ScalarAlphaTable[ atmp ][ AlphaVal( over ) ] ) << 24 )                         \
+	              , ( _XXr = ( ( ( RedVal( in ) ) * ( atmp ) ) + ( ( RedVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )        \
+	              , ( _XXg = ( ( ( GreenVal( in ) ) * ( atmp ) ) + ( ( GreenVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )    \
+	              , ( _XXb = ( ( ( BlueVal( in ) ) * ( atmp ) ) + ( ( BlueVal( over ) ) * ( ( atmp2 ) ) ) ) >> 8 )      \
+	              , ( aout | ( CLAMP( _XXr ) << 16 ) | ( CLAMP( _XXg ) << 8 ) | ( CLAMP( _XXb ) ) ) ) )
 #endif
+
 
 #define SHADEPIXEL(pixel, c ) ( ( ( ( ( (pixel)&0xFF ) * ((c) & 0xFF) ) >> 8 ) & 0xFF )                \
    				       | ( ( ( ( ( ((pixel)>>8)&0xFF ) * (((c)>>8) & 0xFF) ) >> 8 ) & 0xFF ) << 8 )     \
@@ -93,7 +122,7 @@ static uint32_t _XXr, _XXg, _XXb, aout, atmp, atmp2;
 				       + ( ( ( ( ((pixel)>>8)&0xFF ) * (( (g) & 0xFF )+1) ) >> 8 ) & 0xFF )\
 				       + ( ( ( ( ((pixel)>>16)&0xFF ) * (( (r) & 0xFF )+1) ) >> 8 ) & 0xFF )),\
   				( ( bout > 255 )?255:bout ) ), \
-	((uint32_t)AlphaTable[AlphaVal(pixel)][                                                                 \
+	((uint32_t)ScalarAlphaTable[AlphaVal(pixel)][                                                                 \
  	   ScalarAlphaTable[(RedVal(pixel)?AlphaVal(r):255)][ScalarAlphaTable[(BlueVal(pixel)?AlphaVal(b):255)][(GreenVal(pixel)?AlphaVal(g):255) ] ] ]) )
 #endif
 

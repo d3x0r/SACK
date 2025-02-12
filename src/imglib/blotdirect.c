@@ -118,6 +118,18 @@ static void CopyPixelsTImgA( struct bdParams *params )
 }
 //---------------------------------------------------------------------------
 
+static void CopyPixelsTImgMA( struct bdParams *params ) {
+	StartLoop uint32_t alpha;
+	CDATA cin;
+	if( ( cin = *pi ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	EndLoop
+}
+//---------------------------------------------------------------------------
+
 static void CopyPixelsTImgAI( struct bdParams *params )
 {
 	StartLoop
@@ -188,6 +200,18 @@ static void InvertPixelsTImgA( struct bdParams *params )
 		}
 	EndLoop
 }
+//---------------------------------------------------------------------------
+
+static void InvertPixelsTImgMA( struct bdParams *params ) {
+	StartLoop uint32_t alpha;
+	CDATA cin;
+	if( ( cin = INVERTPIXEL( *pi ) ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	EndLoop
+}
 //--	-------------------------------------------------------------------------
 
 static void InvertPixelsTImgAI( struct bdParams *params )
@@ -255,6 +279,19 @@ static void CopyPixelsShadedTImgA( struct bdParams *params )
 		alpha = (pixel & 0xFF000000) >> 24;
 		alpha += params->nTransparent;
 		*po = DOALPHA2( *po, pixout, alpha );
+	}
+	EndLoop
+}
+
+//---------------------------------------------------------------------------
+static void CopyPixelsShadedTImgMA( struct bdParams *params ) {
+	StartLoop uint32_t pixel, pixout;
+	if( ( pixel = *pi ) ) {
+		uint32_t alpha;
+		pixout = SHADEPIXEL( pixel, params->c );
+		alpha  = ( pixel & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, pixout, alpha );
 	}
 	EndLoop
 }
@@ -339,6 +376,20 @@ static void CopyPixelsMultiTImgA( struct bdParams *params )
 	EndLoop
 }
 //---------------------------------------------------------------------------
+static void CopyPixelsMultiTImgMA( struct bdParams *params ) {
+	StartLoop uint32_t pixel, pixout;
+	if( ( pixel = *pi ) ) {
+		uint32_t rout, gout, bout;
+		uint32_t alpha;
+		alpha = ( pixel & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		pixout = MULTISHADEPIXEL( pixel, params->r, params->g, params->b );
+		// lprintf( "pixel %08x pixout %08x r %08x g %08x b %08x", pixel, pixout, r,g,b);
+		*po    = DOALPHA2_MUL( *po, pixout, alpha );
+	}
+	EndLoop
+}
+//---------------------------------------------------------------------------
 static void CopyPixelsMultiTImgAI( struct bdParams *params )
 {
 	StartLoop
@@ -375,7 +426,6 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 {
 #define BROKEN_CODE
 	struct bdParams bd;
-	static uint32_t lock;
 	va_list colors;
 	va_start( colors, method );
 	if( nTransparent > ALPHA_TRANSPARENT_MAX )
@@ -538,6 +588,8 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				CopyPixelsT1( &bd );
 			else if( nTransparent & ALPHA_TRANSPARENT )
 				CopyPixelsTImgA( &bd );
+			else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+				CopyPixelsTImgMA( &bd );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 				CopyPixelsTImgAI( &bd );
 			else
@@ -550,6 +602,8 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				InvertPixelsT1( &bd );
 			else if( nTransparent & ALPHA_TRANSPARENT )
 				InvertPixelsTImgA( &bd );
+			else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+				InvertPixelsTImgMA( &bd );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 				InvertPixelsTImgAI( &bd );
 			else
@@ -564,6 +618,9 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 			else if( nTransparent & ALPHA_TRANSPARENT ) {
 				bd.nTransparent = nTransparent & 0xFF;
 				CopyPixelsShadedTImgA( &bd );
+			} else if( nTransparent & ALPHA_TRANSPARENT_MUL ) {
+				bd.nTransparent = nTransparent & 0xFF;
+				CopyPixelsShadedTImgMA( &bd );
 			} else if( nTransparent & ALPHA_TRANSPARENT_INVERT ) {
 				bd.nTransparent = nTransparent & 0xFF;
 				CopyPixelsShadedTImgAI( &bd );
@@ -585,6 +642,9 @@ static void CopyPixelsMultiTImgAI( struct bdParams *params )
 				else if( nTransparent & ALPHA_TRANSPARENT ) {
 					bd.nTransparent = nTransparent & 0xFF;
 					CopyPixelsMultiTImgA( &bd );
+				} else if( nTransparent & ALPHA_TRANSPARENT_MUL ) {
+					bd.nTransparent = nTransparent & 0xFF;
+					CopyPixelsMultiTImgMA( &bd );
 				} else if( nTransparent & ALPHA_TRANSPARENT_INVERT ) {
 					bd.nTransparent = nTransparent & 0xFF;
 					CopyPixelsMultiTImgAI( &bd );

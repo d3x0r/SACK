@@ -219,16 +219,15 @@ static PCACHE_DICT_ENTRY AddPath( CTEXTSTR filepath, PCACHE_DICT_ENTRY *file )
 	TEXTSTR p;
 	PCACHE_DICT_ENTRY ppe;
 	TEXTCHAR *filename;
-	TEXTCHAR save;
-	if( file )
-	{
-		p = (TEXTSTR)pathrchr(tmp);
-		if( !p )
-			return NULL;
-		filename= p+1;
-		save = p[0];
-		p[0] = 0;
-	}
+	TEXTCHAR save = 0;
+
+	p = (TEXTSTR)pathrchr(tmp);
+	if( !p )
+		return NULL;
+	filename= p+1;
+	save = p[0];
+	p[0] = 0;
+
 	ppe = AddDictEntry( &fg.build.pPaths, tmp );
 	*file = AddDictEntry( &fg.build.pFiles, filename );
 	p[0] = save; // restore character.

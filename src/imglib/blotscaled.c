@@ -199,6 +199,22 @@ static void BlotScaledTImgA( struct bsParams *params )
 
 //---------------------------------------------------------------------------
 
+static void BlotScaledTImgMA( struct bsParams *params ) {
+	CDATA *pi, *po;
+	pi = params->pi;
+	po = params->po;
+	ScaleLoopStart CDATA cin;
+	uint32_t alpha;
+	if( ( cin = *pi ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	ScaleLoopEnd
+}
+
+//---------------------------------------------------------------------------
+
 static void BlotScaledTImgAI( struct bsParams *params )
 {
 	CDATA *pi, *po;
@@ -261,21 +277,35 @@ static void BlotInvertScaledTA( struct bsParams *params )
 
 //---------------------------------------------------------------------------
 
-static void BlotInvertScaledTImgA( struct bsParams *params )
-{
+static void BlotInvertScaledTImgA( struct bsParams *params ) {
 	CDATA *pi, *po;
-	pi = params->pi; po = params->po;
-	ScaleLoopStart
-		CDATA cin;											 
-		uint32_t alpha;											 
-		if( (cin = INVERTPIXEL(*pi)) )
-		{														 
-			alpha = ( cin & 0xFF000000 ) >> 24;		
-			alpha += params->nTransparent;
-			*po = DOALPHA2( *po, cin, alpha );
-		}
+	pi = params->pi;
+	po = params->po;
+	ScaleLoopStart CDATA cin;
+	uint32_t alpha;
+	if( ( cin = INVERTPIXEL( *pi ) ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2( *po, cin, alpha );
+	}
 	ScaleLoopEnd
-}						  
+}
+
+//---------------------------------------------------------------------------
+
+static void BlotInvertScaledTImgMA( struct bsParams *params ) {
+	CDATA *pi, *po;
+	pi = params->pi;
+	po = params->po;
+	ScaleLoopStart CDATA cin;
+	uint32_t alpha;
+	if( ( cin = INVERTPIXEL( *pi ) ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	ScaleLoopEnd
+}
 
 //---------------------------------------------------------------------------
 
@@ -357,6 +387,22 @@ static void BlotScaledShadedTImgA( struct bsParams *params )
 		}
 	ScaleLoopEnd
 }						  
+
+//---------------------------------------------------------------------------
+static void BlotScaledShadedTImgMA( struct bsParams *params ) {
+	CDATA *pi, *po;
+	pi = params->pi;
+	po = params->po;
+	ScaleLoopStart CDATA cin;
+	uint32_t alpha;
+	if( ( cin = *pi ) ) {
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		cin = SHADEPIXEL( cin, params->c );
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	ScaleLoopEnd
+}
 
 //---------------------------------------------------------------------------
 static void BlotScaledShadedTImgAI( struct bsParams *params )
@@ -448,6 +494,24 @@ static void BlotScaledMultiTImgA( struct bsParams *params )
 
 //---------------------------------------------------------------------------
 
+static void BlotScaledMultiTImgMA( struct bsParams *params ) {
+	CDATA *pi, *po;
+	pi = params->pi;
+	po = params->po;
+	ScaleLoopStart CDATA cin;
+	uint32_t alpha;
+	if( ( cin = *pi ) ) {
+		uint32_t rout, gout, bout;
+		cin   = MULTISHADEPIXEL( cin, params->r, params->g, params->b );
+		alpha = ( cin & 0xFF000000 ) >> 24;
+		alpha += params->nTransparent;
+		*po = DOALPHA2_MUL( *po, cin, alpha );
+	}
+	ScaleLoopEnd
+}
+
+//---------------------------------------------------------------------------
+
 static void BlotScaledMultiTImgAI( struct bsParams *params )
 {
 	CDATA *pi, *po;
@@ -485,7 +549,6 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 {
 	struct bsParams params;
 	//CDATA *po, *pi;
-	static uint32_t lock;
 	//int32_t  oo;
 	//int32_t srcwidth;
 	//int errx, erry;
@@ -639,6 +702,8 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 			BlotScaledT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
 			BlotScaledTImgA( &params );
+		else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+			BlotScaledTImgMA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 			BlotScaledTImgAI( &params );
 		else
@@ -651,6 +716,8 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 			BlotInvertScaledT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
 			BlotInvertScaledTImgA( &params );
+		else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+			BlotInvertScaledTImgMA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 			BlotInvertScaledTImgAI( &params );
 		else
@@ -664,6 +731,8 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 			BlotScaledShadedT1( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT )
 			BlotScaledShadedTImgA( &params );
+		else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+			BlotScaledShadedTImgMA( &params );
 		else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 			BlotScaledShadedTImgAI( &params );
 		else
@@ -681,6 +750,8 @@ static void BlotScaledMultiTImgAI( struct bsParams *params )
 				BlotScaledMultiT1( &params );
 			else if( nTransparent & ALPHA_TRANSPARENT )
 				BlotScaledMultiTImgA( &params );
+			else if( nTransparent & ALPHA_TRANSPARENT_MUL )
+				BlotScaledMultiTImgMA( &params );
 			else if( nTransparent & ALPHA_TRANSPARENT_INVERT )
 				BlotScaledMultiTImgAI( &params );
 			else

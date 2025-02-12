@@ -118,7 +118,7 @@ ImageFile *IMGVER(ImageGifFile )(uint8_t* ptr, size_t filesize)
 {
   ImageFile *file = NULL;
   uint8_t     *sptr = ptr;  //save pointer
-  int       numcols;
+  //int       numcols;
   unsigned  char ch, ch1;
   uint8_t     *ptr1;
   int   i;
@@ -134,8 +134,7 @@ ImageFile *IMGVER(ImageGifFile )(uint8_t* ptr, size_t filesize)
   static int bDecoding;
 
 
-  if( strncmp ((char*)ptr, "GIF87a", 6) &&
-      strncmp ((char*)ptr, "GIF89a", 6) )
+  if( strncmp( (char *)ptr, id87, 6 ) && strncmp( (char *)ptr, id89, 6 ) )
   {
       return file;
   }
@@ -167,7 +166,7 @@ ImageFile *IMGVER(ImageGifFile )(uint8_t* ptr, size_t filesize)
   HasColormap  = ((ch & COLORMAPMASK) ? TRUE : FALSE);
 
   BitsPerPixel = (ch & 7) + 1;
-  numcols      = ColorMapSize = 1 << BitsPerPixel;
+  //numcols      = ColorMapSize = 1 << BitsPerPixel;
   BitMask      = ColorMapSize - 1;
 
   Background   = NEXTBYTE;    /* background color... not used. */
