@@ -583,7 +583,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 						}
 						else {
 							if( (*prior) == pcs->dwThreadWaiting ) {
-								ll_lprintf( "prior is thread wiaiting (normal?!) %" _64fx " %" _64fx, pcs->dwThreadWaiting, *prior );
+								ll_lprintf( "prior is same as thread waiting (normal?!) %" _64fx " %" _64fx, pcs->dwThreadWaiting, *prior );
 								DebugBreak();
 								(*prior) = 0;
 							}

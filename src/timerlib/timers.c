@@ -2422,6 +2422,8 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		}
 		else {
 			if( prior ) {
+				// prior guy technically wanted this first chronologically...
+            // but I can't get to his prior at this point to set it (if any in fact)
 #ifdef ENABLE_CRITICALSEC_LOGGING
 #  ifdef _DEBUG
 				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
@@ -2429,6 +2431,9 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #  endif
 #endif
 			}
+			// this wouldn't have been cleared... this did wake though
+			// and has entered the critical section
+			pcs->dwThreadWaiting = prior;
 		}
 		// after waking up, this will re-aquire a lock, and
 		// set the prior waiting ID into the criticalsection
