@@ -2264,7 +2264,11 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	if( e > 0 ) {
 #ifdef DEBUG_DIRTY_DRAW		
 		lprintf( "Locked, able to do update");
-#endif		
+#endif
+		if( prior ) {
+			lprintf( "Waiting thread; %zx", prior );
+			wl.cs_wl.dwThreadWaiting = prior;
+		}
 		if( r->surface ) {
 			//_lprintf(DBG_RELAY)( "Do surface damage.." );
 			wl_surface_damage( r->surface, x, y, w, h );
