@@ -22,7 +22,6 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
   ADD_DEFINITIONS( -Wno-parentheses )
   ADD_DEFINITIONS( -Wno-null-dereference )
   ADD_DEFINITIONS( -Wno-self-assign ) # so what if a variable is assigned to itself - that's what optimizers are for?
-  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
   ADD_DEFINITIONS( -Wno-null-dereference )
   set( GCC 1 )
   ADD_DEFINITIONS( -D_GNU_SOURCE )
