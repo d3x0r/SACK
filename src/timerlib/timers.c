@@ -2447,6 +2447,8 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
 #if defined( _MSC_VER ) && !defined( __clang__ )
+// this might not be needed now; fixed critical section declaration
+// with volatile as appropriate
 #  pragma optimize( "st", off )
 #endif
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
@@ -2474,7 +2476,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 				_lprintf( DBG_RELAY )( "On leave - section is updating, wait..." );
 #endif
 			Relinquish();
-}
+		}
 		dwCurProc = GetThisThreadID();
 #ifdef _DEBUG
 		//GetTickCount() )
