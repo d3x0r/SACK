@@ -39,12 +39,6 @@
 #include "local.h"
 //#define ALLOW_KDE
 
-/*
-#define EnterCriticalSec(a ) { lprintf( "Enter cricialsec %p %d", a, (a)->dwLocks  ); EnterCriticalSecEx(a DBG_SRC); }
-#define EnterCriticalSecNoWait(a,prior ) ( lprintf( "Enter cricialsecnowait %p %d", a, (a)->dwLocks  ), EnterCriticalSecNoWaitEx(a, prior DBG_SRC) )
-#define LeaveCriticalSec(a ) { LeaveCriticalSecEx(a DBG_SRC); lprintf( "Leave cricialsec %p %d", a, (a)->dwLocks );  }
-*/
-
 // these(name and version) should be merged into a struct.
 //static int supportedVersions[max_interface_versions] = {4,1,1,1,7,1,1,1};
 static struct interfaceVersionInfo {
@@ -2267,15 +2261,12 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 		postDirt( r, x, y, w, h );	
 		return;
 	}
-	int e = EnterCriticalSecNoWait( &wl.cs_wl, &prior );
+
+	int e = EnterCriticalSecNoWait( &wl.cs_wl, NULL );
 	if( e > 0 ) {
 #ifdef DEBUG_DIRTY_DRAW		
 		lprintf( "Locked, able to do update");
 #endif
-		if( prior ) {
-			lprintf( "Waiting thread; %zx", prior );
-			wl.cs_wl.dwThreadWaiting = prior;
-		}
 		if( r->surface ) {
 			//_lprintf(DBG_RELAY)( "Do surface damage.." );
 			wl_surface_damage( r->surface, x, y, w, h );
@@ -2294,7 +2285,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 				postDrawEvent( r, 1 );
 			}
 		}
-		LeaveCriticalSec( &wl.cs_wl );
+		LeaveCriticalSecNoWake( &wl.cs_wl );
 	} else {
 		// it's locked because it's in use... 
 		// it will get around to damaging before commit.(?)
@@ -2337,9 +2328,9 @@ static void sack_wayland_MoveDisplay(PRENDERER renderer, int32_t x, int32_t y){
 		lprintf( "MOVE SUBSURFACE %d %d", x, y );
 		r->x = x;
 		r->y = y;
-	EnterCriticalSec( &wl.cs_wl );
+		EnterCriticalSec( &wl.cs_wl );
 		wl_subsurface_set_position( r->sub_surface, x, y );
-	LeaveCriticalSec( &wl.cs_wl );
+		LeaveCriticalSec( &wl.cs_wl );
 
 	}
 	else if( wl.hCaptured == r ){
