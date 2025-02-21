@@ -671,21 +671,21 @@ int PreProcessLine( void )
 				SetCurrentWord( pFirstWord );
 				return TRUE;
 			}
-			if( TextLike( pDirective, "elseif" ) ||
-				TextLike( pDirective, "elif" ) )
+			if( TextLike( pDirective, "elseif" )
+			  || TextLike( pDirective, "elif" ) )
 			{
 				goto SubstituteAndProcess;
 			}
-			else if( TextLike( pDirective, "ifdef" ) ||
-					  TextLike( pDirective, "ifndef" ) ||
-					  TextLike( pDirective, "if" ) )
+			else if( TextLike( pDirective, "ifdef" )
+			       || TextLike( pDirective, "ifndef" )
+			       || TextLike( pDirective, "if" ) )
 			{
 				SetIfBegin();
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, "%s(%d): Another level of ifs... coming up! (%d)\n"
-							 , GetCurrentFileName(), GetCurrentLine()
-							 , g.nIfLevels  );
+					       , GetCurrentFileName(), GetCurrentLine()
+					       , g.nIfLevels  );
 				}
 			}
 			//fprintf( stderr, "Failing line...\n" );
@@ -770,9 +770,9 @@ int PreProcessLine( void )
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, "%s(%d): ifdef %s FAILED\n"
-							, GetCurrentFileName()
-							  , GetCurrentLine()
-							, GetText( GetCurrentWord() ));
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText( GetCurrentWord() ));
 				}
 				nState |= FIND_ELSE;
 			}
@@ -780,9 +780,9 @@ int PreProcessLine( void )
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, "%s(%d): ifdef %s SUCCESS\n"
-							, GetCurrentFileName()
-							  , GetCurrentLine()
-							, GetText( GetCurrentWord() ) );
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText( GetCurrentWord() ) );
 				}
 			nIfLevelElse = g.nIfLevels;
 			return FALSE;
@@ -800,9 +800,9 @@ int PreProcessLine( void )
 				if( g.bDebugLog )
 				{
 					fprintf( stddbg, "%s(%d): ifndef %s FAILED\n"
-							, GetCurrentFileName()
-							  , GetCurrentLine()
-							, GetText( GetCurrentWord() ));
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText( GetCurrentWord() ));
 				}
 				nState |= FIND_ELSE;
 			}
@@ -844,9 +844,9 @@ int PreProcessLine( void )
 				{
 					dbg = BuildLine( pDirective );
 					fprintf( stddbg, "%s(%d): %s FAILED\n"
-									, GetCurrentFileName()
-									, GetCurrentLine()
-									, GetText(dbg) );
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText(dbg) );
 					LineRelease( dbg );
 				}
 			}
@@ -856,9 +856,9 @@ int PreProcessLine( void )
 				{
 					dbg = BuildLine( pDirective );
 					fprintf( stddbg, "%s(%d): %s SUCCESS\n"
-									, GetCurrentFileName()
-									, GetCurrentLine()
-									, GetText(dbg) );
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText(dbg) );
 					LineRelease( dbg );
 				}
 			}
@@ -881,9 +881,9 @@ int PreProcessLine( void )
 					{
 						dbg = BuildLine( pDirective );
 						fprintf( stddbg, "%s(%d): %s Success\n"
-									, GetCurrentFileName()
-									, GetCurrentLine()
-								, GetText( dbg ) );
+						       , GetCurrentFileName()
+						       , GetCurrentLine()
+						       , GetText( dbg ) );
 						LineRelease( dbg );
 					}
 					nState &= ~FIND_ELSE;
@@ -892,9 +892,9 @@ int PreProcessLine( void )
 				{
 					dbg = BuildLine( pDirective );
 					fprintf( stddbg, "%s(%d): %s Failure\n"
-									, GetCurrentFileName()
-									, GetCurrentLine()
-							, GetText( dbg ) );
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText( dbg ) );
 					LineRelease( dbg );
 				}
 			}
@@ -916,17 +916,6 @@ int PreProcessLine( void )
 			{
 				g.pFileStack->pFileDep->bAllowMultipleInclude = TRUE;
 			}
-			else if( TextLike( pOp, "message" ) )
-			{
-				PTEXT pOut;
-				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
-				pOut->data.size = CollapseQuotes( pOut->data.data );
-				pOut->data.size = KillQuotes( pOut->data.data );
-				fprintf( stderr, "%s\n", GetText( pOut ) );
-				//fprintf( stdout, "%s\n", GetText( pOut ) );
-				LineRelease( pOut );
-				// dump the remaining segments...
-			}
 			else if( TextLike( pOp, "systemincludepath" ) )
 			{
 				PTEXT pOut;
@@ -939,81 +928,94 @@ int PreProcessLine( void )
 				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
 				AddLink( g.pUserIncludePath, pOut );
 			}
-			else if( TextLike( pOp, "pack" ) )
-			{
+			else {
 				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
-					SetCurrentWord( pFirstWord );
+					SetCurrentWord( pFirstWord ); // reset line, so it can just be emitted.
 					return TRUE;
 				}
-				if( g.bDebugLog )
+
+				if( TextLike( pOp, "message" ) )
 				{
-					PTEXT pOut;
-					pOut = BuildLineEx( pOp, FALSE DBG_SRC );
-					fprintf( stderr, "%s(%d): %s Unknown pragma: %s\n"
-							 , GetCurrentFileName()
-							 , GetCurrentLine()
-							 , g.flags.bEmitUnknownPragma?"emitting":"dropping"
-							 , GetText( pOut ) );
+					PTEXT pOut;  // dump the remaining segments...
+					pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
+					pOut->data.size = CollapseQuotes( pOut->data.data );
+					pOut->data.size = KillQuotes( pOut->data.data );
+					fprintf( stderr, "%s\n", GetText( pOut ) );
 					LineRelease( pOut );
 				}
-				SetCurrentWord( pFirstWord );
-				return g.flags.bEmitUnknownPragma;
-			}
-			// watcom - inline assembly junk...
-			else if( TextLike( pOp, "warning" )
-					 ||  TextLike( pOp, "intrinsic" )
-					  || TextLike( pOp, "aux" )
-					  || TextLike( pOp, "function" )
-					 || TextLike( pOp, "comment" ) )
-			{
-				if( g.bDebugLog )
+				else if( TextLike( pOp, "pack" ) )
 				{
-					PTEXT pOut;
-					pOut = BuildLineEx( pOp, FALSE DBG_SRC );
-					fprintf( stderr, "%s(%d): %s Unknown pragma: %s\n"
-							 , GetCurrentFileName()
-							 , GetCurrentLine()
-							 , g.flags.bEmitUnknownPragma?"emitting":"dropping"
-							 , GetText( pOut ) );
-					LineRelease( pOut );
-				}
-				SetCurrentWord( pFirstWord );
-				return g.flags.bEmitUnknownPragma;
-			}
-			// watcom - dependancy generation...
-			else if( TextLike( pOp, "read_only_file" ) )
-			{
-				// can't see any usefulness when using ppc to preprocess...
-				return FALSE;
-			}
-			else
-			{
-				PTEXT pOut;
-				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+					if( g.bDebugLog )
+					{
+						PTEXT pOut;
+						pOut = BuildLineEx( pOp, FALSE DBG_SRC );
+						fprintf( stderr, "%s(%d): %s Unknown pragma: %s\n"
+						       , GetCurrentFileName()
+						       , GetCurrentLine()
+						       , g.flags.bEmitUnknownPragma?"emitting":"dropping"
+						       , GetText( pOut ) );
+						LineRelease( pOut );
+					}
 					SetCurrentWord( pFirstWord );
-					return TRUE;
+					return g.flags.bEmitUnknownPragma;
 				}
-				pOut = BuildLineEx( pOp, FALSE DBG_SRC );
-				fprintf( stderr, "%s(%d): Unknown pragma: %s\n"
-						 , GetCurrentFileName()
-						 , GetCurrentLine()
-						 , GetText( pOut ) );
-				LineRelease( pOut );
-				// hmm - gcc processing .i files fails this.
-				SetCurrentWord( pFirstWord );
-				return g.flags.bEmitUnknownPragma;
-				//return TRUE; // emit this line - maybe the compiler knows...
-				//return FALSE;
+				// watcom - inline assembly junk...
+				else if( TextLike( pOp, "warning" )
+				       ||  TextLike( pOp, "intrinsic" )
+				       || TextLike( pOp, "aux" )
+				       || TextLike( pOp, "function" )
+				       || TextLike( pOp, "comment" ) )
+				{
+					if( g.bDebugLog )
+					{
+						PTEXT pOut;
+						pOut = BuildLineEx( pOp, FALSE DBG_SRC );
+						fprintf( stderr, "%s(%d): %s Unknown pragma: %s\n"
+						       , GetCurrentFileName()
+						       , GetCurrentLine()
+						       , g.flags.bEmitUnknownPragma?"emitting":"dropping"
+						       , GetText( pOut ) );
+						LineRelease( pOut );
+					}
+					SetCurrentWord( pFirstWord );
+					return g.flags.bEmitUnknownPragma;
+				}
+				// watcom - dependancy generation...
+				else if( TextLike( pOp, "read_only_file" ) )
+				{
+					// can't see any usefulness when using ppc to preprocess...
+					return FALSE;
+				}
+				else
+				{
+					PTEXT pOut;
+					if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+						SetCurrentWord( pFirstWord );
+						return TRUE;
+					}
+					pOut = BuildLineEx( pOp, FALSE DBG_SRC );
+					fprintf( stderr, "%s(%d): Unknown pragma: %s\n"
+					       , GetCurrentFileName()
+					       , GetCurrentLine()
+					       , GetText( pOut ) );
+					LineRelease( pOut );
+					// hmm - gcc processing .i files fails this.
+					SetCurrentWord( pFirstWord );
+					return g.flags.bEmitUnknownPragma;
+					//return TRUE; // emit this line - maybe the compiler knows...
+					//return FALSE;
+				}
 			}
-		}
+			
+		}  // end of "pragma"
 		else if( TextLike( pDirective, "warning" ) )
 		{
 			PTEXT pOut;
 			pOut = BuildLineEx( GetCurrentWord(), FALSE DBG_SRC );
 			fprintf( stderr, "%s(%d): Warning %s\n"
-					 , GetCurrentFileName()
-					 , GetCurrentLine()
-					 , GetText( pOut ) );
+			       , GetCurrentFileName()
+			       , GetCurrentLine()
+			       , GetText( pOut ) );
 			LineRelease( pOut );
 		}
 		else if( TextLike( pDirective, "error" ) )
@@ -1025,9 +1027,9 @@ int PreProcessLine( void )
 			}
 			pOut = BuildLineEx( GetCurrentWord(), FALSE DBG_SRC );
 			fprintf( stderr, "%s(%d): Error %s\n"
-					 , GetCurrentFileName()
-					 , GetCurrentLine()
-					 , GetText( pOut ) );
+			       , GetCurrentFileName()
+			       , GetCurrentLine()
+			       , GetText( pOut ) );
 			LineRelease( pOut );
 			g.ErrorCount++;
 		}
@@ -1036,10 +1038,15 @@ int PreProcessLine( void )
 			PTEXT pOut;
 			pOut = BuildLineEx( pDirective, FALSE DBG_SRC );
 			fprintf( stderr, "%s(%d): Unknown prepcessing directive: %s\n"
-					 , GetCurrentFileName()
-					 , GetCurrentLine()
-					 , GetText( pOut ) );
+			       , GetCurrentFileName()
+			       , GetCurrentLine()
+			       , GetText( pOut ) );
 			LineRelease( pOut );
+		}
+
+		if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+			SetCurrentWord( pFirstWord );
+			return TRUE;
 		}
 		return FALSE;
 	}
