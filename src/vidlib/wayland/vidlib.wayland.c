@@ -896,16 +896,18 @@ static void initConnections( void ) {
 static void commitSurface( PXPANEL r ){
 	struct damageInfo damage;
 	if( r->flags.commited ) {
-		lprintf( "Dont' do another damage and commit until released...");
+		//lprintf( "Don't do another damage and commit until released...");
 		return;
 	}
 	while( DequeData( &r->damageQueue, &damage )){
+		lprintf( "Dispatching some damage to a surface...");
 		wl_surface_damage( r->surface, damage.x, damage.y, damage.w, damage.h );
 		r->flags.dirty = 1; // was damaged, needs commit.
 	}
 
 	wl_surface_commit( r->surface );
 	wl_display_flush( wl.display );
+	//lprintf( "Committed surface propr... (commit, wantAttach)" );
 	r->flags.commited = 1;
 	//lprintf( "display_flush after surface_commit and maybe damage? %d", r->flags.dirty);
 	// no more damage, but we need a buffer too...
@@ -1256,7 +1258,9 @@ static LOGICAL attachNewBuffer( PXPANEL r, int req, int locked ) {
 			return FALSE;
 		}
 		// any new draws are going to 
-	} else lprintf( "surface cannot have damage nothing there");
+	}
+	//else lprintf( "surface cannot have damage nothing there");
+
 	//lprintf( "Attach New Buffer should Always have 'Want Attach!?' %d", r->flags.wantAttach );
 	if( !r->flags.wantAttach ) return TRUE; // it IS attached
 
@@ -2101,16 +2105,19 @@ static void sack_wayland_Redraw_( PXPANEL r, int noCallback, volatile int *redra
 			r->flags.drawing = 1;
 			r->drawResult = r->pRedrawCallback( r->dwRedrawData, (PRENDERER)r  );
 			r->flags.drawing = 0;
-			lprintf( "Draw Result %d %d", r->drawResult, r->flags.dirty );
 #if defined( DEBUG_REDRAW )		
-			lprintf( "dispatched redraw...%d", r->drawResult );
+			//lprintf( "Draw Result %d %d", r->drawResult, r->flags.dirty );
 #endif	
 			// autoDraw might be set if the
 			// redraw callback doesn't post any sort of dirty update status...
 			if(r->flags.autoDraw )
 				if( !r->flags.dirty ) {
+					BlotImage( r->pImageOutput, r->pImageDraw, 0,0 );
 					wl_surface_damage( r->surface, 0, 0, r->bufw, r->bufh );
 					r->flags.dirty = 1; // was damaged, needs commit.
+				} else {
+					// lost frame?
+					//lprintf( "Still waiting for the previous output to write..");
 				}
 			redrawState = 6;
 		}
@@ -2254,9 +2261,9 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 	_lprintf( DBG_RELAY )( "UpdateDisplayPortionEx %p %d %d %d %d", r->surface, x, y, w, h );
 #endif	
 	THREAD_ID prior = 0;
-	BlotImageSizedTo( r->pImageOutput, r->pImageDraw, x, y, x, y, w, h );
+	BlotImageSizedEx( r->pImageOutput, r->pImageDraw, x, y, x, y, w, h, 0, BLOT_COPY );
 	if( r->flags.commited ) {
-		//lprintf( "Still waiting for commit on buffer to release the buffer?");
+		lprintf( "Still waiting for commit on buffer to release the buffer?");
 		postDirt( r, x, y, w, h );	
 		return;
 	}
@@ -2300,7 +2307,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 
 static void sack_wayland_UpdateDisplayEx( PRENDERER renderer DBG_PASS ) {
 	struct wvideo_tag *r = (struct wvideo_tag*)renderer;
-	//_lprintf( DBG_RELAY )( "Who calls update the WHOLE display anyway?");
+	_lprintf( DBG_RELAY )( "Who calls update the WHOLE display anyway? %d %d", r->buffer_states[r->curBuffer].w, r->buffer_states[r->curBuffer].h);
 	sack_wayland_UpdateDisplayPortionEx( renderer
 		, 0, 0
 		, r->buffer_states[r->curBuffer].w
