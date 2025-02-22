@@ -2285,7 +2285,7 @@ static void sack_wayland_UpdateDisplayPortionEx(PRENDERER renderer, int32_t x, i
 				postDrawEvent( r, 1 );
 			}
 		}
-		LeaveCriticalSecNoWake( &wl.cs_wl );
+		LeaveCriticalSec( &wl.cs_wl );
 	} else {
 		// it's locked because it's in use... 
 		// it will get around to damaging before commit.(?)
