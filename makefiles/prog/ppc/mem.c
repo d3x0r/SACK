@@ -140,7 +140,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 			, p );
 		fflush( stddbg );
 #else
-		fprintf( stddbg, "Release %lp\n"
+		fprintf( stddbg, "Release %p\n"
 			, p );
 #endif
 	}
@@ -153,7 +153,11 @@ void ReleaseExx( void **pp DBG_PASS ) {
 #endif
 	if( mem->owners != 1 )
 	{
-		fprintf( stddbg, "Block %p already free from: %s(%d) - or long ago freed (%d)..."
+		fprintf( stddbg, "Block %p already free from: "
+#ifdef _DEBUG
+							"%s(%d) "
+#endif
+							"- or long ago freed (%d)..."
 #ifdef _DEBUG
 						" %s(%d)"
 #endif
