@@ -45,7 +45,7 @@ if( NOT CMAKE_COMPILER_IS_GNUCC
   ADD_DEFINITIONS( -Wno-parentheses )
   ADD_DEFINITIONS( -Wno-null-dereference )
   ADD_DEFINITIONS( -Wno-self-assign ) # so what if a variable is assigned to itself - that's what optimizers are for?
-  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
+#  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
   set( GCC 1 )
   ADD_DEFINITIONS( -D_GNU_SOURCE )
   set( CMAKE_COMPILER_IS_GNUCC 0 )
