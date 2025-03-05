@@ -485,9 +485,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 #endif
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-//#  ifdef _MSC_VER
-//#    pragma optimize( "st", off )
-//#  endif
 		int32_t  EnterCriticalSecNoWaitEx( PCRITICALSECTION pcs, THREAD_ID *prior DBG_PASS )
 		{
 			THREAD_ID dwCurProc = GetThisThreadID();
@@ -611,9 +608,6 @@ static void DumpSection( PCRITICALSECTION pcs )
 		//-------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-//#  ifdef _MSC_VER
-//#    pragma optimize( "st", off )
-//#  endif
 		static LOGICAL LeaveCriticalSecNoWakeEx( PCRITICALSECTION pcs DBG_PASS )
 #define LeaveCriticalSecNoWake(pcs) LeaveCriticalSecNoWakeEx( pcs DBG_SRC )
 		{
