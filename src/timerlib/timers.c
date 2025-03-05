@@ -2372,11 +2372,6 @@ void  ChangeTimerEx( uint32_t ID, uint32_t initial, uint32_t frequency )
 //--------------------------------------------------------------------------
 
 #ifndef USE_NATIVE_CRITICAL_SECTION
-#if defined( _MSC_VER ) && !defined( __clang__ )
-// reordering instructions in this is not allowed...
-// since MSVC ends up reversing unlocks before other code that should run first.
-#  pragma optimize( "st", off )
-#endif
 LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	int d;
@@ -2390,67 +2385,22 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	do
 	{
 		d=EnterCriticalSecNoWaitEx( pcs, &prior DBG_RELAY );
-		if( d < 0 )
+		if( d < 0 ) // unable to update criticalsec - this is a quick-poll check.
 			Relinquish();
 		else if( d == 0 )
 		{
+			// was unable to aquire lock; and a quick check says there is a
+			// thread owning it; so go to sleep for a bit.
 			if( pcs->dwThreadID )
-			{
-#ifdef ENABLE_CRITICALSEC_LOGGING
-#  ifdef _DEBUG
-				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( "Failed to enter section... sleeping (forever)..." );
-#  endif
-#endif
 				WakeableNamedThreadSleepEx( "sack.critsec", 25 DBG_RELAY ); // shouldn't need more than 1 cycle; but infinite can fail on short locks.
-#ifdef ENABLE_CRITICALSEC_LOGGING
-#  ifdef _DEBUG
-				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( "Allowed to retry section entry, woken up..." );
-#  endif
-#endif
-			}
-#ifdef ENABLE_CRITICALSEC_LOGGING
-#  ifdef _DEBUG
-			else
-			{
-				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( "Lock Released while we logged?" );
-			}
-#  endif
-#endif
 		}
-		else {
-			if( prior ) {
-				// prior guy technically wanted this first chronologically...
-            // but I can't get to his prior at this point to set it (if any in fact)
-#ifdef ENABLE_CRITICALSEC_LOGGING
-#  ifdef _DEBUG
-				if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
-					lprintf( "Entered section, restore prior waiting thread. %" _64fx  " %" _64fx, prior, pcs->dwThreadWaiting );
-#  endif
-#endif
-			}
-			// this wouldn't have been cleared... this did wake though
-			// and has entered the critical section
-			pcs->dwThreadWaiting = prior;
-		}
-		// after waking up, this will re-aquire a lock, and
-		// set the prior waiting ID into the criticalsection
-		// this will then wake that process when this lock is left.
 	}
 	while( (d <= 0) );
 	return TRUE;
 }
-#endif
+
 //-------------------------------------------------------------------------
 
-#ifndef USE_NATIVE_CRITICAL_SECTION
-#if defined( _MSC_VER ) && !defined( __clang__ )
-// this might not be needed now; fixed critical section declaration
-// with volatile as appropriate
-#  pragma optimize( "st", off )
-#endif
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc;
@@ -2498,7 +2448,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 #endif
 		break;
 	}
-	if( !( pcs->dwLocks & ~SECTION_LOGGED_WAIT ) )
+	if( !pcs->dwLocks )
 	{
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
@@ -2529,11 +2479,10 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 			lprintf( "Remaining locks... %08" _32fx, pcs->dwLocks );
 #endif
-		if( !( pcs->dwLocks & ~(SECTION_LOGGED_WAIT) ) )
+		if( !pcs->dwLocks )
 		{
 			THREAD_ID dwWaiting = pcs->dwThreadWaiting;
 			pcs->dwThreadID = 0;
-			pcs->dwLocks = 0;
 			pcs->dwUpdating = 0;
 
 			// wake the prior (if there is one sleeping)
