@@ -915,18 +915,21 @@ int PreProcessLine( void )
 			if( TextLike( pOp, "multiinclude" ) )
 			{
 				g.pFileStack->pFileDep->bAllowMultipleInclude = TRUE;
+				return FALSE; // don't echo into amalgam, but do process.
 			}
 			else if( TextLike( pOp, "systemincludepath" ) )
 			{
 				PTEXT pOut;
 				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
 				AddLink( g.pSysIncludePath, pOut );
+				return FALSE; // don't echo into amalgam, but do process.
 			}
 			else if( TextLike( pOp, "includepath" ) )
 			{
 				PTEXT pOut;
 				pOut = BuildLineEx( NEXTLINE( pOp ), FALSE DBG_SRC );
 				AddLink( g.pUserIncludePath, pOut );
+				return FALSE; // don't echo into amalgam, but do process.
 			}
 			else {
 				if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
@@ -1010,6 +1013,10 @@ int PreProcessLine( void )
 		}  // end of "pragma"
 		else if( TextLike( pDirective, "warning" ) )
 		{
+			if( g.flags.skip_logic_processing || g.flags.skip_define_processing ) {
+				SetCurrentWord( pFirstWord );
+				return TRUE;
+			}
 			PTEXT pOut;
 			pOut = BuildLineEx( GetCurrentWord(), FALSE DBG_SRC );
 			fprintf( stderr, "%s(%d): Warning %s\n"
