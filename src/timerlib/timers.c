@@ -1156,7 +1156,6 @@ static void  UnmakeThread( void )
 			if( global_timer_structure )
 				DeleteLink( &globalTimerData.thread_events, pThread->thread_event );
 			DeleteFromSet( THREAD_EVENT, globalTimerData.thread_event_pool, pThread->thread_event );
-			Deallocate( PTHREAD_EVENT, pThread->thread_event );
 #endif
 			if( global_timer_structure )
 				DeleteFromSet( THREAD, globalTimerData.threadset, pThread ) /*Release( pThread )*/;
