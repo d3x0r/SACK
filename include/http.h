@@ -100,6 +100,9 @@ HTTP_EXPORT HTTPState  HTTPAPI CreateHttpState( PCLIENT *pc );
 /*Get the http state associated with a network client */
 HTTP_EXPORT HTTPState HTTPAPI GetHttpState( PCLIENT pc );
 
+HTTP_EXPORT void HTTPAPI LockHttp( struct HttpState *state );
+HTTP_EXPORT void HTTPAPI UnlockHttp( struct HttpState *state );
+
 /* Destroys a http state, releasing all resources associated
    with it.                                                  */
 HTTP_EXPORT void HTTPAPI DestroyHttpState( HTTPState pHttpState );

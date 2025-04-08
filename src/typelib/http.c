@@ -109,6 +109,17 @@ static void unlockHttp( struct HttpState *state ) {
 	//state->lock = 0;
 }
 
+void LockHttp( struct HttpState *state ) {
+	EnterCriticalSec( &state->lock );
+	//while( LockedExchange( &state->lock, 1 ) );
+}
+
+void UnlockHttp( struct HttpState *state ) {
+	LeaveCriticalSec( &state->lock );
+	//state->lock = 0;
+}
+
+
 void GatherHttpData( struct HttpState *pHttpState )
 {
 	lockHttp( pHttpState );
