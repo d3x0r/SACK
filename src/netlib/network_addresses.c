@@ -1061,6 +1061,7 @@ SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS )
 // return a copy of this address...
 SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS ) 
 {
+	if( !pAddr ) return NULL;
 	POINTER tmp = (POINTER)( ( (uintptr_t)pAddr ) - 2*sizeof(uintptr_t) );
 	SOCKADDR *dup = AllocAddrEx( DBG_VOIDRELAY );
 	POINTER tmp2 = (POINTER)( ( (uintptr_t)dup ) - 2*sizeof(uintptr_t) );

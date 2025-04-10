@@ -704,7 +704,8 @@ void SetWebSocketHttpCloseCallback( PCLIENT pc, web_socket_http_close callback )
 {
 	if( pc ) {
 		struct web_socket_input_state *input_state = (struct web_socket_input_state*)GetNetworkLong( pc, 1 );
-		input_state->on_http_close = callback;
+		if( input_state )
+			input_state->on_http_close = callback;
 	}
 }
 
