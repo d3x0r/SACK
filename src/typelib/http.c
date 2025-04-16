@@ -40,6 +40,7 @@ struct HttpState {
 
 	int numeric_code;
 	int response_version;
+	int request_version;
 	TEXTSTR text_code;
 	PCLIENT request_socket; // when a request comes in to the server, it is kept in a new http state, this is set for Send Response
 
@@ -396,24 +397,25 @@ void ProcessURL_CGI( struct HttpState *pHttpState, PLIST *cgi_fields,PTEXT *ppar
 //int ProcessHttp( struct HttpState *pHttpState )
 enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )( uintptr_t psv, CPOINTER buf, size_t len ), uintptr_t psv )
 {
-	lockHttp( pHttpState );
 	if( pHttpState->final )
 	{
 		{
 			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
 			if( pHttpState->response_version ) {
+				lockHttp( pHttpState );
 				GatherHttpData( pHttpState );
 				//lprintf( "return http nothing  %d %d %d", pHttpState->content_length, pHttpState->flags.success, pHttpState->returned_status );
-
 				if( pHttpState->flags.success && !pHttpState->returned_status ) {
 					unlockHttp( pHttpState );
 					pHttpState->returned_status = 1;
 					return (enum ProcessHttpResult)pHttpState->numeric_code;
 				}
+				unlockHttp( pHttpState );
 			}
-			else {
+			else /* if( httpState->request_version ) */ {
 				// this is a request not a response we are processing...
 				if( pHttpState->content_length ) {
+					lockHttp( pHttpState );
 					GatherHttpData( pHttpState );
 					if( ((GetTextSize( pHttpState->partial ) >= pHttpState->content_length)
 						|| (GetTextSize( pHttpState->content ) >= pHttpState->content_length))
@@ -423,10 +425,10 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 						// had to gather the body...
 						return HTTP_STATE_RESULT_CONTENT;
 					}
+					unlockHttp( pHttpState );
 				}
 			}
 		}
-		unlockHttp( pHttpState );
 		//lprintf( "return http nothing  %d %d %d", pHttpState->content_length, pHttpState->flags.success, pHttpState->returned_status );
 		return HTTP_STATE_RESULT_NOTHING;
 	}
@@ -452,6 +454,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		{
 			//lprintf( "process HTTP: %s %d", GetText( pCurrent ), pHttpState->bLine );
 			size = GetTextSize( pCurrent );
+			if( !size ) return HTTP_STATE_RESULT_NOTHING
+			lockHttp();
 			c = GetText( pCurrent );
 			if( pHttpState->bLine < 4 )
 			{
@@ -617,17 +621,17 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
 												if( tmp2 )
-													pHttpState->response_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
+													pHttpState->request_version = (int)(( IntCreateFromText( GetText( tmp ) + 5 ) * 100 ) + IntCreateFromText( tmp2 + 1 ));
 												else if( GetTextSize( tmp ) > 5 )
-													pHttpState->response_version = (int)( IntCreateFromText( GetText( tmp ) + 5 ) * 100 );
+													pHttpState->request_version = (int)( IntCreateFromText( GetText( tmp ) + 5 ) * 100 );
 												else
-													pHttpState->response_version = 0;
+													pHttpState->request_version = 0;
 
-												if( pHttpState->response_version >= 101 ) {
+												if( pHttpState->request_version >= 101 ) {
 													pHttpState->flags.close = 0;
 													pHttpState->flags.keep_alive = 1;
 												}
-												else if( pHttpState->response_version == 100 ) {
+												else if( pHttpState->request_version == 100 ) {
 													pHttpState->flags.close = 1;
 													pHttpState->flags.keep_alive = 0;
 												}
@@ -856,6 +860,7 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->bLine = 0;
 	pHttpState->final = 0;
 	pHttpState->response_version = 0;
+	pHttpState->request_version = 0;
 	pHttpState->flags.no_content_length = 1;
 	pHttpState->content_length = 0;
 	LineRelease( pHttpState->method );
@@ -1622,8 +1627,8 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 				status = InvokeMethod( pc, server, pHttpState );
 				if( status
 					&& ( ( pHttpState->response_version == 9 )
-					|| (pHttpState->response_version == 100 && !pHttpState->flags.keep_alive)
-					||( pHttpState->response_version == 101 && pHttpState->flags.close ) ) ) {
+					|| (pHttpState->request_version == 100 && !pHttpState->flags.keep_alive)
+					||( pHttpState->request_version == 101 && pHttpState->flags.close ) ) ) {
 					RemoveClientEx( pc, 0, 1 );
 					return;
 				}
@@ -1741,9 +1746,15 @@ PLIST GetHttpHeaderFields( HTTPState pHttpState )
 	return NULL;
 }
 
-int GetHttpVersion( HTTPState pHttpState ) {
+int GetHttpReplyVersion( HTTPState pHttpState ) {
 	if( pHttpState )
 		return pHttpState->response_version;
+	return -1;
+}
+
+int GetHttpRequestVersion( HTTPState pHttpState ) {
+	if( pHttpState )
+		return pHttpState->request_version;
 	return -1;
 }
 
