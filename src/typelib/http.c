@@ -455,7 +455,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 			//lprintf( "process HTTP: %s %d", GetText( pCurrent ), pHttpState->bLine );
 			size = GetTextSize( pCurrent );
 			if( !size ) return HTTP_STATE_RESULT_NOTHING
-			lockHttp();
+			lockHttp( pHttpState );
 			c = GetText( pCurrent );
 			if( pHttpState->bLine < 4 )
 			{
