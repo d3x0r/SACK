@@ -191,14 +191,10 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			pos = strlen( newfile->name );
 			newfile->filename = newfile->name + pos;
 			StrCpyEx( newfile->filename, name, (sizeof( newfile->name )/sizeof(TEXTCHAR)) - pos );
-#ifdef __cplusplus_cli
-			newfile->lastmodifiedtime = gcnew System::DateTime();
-#else
 #ifdef WIN32
 			(*(uint64_t*)&newfile->lastmodifiedtime) = 0;
 #else
 			newfile->lastmodifiedtime = 0;
-#endif
 #endif
 			newfile->flags.bScanned         = 0;
 			newfile->flags.bToDelete        = 0;
@@ -207,8 +203,6 @@ FILEMONITOR_PROC( PFILEMON, AddMonitoredFile )( PCHANGEHANDLER Change, CTEXTSTR 
 			newfile->flags.bCreated         = Change->flags.bInitial?0:1;
 			newfile->lastknownsize    = 0;
 			AddBinaryNode( Change->filelist, newfile, (uintptr_t)newfile->filename );
-			BalanceBinaryTree( Change->filelist );
-			//AddLink( &Change->filelist, newfile );
 		}
 		else
 		{
