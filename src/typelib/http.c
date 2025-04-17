@@ -1550,6 +1550,8 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
 			if( state->request_socket && !state->closed ) {
 				//lprintf( "Closing in got response?" );
+				// the state is returned, so the close shouldn't do anything to it...
+				SetNetworkLong( state->request_socket, 0, NULL )
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
 				//state->request_socket = NULL;
 				return state;
