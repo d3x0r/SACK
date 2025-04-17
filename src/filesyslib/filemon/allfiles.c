@@ -601,9 +601,9 @@ static void InvokeScan( PMONITOR monitor )
 		}
 		//Log( "Scan files for status changes..." );
 	}
-#ifndef __LINUX__
+//#ifndef __LINUX__
 	ScanMonitorFiles( monitor ); // check for changed size/time
-#endif
+//#endif
 	//Log( "Dispatch Changes... " );
 	if( !monitor->flags.bUserInterruptedChanges )
 	{
