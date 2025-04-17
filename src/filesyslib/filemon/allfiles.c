@@ -350,7 +350,7 @@ static void ScanMonitorFiles( PMONITOR monitor )
 	for( Change = monitor->ChangeHandlers; Change; Change = Change->next )
 	{
 		PFILEMON filemon;
-		lprintf( "Scanning mask: %s in %s", Change->mask, Change->monitor->directory );
+		//lprintf( "Scanning mask: %s in %s", Change->mask, Change->monitor->directory );
 		for( filemon = (PFILEMON)GetLeastNode( Change->filelist )
 			 ; filemon
 			  ; filemon = (PFILEMON)GetGreaterNode( Change->filelist ) )
