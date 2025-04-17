@@ -123,6 +123,8 @@ void UnlockHttp( struct HttpState *state ) {
 
 void GatherHttpData( struct HttpState *pHttpState )
 {
+	if( pHttpState->flags.success ) // already gathered the required data.
+		return;
 	lockHttp( pHttpState );
 	if( pHttpState->content_length )
 	{
@@ -400,7 +402,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 	if( pHttpState->final )
 	{
 		{
-			//lprintf( "Reading more, after returning a packet before... %d", pHttpState->response_version );
+			//lprintf( "Reading more, after returning a packet before...%d %d", pHttpState->response_version, pHttpState->request_version );
 			if( pHttpState->response_version ) {
 				lockHttp( pHttpState );
 				GatherHttpData( pHttpState );
@@ -617,7 +619,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 											//lprintf( "word %s", GetText( tmp ) );
 											next = NEXTLINE( tmp );
 											//lprintf( "Line : %s", GetText( pLine ) );
-											if( TextSimilar( tmp, "HTTP/" ) )
+											if( !pHttpState->response_version && TextSimilar( tmp, "HTTP/" ) )
 											{
 												TEXTCHAR *tmp2 = (TEXTCHAR*)StrChr( GetText( tmp ), '.' );
 												if( tmp2 )
@@ -863,6 +865,7 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->request_version = 0;
 	pHttpState->flags.no_content_length = 1;
 	pHttpState->content_length = 0;
+	pHttpState->flags.success = 0;
 	LineRelease( pHttpState->method );
 	pHttpState->method = NULL;
 	LineRelease( pHttpState->content );
@@ -1140,9 +1143,18 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 				//lprintf( "this is where we should close and not end...%d %d %d",r, state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
 					RemoveClient( state->pc[0]);
+					if( state->waiter )
+						WakeThread( state->waiter );
 					return;
-				} else
-					EndHttp( state );
+				} else {
+					//lprintf( "Waking up on response received?", state->flags.success, state->returned_status );
+					if( state->waiter )
+						WakeThread( state->waiter );
+					//EndHttp( state );
+					if( state->flags.keep_alive ) {
+						
+					}
+				}
 			}
 		}
 	}
@@ -1175,9 +1187,9 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 		if( ppc )
 			ppc[0] = NULL;
 		//lprintf( "So now i's null?" );
+		data->closed = TRUE;
 		if( data->waiter ) {
 			//lprintf( "(on close) Waking waiting to return with result." );
-			data->closed = TRUE;
 			WakeThread( data->waiter );
 		}
 	}
@@ -1433,6 +1445,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			LOGICAL skipLength = FALSE;
 			INDEX idx;
 			LOGICAL hadUserAgent = FALSE;
+			LOGICAL hadConnection = FALSE;
 			const char* resource = GetText( url );
 			if( !resource ) resource = "/";
 			state->last_read_tick = timeGetTime();
@@ -1445,12 +1458,29 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			state->ssl = options->ssl;
 			state->pvtOut = VarTextCreate();
 			// 1.0 expects close after request - this is a one shot synchronous process so...
-			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.0" );
+			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.1" );
 			// 1.1 would need this sort of header....
 			//vtprintf( state->pvtOut, "connection: close\r\n" );
 			vtprintf( state->pvtOut, "Host:%s\r\n", options->hostname?options->hostname:GetText( address ) );
+			if( options->httpVersion && StrCaseCmpEx( options->httpVersion, "2.", 2 ) == 0 ) {
+				vtprintf( state->pvtOut, ":method:%s\r\n", options->method );
+				vtprintf( state->pvtOut, ":scheme:%s\r\n", options->ssl?"https":"http" );
+				vtprintf( state->pvtOut, ":authority:%s\r\n", GetText(address) );
+				vtprintf( state->pvtOut, ":path:%s\r\n", resource );
+				//vtprintf( state->pvtOut, ":status:\r\n" );
+			}
+
 			
 			LIST_FORALL( options->headers, idx, char*, header ) {
+				if( !hadConnection && ( StrCaseCmpEx( header, "connection", 9 ) == 0 ) ) {
+					hadConnection = TRUE;
+					int spaces = 0; while( header[10+spaces] == ' ' ) spaces++;
+					if( StrCaseCmpEx( header+10+spaces, "keep-alive", 9 ) == 0 ) {
+						state->flags.keep_alive = 1;
+					} else if( StrCaseCmpEx( header+10+spaces, "close", 5 ) == 0 ) {
+						state->flags.close = 1;
+					}
+				}
 				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
 				if( !skipLength   && ( StrCaseCmpEx( header, "Content-Length", 15 ) == 0 ) ) {
 					skipLength = TRUE;
@@ -1459,6 +1489,14 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				}				
 				vtprintf( state->pvtOut, "%s\r\n", header );
 			}
+
+			if( !hadConnection ) {
+				if( !options->httpVersion || strcmp( options->httpVersion, "1.1" ) == 0 || strcmp( options->httpVersion, "2.0" ) == 0) {
+					vtprintf( state->pvtOut, "Connection: Keep-Alive\r\n" );
+					state->flags.keep_alive = 1;
+				}
+			}
+
 			if( !skipLength && options->content && options->contentLen ) {
 				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
@@ -1490,7 +1528,8 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 					return NULL;
 				}
 
-				if( l.flags.bLogReceived ) {
+				if( l.flags.bLogReceived ) 
+				{
 					lprintf( "Sending %s...", options->method );
 					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
 				}
@@ -1499,19 +1538,23 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 					SendTCPLong( pc, options->content, options->contentLen );
 			}
 
+			VarTextDestroy( &state->pvtOut );
+
 			// wait for response.
-			while( state->request_socket && !state->closed
+			while( state->request_socket && !state->closed && !state->returned_status
 				&& ( state->last_read_tick > ( timeGetTime() - options->timeout ) ) ) {
 				//lprintf( "waiting for response 1000 second %d", options->timeout );
 				WakeableSleep( 1000 );
 			}
+			state->waiter = NULL;
 			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
 			if( state->request_socket && !state->closed ) {
 				//lprintf( "Closing in got response?" );
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
+				//state->request_socket = NULL;
+				return state;
 			}
 
-			VarTextDestroy( &state->pvtOut );
 			if( !state->request_socket || state->closed )
 				return state;
 		}
