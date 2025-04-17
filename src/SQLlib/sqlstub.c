@@ -3825,6 +3825,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 						default:
 							lprintf( "Unhandled coltype:%d", coltype );
 							break;
+						case SQL_LONGVARBINARY:
 						case SQL_BINARY:
 							val->value_type = JSOX_VALUE_TYPED_ARRAY;
 							do {
