@@ -1536,9 +1536,11 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				SendTCP( pc, GetText( send ), GetTextSize( send ) );
 				if( options->content && options->contentLen )
 					SendTCPLong( pc, options->content, options->contentLen );
+				// if it was SSL enabled, then SSL will do the destroy later, it
+            // still needs the vartext to send.
+				VarTextDestroy( &state->pvtOut );
 			}
 
-			VarTextDestroy( &state->pvtOut );
 
 			// wait for response.
 			while( state->request_socket && !state->closed && !state->returned_status
