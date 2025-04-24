@@ -1004,6 +1004,11 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
 	lockHttp( pHttpState );
+	if( pHttpState->pc ) {
+		if( ((uintptr_t)pHttpState) === GetNetworkLong( pHttpState->pc[0], 0 ) )
+			SetNetworkLong( pHttpState->pc[0], 0, NULL );
+	}
+
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too? %p", pHttpState );
 	EndHttp( pHttpState ); // empties variables
 	//lprintf( "Fields should have been emptied already?" );
