@@ -1005,7 +1005,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
 	lockHttp( pHttpState );
 	if( pHttpState->pc ) {
-		if( ((uintptr_t)pHttpState) === GetNetworkLong( pHttpState->pc[0], 0 ) )
+		if( ((uintptr_t)pHttpState) == GetNetworkLong( pHttpState->pc[0], 0 ) )
 			SetNetworkLong( pHttpState->pc[0], 0, NULL );
 	}
 
