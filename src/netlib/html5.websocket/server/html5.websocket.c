@@ -694,7 +694,7 @@ void WebSocketSetConnectPSV( PCLIENT pc, uintptr_t psvNew ) {
 	if( socket && socket->Magic == 0x20130912 )
 		socket->input_state.psvSender = psvNew;
 	else
-		lprintf( "Socket is not a server socket %p", psvNew );
+		lprintf( "Socket is not a server socket %p", pc );
 }
 
 void WebSocketPipeSetOnPSV( struct html5_web_socket* pipe, uintptr_t psvNew ) {
@@ -706,7 +706,7 @@ void WebSocketSetOnPSV( PCLIENT pc, uintptr_t psvNew ) {
 	if( socket && socket->Magic == 0x20130912 )
 		socket->input_state.psv_on = psvNew;
 	else
-		lprintf( "socket isn't a server side pipe..." );
+		lprintf( "socket isn't a server side pipe... %p", pc );
 }
 
 

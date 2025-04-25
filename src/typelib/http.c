@@ -1006,7 +1006,7 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	lockHttp( pHttpState );
 	if( pHttpState->pc ) {
 		if( ((uintptr_t)pHttpState) == GetNetworkLong( pHttpState->pc[0], 0 ) )
-			SetNetworkLong( pHttpState->pc[0], 0, NULL );
+			SetNetworkLong( pHttpState->pc[0], 0, 0 );
 	}
 
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too? %p", pHttpState );
@@ -1558,7 +1558,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( state->request_socket && !state->closed ) {
 				//lprintf( "Closing in got response?" );
 				// the state is returned, so the close shouldn't do anything to it...
-				SetNetworkLong( state->request_socket, 0, NULL );
+				SetNetworkLong( state->request_socket, 0, 0 );
 				RemoveClient( state->request_socket ); // this shouldn't happen... it should have ben closed already.
 				//state->request_socket = NULL;
 				return state;
