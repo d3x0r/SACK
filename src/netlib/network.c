@@ -1060,6 +1060,7 @@ NETWORK_PROC( void, SetNetworkLong )(PCLIENT lpClient, int nLong, uintptr_t dwVa
 {
 	if( lpClient && ( nLong < globalNetworkData.nUserData ) ) {
 		lpClient->lpUserData[nLong] = dwValue;
+		if( lpClient->pcOther ) lpClient->pcOther->lpUserData[nLong] = dwValue;
 	}
 	return;
 }

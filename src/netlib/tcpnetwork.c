@@ -88,6 +88,7 @@ static inline void scheduleSocket( PCLIENT pc, struct peer_thread_info *this_thr
 
 
 void SetNetworkListenerReady( PCLIENT pListen ) {
+	if( pListen->pcOther ) pListen->pcOther->flags.bWaiting = 0;
 	pListen->flags.bWaiting = 0;
 }
 
@@ -197,7 +198,7 @@ void AcceptClient(PCLIENT pListen)
 				// SSL layer(if hooked) will clear CONNECT_ISSUED, and track that state itself.
 				if( pListen->dwFlags & CF_CPPCONNECT )
 					pListen->connect.CPPClientConnected( pListen->psvConnect, pNewClient );
-				else
+				else 
 					pListen->connect.ClientConnected( pListen, pNewClient );
 			}
 
@@ -234,7 +235,7 @@ void AcceptClient(PCLIENT pListen)
 
 //----------------------------------------------------------------------------
 
-static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
+static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, LOGICAL autoSocket )
 {
 #ifdef __LINUX__	
 	int replaced = 0;
@@ -310,24 +311,24 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr )
 				pClient->Socket = INVALID_SOCKET;
 			}
 
-			if( pClient->saSource->sa_family == AF_INET ) {
-#ifdef _WIN32
-				if( !(*(uint32_t*)(pClient->saSource->sa_data+2) ) ) {
-					// have to have the base one open or pcOther cannot be set.
-					SOCKADDR* lpMyAddr = CreateSockAddress( ":::", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
-					pClient->pcOther = CPPOpenTCPListenerAddr_v2d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting DBG_SRC );
-					ReleaseAddress( lpMyAddr );
+			if( !autoSocket ) {
+				if( pClient->saSource->sa_family == AF_INET ) {
+					if( !(*(uint32_t*)(pClient->saSource->sa_data+2) ) ) {
+						// have to have the base one open or pcOther cannot be set.
+						SOCKADDR* lpMyAddr = CreateSockAddress( ":::", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
+						pClient->pcOther = CPPOpenTCPListenerAddr_v3d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting, TRUE DBG_SRC );
+						pClient->pcOther->pcOther = pClient;
+						ReleaseAddress( lpMyAddr );
+					}
+				} else if( pClient->saSource->sa_family == AF_INET6 ) {
+					// maybe we only do the 'other' for IPV4 source?
+					if( MemCmp( pClient->saSource->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 ) {
+						SOCKADDR* lpMyAddr = CreateSockAddress( "0.0.0.0", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
+						pClient->pcOther = CPPOpenTCPListenerAddr_v3d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting, TRUE DBG_SRC );
+						pClient->pcOther->pcOther = pClient;
+						ReleaseAddress( lpMyAddr );
+					}
 				}
-#endif
-			} else if( pClient->saSource->sa_family == AF_INET6 ) {
-				// maybe we only do the 'other' for IPV4 source?
-#if 0			
-				if( MemCmp( pClient->saSource->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 ) {
-					lpMyAddr = CreateSockAddress( "0.0.0.0", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
-					pClient->pcOther = CPPOpenTCPListenerAddr_v2d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnected, pListen->flags.bWaiting DBG_RELAY );
-					ReleaseAddress( lpMyAddr );
-				}
-#endif
 			}
 		}
 
@@ -359,6 +360,16 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
                                  , LOGICAL waitForReady
                                  DBG_PASS )
 {
+	return CPPOpenTCPListenerAddr_v3d( pAddr, NotifyCallback, psvConnect, waitForReady, FALSE DBG_RELAY ); 
+}
+
+PCLIENT CPPOpenTCPListenerAddr_v3d( SOCKADDR *pAddr
+                                 , cppNotifyCallback NotifyCallback
+                                 , uintptr_t psvConnect
+                                 , LOGICAL waitForReady
+											, LOGICAL autoSocket
+                                 DBG_PASS )
+{
 	PCLIENT pListen;
 	if( !pAddr )
 		return NULL;
@@ -377,7 +388,7 @@ PCLIENT CPPOpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 	pListen->dwFlags |= CF_CPPCONNECT;
 
 	// this does the bind part of the socket also... (if any)
-	openSocket( pListen, pAddr, pAddr /*second parameter just selects link protocol, and stream */ );
+	openSocket( pListen, pAddr, pAddr, autoSocket /*second parameter just selects link protocol, and stream */ );
 	if( pListen->Socket == INVALID_SOCKET )
 	{
 		lprintf( " Open Listen Socket Fail... %d", errno);
@@ -427,8 +438,10 @@ PCLIENT OpenTCPListenerAddr_v2d( SOCKADDR *pAddr
                               , LOGICAL waitForReady DBG_PASS )
 {
 	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, waitForReady DBG_RELAY );
-	if( result )
+	if( result ) {
 		result->dwFlags &= ~CF_CPPCONNECT;
+		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+	}
 	return result;
 }
 
@@ -438,8 +451,10 @@ PCLIENT OpenTCPListenerAddrExx( SOCKADDR *pAddr
                               , cNotifyCallback NotifyCallback DBG_PASS )
 {
 	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, FALSE DBG_RELAY );
-	if( result )
+	if( result ) {
 		result->dwFlags &= ~CF_CPPCONNECT;
+		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+	}
 	return result;
 }
 
@@ -462,8 +477,10 @@ PCLIENT CPPOpenTCPListenerExx( uint16_t wPort
 PCLIENT OpenTCPListenerExx(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PASS )
 {
 	PCLIENT result = CPPOpenTCPListenerExx( wPort, (cppNotifyCallback)NotifyCallback, 0 DBG_RELAY );
-	if( result )
+	if( result ) {
 		result->dwFlags &= ~CF_CPPCONNECT;
+		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+	}
 	return result;
 }
 
@@ -517,7 +534,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 								ReleaseAddress( pc->saSource );
 								pc->saSource = NULL;
 							}
-							openSocket( pc, pc->saSource /* used to bind to an address on the client side */, pc->saClient /* just determins socket parameters with family */ );
+							openSocket( pc, pc->saSource /* used to bind to an address on the client side */, pc->saClient /* just determins socket parameters with family */, FALSE );
 							//lprintf( "Re-open the socket... and is %d", pc->Socket );
 							// should kick the thread waiting to wait on the new one now...
 							// but it didn't have to be scheduled, connect() bombed before an event...
@@ -665,7 +682,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 		struct peer_thread_info *this_thread = IsNetworkThread();
 		// use the sockaddr to switch what type of socket this is.
 		
-		openSocket( pResult, pFromAddr, lpAddr ); // addr determins some socket flags
+		openSocket( pResult, pFromAddr, lpAddr, FALSE ); // addr determins some socket flags
 		if (pResult->Socket==INVALID_SOCKET)
 		{
 			// this is a windows failure like 'network not started'
