@@ -44,22 +44,28 @@ static PMENU hMainMenu;
 
 #endif
 
-static void (*DblClkCallback)(void);
 typedef struct addition {
 	CTEXTSTR text;
 	void (CPROC*f2)(uintptr_t);
 	uintptr_t param;
 	void (CPROC*f)(void);
-   int id;
+	int id;
 } ADDITION, *PADDITION;
 static int additions = 0;
 static PLIST Functions;
 
 
+struct dblClick {
+	void( CPROC *f )( void );
+	void( CPROC *f2 )( uintptr_t );
+	uintptr_t param;
+};
+
 static struct systray_local {
 	struct {
 		BIT_FIELD bLog : 1;
 	} flags;
+	PLIST dblClicks;
 } localSystrayState;
 
 //----------------------------------------------------------------------
@@ -106,8 +112,16 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			//printf( "RightUp" );
 			break;
 		case 3: // double left
-			if( DblClkCallback )
-				DblClkCallback();
+			{
+				INDEX idx;
+				struct dblClick *dblPsv ;
+				LIST_FORALL( localSystrayState.dblClicks, idx, struct dblClick *, dblPsv ) {
+					if( dblPsv->f )
+						dblPsv->f();
+					if( dblPsv->f2 )
+						dblPsv->f2( dblPsv->param );
+				}
+			}
 			break;
 		case 2: // left button down
 			//printf( "LeftUp" );
@@ -139,7 +153,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 				if( addon ) {
 					void (CPROC * func)(void) = addon->f;
 					if( func )
-				               func();
+				        func();
 					else if( addon->f2 )
 						addon->f2( addon->param );
 				}
@@ -285,11 +299,23 @@ int RegisterIconHandler( CTEXTSTR param_icon )
 
 //----------------------------------------------------------------------
 
-void SetIconDoubleClick( void (*DoubleClick)(void ) )
+void SetIconDoubleClick( void (*DoubleClick)(void) )
 {
-	DblClkCallback = DoubleClick;
+	struct dblClick *dblClick = NewArray( struct dblClick, 1 );
+	dblClick->f               = DoubleClick;
+	dblClick->f2              = NULL;
+	AddLink( &localSystrayState.dblClicks, dblClick );
 }
 
+void SetIconDoubleClick_v2( void ( *DoubleClick )( uintptr_t ), uintptr_t psv ) { 
+	struct dblClick *dblClick = NewArray( struct dblClick, 1 );
+	dblClick->param           = psv;
+	dblClick->f               = NULL;
+	dblClick->f2              = DoubleClick;
+	AddLink( &localSystrayState.dblClicks, dblClick );
+}
+
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
 void BasicExitMenu( void )
@@ -311,25 +337,44 @@ void BasicExitMenu( void )
 		PADDITION addition;
 		LIST_FORALL( Functions, idx, PADDITION, addition )
 		{
+			if( addition->text ) {
 #ifdef WIN32
-			AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+addition->id, addition->text );
+				//AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+addition->id, addition->text );
+				InsertMenu( hMainMenu, idx + 1, MF_STRING | MF_BYPOSITION, MNU_EXIT+1+addition->id, addition->text );
 #else
-			AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+addition->id, addition->text );
+				AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+addition->id, addition->text );
 #endif
+			} else {
+#ifdef WIN32
+				//AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+addition->id, addition->text );
+				InsertMenu( hMainMenu, idx + 1, MF_SEPARATOR | MF_BYPOSITION, MNU_EXIT+1+addition->id, addition->text );
+#else
+				AppendPopupItem( hMainMenu, MF_SEPARATOR, MNU_EXIT+1+addition->id, addition->text );
+#endif
+
+			}
 		}
 	}
 }
 
 
-void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
-{
+INDEX AddSystrayMenuFunction( CTEXTSTR text, void( CPROC * function )( void ) ) {
+	INDEX newId = MNU_EXIT + 1 + additions;
 	if( hMainMenu )
 	{
+		if( text ) {
 #ifdef WIN32
-		AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+			AppendMenu( hMainMenu, MF_STRING, newId, text );
 #else
-		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+			AppendPopupItem( hMainMenu, MF_STRING, newId, text );
 #endif
+		} else {
+#ifdef WIN32
+			AppendMenu( hMainMenu, MF_SEPARATOR, newId, text );
+#else
+			AppendPopupItem( hMainMenu, MF_SEPARATOR, newId, text );
+#endif
+		}
 	}
 	{
 		PADDITION addition = New( ADDITION );
@@ -339,20 +384,44 @@ void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
 		SetLink( &Functions, additions, addition );
 		additions++;
 	}
+	return newId;
 }
 
-void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
+void CheckSystrayMenuItem( INDEX id, LOGICAL checked ) { 
+#ifdef WIN32
+	CheckMenuItem( hMainMenu, id, MF_BYCOMMAND | ( checked ? MF_CHECKED : MF_UNCHECKED ) );
+#endif
+}
+
+void SetSystrayMenuItemText( INDEX id, CTEXTSTR text ) {
+#ifdef WIN32
+	MENUITEMINFO mii = { .cbSize = sizeof( MENUITEMINFO ), .fMask = MIIM_STRING, .dwTypeData = (LPTSTR)text	};
+	SetMenuItemInfo( hMainMenu, id, FALSE, &mii );
+#endif
+}
+
+INDEX AddSystrayMenuFunction_v2( CTEXTSTR text, void( CPROC * function )( uintptr_t ), uintptr_t param ) {
+	INDEX newId = MNU_EXIT + 1 + additions;
 	if( hMainMenu )
 	{
+		if( text ) {
 #ifdef WIN32
-		AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+			// AppendMenu( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+			InsertMenu( hMainMenu, additions+1, MF_STRING | MF_BYPOSITION, newId, text );
 #else
-		AppendPopupItem( hMainMenu, MF_STRING, MNU_EXIT+1+additions, text );
+			AppendPopupItem( hMainMenu, MF_STRING, newId, text );
 #endif
+		} else {
+#ifdef WIN32
+			AppendMenu( hMainMenu, MF_SEPARATOR, newId, text );
+#else
+			AppendPopupItem( hMainMenu, MF_SEPARATOR, newId, text );
+#endif
+		}
 	}
 	{
 		PADDITION addition = New( ADDITION );
-		addition->text = StrDupEx( text DBG_SRC );
+		addition->text = text?StrDupEx( text DBG_SRC ):NULL;
 		addition->f = NULL;
 		addition->param = param;
 		addition->f2 = function;
@@ -360,6 +429,7 @@ void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t)
 		SetLink( &Functions, additions, addition );
 		additions++;
 	}
+	return newId;
 }
 
 //----------------------------------------------------------------------
@@ -609,62 +679,6 @@ ATEXIT( DoUnregisterIcon )
 // Revision 1.15  2005/07/25 21:43:15  jim
 // Fix regisrered name of non-default icons
 //
-// Revision 1.18  2005/07/25 21:41:49  d3x0r
-// Didn't pass icon name new newly threaded - easy to use systray thing.
-//
-// Revision 1.17  2005/06/06 09:27:41  d3x0r
-// Fix loading of the default icon.
-//
-// Revision 1.16  2005/06/05 05:23:43  d3x0r
-// Add module filename to the menu so we know which default icon is which.
-//
-// Revision 1.15  2005/06/05 05:07:20  d3x0r
-// Add default thread to accompany default icon and default behvaior of exit(0)
-//
-// Revision 1.14  2005/06/05 04:53:42  d3x0r
-// Default exit method also calls exit().  THis is a termination exit, and does not allow the application to exit gracefully.  There is also a PostQuitMessage... which may or may not be received by the main thread (this thread??)
-//
-// Revision 1.13  2005/06/05 04:52:02  d3x0r
-// Add default icon to systray handler... so we can registericon...
-//
-// Revision 1.12  2005/05/25 16:50:30  d3x0r
-// Synch with working repository.
-//
-// Revision 1.13  2005/01/10 21:43:42  panther
-// Unix-centralize makefiles, also modify set container handling of getmember index
-//
-// Revision 1.12  2004/12/20 22:32:49  panther
-// Modifications to make idle proc check for thread instance
-//
-// Revision 1.11  2004/10/03 02:14:03  d3x0r
-// Auto unregister icon at exit...
-//
-// Revision 1.10  2004/06/24 03:33:02  d3x0r
-// Register idle proc for systray's ldle of peek/dispatch message which eveyrone else doesn't need to know.
-//
-// Revision 1.9  2004/06/15 21:33:36  d3x0r
-// Define libmain to make compilation happier...
-//
-// Revision 1.8  2004/05/27 20:57:40  d3x0r
-// Use PSI menus instead of windows menus...
-//
-// Revision 1.8  2004/05/21 00:57:49  jim
-// Fix some mouse issues, track focus issues, fix some soft cursor issues...
-//
-// Revision 1.7  2003/11/09 22:33:13  panther
-// Fix name of wndname if token is int resource
-//
-// Revision 1.6  2003/10/21 16:23:04  panther
-// Append icon name to window title to produce 'unique' names to wake
-//
-// Revision 1.5  2002/10/16 10:22:12  panther
-// Modified places to check for a named icon from.  - file/resource, resource
-//
-// Revision 1.4  2002/04/25 00:05:04  panther
-// Added logging of PostQuitMessages/WM_QUIT...
-//
-// Revision 1.3  2002/04/18 20:42:52  panther
-// minor cleanup.
 //
 // Revision 1.2  2002/04/18 17:48:24  panther
 // Added doublclick icon method callback...

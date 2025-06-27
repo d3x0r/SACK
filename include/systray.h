@@ -26,10 +26,15 @@ SYSTRAY_PROC void ChangeIconEx( CTEXTSTR icon DBG_PASS );
 SYSTRAY_PROC void UnregisterIcon( void );
 
 SYSTRAY_PROC void SetIconDoubleClick( void (*DoubleClick)(void ) );
+SYSTRAY_PROC void SetIconDoubleClick_v2( void ( *DoubleClick )( uintptr_t ), uintptr_t );
 
 SYSTRAY_PROC void TerminateIcon( void );
-SYSTRAY_PROC void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) );
-SYSTRAY_PROC void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t );
+SYSTRAY_PROC INDEX AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) );
+SYSTRAY_PROC INDEX AddSystrayMenuFunction_v2( CTEXTSTR text, void( CPROC * function )( uintptr_t ), uintptr_t );
+
+SYSTRAY_PROC void CheckSystrayMenuItem( INDEX id, LOGICAL checked );
+SYSTRAY_PROC void SetSystrayMenuItemText( INDEX id, CTEXTSTR text );
+
 
 // this may be important one day!
 //void SetIconMenu( HMENU menu );
