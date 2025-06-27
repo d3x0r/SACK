@@ -82,7 +82,10 @@ static RENDER_INTERFACE VidInterface = { NULL //InitDisplay
 #ifndef NO_TOUCH
 													, SetTouchHandler
 #endif
-                                       , MarkDisplayUpdated
+#ifndef NO_TOUCH
+                                        , NULL //SetPenHandler
+#endif
+                                        , MarkDisplayUpdated
 									   , SetHideHandler
 									   , SetRestoreHandler
 													, RestoreDisplayEx
