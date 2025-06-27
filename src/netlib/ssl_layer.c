@@ -1421,6 +1421,7 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 		ses->cpp_user_connected = pc->connect.CPPClientConnected;
 		pc->connect.ClientConnected = ssl_ClientConnected;
 		pc->dwFlags &= ~CF_CPPCONNECT;
+		if( pc->pcOther ) pc->pcOther->dwFlags &= ~CF_CPPCONNECT;
 
 		ses->errorCallback = pc->errorCallback;
 		ses->psvErrorCallback = pc->psvErrorCallback;
