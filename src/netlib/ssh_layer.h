@@ -53,6 +53,8 @@ struct ssh_session {
 	uint8_t* privKey;
 	size_t privKey_len;
 
+	ssh_session_write_cb write;
+	ssh_session_close_cb close;
 	ssh_session_error_cb error;
 	ssh_handshake_cb handshake_complete;
 	ssh_auth_cb auth_complete;

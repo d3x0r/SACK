@@ -27,6 +27,11 @@ NETWORK_PROC( struct ssh_session*, sack_ssh_session_init )( uintptr_t psv );
 * if the host string includes a port, it will be used instead of the port parameter
 */
 NETWORK_PROC( void, sack_ssh_session_connect )( struct ssh_session* session, CTEXTSTR host, int port, ssh_handshake_cb cb );
+
+typedef void (*ssh_session_read_cb)( uintptr_t psv, uint8_t *buffer, size_t length );
+typedef void (*ssh_session_write_cb)( uintptr_t psv, uint8_t *buffer, size_t length );
+typedef void (*ssh_session_close_cb)( uintptr_t psv ); // connection wants to close
+
 /*
 * enable debugging on a session
 */

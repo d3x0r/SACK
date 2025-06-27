@@ -51,7 +51,10 @@ static LIBSSH2_SEND_FUNC( SendCallback ) {
 		, void** abstract)
 	*/
 	struct ssh_session* cs = (struct ssh_session*)abstract[0];
-	SendTCP( cs->pc, buffer, length );
+	if( cs->pc )
+		SendTCP( cs->pc, buffer, length );
+	else if( cs->write )
+		cs->write( cs->psv, (uint8_t*)buffer, length );
 	return length;
 }
 
@@ -110,12 +113,8 @@ static void pwChange( LIBSSH2_SESSION *session, char** newpw, int* newpw_len, vo
 	//RemoveClient( cs->pc );
 }
 
-static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
-	struct ssh_session* cs = (struct ssh_session*)GetNetworkLong( pc, 0 );
-	if( !buffer ) {
-		cs->buffers = CreateDataList( sizeof( struct data_buffer ) );
-	}
-	else {
+static void _readCallback( struct ssh_session* cs, POINTER buffer, size_t length ) {
+	{
 		// got data from socket, need to stuff it into SSH.
 		int rc = 0;
 		int did_one = 0;
@@ -166,7 +165,9 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 							// remove all other events too...
 							DequeData( &cs->pdqStates, NULL );
 						}
-						RemoveClient( pc );
+						if( cs->pc )
+							RemoveClient( cs->pc );
+						else if( cs->close ) cs->close( cs->psv );
 						LeaveCriticalSec( &local_ssh_layer_data.csLock );
 						return;
 					}
@@ -227,7 +228,6 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						} else if( cs->auth_complete ) {
 							cs->auth_complete( cs->psv, FALSE );
 						}
-						//RemoveClient( pc );
 						cs->pending.state = SSH_STATE_RESET;
 						LeaveCriticalSec( &local_ssh_layer_data.csLock );
 						return;
@@ -258,7 +258,6 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 							if( session->forward_listen_cb )
 								session->forward_listen_cb( session->psv, NULL, 0 );
 							cs->pending.state = SSH_STATE_RESET;
-							//RemoveClient( pc );
 						} else {
 							lprintf( "no listener, no error?" );
 						}
@@ -370,7 +369,6 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						cs->pending.state = SSH_STATE_RESET;
 						Deallocate( CTEXTSTR, key );
 						Deallocate( CTEXTSTR, value );
-						//RemoveClient( pc );
 					}
 					else {
 						if( cs->pending.state_data[3] )
@@ -453,7 +451,6 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 						if( rc == LIBSSH2_ERROR_EAGAIN ) break;
 						else if( rc ) {
 							// error
-							//RemoveClient( pc );
 							//return;
 						}
 						else {
@@ -478,6 +475,18 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 		//case 
 		LeaveCriticalSec( &local_ssh_layer_data.csLock );
 	}
+}
+
+
+static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
+	struct ssh_session* cs = (struct ssh_session*)GetNetworkLong( pc, 0 );
+	if( !buffer ) {
+		cs->buffers = CreateDataList( sizeof( struct data_buffer ) );
+	}
+	else {
+		_readCallback( cs, buffer, length );
+	}
+
 	INDEX idx;
 	struct data_buffer* db;
 	DATA_FORALL( cs->buffers, idx, struct data_buffer*, db ) {
@@ -493,7 +502,6 @@ static void readCallback( PCLIENT pc, POINTER buffer, size_t length ) {
 	new_db.used = 0;
 	AddDataItem( &cs->buffers, &new_db );
 	ReadTCP( pc, new_db.buffer, 4096 );
-
 }
 
 static void connectCallback( PCLIENT pc, int error ){
@@ -563,6 +571,8 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	session->buffers = NULL;
 	session->pdqStates = CreateDataQueue( sizeof( struct pending_state ) );
 	session->psv = psv;
+	session->buffers = CreateDataList( sizeof( struct data_buffer ) );
+
 	session->session = libssh2_session_init_ex(alloc_callback, free_callback, realloc_callback, session);
 	libssh2_session_banner_set( session->session, "SSH-2.0-sack_2.0+libssh2_1.9.0" );
 
@@ -573,7 +583,24 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	return session;
 }
 
+void sack_ssh_session_open( struct ssh_session* session, ssh_session_read_cb *read, ssh_session_write_cb write, ssh_session_close_cb close, ssh_handshake_cb cb ) {
+	EnterCriticalSec( &local_ssh_layer_data.csLock );
+	if( session->pending.state != SSH_STATE_RESET ) {
+		lprintf( "session is already in progress" );
+	}
+	while( local_ssh_layer_data.connecting_session ) {
+		// wait for previous connection to complete...
+		WakeableSleep( 10 );	
+	}
+	//local_ssh_layer_data.connecting_session = session;
+	session->pc = NULL;//OpenTCPClientExxx( host, port?port:22, readCallback, closeCallback, NULL, connectCallback, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+	read[0] = (ssh_session_read_cb)_readCallback;
+	session->write = write;
+	session->close = close;
+	session->pending.state = SSH_STATE_CONNECTING;
 
+	LeaveCriticalSec( &local_ssh_layer_data.csLock );
+}
 
 void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int port, ssh_handshake_cb cb ) {
 	EnterCriticalSec( &local_ssh_layer_data.csLock );
@@ -586,6 +613,8 @@ void sack_ssh_session_connect( struct ssh_session* session, CTEXTSTR host, int p
 	}
 	local_ssh_layer_data.connecting_session = session;
 	session->pc = OpenTCPClientExxx( host, port?port:22, readCallback, closeCallback, NULL, connectCallback, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+	session->write = NULL;
+	session->close = NULL;
 	if( session->pc ) {
 		SetNetworkLong( session->pc, 1, (uintptr_t)cb );
 		// make sure to block other connections until handshake resolves...
@@ -608,8 +637,9 @@ void sack_ssh_session_close( struct ssh_session*session ){
 	// prevent callback from being triggered
 	SetNetworkCloseCallback( session->pc, NULL );
 	SetNetworkReadComplete( session->pc, NULL );
-
-	RemoveClient( session->pc );
+	if( session->pc )
+		RemoveClient( session->pc );
+	else if( session->close ) session->close( session->psv );
 	if( session->bincert )
 		ReleaseCert( session->bincert );
 	if( session->user ) ReleaseEx( (POINTER)session->user DBG_SRC );
