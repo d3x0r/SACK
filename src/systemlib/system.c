@@ -2504,8 +2504,10 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library->loading--;
 	}
 	SuspendDeadstart();
+	int err1 = 0, err2 = 0, err3 = 0, err4 = 0;
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->cur_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR| LOAD_LIBRARY_SEARCH_DEFAULT_DIRS ); //-V595
+		err1             = GetLastError();
 #ifdef _DEBUG
 		errors[0].name = library->cur_full_name;
 		errors[0].error = GetLastError();
@@ -2516,6 +2518,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		lprintf( "trying load...%s", library->full_name );
 #  endif
 		library->library = LoadLibraryExW( library->full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
+		err2             = GetLastError();
 #ifdef _DEBUG
 		errors[1].name = library->full_name;
 		errors[1].error = GetLastError();
@@ -2523,6 +2526,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	}
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->alt_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
+		err3             = GetLastError();
 #ifdef _DEBUG
 		errors[2].name = library->alt_full_name;
 		errors[2].error = GetLastError();
@@ -2530,6 +2534,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 	}
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
+		err4 = GetLastError();
 #ifdef _DEBUG
 		errors[3].name = library->name;
 		errors[3].error = GetLastError();
@@ -2543,12 +2548,13 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			for( int i = 0; i < 4; i++ )
 				lprintf( "Error LoadLibrary: %5d %ls", errors[i].error, errors[i].name );
 #else
-			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed."
+			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed. %d %d %d %d"
 					, library->cur_full_name
 					, library->full_name
 					, library->alt_full_name
 					, library->name
 					, funcname ? funcname : "all"
+					, err1, err2, err3, err4 
 					); //-V595
 #endif
 			ReleaseEx( library->cur_full_name DBG_SRC );
