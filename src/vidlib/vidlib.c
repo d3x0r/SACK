@@ -581,170 +581,153 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 
 				{
 					INDEX idx;
-					if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
-					LIST_FORALL( l.threads, idx, PTHREAD, thread )
-					{
-						// okay if it's layered, just let the draws through always.
-						if( (hVideo->flags.bLayeredWindow) || IsThisThread( thread ) || ( x || y ) )
-						{
-							int entered_crit;
-							if( hVideo->flags.bOpenGL )
-								if( l.actual_thread != thread )
-									 continue;
-							//lprintf( "Is a thread." );
-							if( !hVideo->flags.event_dispatched ) {
-								entered_crit = 1;
-								EnterCriticalSec( &hVideo->cs );
-								if( hVideo->flags.bDestroy )
-								{
-									//lprintf( "Saving ourselves from operating a draw while destroyed." );
-									// by now we could be in a place where we've been destroyed....
-									LeaveCriticalSec( &hVideo->cs );
-									return;
-								}
-							} else
-								entered_crit = 0;
+					if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX ) {
+						LIST_FORALL( l.threads, idx, PTHREAD, thread ) {
+							// okay if it's layered, just let the draws through always.
+							if( ( hVideo->flags.bLayeredWindow ) || IsThisThread( thread ) || ( x || y ) ) {
+								int entered_crit;
+								if( hVideo->flags.bOpenGL )
+									if( l.actual_thread != thread )
+										continue;
+								// lprintf( "Is a thread." );
+								if( !hVideo->flags.event_dispatched ) {
+									entered_crit = 1;
+									EnterCriticalSec( &hVideo->cs );
+									if( hVideo->flags.bDestroy ) {
+										// lprintf( "Saving ourselves from operating a draw while destroyed." );
+										//  by now we could be in a place where we've been destroyed....
+										LeaveCriticalSec( &hVideo->cs );
+										return;
+									}
+								} else
+									entered_crit = 0;
 #ifdef LOG_RECT_UPDATE
-							lprintf( "Good thread..." ); /* can't be? */
+								lprintf( "Good thread..." ); /* can't be? */
 #endif
-							// StretchBlt can take the raw data by the way...
+								// StretchBlt can take the raw data by the way...
 #ifdef _OPENGL_ENABLED
-							{
-								int n;
-								for( n = 0; n < hVideo->nFractures; n++ )
 								{
-									BitBlt ( (HDC)hVideo->hDCBitmap
-										, hVideo->pFractures[n].x, hVideo->pFractures[n].y
-										, hVideo->pFractures[n].w, hVideo->pFractures[n].h
-										, (HDC)hVideo->pFractures[n].hDCBitmap, 0, 0, SRCCOPY);
-								}
-							}
-#endif
-							if( hVideo->sprites )
-							{
-								INDEX idx;
-								uint32_t _w, _h;
-								PSPRITE_METHOD psm;
-								// set these to set clipping for sprite routine
-								hVideo->pImage->x = x;
-								hVideo->pImage->y = y;
-								_w = hVideo->pImage->width;
-								hVideo->pImage->width = w;
-								_h = hVideo->pImage->height;
-								hVideo->pImage->height = h;
-#ifdef DEBUG_TIMING
-								lprintf( "Save screen..." );
-#endif
-								LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm )
-								{
-									if( ( psm->original_surface->width != psm->renderer->pImage->width ) ||
-										( psm->original_surface->height != psm->renderer->pImage->height ) )
-									{
-										UnmakeImageFile( psm->original_surface );
-										psm->original_surface = MakeImageFile( psm->renderer->pImage->width, psm->renderer->pImage->height );
+									int n;
+									for( n = 0; n < hVideo->nFractures; n++ ) {
+										BitBlt( (HDC)hVideo->hDCBitmap, hVideo->pFractures[ n ].x, hVideo->pFractures[ n ].y
+										      , hVideo->pFractures[ n ].w, hVideo->pFractures[ n ].h
+										      , (HDC)hVideo->pFractures[ n ].hDCBitmap, 0, 0, SRCCOPY );
 									}
-									//lprintf( "save Sprites" );
-									BlotImageSized( psm->original_surface, psm->renderer->pImage
-										, x, y, w, h );
-#ifdef DEBUG_TIMING
-									lprintf( "Render sprites..." );
+								}
 #endif
-									if( psm->RenderSprites )
-									{
-										// if I exported the PSPRITE_METHOD structure to the image library
-										// then it could itself short circuit the drawing...
-										//lprintf( "render Sprites" );
-										psm->RenderSprites( psm->psv, hVideo, x, y, w, h );
+								if( hVideo->sprites ) {
+									INDEX idx;
+									uint32_t _w, _h;
+									PSPRITE_METHOD psm;
+									// set these to set clipping for sprite routine
+									hVideo->pImage->x      = x;
+									hVideo->pImage->y      = y;
+									_w                     = hVideo->pImage->width;
+									hVideo->pImage->width  = w;
+									_h                     = hVideo->pImage->height;
+									hVideo->pImage->height = h;
+#ifdef DEBUG_TIMING
+									lprintf( "Save screen..." );
+#endif
+									LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm ) {
+										if( ( psm->original_surface->width != psm->renderer->pImage->width )
+										  || ( psm->original_surface->height != psm->renderer->pImage->height ) ) {
+											UnmakeImageFile( psm->original_surface );
+											psm->original_surface
+											     = MakeImageFile( psm->renderer->pImage->width, psm->renderer->pImage->height );
+										}
+										// lprintf( "save Sprites" );
+										BlotImageSized( psm->original_surface, psm->renderer->pImage, x, y, w, h );
+#ifdef DEBUG_TIMING
+										lprintf( "Render sprites..." );
+#endif
+										if( psm->RenderSprites ) {
+											// if I exported the PSPRITE_METHOD structure to the image library
+											// then it could itself short circuit the drawing...
+											// lprintf( "render Sprites" );
+											psm->RenderSprites( psm->psv, hVideo, x, y, w, h );
+										}
+#ifdef DEBUG_TIMING
+										lprintf( "Done render sprites..." );
+#endif
 									}
 #ifdef DEBUG_TIMING
-									lprintf( "Done render sprites...");
+									lprintf( "Done save screen and update spritess..." );
 #endif
+									hVideo->pImage->x      = 0;
+									hVideo->pImage->y      = 0;
+									hVideo->pImage->width  = _w;
+									hVideo->pImage->height = _h;
 								}
-#ifdef DEBUG_TIMING
-								lprintf( "Done save screen and update spritess..." );
-#endif
-								hVideo->pImage->x = 0;
-								hVideo->pImage->y = 0;
-								hVideo->pImage->width = _w;
-								hVideo->pImage->height = _h;
-							}
 
-							if( l.flags.bLogWrites )
-								_lprintf(DBG_RELAY)( "Output %d,%d %d,%d", x, y, w, h);
+								if( l.flags.bLogWrites )
+									_lprintf( DBG_RELAY )( "Output %d,%d %d,%d", x, y, w, h );
 
 #ifndef NO_TRANSPARENCY
-							if( hVideo->flags.bLayeredWindow )
-							{
-								IssueUpdateLayeredEx( hVideo, TRUE, x, y, w, h DBG_SRC );
-							}
-							else
+								if( hVideo->flags.bLayeredWindow ) {
+									IssueUpdateLayeredEx( hVideo, TRUE, x, y, w, h DBG_SRC );
+								} else
 #endif
-							{
-								//lprintf( "non layered... begin update." );
-								if( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen )
 								{
+									// lprintf( "non layered... begin update." );
+									if( hVideo->flags.bFullScreen && !hVideo->flags.bNotFullScreen ) {
 
-									uint32_t w;
-									uint32_t h;
-									int32_t x, y;
-									w =  hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
-									h =  hVideo->pImage->height * hVideo->full_screen.width / hVideo->pImage->width;
-									if( h > hVideo->full_screen.height )
-									{
-										w =  hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
-										h =  hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
-									}
-									y = ( hVideo->full_screen.height - h ) / 2;
-									x = ( hVideo->full_screen.width - w ) / 2;
-									if( l.flags.bDoNotPreserveAspectOnFullScreen )
-										StretchBlt ((HDC)hVideo->hDCOutput, hVideo->full_screen.x, hVideo->full_screen.y, hVideo->full_screen.width, hVideo->full_screen.height,
-														(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
-									else
-										StretchBlt ((HDC)hVideo->hDCOutput, x, y, w, h,//hVideo->full_screen.width, hVideo->full_screen.height,
-														(HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height, SRCCOPY);
+										uint32_t w;
+										uint32_t h;
+										int32_t x, y;
+										w = hVideo->pImage->width * hVideo->full_screen.width / hVideo->pImage->width;
+										h = hVideo->pImage->height * hVideo->full_screen.width / hVideo->pImage->width;
+										if( h > hVideo->full_screen.height ) {
+											w = hVideo->pImage->width * hVideo->full_screen.height / hVideo->pImage->height;
+											h = hVideo->pImage->height * hVideo->full_screen.height / hVideo->pImage->height;
+										}
+										y = ( hVideo->full_screen.height - h ) / 2;
+										x = ( hVideo->full_screen.width - w ) / 2;
+										if( l.flags.bDoNotPreserveAspectOnFullScreen )
+											StretchBlt( (HDC)hVideo->hDCOutput, hVideo->full_screen.x, hVideo->full_screen.y
+											          , hVideo->full_screen.width, hVideo->full_screen.height
+											          , (HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height
+											          , SRCCOPY );
+										else
+											StretchBlt( (HDC)hVideo->hDCOutput, x, y, w, h
+											          , // hVideo->full_screen.width, hVideo->full_screen.height,
+											          (HDC)hVideo->hDCBitmap, 0, 0, hVideo->pImage->width, hVideo->pImage->height
+											          , SRCCOPY );
+									} else
+										BitBlt( (HDC)hVideo->hDCOutput, x, y, w, h, (HDC)hVideo->hDCBitmap, x, y, SRCCOPY );
+									// lprintf( "non layered... end update." );
 								}
-								else
-									BitBlt ((HDC)hVideo->hDCOutput, x, y, w, h,
-											  (HDC)hVideo->hDCBitmap, x, y, SRCCOPY);
-								//lprintf( "non layered... end update." );
-							}
-							if( hVideo->sprites )
-							{
-								INDEX idx;
-								PSPRITE_METHOD psm;
-								struct saved_location location;
-#ifdef DEBUG_TIMING 
-								lprintf( "Restore Original" );
-#endif
-								LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm )
-								{
-									//BlotImage( psm->renderer->pImage, psm->original_surface
-									//			, 0, 0 );
-									while( DequeData( &psm->saved_spots, &location ) )
-									{
-										// restore saved data from image to here...
-										//lprintf( "Restore %d,%d %d,%d", location.x, location.y
-										//					 , location.w, location.h );
-
-										BlotImageSizedEx( hVideo->pImage, psm->original_surface
-											, location.x, location.y
-											, location.x, location.y
-											, location.w, location.h
-											, 0
-											, BLOT_COPY );
-
-									}
-								}
+								if( hVideo->sprites ) {
+									INDEX idx;
+									PSPRITE_METHOD psm;
+									struct saved_location location;
 #ifdef DEBUG_TIMING
-								lprintf( "Restored Original" );
+									lprintf( "Restore Original" );
 #endif
+									LIST_FORALL( hVideo->sprites, idx, PSPRITE_METHOD, psm ) {
+										// BlotImage( psm->renderer->pImage, psm->original_surface
+										//			, 0, 0 );
+										while( DequeData( &psm->saved_spots, &location ) ) {
+											// restore saved data from image to here...
+											// lprintf( "Restore %d,%d %d,%d", location.x, location.y
+											//					 , location.w, location.h );
+
+											BlotImageSizedEx( hVideo->pImage, psm->original_surface, location.x, location.y
+											                , location.x, location.y, location.w, location.h, 0, BLOT_COPY );
+										}
+									}
+#ifdef DEBUG_TIMING
+									lprintf( "Restored Original" );
+#endif
+								}
+								if( entered_crit ) {
+									LeaveCriticalSec( &hVideo->cs );
+								}
+								break;
 							}
-							if( entered_crit ) {
-								LeaveCriticalSec( &hVideo->cs );
-							}
-							break;
 						}
-					}
+					} //else
+					//	lprintf( "already re-invalidated?" );
 				}
 
 				if( !thread )
@@ -820,7 +803,8 @@ RENDER_PROC (void, UpdateDisplayPortionEx)( PVIDEO hVideo
 #if DEBUG_INVALIDATE
 						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-						AddLink( &l.invalidated_windows, hVideo );
+						if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
+							AddLink( &l.invalidated_windows, hVideo );
 						InvalidateRect( hVideo->hWndOutput, &r, FALSE );
 					}
 				}
@@ -2036,7 +2020,8 @@ void Redraw( PVIDEO hVideo )
 #if DEBUG_INVALIDATE
 			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			AddLink( &l.invalidated_windows, hVideo );
+			if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
+				AddLink( &l.invalidated_windows, hVideo );
 			InvalidateRect( hVideo->hWndOutput, NULL, FALSE );
 		}
 	}
@@ -3174,8 +3159,8 @@ WM_DROPFILES
 #if DEBUG_INVALIDATE
 			lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			DeleteLink( &l.invalidated_windows, hVideo );
-			ValidateRect( hWnd, NULL );
+			//DeleteLink( &l.invalidated_windows, hVideo );
+			//ValidateRect( hWnd, NULL );
 #ifdef NOISY_LOGGING
 			lprintf( "Validated rect... will you stop calling paint!?" );
 #endif
@@ -3201,7 +3186,8 @@ WM_DROPFILES
 #if DEBUG_INVALIDATE
 					lprintf( "clear Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-					DeleteLink( &l.invalidated_windows, hVideo );
+					while( FindLink( &l.invalidated_windows, hVideo ) != INVALID_INDEX )
+						DeleteLink( &l.invalidated_windows, hVideo );
 					if( hVideo->portion_update.pending ) {
 						hVideo->portion_update.pending = FALSE;
 						UpdateDisplayPortion( hVideo
@@ -4033,7 +4019,8 @@ static void HandleMessage (MSG Msg)
 #if DEBUG_INVALIDATE
 			lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-			AddLink( &l.invalidated_windows, hVideo );
+			if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
+				AddLink( &l.invalidated_windows, hVideo );
 			ShowWindow( hVideo->hWndOutput, SW_SHOW );
 			if( hVideo->flags.bTopmost )
 				SetWindowPos (hVideo->hWndOutput, HWND_TOPMOST, 0, 0, 0, 0,
@@ -5486,7 +5473,8 @@ void RestoreDisplayEx(PVIDEO hVideo DBG_PASS )
 #if DEBUG_INVALIDATE
 						lprintf( "set Posted Invalidate  (previous:%d)", l.flags.bPostedInvalidate );
 #endif
-						AddLink( &l.invalidated_windows, hVideo );
+						if( FindLink( &l.invalidated_windows, hVideo ) == INVALID_INDEX )
+							AddLink( &l.invalidated_windows, hVideo );
 						ShowWindow( hVideo->hWndOutput, SW_SHOW );
 					}
 					if( hVideo->flags.bTopmost )
