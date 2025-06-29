@@ -2010,6 +2010,9 @@ PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 	l.config_filename = StrDup( filename );
 }
 
+PROCREG_PROC( void, SetStaticInterfaceConfigFile )( CTEXTSTR filename ) {
+	l.config_filename = filename;
+}
 
 static uintptr_t CPROC SetDefaultDirectory( uintptr_t psv, arg_list args )
 {
