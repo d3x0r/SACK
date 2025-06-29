@@ -1,4 +1,4 @@
-\/*
+/*
  * Create: James Buckeyne
  *
  * Purpose: Provide a general structure to register names of
