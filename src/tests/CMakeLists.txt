@@ -20,11 +20,11 @@ set(BASE_SOURCES
     testDllLoad.c
 )
 
-add_program(${project} ${BASE_SOURCES} )
+add_executable(${project} ${BASE_SOURCES} )
 SET_TARGET_PROPERTIES(${project} PROPERTIES
                   FOLDER tests
 )
-#install_default_dest( ${project} )
+install_default_dest( ${project} )
 
 set( project test_atexit_threads2 )
 
