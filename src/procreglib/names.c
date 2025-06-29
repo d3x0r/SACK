@@ -533,7 +533,7 @@ static void CPROC InitGlobalSpace( POINTER p, uintptr_t size )
 {
 	InitializeCriticalSec( &(*(struct procreg_local_tag*)p).csName );
 
-	(*(struct procreg_local_tag*)p).config_filename = config_filename;
+	(*(struct procreg_local_tag*)p).config_filename = StrDup( config_filename );
 
 	(*(struct procreg_local_tag*)p).Names = (PTREEDEF)GetFromSet( TREEDEF, &(*(struct procreg_local_tag*)p).TreeNodes );
 	(*(struct procreg_local_tag*)p).Names->Magic = MAGIC_TREE_NUMBER;
