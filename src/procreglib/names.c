@@ -75,6 +75,8 @@ struct procreg_local_tag {
 	//gcroot<System::IO::FileStream^> fs;
 };
 
+static CTEXTSTR config_filename;
+
 #ifdef l
 #   undef l
 #endif
@@ -530,6 +532,8 @@ static void CPROC KillName( CPOINTER user, uintptr_t key )
 static void CPROC InitGlobalSpace( POINTER p, uintptr_t size )
 {
 	InitializeCriticalSec( &(*(struct procreg_local_tag*)p).csName );
+
+	(*(struct procreg_local_tag*)p).config_filename = config_filename;
 
 	(*(struct procreg_local_tag*)p).Names = (PTREEDEF)GetFromSet( TREEDEF, &(*(struct procreg_local_tag*)p).TreeNodes );
 	(*(struct procreg_local_tag*)p).Names->Magic = MAGIC_TREE_NUMBER;
@@ -2011,7 +2015,7 @@ PROCREG_PROC( void, SetInterfaceConfigFile )( TEXTCHAR *filename )
 }
 
 PROCREG_PROC( void, SetStaticInterfaceConfigFile )( CTEXTSTR filename ) {
-	l.config_filename = (TEXTCHAR *)filename;
+	config_filename = filename;
 }
 
 static uintptr_t CPROC SetDefaultDirectory( uintptr_t psv, arg_list args )
