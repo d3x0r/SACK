@@ -2247,7 +2247,7 @@ CTEXTSTR load_path;
 CTEXTSTR core_load_path;
 
 
-void Startup( TEXTCHAR *lpCmdLine )
+PUBLIC( void, Startup)( TEXTCHAR *lpCmdLine )
 {
 	static int Started;
 	if( !Started )
