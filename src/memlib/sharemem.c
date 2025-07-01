@@ -336,21 +336,21 @@ PRIORITY_PRELOAD( InitGlobal, DEFAULT_PRELOAD_PRIORITY )
 
 #if __GNUC__
 #pragma GCC warning "C Preprocessor got here!"
-#  pragma message( "GNUC COMPILER")
+#  pragma message( "GNUC COMPILER" )
 #  ifndef __ATOMIC_RELAXED
 #    define __ATOMIC_RELAXED 0
 #  endif
 #  ifndef __GNUC_VERSION
 #    define __GNUC_VERSION ( __GNUC__ * 10000 ) + ( __GNUC_MINOR__ * 100 )
 #  endif
-#  if  ( __GNUC_VERSION >= 40800 ) || defined(__MAC__) || defined( __EMSCRIPTEN__ )
+#  if  ( __GNUC_VERSION >= 40800 || __clang_major__ >= 18 ) || defined(__MAC__) || defined( __EMSCRIPTEN__ )
 #    pragma GCC warning "gcc is going to use __atomic_exchange_n"
-#    pragma message( "gcc is going to use __atomic_exchange_n");
+#    pragma message( "gcc is going to use __atomic_exchange_n")
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 ///  for some reason __GNUC_VERSION doesn't exist from android ?
 #  elif defined __ARM__ || defined __ANDROID__
 #    pragma GCC warning "gcc is going to use __atomic_exchange_n(2)"
-#    pragma message( "gcc is going to use __atomic_exchange_n");
+#    pragma message( "gcc is going to use __atomic_exchange_n")
 #    define XCHG(p,val)  __atomic_exchange_n(p,val,__ATOMIC_RELAXED)
 #  else
 #    pragma GCC warning "gcc is a version without __atomic_exchange_n"
