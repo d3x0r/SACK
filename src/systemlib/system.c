@@ -2547,7 +2547,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			//if( l.flags.bLog )
 #  ifdef _DEBUG
 			for( int i = 0; i < 4; i++ )
-				lprintf( "Error LoadLibrary: %5d %ls", errors[i].error, errors[i].name );
+				lprintf( "Error LoadLibrary: %5d %ls %d", errors[i].error, errors[i].name, i==0?err1:i==1?err2:i==2?err3:err4 );
 #  else
 			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed. %d %d %d %d"
 					, library->cur_full_name
