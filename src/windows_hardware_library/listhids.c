@@ -250,6 +250,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 	TEXTSTR lpClass = NULL;
 	TEXTSTR lpClassGuid = NULL;
 	TEXTSTR lpHid = NULL;
+	TEXTSTR lpDevKey = NULL;
 
 	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) )
 	{
@@ -260,7 +261,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 	{
 		if( hkLevel1 != NULL )
 		{
-			RegCloseKey( hkLevel1 );
+			RegCloseKey( hkLevel1 );	
 			hkLevel1 = NULL;
 		}
 
@@ -284,7 +285,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 				hkLevel2 = NULL;
 			}
 
-			if( dwError = OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, NULL ) )
+			if( dwError = OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevKey ) )
 			{
 				if( dwError == ERROR_NO_MORE_ITEMS )
 				{

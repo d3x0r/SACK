@@ -363,6 +363,8 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 	TEXTSTR lpPortName = NULL;
 	TEXTSTR lpFriendlyName = NULL;
 	TEXTSTR lpTechnology = NULL;
+	TEXTSTR lpDevName= NULL;
+	TEXTSTR lpDevNum = NULL;
 
 	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) )
 	{
@@ -397,7 +399,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				hkLevel2 = NULL;
 			}
 
-			if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, NULL ) )
+			if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevName ) )
 			{
 				if( dwError == ERROR_NO_MORE_ITEMS )
 				{
@@ -420,7 +422,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 					hkLevel3 = NULL;
 				}
 
-				if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, NULL ) )
+				if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpDevNum ) )
 				{
 					if( dwError == ERROR_NO_MORE_ITEMS )
 					{
@@ -518,6 +520,8 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				portinfo.lpPortName = lpPortName;
 				portinfo.lpFriendlyName = bFriendlyNameNotFound ? lpPortName : lpFriendlyName;
 				portinfo.lpTechnology = lpTechnology;
+				portinfo.lpDevName = lpDevName;
+				portinfo.lpDevNum = lpDevNum;
 				if( !lpCallback( psv, &portinfo ) )
 				{
 					goto end; /* listing aborted by callback */

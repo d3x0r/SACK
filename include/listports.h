@@ -23,7 +23,8 @@ typedef struct
 	CTEXTSTR lpFriendlyName; /* Suitable to describe the port, as for  */
 							 /* instance "Infrared serial port (COM4)" */
 	CTEXTSTR lpTechnology;   /* "BIOS","INFRARED","USB", etc.          */
-
+	CTEXTSTR lpDevName;
+	CTEXTSTR lpDevNum;
 }LISTPORTS_PORTINFO;
 
 
