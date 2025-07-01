@@ -2504,14 +2504,15 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		library->loading--;
 	}
 	SuspendDeadstart();
+	{
 	int err1 = 0, err2 = 0, err3 = 0, err4 = 0;
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->cur_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR| LOAD_LIBRARY_SEARCH_DEFAULT_DIRS ); //-V595
 		err1             = GetLastError();
-#ifdef _DEBUG
+#  ifdef _DEBUG
 		errors[0].name = library->cur_full_name;
 		errors[0].error = GetLastError();
-#endif
+#  endif
 	}
 	if( !library->library ) {
 #  ifdef DEBUG_LIBRARY_LOADING
@@ -2519,35 +2520,35 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 #  endif
 		library->library = LoadLibraryExW( library->full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
 		err2             = GetLastError();
-#ifdef _DEBUG
+#  ifdef _DEBUG
 		errors[1].name = library->full_name;
 		errors[1].error = GetLastError();
-#endif
+#  endif
 	}
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->alt_full_name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
 		err3             = GetLastError();
-#ifdef _DEBUG
+#  ifdef _DEBUG
 		errors[2].name = library->alt_full_name;
 		errors[2].error = GetLastError();
-#endif
+#  endif
 	}
 	if( !library->library ) {
 		library->library = LoadLibraryExW( library->name, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS );
 		err4 = GetLastError();
-#ifdef _DEBUG
+#  ifdef _DEBUG
 		errors[3].name = library->name;
 		errors[3].error = GetLastError();
-#endif
+#  endif
 		//if( !library->library ) lprintf( "Failed load basic:%s %d", library->name, GetLastError() );
 	}
 	if( !library->library ) {
 		if( !library->loading ) {
 			//if( l.flags.bLog )
-#ifdef _DEBUG
+#  ifdef _DEBUG
 			for( int i = 0; i < 4; i++ )
 				lprintf( "Error LoadLibrary: %5d %ls", errors[i].error, errors[i].name );
-#else
+#  else
 			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed. %d %d %d %d"
 					, library->cur_full_name
 					, library->full_name
@@ -2556,7 +2557,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 					, funcname ? funcname : "all"
 					, err1, err2, err3, err4 
 					); //-V595
-#endif
+#  endif
 			ReleaseEx( library->cur_full_name DBG_SRC );
 			ReleaseEx( library->full_name DBG_SRC );
 			ReleaseEx( library->alt_full_name DBG_SRC );
@@ -2566,6 +2567,7 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 		}
 		ResumeDeadstart();
 		return NULL;
+	}
 	}
 #else
 	}
