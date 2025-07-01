@@ -99,8 +99,13 @@ cd h
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_filelib.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o sack_ucb_filelib.c
-gcc -c -O3 -o a-opt.o sack_ucb_filelib.c
+set MOREFLAGS="-DTARGETNAME=""a.exe"""
+set MOREFLAGS=%MOREFLAGS% -Wno-parentheses
+gcc %MOREFLAGS% -c -g -o a.o sack_ucb_filelib.c
+
+set MOREFLAGS-OPT="-DTARGETNAME=""a-opt.exe"""
+set MOREFLAGS-OPT=%MOREFLAGS-OPT% -Wno-parentheses
+gcc %MOREFLAGS-OPT% -c -O3 -o a-opt.o sack_ucb_filelib.c
 
 : - ws2_32 
 : - iphlpapi 
@@ -109,10 +114,10 @@ gcc -c -O3 -o a-opt.o sack_ucb_filelib.c
 : - odbc32 
 : - ole32
 
-gcc -g -o a.exe sack_ucb_filelib.c test.c -lwinmm -lpsapi -lntdll -lole32 -lws2_32
-gcc -O3 -o a-opt.exe sack_ucb_filelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
+gcc %MOREFLAGS% -g -o a.exe sack_ucb_filelib.c test.c -lwinmm -lpsapi -lntdll -lole32 -lws2_32
+gcc %MOREFLAGS% -O3 -o a-opt.exe sack_ucb_filelib.c test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
 
-gcc -g -o a.exe a.o test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
-gcc -O3 -o a-opt.exe a-opt.o test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
+gcc %MOREFLAGS% -g -o a.exe a.o test.c -lwinmm -lws2_32 -liphlpapi  -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32  -lole32
+gcc %MOREFLAGS-OPT% -O3 -o a-opt.exe a-opt.o test.c -lwinmm -lws2_32 -liphlpapi -lrpcrt4 -lodbc32 -lpsapi -lntdll -lcrypt32 -lole32
 
 :_CRT_NONSTDC_NO_DEPRECATE;NO_OPEN_MACRO;_DEBUG;NO_OPEN_MACRO;__STATIC__;USE_SQLITE;USE_SQLITE_INTERFACE;FORCE_COLOR_MACROS;NO_OPEN_MACRO;__STATIC__;NO_FILEOP_ALIAS;_CRT_SECURE_NO_WARNINGS;NEED_SHLAPI;NEED_SHLOBJ;JSON_PARSER_MAIN_SOURCE;SQLITE_ENABLE_LOCKING_STYLE=0;MINIMAL_JSON_PARSE_ALLOCATE

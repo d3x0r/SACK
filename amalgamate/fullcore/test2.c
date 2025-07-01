@@ -19,7 +19,7 @@ void callNewTimeTest() {
 
 	{
 		uint64_t tick;
-		uint8_t tz2;
+		int8_t tz2;
 		GetTimeOfDay( &tick, &tz2 );
 		uint64_t tick2;
 		uint64_t tick3;

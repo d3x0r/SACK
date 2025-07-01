@@ -53,10 +53,12 @@ cd h
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_typelib.h %HDRS%
 cd ..
 
-gcc -c -g -o a.o sack_ucb_typelib.c
-gcc -c -O3 -o a-opt.o sack_ucb_typelib.c
+set MOREFLAGS=-Wno-parentheses
 
-gcc -g -o a.exe a.o test.c
-gcc -O3 -o a-opt.exe a-opt.o test.c
+gcc %MOREFLAGS% -c -g -o a.o sack_ucb_typelib.c
+gcc %MOREFLAGS% -c -O3 -o a-opt.o sack_ucb_typelib.c
+
+gcc %MOREFLAGS% -g -o a.exe a.o test.c
+gcc %MOREFLAGS% -O3 -o a-opt.exe a-opt.o test.c
 
 :_CRT_NONSTDC_NO_DEPRECATE;NO_OPEN_MACRO;_DEBUG;NO_OPEN_MACRO;__STATIC__;USE_SQLITE;USE_SQLITE_INTERFACE;FORCE_COLOR_MACROS;NO_OPEN_MACRO;__STATIC__;NO_FILEOP_ALIAS;_CRT_SECURE_NO_WARNINGS;NEED_SHLAPI;NEED_SHLOBJ;JSON_PARSER_MAIN_SOURCE;SQLITE_ENABLE_LOCKING_STYLE=0;MINIMAL_JSON_PARSE_ALLOCATE
