@@ -2553,7 +2553,7 @@ LOGICAL windowDeepDelete( const char* path )
 
 	if( info.dwFileAttributes & FILE_ATTRIBUTE_READONLY ) {
 		/* Remove read-only attribute */
-		FILE_BASIC_INFORMATION basic = {};
+		FILE_BASIC_INFORMATION basic = {0};
 
 		basic.FileAttributes = ( info.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY ) |
 			FILE_ATTRIBUTE_ARCHIVE;
