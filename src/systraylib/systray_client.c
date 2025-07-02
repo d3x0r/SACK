@@ -177,10 +177,15 @@ void TerminateIcon( void )
 {
 }
 
-void AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
+INDEX AddSystrayMenuFunction( CTEXTSTR text, void (CPROC*function)(void) )
 {
 }
 
-void AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
+INDEX AddSystrayMenuFunction_v2( CTEXTSTR text, void (CPROC* function)(uintptr_t), uintptr_t param ){
+}
+
+void CheckSystrayMenuItem( INDEX id, LOGICAL checked ) {
+}
+void SetSystrayMenuItemText( INDEX id, CTEXTSTR text ) {
 }
 
