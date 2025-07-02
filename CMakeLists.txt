@@ -10,6 +10,7 @@ project( SACK )
 
 enable_language( C )
 enable_language( ASM )
+set( CMAKE_CXX_STANDARD 20 )
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
 
 set( CMAKE_INSTALL_MESSAGE "LAZY" )
