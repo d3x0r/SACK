@@ -1,5 +1,5 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS On)
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.15)
 PROJECT( InterShell )
 
 SET(CMAKE_SKIP_BUILD_RPATH  OFF)
