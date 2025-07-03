@@ -1260,7 +1260,7 @@ static int pem_password( char *buf, int size, int rwflag, void *u )
 }
 
 struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, CTEXTSTR cert, size_t certlen, CTEXTSTR keypair, size_t keylen, CTEXTSTR keypass, size_t keypasslen ) {
-	struct internalCert* certStruc;
+	struct internalCert* certStruc = NULL;
 	struct ssl_hostContext* ctx;
 	//lprintf( "Setuphost: %s", hosts );
 	if( !cert ) {
@@ -1268,12 +1268,13 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 			lprintf( "Ignoring hostname for anonymous, quickshot server certificate" );
 		}
 		// should probably pass smme host names for certificate...
-		certStruc = MakeRequest();
+		certStruc = NULL;//MakeRequest();
 		ctx = New( struct ssl_hostContext );
 		ctx->defaultHost = FALSE;
 		ctx->host = StrDup( hosts );
 		ctx->ctx = NULL;
-		ctx->certToUse = certStruc;
+		
+		ctx->certToUse = NULL;//certStruc;
 
 		AddLink( &ses->hosts, ctx );
 	} else {
@@ -1315,9 +1316,9 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 	}
 
 	if( !keypair ) {
-		if( !certStruc->pkey )
+		if( certStruc && !certStruc->pkey )
 			certStruc->pkey = genKey();
-	} else {
+	} else if( certStruc ) {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		struct info_params params;
 		EVP_PKEY *result;
@@ -1345,26 +1346,29 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
 		*/
-		if( certStruc->chain ) {
-		r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		r = SSL_CTX_use_PrivateKey( ctx->ctx, certStruc->pkey );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
-		}
-		{
-			int n;
-			for( n = 1; n < sk_X509_num( certStruc->chain ); n++ ) {
-				r = SSL_CTX_add_extra_chain_cert( ctx->ctx, sk_X509_value( certStruc->chain, n ) );
-				if( r <= 0 ) {
-					ERR_print_errors_cb( logerr, (void*)__LINE__ );
+		if( certStruc && certStruc->chain ) {
+			lprintf( "checking cert because chain was made?");
+			r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
+			if( r <= 0 ) {
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+			}
+			r = SSL_CTX_use_PrivateKey( ctx->ctx, certStruc->pkey );
+			if( r <= 0 ) {
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+			}
+			{
+				int n;
+				for( n = 1; n < sk_X509_num( certStruc->chain ); n++ ) {
+					r = SSL_CTX_add_extra_chain_cert( ctx->ctx, sk_X509_value( certStruc->chain, n ) );
+					if( r <= 0 ) {
+						ERR_print_errors_cb( logerr, (void*)__LINE__ );
+					}
 				}
 			}
+		} else {
+			lprintf( "no cert on this context... it's the default fail context");
 		}
-		}
-		if( certStruc->pkey ) {
+		if( certStruc && certStruc->pkey ) {
 			r = SSL_CTX_check_private_key( ctx->ctx );
 			if( r <= 0 ) {
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -1402,35 +1406,59 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
                           , CPOINTER keypair, size_t keylen
                           , CPOINTER keypass, size_t keypasslen
                           , char *hosts ) {
+	struct ssl_session * ses_o = NULL;
+	struct ssl_hostContext* ctx_o = NULL;
 	struct ssl_session * ses;
 	struct ssl_hostContext* ctx;
 	if( !pc ) return FALSE;
 	ses = pc->ssl_session;
+	ses_o = pc->pcOther?pc->pcOther->ssl_session:NULL;
 	// this can also be used to register additional hosts... the new function SHOULD be used instead though....
 	if( !ses ) {
 		ssl_InitLibrary();
 		ses = New( struct ssl_session );
 		MemSet( ses, 0, sizeof( struct ssl_session ) );
 	}
+	if( !ses_o && pc->pcOther ) {
+		ses_o = New( struct ssl_session );
+		MemSet( ses_o, 0, sizeof( struct ssl_session ) );
+	}
 	pc->flags.bSecure = 1;
+	if( pc->pcOther ) pc->pcOther->flags.bSecure = 1;
 
 	// from here down can do 
 	ctx = ssl_setupHost( ses, (CTEXTSTR)hosts, (CTEXTSTR)cert, certlen, (CTEXTSTR)keypair, keylen, (CTEXTSTR)keypass, keypasslen );
+	if( ses_o )
+		ctx_o = ssl_setupHost( ses_o, (CTEXTSTR)hosts, (CTEXTSTR)cert, certlen, (CTEXTSTR)keypair, keylen, (CTEXTSTR)keypass, keypasslen );
 
 	if( !pc->ssl_session ) {
 		ses->ctx = ctx->ctx;
-		ses->dwOriginalFlags = pc->dwFlags;
+		if( ses_o ) ses_o->ctx = ctx_o->ctx;
 
+		ses->dwOriginalFlags = pc->dwFlags;
+		if( ses_o ) ses_o->dwOriginalFlags = pc->pcOther->dwFlags;
+		
 		ses->user_connected = pc->connect.ClientConnected;
 		ses->cpp_user_connected = pc->connect.CPPClientConnected;
+		if( ses_o ) {
+			ses_o->user_connected = pc->pcOther->connect.ClientConnected;
+			ses_o->cpp_user_connected = pc->pcOther->connect.CPPClientConnected;
+		}
 		pc->connect.ClientConnected = ssl_ClientConnected;
 		pc->dwFlags &= ~CF_CPPCONNECT;
-		if( pc->pcOther ) pc->pcOther->dwFlags &= ~CF_CPPCONNECT;
+		if( pc->pcOther ) {
+			pc->pcOther->dwFlags &= ~CF_CPPCONNECT;
+			pc->pcOther->connect.ClientConnected = ssl_ClientConnected;
+		}
 
 		ses->errorCallback = pc->errorCallback;
 		ses->psvErrorCallback = pc->psvErrorCallback;
-
+		if( ses_o ) ses_o->errorCallback = pc->errorCallback;
+		if( ses_o ) ses_o->psvErrorCallback = pc->psvErrorCallback;
 		pc->ssl_session = ses;
+		if( pc->pcOther ) {
+			pc->pcOther->ssl_session = ses_o;
+		}
 	}
 	// at this point pretty much have to assume
 	// that it will be OK.
@@ -1708,6 +1736,8 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 		}
 		else
 			pc->connect.ClientConnected = NULL;
+
+
 		// restore all the native specified options for callbacks.
 		(*(uint32_t*)&pc->dwFlags) &= ~(pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
 		(*(uint32_t*)&pc->dwFlags) |= (pc->ssl_session->dwOriginalFlags & (CF_CPPCONNECT | CF_CPPREAD | CF_CPPWRITE | CF_CPPCLOSE));
