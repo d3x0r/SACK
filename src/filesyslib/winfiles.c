@@ -2492,6 +2492,7 @@ typedef struct _FILE_BASIC_INFORMATION {
 	LARGE_INTEGER ChangeTime;
 	DWORD FileAttributes;
 } FILE_BASIC_INFORMATION, * PFILE_BASIC_INFORMATION;
+static FILE_BASIC_INFORMATION zero_file_basic_information;
 typedef struct _FILE_DISPOSITION_INFORMATION {
 	BOOLEAN DeleteFile;
 } FILE_DISPOSITION_INFORMATION, * PFILE_DISPOSITION_INFORMATION;
@@ -2553,7 +2554,7 @@ LOGICAL windowDeepDelete( const char* path )
 
 	if( info.dwFileAttributes & FILE_ATTRIBUTE_READONLY ) {
 		/* Remove read-only attribute */
-		FILE_BASIC_INFORMATION basic = {0};
+		FILE_BASIC_INFORMATION basic = zero_file_basic_information;
 
 		basic.FileAttributes = ( info.dwFileAttributes & ~FILE_ATTRIBUTE_READONLY ) |
 			FILE_ATTRIBUTE_ARCHIVE;
