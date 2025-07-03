@@ -231,6 +231,8 @@ void sack_set_common_data_application( CTEXTSTR name )
 static void threadInit( void ) {
 	if( !FileSysThreadInfo.cwd ) { // edge case the main thread might init twice.
 		FileSysThreadInfo.cwd = ExpandPath( "." );
+	}
+	if( !FileSysThreadInfo._mounted_file_systems ) {
 		FileSysThreadInfo.default_mount = ( *winfile_local )._default_mount;
 		FileSysThreadInfo._mounted_file_systems = &( *winfile_local )._mounted_file_systems;
 		//FileSysThreadInfo.mounted_file_systems = ( *winfile_local )._mounted_file_systems;
