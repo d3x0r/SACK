@@ -1276,7 +1276,6 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 		ctx->certToUse = certStruc;
 
 		AddLink( &ses->hosts, ctx );
-		if( !hosts ) return ctx;
 	} else {
 		certStruc = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );
@@ -1346,6 +1345,7 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
 		*/
+		if( certStruc->chain ) {
 		r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
@@ -1363,10 +1363,14 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 				}
 			}
 		}
-		r = SSL_CTX_check_private_key( ctx->ctx );
-		if( r <= 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
 		}
+		if( certStruc->pkey ) {
+			r = SSL_CTX_check_private_key( ctx->ctx );
+			if( r <= 0 ) {
+				ERR_print_errors_cb( logerr, (void*)__LINE__ );
+			}
+		}
+
 		r = SSL_CTX_set_session_id_context( ctx->ctx, (const unsigned char*)"12345678", 8 );//sizeof( ctx->ctx ) );
 		if( r <= 0 ) {
 			ERR_print_errors_cb( logerr, (void*)__LINE__ );
