@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 2.8)
+#cmake_minimum_required(VERSION 2.8)
 
 project( network_objects.netplug )
 
 set( SOURCES
 ${FIRST_GCC_LIBRARY_SOURCE} 
-   port
+   port.cpp
 ${LAST_GCC_LIBRARY_SOURCE}
 )
 

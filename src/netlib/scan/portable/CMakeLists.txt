@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 
 project( network.scanner.portable )
 
@@ -54,7 +54,7 @@ set(BASE_SOURCES
 
 set( PROJECT scan_ports.portable )
 add_portable_program( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
-../scanner 
+../scanner.c
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
@@ -65,7 +65,7 @@ if( NOT __ARM__ )
 
 set( PROJECT scan_addresses.portable )
 add_portable_program( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
-../pinger 
+../pinger.c
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
@@ -76,7 +76,7 @@ endif( NOT __ARM__ )
 
 set( PROJECT nameof.portable )
 add_portable_program( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
-../nameof 
+../nameof.c
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
@@ -86,7 +86,7 @@ SET_TARGET_PROPERTIES(${PROJECT} PROPERTIES FOLDER "Network Examples" )
 
 set( PROJECT ipof.portable )
 add_portable_program( ${PROJECT} ${FIRST_GCC_PROGRAM_SOURCE} 
-../ipof 
+../ipof.c
 ${BASE_SOURCES}
 ${LAST_GCC_PROGRAM_SOURCE}
 )
