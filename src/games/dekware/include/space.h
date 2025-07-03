@@ -8,7 +8,9 @@
 #include "text.h"
 
 #ifndef __cplusplus
-typedef LOGICAL bool;
+// bool is apparently a builtin in a modern compiler?
+// it's not a define, so not sure how to switch this...
+//typedef LOGICAL bool;
 #else
 //#define bool LOGICAL
 #endif
