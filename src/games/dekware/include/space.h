@@ -10,7 +10,7 @@
 #ifndef __cplusplus
 // bool is apparently a builtin in a modern compiler?
 // it's not a define, so not sure how to switch this...
-//typedef LOGICAL bool;
+typedef LOGICAL bool;
 #else
 //#define bool LOGICAL
 #endif
