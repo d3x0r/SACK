@@ -1205,6 +1205,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		if( !hostctx->host ) {
 			//lprintf(" No host - setup default result?" );
 			defaultHostctx = hostctx;
+			continue;
 		}
 		//lprintf( "Host:%s", hostctx->host );
 		for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
@@ -1224,8 +1225,9 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 		}
 	}
 	if( defaultHostctx ) {
-		SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
-		return SSL_TLSEXT_ERR_OK;
+		//SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
+		//return SSL_TLSEXT_ERR_OK;
+		return SSL_TLSEXT_ERR_NOACK;
 	}
 	//lprintf( "NOACK! %p", ssl_Accept );
 	ssl_Accept->noHost = TRUE;
@@ -1274,6 +1276,7 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 		ctx->certToUse = certStruc;
 
 		AddLink( &ses->hosts, ctx );
+		if( !hosts ) return ctx;
 	} else {
 		certStruc = New( struct internalCert );
 		BIO *keybuf = BIO_new( BIO_s_mem() );
@@ -1330,12 +1333,9 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 		BIO_free( keybuf );
 	}
 
-#if NODE_MAJOR_VERSION < 10
-	ctx->ctx = SSL_CTX_new( TLSv1_2_server_method() );
-#else
 	ctx->ctx = SSL_CTX_new( TLS_server_method() );
 	SSL_CTX_set_min_proto_version( ctx->ctx, TLS1_2_VERSION );
-#endif
+
 	{
 		int r;
 		SSL_CTX_set_cipher_list( ctx->ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" );
