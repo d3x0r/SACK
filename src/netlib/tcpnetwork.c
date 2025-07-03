@@ -289,6 +289,12 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, L
 				uint32_t dwError = WSAGetLastError();
 				lprintf( "Failed to set socket option REUSEADDR : %d", dwError );
 			}
+			err = setsockopt( pClient->Socket, SOL_SOCKET, SO_REUSEPORT, (const char *)&opt, sizeof( opt ) );
+			if( err )
+			{
+				uint32_t dwError = WSAGetLastError();
+				lprintf( "Failed to set socket option REUSEPORT : %d", dwError );
+			}
 			// client's don't normally have a from, but when they do, it gets overwritten with another duplicate...
 			if( pClient->saSource != pFromAddr ) {
 				if( !pClient->saSource )
