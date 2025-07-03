@@ -310,7 +310,6 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, L
 				closesocket( pClient->Socket );
 				pClient->Socket = INVALID_SOCKET;
 			}
-
 			if( !autoSocket ) {
 				if( pClient->saSource->sa_family == AF_INET ) {
 					if( !(*(uint32_t*)(pClient->saSource->sa_data+2) ) ) {
@@ -408,13 +407,19 @@ PCLIENT CPPOpenTCPListenerAddr_v3d( SOCKADDR *pAddr
 
 	if(listen(pListen->Socket, SOMAXCONN ) == SOCKET_ERROR )
 	{
-		lprintf( "listen(5) failed: %d", WSAGetLastError() );
+		PCLIENT other = pListen->pcOther;
+		if( other ) {
+			pListen->pcOther = NULL;
+			other->pcOther = NULL;
+		} else 
+			lprintf( "listen(5) failed: (autosocket %d)%d", autoSocket, WSAGetLastError() );
+
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientEx( pListen, TRUE, FALSE );
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 		NetworkUnlockEx( pListen, 0 DBG_SRC );
 		NetworkUnlockEx( pListen, 1 DBG_SRC );
-		return NULL;
+		return other;
 	}
 	NetworkUnlockEx( pListen, 0 DBG_SRC );
 	NetworkUnlockEx( pListen, 1 DBG_SRC );
