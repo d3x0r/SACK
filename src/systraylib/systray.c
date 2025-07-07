@@ -98,6 +98,7 @@ LRESULT APIENTRY IconMessageHandler( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 				POINT p;
 				GetCursorPos( &p );
 #ifdef WIN32
+				SetForegroundWindow( hWnd ); // do this, so the menu auto closes when clicking anywhere else.
 				TrackPopupMenu( hMainMenu
 								  , TPM_LEFTALIGN //| TPM_LEFTBUTTON|TPM_RIGHTBUTTON
 								  , p.x, p.y
