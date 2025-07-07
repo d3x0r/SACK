@@ -487,7 +487,7 @@ void RemoveKillSignalCallback( int( *cb )( uintptr_t ), uintptr_t psv ) {
 
 void EnableExitEvent( void ) {
 	char eventName[256];
-	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
+	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
 	//lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[0] ) Relinquish();
