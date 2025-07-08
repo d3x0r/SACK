@@ -126,9 +126,9 @@ struct local_systemlib_data {
 
 	char * (CPROC*ExternalFindProgram)( const char *filename ); // please Release or Deallocate the reutrn value
 
-	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
-#ifdef WIN32
 	PDATALIST killEventCallbacks;
+#ifdef WIN32
+	// on XP this is in PSAPI.DLL later it's in Kernel32.DLL 
 	BOOL (WINAPI* EnumProcessModules)( HANDLE hProcess, HMODULE *lphModule
 	                                 , DWORD cb, LPDWORD lpcbNeeded );
 #endif

@@ -482,15 +482,15 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 	char bRestartEvent = 0;
 	{
 
-		int hDir                = opendir( "/tmp" );
-		int rc = mkfifoat( hDir, eventName, 0666 );
+		int hDir = open( "/tmp", O_RDONLY | O_DIRECTORY );
+		int rc   = mkfifoat( hDir, eventName, 0666 );
 		if( rc ) {
 			// failure
 		}
 		int file = openat( hDir, eventName, O_RDONLY | O_NONBLOCK );
 		eventName[ 0 ] = 0; // ack done init...
 
-		int status = read( file, &hRestartEvent, sizeof( hRestartEvent ) );
+		int status = read( file, &bRestartEvent, sizeof( bRestartEvent ) );
 		if( status > 0 ) {
 			INDEX idx;
 			struct callback_info *ci;
@@ -516,7 +516,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 
 void EnableExitEvent( void ) {
 	char eventName[ 256 ];
-	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
+	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
 	// lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[ 0 ] )
@@ -1495,7 +1495,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		{
 			char eventName[256];
 			HANDLE hEvent;
-			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
+			snprintf( eventName, 256, "Global\\%s:exit", task->name );
 			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
 			//lprintf( "Signal process event: %s", eventName );
 			if( hEvent != NULL ) {
