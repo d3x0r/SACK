@@ -11,6 +11,7 @@
 #ifndef _POSIX_C_SOURCE
 #  define _POSIX_C_SOURCE 2
 #endif
+#define _POSIX_SOURCE
 #include <stdhdrs.h>
 #include <string.h>
 #include <idle.h>
@@ -483,8 +484,8 @@ static int hDir;
 
 ATEXIT( cleanupEvent ) {
 	if( exitEventName ) {
-		unlinkat( hDir, exitEventName );
-		Release( exitEventName ); exitEventName = NULL;
+		unlinkat( hDir, exitEventName, 0 );
+		Deallocate( char*, exitEventName ); exitEventName = NULL;
 	}
 }
 
@@ -499,7 +500,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 		if( rc ) {
 			// failure
 		}
-		int file = openat( hDir, eventName, O_RDONLY | O_NONBLOCK );
+		int file = openat( hDir, eventName, O_RDONLY );
 		eventName[ 0 ] = 0; // ack done init...
 
 		int status = read( file, &bRestartEvent, sizeof( bRestartEvent ) );
@@ -507,7 +508,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 			INDEX idx;
 			struct callback_info *ci;
 			unlinkat( hDir, exitEventName, 0 );
-			Release( exitEventName );
+			Deallocate( char*, exitEventName );
 			exitEventName = NULL;
 			close( file );
 			// int( *cb )( void );
@@ -522,7 +523,8 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 				InvokeExits();
 				exit( 0 );
 			}
-		}
+		} 
+else lprintf( "Failure %d", status );
 	}
 
 	return 0;
