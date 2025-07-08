@@ -64,9 +64,10 @@ if( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 	set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
 endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
+project( service_test.portable )
+
 if( WIN32 )
 
-project( service_test.portable )
 
 
 if( __ANDROID__ )
@@ -171,6 +172,7 @@ if( WIN32 )
 	add_executable( signal_event ../signal_event.c )
 	install_default_dest( signal_event )
 endif( WIN32 )
+
 if( UNIX )
 	add_executable( signal_event ../signal_event_linux.c )
 	install_default_dest( signal_event )

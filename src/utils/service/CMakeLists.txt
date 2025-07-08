@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 
-if( WIN32 )
 
 if( NOT SACK_LIBRARY_ONLY )
+if( WIN32 )
 
 SET( PROJECT service_test )
 
