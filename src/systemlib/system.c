@@ -465,25 +465,6 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 	return 0;
 }
 
-void AddKillSignalCallback( int( *cb )( uintptr_t ), uintptr_t psv ) {
-	struct callback_info ci;
-	ci.cb = cb;
-	ci.psv = psv;
-	ci.deleted = 0;
-	if( !l.killEventCallbacks ) l.killEventCallbacks = CreateDataList( sizeof( struct callback_info ) );
-	AddDataItem( &l.killEventCallbacks, &ci );
-}
-
-void RemoveKillSignalCallback( int( *cb )( uintptr_t ), uintptr_t psv ) {
-	struct callback_info *ci;
-	INDEX idx;
-	DATA_FORALL( l.killEventCallbacks, idx, struct callback_info*, ci ) {
-		if( ci->cb == cb && ci->psv == psv ) {
-			ci->deleted = TRUE;
-			break;
-		}
-	}
-}
 
 void EnableExitEvent( void ) {
 	char eventName[256];
@@ -494,6 +475,78 @@ void EnableExitEvent( void ) {
 }
 
 #endif
+
+#ifdef __LINUX__
+static uintptr_t KillEventThread( PTHREAD thread ) {
+	char *eventName      = (char *)GetThreadParam( thread );
+	char bRestartEvent = 0;
+	{
+
+		int hDir                = opendir( "/tmp" );
+		int rc = mkfifoat( hDir, eventName, 0666 );
+		if( rc ) {
+			// failure
+		}
+		int file = openat( hDir, eventName, O_RDONLY | O_NONBLOCK );
+		eventName[ 0 ] = 0; // ack done init...
+
+		int status = read( file, &hRestartEvent, sizeof( hRestartEvent ) );
+		if( status > 0 ) {
+			INDEX idx;
+			struct callback_info *ci;
+			unlinkat( hDir, eventName, 0 );
+			close( file );
+			// int( *cb )( void );
+			int preventShutdown = 0;
+			DATA_FORALL( l.killEventCallbacks, idx, struct callback_info *, ci ) {
+				// lprintf( "callback: %p %p %d", ci->cb, ci->psv, ci->deleted );
+				if( !ci->deleted )
+					preventShutdown |= ci->cb( ci->psv );
+			}
+			// lprintf( "Callbacks done: %d", preventShutdown );
+			if( !preventShutdown ) {
+				InvokeExits();
+				exit( 0 );
+			}
+		}
+	}
+
+	return 0;
+}
+
+void EnableExitEvent( void ) {
+	char eventName[ 256 ];
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
+	// lprintf( "Starting exit event thread... %s", eventName );
+	ThreadTo( KillEventThread, (uintptr_t)eventName );
+	while( eventName[ 0 ] )
+		Relinquish();
+}
+
+#endif
+
+
+void AddKillSignalCallback( int ( *cb )( uintptr_t ), uintptr_t psv ) {
+	struct callback_info ci;
+	ci.cb      = cb;
+	ci.psv     = psv;
+	ci.deleted = 0;
+	if( !l.killEventCallbacks )
+		l.killEventCallbacks = CreateDataList( sizeof( struct callback_info ) );
+	AddDataItem( &l.killEventCallbacks, &ci );
+}
+
+void RemoveKillSignalCallback( int ( *cb )( uintptr_t ), uintptr_t psv ) {
+	struct callback_info *ci;
+	INDEX idx;
+	DATA_FORALL( l.killEventCallbacks, idx, struct callback_info *, ci ) {
+		if( ci->cb == cb && ci->psv == psv ) {
+			ci->deleted = TRUE;
+			break;
+		}
+	}
+}
+
 static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 {
 	struct local_systemlib_data *init_l = (struct local_systemlib_data *)mem;
