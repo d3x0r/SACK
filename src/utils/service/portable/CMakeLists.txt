@@ -64,6 +64,7 @@ if( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 	set(  CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG_INFO" )
 endif( NOT CMAKE_C_FLAGS_RELWITHDEBINFO MATCHES "-D_DEBUG_INFO" )
 
+if( WIN32 )
 
 project( service_test.portable )
 
@@ -163,6 +164,8 @@ add_custom_command(TARGET
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+endif( WIN32 )
 
 if( WIN32 )
 	add_executable( signal_event ../signal_event.c )

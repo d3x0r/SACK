@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
+if( WIN32 )
 
 if( NOT SACK_LIBRARY_ONLY )
 
@@ -51,6 +52,9 @@ add_custom_command(TARGET
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+
+
+endif()
 
 string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${PLATFORM_LIBRARIES}" )
 string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${PLATFORM_DEFINES}" )
