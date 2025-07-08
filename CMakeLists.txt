@@ -1555,9 +1555,9 @@ add_subdirectory( include )
 
 
 
-if( WIN32 )
+#if( WIN32 )
 	add_subdirectory( src/utils/service )
-endif( WIN32 )
+#endif( WIN32 )
 
    add_subdirectory( src/psilib/calctl )
 
