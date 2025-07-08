@@ -477,9 +477,20 @@ void EnableExitEvent( void ) {
 #endif
 
 #ifdef __LINUX__
+
+static char *exitEventName;
+static int hDir;
+
+ATEXIT( cleanupEvent ) {
+	if( exitEventName ) {
+		unlinkat( hDir, exitEventName );
+		Release( exitEventName ); exitEventName = NULL;
+	}
+}
+
 static uintptr_t KillEventThread( PTHREAD thread ) {
 	char *eventName      = (char *)GetThreadParam( thread );
-	char *name = StrDup( eventName );
+	exitEventName = StrDup( eventName );
 	char bRestartEvent = 0;
 	{
 
@@ -495,8 +506,9 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 		if( status > 0 ) {
 			INDEX idx;
 			struct callback_info *ci;
-			unlinkat( hDir, name, 0 );
-			Release( name );
+			unlinkat( hDir, exitEventName, 0 );
+			Release( exitEventName );
+			exitEventName = NULL;
 			close( file );
 			// int( *cb )( void );
 			int preventShutdown = 0;
