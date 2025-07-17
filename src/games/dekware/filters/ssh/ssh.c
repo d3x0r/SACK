@@ -35,8 +35,9 @@ static int CPROC Read( PDATAPATH pdp )
 
 //---------------------------------------------------------------------------
 
-static PTEXT CPROC sendSSH( PDATAPATH pndp, PTEXT line )
+static PTEXT CPROC sendSSH( PDATAPATH pdp, PTEXT line )
 {
+	PMYDATAPATH pmdp = (PMYDATAPATH)pdp;
 	sack_ssh_channel_write( pmdp->channel, 0, GetText( line ), GetTextSize( line ) );
 	return NULL;
 }
@@ -90,7 +91,10 @@ static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters
 	pdp->common.Write = Write;
 	pdp->common.Close = Close;
 	pdp->session = sack_ssh_session_init( (uintptr_t)pdp );
-	sack_ssh_session_connect( pdp->session, parameters[0], parameters[1], handshake_cb );
+	PTEXT arg1        = GetParam( ps, &parameters );
+	PTEXT arg2        = GetParam( ps, &parameters );
+	int port = IntCreateFromSeg( arg2 );
+	sack_ssh_session_connect( pdp->session, GetText( arg1 ), port, handshake_cb );
 	sack_ssh_set_channel_open( pdp->session, channel_open_cb );
 
 	pdp->vt = VarTextCreate();
