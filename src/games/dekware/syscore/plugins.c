@@ -244,7 +244,11 @@ void LoadPlugins( CTEXTSTR base )
 	GetCurrentPath( savepath, 256 );
 	SetCurrentPath( base );
 #endif
-
+#ifdef WIN32
+	char *tmp;
+	SetDllDirectory( tmp=ExpandPath( "@" ));
+	Release( tmp );
+#endif
 	pluginfile = sack_fopen( 0, "plugins.list", "rt" );
 	if( !pluginfile )
 	{

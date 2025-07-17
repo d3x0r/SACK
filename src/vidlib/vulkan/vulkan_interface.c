@@ -198,6 +198,138 @@ void createCommandBuffers( struct SwapChain* chain,  VkCommandBuffer *buffers, u
 
 }
 
+uint32_t findMemoryType( VkDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties ) {
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties( device, &memProperties );
+	for( uint32_t i = 0; i < memProperties.memoryTypeCount; i++ ) {
+		if( ( typeFilter & ( 1 << i ) ) && ( memProperties.memoryTypes[ i ].propertyFlags & properties ) == properties ) {
+			return i;
+		}
+		//if( typeFilter & ( 1 << i ) ) {
+		//	return i;
+		//}
+	}
+
+	//throw std::runtime_error( "failed to find suitable memory type!" );
+}
+
+struct sack_vulkan_buffer {
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+	size_t size;
+};
+
+struct sack_vulkan_buffer *createVertexBuffer( VkDevice device, POINTER p, int cnt, size_t sz ) {
+	VkBufferCreateInfo bufferInfo;
+	struct sack_vulkan_buffer *vulkan_buffer = New( struct sack_vulkan_buffer );
+
+	VkBuffer vertexBuffer;
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size  = sz*cnt;
+
+	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if( vkCreateBuffer( device, &bufferInfo, NULL, &vulkan_buffer->buffer ) != VK_SUCCESS ) {
+		//throw std::runtime_error( "failed to create vertex buffer!" );
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements( device, vulkan_buffer->buffer, &memRequirements );
+	uint32_t n = findMemoryType( device, memRequirements.memoryTypeBits
+	                           , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+
+
+	VkMemoryAllocateInfo allocInfo;
+	allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize  = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(device,
+	     memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
+
+
+	if( vkAllocateMemory( device, &allocInfo, NULL, &vulkan_buffer->memory ) != VK_SUCCESS ) {
+		//throw std::runtime_error( "failed to allocate vertex buffer memory!" );
+	}
+	 vkBindBufferMemory( device, vulkan_buffer->buffer, vulkan_buffer->memory, 0 );
+	/*
+size: The size of the required amount of memory in bytes, may differ from bufferInfo.size.
+alignment: The offset in bytes where the buffer begins in the allocated region of memory, depends on bufferInfo.usage and bufferInfo.flags.
+memoryTypeBits: Bit field of the memory types that are suitable for the buffer.
+	*/
+
+	void *data;
+	vkMapMemory( device, vulkan_buffer->memory, 0, bufferInfo.size, 0, &data );
+	// data is interleaved arraybuffer or packed structs per vertex.
+
+	memcpy( data, p, cnt*sz );
+	vkUnmapMemory( device, vulkan_buffer->memory );
+
+	return vulkan_buffer;
+
+	/*
+	* VkBuffer vertexBuffer;
+
+...
+
+void createVertexBuffer() {
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = sizeof(vertices[0]) * vertices.size();
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create vertex buffer!");
+    }
+}
+
+/*
+* 
+
+vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+VkBuffer vertexBuffers[] = {vertexBuffer};
+VkDeviceSize offsets[] = {0};
+vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+
+
+
+void cleanup() {
+	 cleanupSwapChain();
+
+	 vkDestroyBuffer(device, vertexBuffer, nullptr);
+	 vkFreeMemory(device, vertexBufferMemory, nullptr);
+
+	 ...
+}
+	*/
+}
+
+
+/*
+// native object example
+
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
+//--- shader code
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+
+void main() {
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 0.0, 1.0);
+    fragColor = inColor;
+}
+*/
+
 
 
 
@@ -956,7 +1088,7 @@ void EnableVulkan( xcb_connection_t *connection,
 		swapChainPlatformConnect( &camera->chain, hInstance, camera->hWndInstance );
 	#elif defined( __LINUX__ )
 		swapChainPlatformConnect( &camera->chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
-        #elif defined( __MAC__ )
+	#elif defined( __MAC__ )
 		#error unfinished code for mac.
 		//swapChainPlatformConnect( &chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );                 
 	#endif
