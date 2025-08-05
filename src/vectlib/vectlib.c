@@ -28,7 +28,7 @@ static const _POINT EXTERNAL_NAME(__X) = { ONE, ZERO, ZERO};
 static const _POINT EXTERNAL_NAME(__Y) = {ZERO,  ONE, ZERO};
 static const _POINT EXTERNAL_NAME(__Z) = {ZERO, ZERO,  ONE};
 #if (DIMENSIONS > 3 )
-static const _POINT __W = {ZERO, ZERO, ZERO, ONE};
+static const _POINT EXTERNAL_NAME(__W) = {ZERO, ZERO, ZERO, ONE};
 #endif
 #if defined( __GNUC__  ) && defined( __cplusplus )
 #ifdef __STATIC__
