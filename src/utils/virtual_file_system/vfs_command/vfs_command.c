@@ -467,6 +467,8 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
 		static char buffer[1024];
+		size_t out = 0;
+		LOGICAL escape = FALSE;
 		if( fileList ) {
 			while( fgets( buffer, 1024, fileList ) ) {
 				int start, end = (int)StrLen(buffer);
@@ -474,10 +476,24 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 				buffer[end] = 0;
 				start = end = 0;
 				while( buffer[end] ) {
-					while( buffer[end] && buffer[end] != ' ' ) end++;
-					if( buffer[end] ) buffer[end] = 0;
+					while( buffer[end] && (escape || buffer[end] != ' ' ) ) {
+						if( escape ) {
+							if( buffer[end] == 'n' ) buffer[out++] = '\n';
+							else if( buffer[end] == 'r' ) buffer[out++] = '\r';
+							else buffer[out++] = buffer[end];
+							escape = FALSE;
+							end++;
+							continue;
+						} else if( buffer[end] == '\\' ) {
+							escape = TRUE;
+							end++;
+							continue;
+						}
+						buffer[out++] = buffer[end++];
+					}
+					buffer[out] = 0;
 					StoreFile( buffer + start, asPath, replace );
-					start = end + 1; while( buffer[start] == ' ' ) start++;
+					out = start = end + 1; while( buffer[start] == ' ' ) start++;
 				}
 			}
 			fclose( fileList );
@@ -524,17 +540,32 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
 		static char buffer[1024];
+		LOGICAL escape = FALSE;
 		if( fileList ) {
 			while( fgets( buffer, 1024, fileList ) ) {
 				int start, end = (int)StrLen(buffer);
 				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
 				buffer[end] = 0;
-				end = start = 0;
+				int out = end = start = 0;
 				while( buffer[end] ) {
-					while( buffer[end] && buffer[end] != ' ' ) end++;
-					if( buffer[end] ) buffer[end] = 0;
+					while( buffer[end] && (escape || buffer[end] != ' ' ) ) {
+						if( escape ) {
+							if( buffer[end] == 'n' ) buffer[out++] = '\n';
+							else if( buffer[end] == 'r' ) buffer[out++] = '\r';
+							else buffer[out++] = buffer[end];
+							escape = FALSE;
+							end++;
+							continue;
+						} else if( buffer[end] == '\\' ) {
+							escape = TRUE;
+							end++;
+							continue;
+						}
+						buffer[out++] = buffer[end++];
+					}
+					buffer[out] = 0;
 					PatchFile( vfsName, buffer+start, version, key1, key2, asPath, replace );
-					start = end + 1; while( buffer[start] == ' ' ) start++;
+					out = start = end + 1; while( buffer[start] == ' ' ) start++;
 				}
 			}
 			fclose( fileList );

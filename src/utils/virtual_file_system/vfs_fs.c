@@ -593,7 +593,7 @@ static BLOCKINDEX vfs_fs_GetNextBlock( struct sack_vfs_fs_volume *vol, BLOCKINDE
 		LoG( "Block after %d is %d", block, check_val );
 
 	if( check_val == EOFBLOCK || check_val == EOBBLOCK ) {
-		LoG( "(DOUBLE UPDATE??) This adds a new block becuase after %d is %d", block, check_val );
+		LoG( "(DOUBLE UPDATE?" /*stupid triglyphs*/ "?) This adds a new block becuase after %d is %d", block, check_val );
 
 		if( expand ) {
 			BLOCKINDEX key = vol->key?((BLOCKINDEX*)vol->usekey[BC(BAT)])[block & (BLOCKS_PER_BAT-1)]:0;
