@@ -52,30 +52,7 @@ endif(SNPRINTF_SOURCES)
 
 
 set(BASE_SOURCES
-${FIRST_GCC_PROGRAM_SOURCE} 
     ../waitwin.c
-    ${SOURCES_ROOT}/memlib/sharemem.c
-    ${SOURCES_ROOT}/memlib/memory_operations.c
-    ${SOURCES_ROOT}/sysloglib/syslog.c
-    ${SOURCES_ROOT}/procreglib/names.c
-    ${SOURCES_ROOT}/timerlib/timers.c
-    ${SOURCES_ROOT}/idlelib/idle.c
-    ${SOURCES_ROOT}/configlib/configscript.c
-    ${SOURCES_ROOT}/idlelib/idle.c
-    ${SOURCES_ROOT}/systemlib/system.c
-    ${SOURCES_ROOT}/systemlib/spawntask.c
-    ${SOURCES_ROOT}/systemlib/args.c
-    ${MORE_SYSTEM_SOURCES}
-    ${SOURCES_ROOT}/typelib/typecode.c
-    ${SOURCES_ROOT}/typelib/text.c
-    ${SOURCES_ROOT}/typelib/sets.c
-    ${SOURCES_ROOT}/typelib/binarylist.c
-    ${SOURCES_ROOT}/filesyslib/filescan.c
-    ${SOURCES_ROOT}/filesyslib/pathops.c
-    ${SOURCES_ROOT}/filesyslib/winfiles.c
-    ${SNPRINTF_SOURCES}
-${LAST_GCC_PROGRAM_SOURCE}
-    ${SOURCES_ROOT}/deadstart/deadstart_core.c 
 )
 
 
