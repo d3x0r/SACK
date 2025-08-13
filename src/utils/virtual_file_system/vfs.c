@@ -530,9 +530,9 @@ static LOGICAL ExpandVolume( struct sack_vfs_volume *vol ) {
 				actual_disk = (struct sack_vfs_disk*)GetExtraData( new_disk );
 				if( actual_disk ) {
 					if( ( ( (uintptr_t)actual_disk - (uintptr_t)new_disk ) < vol->dwSize ) ) {
-						lprintf( "Size to check %zd", (uintptr_t)actual_disk - (uintptr_t)new_disk );
+						//lprintf( "Size to check %zd", (uintptr_t)actual_disk - (uintptr_t)new_disk );
 						const uint8_t *sig = sack_vfs_get_signature2( (POINTER)((uintptr_t)actual_disk-BLOCK_SIZE), new_disk );
-						LogBinary( sig, BLOCK_SIZE / 2 );
+						//LogBinary( sig, BLOCK_SIZE / 2 );
 
 						if( memcmp( sig, (POINTER)(((uintptr_t)actual_disk)-BLOCK_SIZE), BLOCK_SIZE/2 ) ) {
 							lprintf( "Signature failed comparison; the core has changed since it was attached." );

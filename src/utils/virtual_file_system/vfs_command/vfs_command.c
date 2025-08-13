@@ -467,15 +467,14 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
 		static char buffer[1024];
-		size_t out = 0;
 		LOGICAL escape = FALSE;
 		if( fileList ) {
 			while( fgets( buffer, 1024, fileList ) ) {
 				int start, end = (int)StrLen(buffer);
 				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
 				buffer[end] = 0;
-				start = end = 0;
-				while( buffer[end] ) {
+				int out = start = end = 0;
+				while( buffer[ end ] ) {
 					while( buffer[end] && (escape || buffer[end] != ' ' ) ) {
 						if( escape ) {
 							if( buffer[end] == 'n' ) buffer[out++] = '\n';
