@@ -4455,7 +4455,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_DOUBLE  // value type
 										  , SQL_DOUBLE    // parameter type
-										  , 100 // precision (colsize)
+										  , 0 // precision (colsize)
 										  , 0 // decimal digits
 										  , &val->result_d  // pointer value
 										  , sizeof( val->result_d ) // bufferlength
@@ -4467,7 +4467,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_SBIGINT  // value type
 										  , SQL_BIGINT    // parameter type
-										  , 100 // precision (colsize)
+										  , 0 // precision (colsize)
 										  , 0 // decimal digits
 										  , &val->result_n  // pointer value
 										  , sizeof( val->result_n ) // bufferlength
@@ -4490,7 +4490,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 										  , SQL_PARAM_INPUT // inputoutputtype
 										  , SQL_C_CHAR  // value type
 										  , SQL_CHAR    // parameter type
-										  , 100 // precision (colsize)
+										  , 0 // precision (colsize)
 										  , 0 // decimal digits
 										  , val->string  // pointer value
 										  , val->stringLen // bufferlength
