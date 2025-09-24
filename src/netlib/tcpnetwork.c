@@ -325,7 +325,8 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, L
 						// have to have the base one open or pcOther cannot be set.
 						SOCKADDR* lpMyAddr = CreateSockAddress( ":::", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
 						pClient->pcOther = CPPOpenTCPListenerAddr_v3d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting, TRUE DBG_SRC );
-						pClient->pcOther->pcOther = pClient;
+                  if( pClient->pcOther )
+							pClient->pcOther->pcOther = pClient;
 						ReleaseAddress( lpMyAddr );
 					}
 				} else if( pClient->saSource->sa_family == AF_INET6 ) {
@@ -333,7 +334,8 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, L
 					if( MemCmp( pClient->saSource->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 ) {
 						SOCKADDR* lpMyAddr = CreateSockAddress( "0.0.0.0", ntohs(((uint16_t*)(pClient->saSource->sa_data+0))[0]) );
 						pClient->pcOther = CPPOpenTCPListenerAddr_v3d( lpMyAddr, pClient->connect.CPPClientConnected, pClient->psvConnect, pClient->flags.bWaiting, TRUE DBG_SRC );
-						pClient->pcOther->pcOther = pClient;
+                  if( pClient->pcOther )
+							pClient->pcOther->pcOther = pClient;
 						ReleaseAddress( lpMyAddr );
 					}
 				}
