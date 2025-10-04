@@ -105,6 +105,7 @@ static int openSource( const char* name ) {
 		} else {
 			volInfo.vol = sack_vfs_load_volume( name );
 			volInfo.mount = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1 );
+			if (!volInfo.vol) lprintf("Failed to load VFS:%s", name);
 			AddDataItem( &l.current_vol_source_list, &volInfo );
 		}
 	}
@@ -321,7 +322,7 @@ static int PatchFileAs( CTEXTSTR filename, CTEXTSTR asfile, CTEXTSTR vfsName, ui
 
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
 	if( in ) {
-		FILE* in2 = openSourceFile( filename );
+		FILE* in2 = openSourceFile( asfile );
 		size_t size = sack_fsize( in );
 		size_t size2 = in2 ? sack_fsize( in2 ) : -1;
 		LOGICAL doPatch = FALSE;
@@ -424,7 +425,7 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 	} else {
 		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
 		FILE *in2 = openSourceFile( outName );
-		if( l.verbose ) printf( " Opened file %s %s = %p %p\n", filename, outName, in, in2 );
+		if( l.verbose ) printf( " Opened patch file in file %s %s = %p %p\n", filename, outName, in, in2 );
 		if( in )
 		{
 			size_t size = sack_fsize( in );
@@ -447,7 +448,7 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 			if( ( size != size2 ) )
 			{
 				FILE *out = sack_fopenEx( 0, outName, "wb", l.current_mount );
-				if( l.verbose ) printf( " Opened file %s = %p (%zd %zd)\n", filename, out, size, size2 );
+				if( l.verbose ) printf( " Opened patch store file %s = %p (%zd %zd)\n", outName, out, size, size2 );
 				sack_fwrite( data, size, 1, out );
 				sack_ftruncate( out );
 				sack_fclose( out );
@@ -1079,10 +1080,10 @@ SaneWinMain( argc, argv )
 			}
 		} else if( StrCaseCmp( argv[arg], "patchin" ) == 0 ) {
 			if( ( arg + 2 ) <= argc )
-				if( PatchFile( argv[arg + 1], argv[arg + 2], 0, NULL, NULL, NULL, TRUE ) )
+				if( PatchFile( argv[arg + 1], argv[arg + 2], 0, NULL, NULL, argv[arg + 3], TRUE ) )
 					return 2;
 			arg += 2;
-		}  else if( StrCaseCmp( argv[arg], "patchwdith" ) == 0 ) {
+		}  else if( StrCaseCmp( argv[arg], "patchwith" ) == 0 ) {
 			if( ( arg + 3 ) <= argc )
 				if( PatchFile( argv[arg + 1], argv[arg + 2], 0, NULL, NULL, argv[arg+3], FALSE ) )
 					return 2;
