@@ -30,6 +30,7 @@ static struct vfs_runner_local
 	char *prior_output_path;  // prevent remaking directories for EVERY file...
 	PCONFIG_HANDLER pch;
 	int status;
+	LOGICAL verbose;
 }l;
 
 //---------------------------------------------------------------------------
@@ -80,7 +81,6 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	FILE *file;
 	size_t sz;
 	POINTER data;
-
 	file = sack_fopenEx( 0, name, "rb", l.rom );
 	if( file )
 	{
@@ -107,6 +107,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 				}
 				{
 					FILE *out;
+					if( l.verbose ) printf("Update: %s to %s\n", name, target);
 					out = sack_fopenEx( 0, target, "wb", sack_get_default_mount() );
 					if( out ) {
 						if( !l.first_file )
@@ -114,9 +115,13 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 						sack_fwrite( data, sz, 1, out );
 						sack_fclose( out );
 					}
+					else printf("Failed to open: %s\n", target);
 				}
 			}
 			Release( data );
+		}
+		else {
+			printf("File has 0 size, not updating\n");
 		}
 		sack_fclose( file );
 		return TRUE;
@@ -167,6 +172,16 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	l.status = 0;
 	InitConfigHandler();
 	
+	{
+		while ((1 + argofs) < argc) {
+			if (StrCaseCmp(argv[1 + argofs], "-verbose") == 0) {
+				l.verbose = TRUE;
+				argofs++;
+			}
+			else break;
+		}
+	}
+
 #ifdef STANDALONE_HEADER
 	{
 		size_t sz = 0;
@@ -174,7 +189,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		if( argc > (1+argofs) ) {
 			l.target_path = ExpandPath( argv[1+argofs] );
 		}
-		lprintf( "And then arg sets:%s", l.target_path );
+		//lprintf( "And then arg sets:%s", l.target_path );
 		SetSystemLog( SYSLOG_FILE, stderr );
 		SetSystemLoggingLevel( 2000 );
 		if( !memory ) {
@@ -198,6 +213,8 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, FALSE );
 	}
 #else
+
+
 	{
 		SetSystemLog( SYSLOG_FILE, stderr );
 #  ifdef ALT_VFS_NAME
@@ -211,7 +228,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			l.target_path = ExpandPath( "." );
 		}
 		sack_set_default_filesystem_interface( l.fsi );
-		vol = sack_vfs_load_crypt_volume( argc> 1? argv[1]:"package.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
+		vol = sack_vfs_load_crypt_volume( argc> (argofs+1)? argv[argofs+1]:"package.vfs", 0, REPLACE_ME_2, REPLACE_ME_3 );
 		if( vol )
 			l.rom = sack_mount_filesystem( "self", l.fsi, 100, (uintptr_t)vol, TRUE );
 	}
@@ -222,7 +239,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 		POINTER info = NULL;
 		{
 			while( ( 1 + argofs ) < argc ) {
-				if( StrCaseCmp( argv[1 + argofs], "-list" ) == 0 ) {
+				if (StrCaseCmp(argv[1 + argofs], "-list") == 0) {
 					POINTER info = NULL;
 					printf( "Package List\n-- size -- --------- name ---------\n" );
 					while( ScanFilesEx( NULL, "*", &info, ListFile, SFF_SUBCURSE | SFF_SUBPATHONLY
@@ -300,7 +317,7 @@ SaneWinMain(argc,argv)
 		        	, command->cmd
 			        , command->args ? " ":""
 			        , command->args?command->args:"" );
-			lprintf( "run:%s", buf );
+			//lprintf( "run:%s", buf );
 			System( buf, NULL, 0 );
 		}
 	return l.status;
