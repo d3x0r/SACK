@@ -142,56 +142,6 @@ PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )
 
 //----------------------------------------------------------------------------
 
-#ifdef LOG_CLIENT_LISTS
-void DumpLists( void )
-{
-	int c = 0;
-	PCLIENT pc;
-	for( pc = globalNetworkData.AvailableClients; c < 50 && pc; pc = pc->next )
-	{
-		//lprintf( "Available %p", pc );
-		if( (*pc->me) != pc )
-			DebugBreak();
-		c++;
-	}
-	if( c > 50 )
-	{
-		lprintf( "Overflow available clients." );
-		//DebugBreak();
-	}
-
-	c = 0;
-	for( pc = globalNetworkData.ActiveClients; c < 50 && pc; pc = pc->next )
-	{
-		//lprintf( WIDE( "Active %p(%d)" ), pc, pc->Socket );
-		if( (*pc->me) != pc )
-			DebugBreak();
-		c++;
-	}
-	if( c > 50 )
-	{
-		lprintf( "Overflow active clients." );
-		DebugBreak();
-	}
-
-	c = 0;
-	for( pc = globalNetworkData.ClosedClients; c < 50 && pc; pc = pc->next )
-	{
-		//lprintf( "Closed %p(%d)", pc, pc->Socket );
-		if( (*pc->me) != pc )
-			DebugBreak();
-		c++;
-	}
-	if( c > 50 )
-	{
-		lprintf( "Overflow closed clients." );
-		DebugBreak();
-	}
-}
-#endif
-
-//----------------------------------------------------------------------------
-
 //----------------------------------------------------------------------------
 
 static char flag_buf[16][1024];
@@ -243,16 +193,6 @@ PCLIENT GrabClientEx( PCLIENT pClient DBG_PASS )
 {
 	if( pClient )
 	{
-#ifdef LOG_CLIENT_LISTS
-		_lprintf(DBG_RELAY)( "grabbed client %p(%d)", pClient, pClient->Socket );
-		lprintf( "grabbed client %p Ac:%p(%p(%d)) Av:%p(%p(%d)) Cl:%p(%p(%d))"
-				 , pClient->me
-					 , &globalNetworkData.ActiveClients, globalNetworkData.ActiveClients, globalNetworkData.ActiveClients?globalNetworkData.ActiveClients->Socket:0
-					 , &globalNetworkData.AvailableClients, globalNetworkData.AvailableClients, globalNetworkData.AvailableClients?globalNetworkData.AvailableClients->Socket:0
-					 , &globalNetworkData.ClosedClients, globalNetworkData.ClosedClients, globalNetworkData.ClosedClients?globalNetworkData.ClosedClients->Socket:0
-				 );
-		DumpLists();
-#endif
 		pClient->dwFlags &= ~CF_STATEFLAGS;
 		if( pClient->dwFlags & CF_AVAILABLE )
 			lprintf( "Grabbed. %p  %08x", pClient, pClient->dwFlags );
@@ -269,10 +209,6 @@ static PCLIENT AddAvailable( PCLIENT pClient )
 {
 	if( pClient )
 	{
-#ifdef LOG_CLIENT_LISTS
-		lprintf( "Add Avail client %p(%d)", pClient, pClient->Socket );
-		DumpLists();
-#endif
 		pClient->dwFlags |= CF_AVAILABLE;
 		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.AvailableClients;
@@ -289,10 +225,6 @@ PCLIENT AddActive( PCLIENT pClient )
 {
 	if( pClient )
 	{
-#ifdef LOG_CLIENT_LISTS
-		lprintf( "Add Active client %p(%d)", pClient, pClient->Socket );
-		DumpLists();
-#endif
 		pClient->dwFlags |= CF_ACTIVE;
 		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.ActiveClients;
@@ -314,10 +246,6 @@ static PCLIENT AddClosed( PCLIENT pClient )
 {
 	if( pClient )
 	{
-#ifdef LOG_CLIENT_LISTS
-		lprintf( "Add Closed client %p(%d)", pClient, pClient->Socket );
-		DumpLists();
-#endif
 		pClient->dwFlags |= CF_CLOSED;
 		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.ClosedClients;

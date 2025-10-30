@@ -202,13 +202,6 @@ static void HandleEvent( PCLIENT pClient )
 			}
 			else
 			{
-#ifdef LOG_CLIENT_LISTS
-				lprintf( "client lists Ac:%p(%p(%d)) Av:%p(%p(%d)) Cl:%p(%p(%d))"
-						 , &globalNetworkData.ActiveClients, globalNetworkData.ActiveClients, globalNetworkData.ActiveClients?globalNetworkData.ActiveClients->Socket:0
-						 , &globalNetworkData.AvailableClients, globalNetworkData.AvailableClients, globalNetworkData.AvailableClients?globalNetworkData.AvailableClients->Socket:0
-						 , &globalNetworkData.ClosedClients, globalNetworkData.ClosedClients, globalNetworkData.ClosedClients?globalNetworkData.ClosedClients->Socket:0
-						 );
-#endif
 
 #ifdef LOG_NETWORK_LOCKING
 				lprintf( "Handle Event left global" );
