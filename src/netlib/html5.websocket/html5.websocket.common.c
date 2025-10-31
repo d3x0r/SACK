@@ -462,7 +462,7 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 						if( websock->do_close)
 							websock->do_close( websock->psvCloser );
 						else
-							lprintf( "Pipe handle close: This should probably release weboscket and all other stuff" );
+							lprintf( "Pipe handle close: This should probably release websocket and all other stuff" );
 					}
 					// resetInputstate after this would squash next memory....
 					return;

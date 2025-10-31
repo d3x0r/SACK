@@ -933,15 +933,17 @@ PLIST GetWebSocketHeaders( PCLIENT pc ) {
 }
 
 PTEXT GetWebSocketResource( PCLIENT pc ) {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
-	if( socket && socket->Magic == 0x20130912 ) {
-		return GetHttpResource( socket->http_state );
+	if( sack_network_is_active( pc ) ) {
+		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+		if( socket && socket->Magic == 0x20130912 ) {
+			return GetHttpResource( socket->http_state );
+		}
 	}
 	return NULL;
 }
 
 HTTPState GetWebSocketHttpState( PCLIENT pc ) {
-	if( pc ) {
+	if( pc && sack_network_is_active( pc ) ) {
 		HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 		if( socket && socket->Magic == 0x20130912 ) {
 			return socket->http_state;
