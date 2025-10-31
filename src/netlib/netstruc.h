@@ -349,7 +349,8 @@ struct NetworkClient
 	CRITICALSECTION csLockWrite;   // per client lock.
 	PTHREAD pWaiting; // Thread which is waiting for a result...
 	PendingBuffer RecvPending, FirstWritePending; // current incoming buffer
-	PendingBuffer *volatile lpFirstPending,*volatile lpLastPending; // outgoing buffers
+	PendingBuffer prefixData; // the next recv should use this first and then recv()...
+	PendingBuffer *volatile lpFirstPending, *volatile lpLastPending; // outgoing buffers
 	uint32_t    LastEvent; // GetTickCount() of last event...
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcServer; // server this listen socket came from - because connect callback has to be delayed until after handshake of TLS.

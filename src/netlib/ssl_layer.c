@@ -1768,16 +1768,23 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 				pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 			else
 				pc->pcServer->ssl_session->user_connected( pc->pcServer, pc );
+
+			pc->prefixData.dwAvail = length;
+			pc->prefixData.buffer.p = buffer;
+			pc->prefixData.dwUsed = 0;
+			pc->prefixData.s.bStream = 0;
+			pc->prefixData.s.bDynBuffer = 0;
+
 			if( buffer && pc->read.CPPReadComplete ) {
 				if( pc->dwFlags & CF_CPPREAD ) {
 					pc->read.CPPReadComplete( pc->psvRead, NULL, 0 );  // process read to get data already pending...
-					if( buffer )
-						pc->read.CPPReadComplete( pc->psvRead, buffer, length );
+					//if( buffer )
+					//	pc->read.CPPReadComplete( pc->psvRead, buffer, length );
 				}
 				else {
 					pc->read.ReadComplete( pc, NULL, 0 );
-					if( buffer )
-						pc->read.ReadComplete( pc, buffer, length );
+					//if( buffer )
+					//	pc->read.ReadComplete( pc, buffer, length );
 				}
 #if defined( DEBUG_SSL_FALLBACK )			
 				lprintf( "Sent buffer to app?");

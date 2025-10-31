@@ -1028,32 +1028,17 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 #ifdef VERBOSE_DEBUG
 	nCount = 0;
 #endif
-	if( !( lpClient->dwFlags & CF_READPENDING ) )
-	{
-		//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
-		//lprintf( "Finish pending - return, no pending read. %08x", lpClient->dwFlags );
-	}
-
 	do
 	{
-#if 0 && !DrainSupportDeprecated
-		if( lpClient->bDraining )
-		{
-			lprintf("LOG:ERROR trying to read during a drain state..." );
-			return -1; // why error on draining with pending finish??
-		}
-#endif
-
 		if( !(lpClient->dwFlags & CF_CONNECTED)  )
 		{
 #ifdef DEBUG_SOCK_IO
-			lprintf( "Finsih pending - return, not connected." );
+			lprintf( "Finish pending - return, not connected." );
 #endif
 			return (int)lpClient->RecvPending.dwUsed; // amount of data available...
 		}
 		//lprintf( ("FinishPendingRead of %d"), lpClient->RecvPending.dwAvail );
-		if( !( lpClient->dwFlags & CF_READPENDING ) )
-		{
+		if( !( lpClient->dwFlags & CF_READPENDING ) ) {
 			//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
 			if( lpClient->dwFlags & CF_WANTCLOSE ) {
 				// the application didn't queue a buffer to read into, have to force accepting a close.
@@ -1066,6 +1051,25 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			// without a pending read, don't read, the buffers are not correct.
 			return 0;
 		}
+                if( lpClient->prefixData.dwAvail != lpClient->prefixData.dwUsed ) {
+			// if more room left than is in prefix, put all of prefix data into buffer.
+			if( ( lpClient->RecvPending.dwAvail - lpClient->RecvPending.dwUsed )  
+			    >= ( lpClient->prefixData.dwAvail - lpClient->prefixData.dwUsed ) ){
+				MemCpy( (uint8_t*)lpClient->RecvPending.buffer.p + lpClient->RecvPending.dwUsed
+				      , (uint8_t*)lpClient->prefixData.buffer.p + lpClient->prefixData.dwUsed
+				      , ( lpClient->prefixData.dwAvail - lpClient->prefixData.dwUsed ) );
+				lpClient->RecvPending.dwUsed += lpClient->prefixData.dwAvail - lpClient->prefixData.dwUsed;
+				lpClient->prefixData.dwAvail = lpClient->prefixData.dwUsed = 0;
+			} else {
+				MemCpy( (uint8_t*)lpClient->RecvPending.buffer.p + lpClient->RecvPending.dwUsed
+				      , (uint8_t*)lpClient->prefixData.buffer.p + lpClient->prefixData.dwUsed
+				      , ( lpClient->RecvPending.dwAvail - lpClient->RecvPending.dwUsed ) );
+				// use a part of the data...
+				lpClient->prefixData.dwUsed = lpClient->RecvPending.dwAvail - lpClient->RecvPending.dwUsed;
+				lpClient->RecvPending.dwUsed += lpClient->RecvPending.dwAvail - lpClient->RecvPending.dwUsed;
+			}
+		}
+		// if readpending is not set, don't call recv... (doesn't mean we have 0 data though)
 		while( lpClient->RecvPending.dwAvail )  // if any room is availiable.
 		{
 #ifdef DEBUG_SOCK_IO
@@ -1088,7 +1092,9 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				{
 				case WSAEWOULDBLOCK: // no data avail yet...
 					//lprintf( "Pending Receive would block..." );
+					goto dispatch_ReadEvent;
 					lpClient->dwFlags &= ~CF_READREADY;
+					
 					return (int)lpClient->RecvPending.dwUsed;
 #ifdef __LINUX__
 				case ECONNRESET:
@@ -1154,9 +1160,12 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				//else
 				//	lprintf( "Was not a stream read - try reading more..." );
 			}
-		}
+		} // end while
 
 		// if read notification okay - then do callback.
+		// read waiting is that the read is waiting in block mode for the result
+		// so do not dispatch to callback.
+dispatch_ReadEvent:
 		if( !( lpClient->dwFlags & CF_READWAITING ) )
 		{
 #ifdef LOG_PENDING
@@ -1213,7 +1222,8 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				  ( lpClient->RecvPending.dwUsed &&   // or completed some of the read
 					lpClient->RecvPending.s.bStream ) ) )
 			{
-				lprintf( "Wake waiting thread... clearing pending read flag." );
+				// this like never happens... so maybe remove this sort of wake logic
+				//lprintf( "Wake waiting thread... clearing pending read flag." );
 				lpClient->dwFlags &= ~CF_READPENDING;
 				if( lpClient->pWaiting )
 					WakeThread( lpClient->pWaiting );
@@ -1297,7 +1307,8 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		}
 		//else
 		//   lprintf( "No read waiting... allow forward going..." );
-		if( lpClient->dwFlags & CF_READREADY )
+		if( ( lpClient->dwFlags & CF_READREADY ) 
+		  || ( lpClient->prefixData.dwAvail != lpClient->prefixData.dwUsed ) )
 		{
 #ifdef LOG_PENDING
 			lprintf( "Data already present for read..." );
