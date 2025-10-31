@@ -1789,7 +1789,7 @@ uintptr_t WaitToWrite( PTHREAD thread ) {
 				if(pending.pc->dwFlags & CF_TOCLOSE) 
 					lprintf( "Socket is intended to close already... %08x %p" , pending.pc->dwFlags, pending.pc );
 				else
-					lprintf( "Socket is is inactive already... %08x %p" , pending.pc->dwFlags, pending.pc );
+					;//lprintf( "Socket is inactive already... %08x %p" , pending.pc->dwFlags, pending.pc );
 				continue;
 			}
 			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
@@ -1854,15 +1854,15 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
                      DBG_PASS
                      )
 {
-	if( !lpClient )
+	if( !lpClient || !sack_network_is_active( lpClient ) )
 	{
 //#ifdef VERBOSE_DEBUG
-		lprintf( "TCP Write failed - invalid client." );
+		_lprintf(DBG_RELAY)( "TCP Write failed - invalid client." );
 //#endif
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
 
-	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_SRC ) )
+	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_RELAY ) )
 	{
 #ifdef LOG_NETWORK_LOCKING
 		if( lpClient->wakeOnUnlock )

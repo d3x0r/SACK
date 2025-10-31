@@ -1408,7 +1408,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		//lprintf( "This will end up resetting the socket?" );
 		EnterCriticalSec( &globalNetworkData.csNetwork );
 		InternalRemoveClientExx( lpClient, bBlockNotify, bLinger DBG_RELAY );
-		if( NetworkLock( lpClient, 0 ) && ((n=1),NetworkLock( lpClient, 1 )) ) {
+		if( NetworkLockEx( lpClient, 0 DBG_RELAY ) && ((n=1),NetworkLockEx( lpClient, 1 DBG_RELAY )) ) {
 			TerminateClosedClient( lpClient );
 			NetworkUnlock( lpClient, 0 );
 			NetworkUnlock( lpClient, 1 );
