@@ -166,7 +166,7 @@ typedef struct space_pool_structure {
 #ifdef _WIN32
 //(0x10000 * 0x1000) //256 megs?
 #define FILE_GRAN g.si.dwAllocationGranularity
-static SYSTEM_INFO const zero_si = {{{0}}}; /* C++ is complicating how to inizialize this, {} used to work, now {0} is wanted, which then wants {{{0}}}... */
+//static SYSTEM_INFO const zero_si = {{{0}}}; /* C++ is complicating how to inizialize this, {} used to work, now {0} is wanted, which then wants {{{0}}}... */
 #else
 #define FILE_GRAN g.pagesize
 #endif
@@ -216,7 +216,7 @@ static struct global_memory_tag global_memory_data = { 0x10000 * 0x08
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
-																	  , zero_si
+																	  , {{{0}}}
 #endif
 																	  , 0
 																	  , 0
@@ -242,7 +242,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
-																	  , zero_si
+																	  , {{{0}}}
 #endif
 																	  , 0
 																	  , 0
@@ -261,7 +261,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
-																	  , zero_si
+																	  , {{{0}}}
 #endif
 																	  , 0
 																	  , 0
