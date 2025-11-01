@@ -1184,7 +1184,7 @@ static int OnMouseCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, int32_t x, int
 
 //---------------------------------------------------------------------------
 
-static LOGICAL IsParentOpen( PLISTITEM pli )
+LOGICAL PSI_Listbox_IsParentOpen( PLISTITEM pli )
 {
 	int myself = pli->nLevel;
 	PLISTITEM prior;
@@ -1199,6 +1199,12 @@ static LOGICAL IsParentOpen( PLISTITEM pli )
 		}
 	}
 	return TRUE;
+}
+
+
+LOGICAL PSI_Listbox_IsItemOpen( PLISTITEM pli )
+{
+	return pli->flags.bOpen;
 }
 
 
@@ -1244,7 +1250,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 					do
 					{
 						pli = pli->prior;
-					} while( pli && plb->flags.bTree && !IsParentOpen( pli ) );
+					} while( pli && plb->flags.bTree && !PSI_Listbox_IsParentOpen( pli ) );
 					if( !pli )
 						pli = plb->current;
 				}
@@ -1285,7 +1291,7 @@ static int OnKeyCommon( LISTBOX_CONTROL_NAME )( PSI_CONTROL pc, uint32_t key )
 					do
 					{
 						pli = pli->next;
-					} while( pli && plb->flags.bTree && !IsParentOpen( pli ) );
+					} while( pli && plb->flags.bTree && !PSI_Listbox_IsParentOpen( pli ) );
 					if( !pli )
 						pli = plb->current;
 				}

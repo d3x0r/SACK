@@ -1874,7 +1874,6 @@ typedef void (CPROC*SelectionChanged )( uintptr_t psvUser, PSI_CONTROL pc, PLIST
 PSI_PROC( void, SetComboBoxPopupEventCallback )( PSI_CONTROL pc, void (CPROC*PopupEvent)( uintptr_t,LOGICAL ), uintptr_t psvEvent );
 PSI_PROC( void, SetComboBoxSelectedItem )( PSI_CONTROL pc, PLISTITEM hli );
 
-
 //------- ComboBox Control --------
 _COMBOBOX_NAMESPACE
 
@@ -1944,6 +1943,8 @@ PSI_PROC( int, DisableUpdateListBox )( PSI_CONTROL pc, LOGICAL bDisable );
 // on right click down,up this proc is triggered...
 PSI_PROC( void, SetItemContextMenu )( PLISTITEM pli, PMENU pMenu, void (CPROC*MenuProc)(uintptr_t, PLISTITEM, uint32_t menuopt ), uintptr_t psv );
 PSI_PROC( int, OpenListItem )( PLISTITEM pli, int bOpen );
+PSI_PROC( LOGICAL, PSI_Listbox_IsParentOpen )( PLISTITEM pli );
+PSI_PROC( LOGICAL, PSI_Listbox_IsItemOpen )( PLISTITEM pli );
 PSI_PROC( void, SetListBoxTabStopsEx )(PSI_CONTROL pc, int nLevel, int nStops, int* pStops);
 PSI_PROC( void, SetListBoxTabStops )( PSI_CONTROL pc, int nStops, int *pStops );
 PSI_PROC( void, EnumListItems )( PSI_CONTROL pc
