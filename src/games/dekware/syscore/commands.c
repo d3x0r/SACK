@@ -383,13 +383,17 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 
 			{						
 				CTEXTSTR desc;
+				CTEXTSTR class;
 				desc = GetRegisteredValue( (CTEXTSTR)_current, "Description" );
-				vtprintf( vt,"[%.*s]%-*s - %s"
-						  , diff
-						  , prior_name
-						  , 10-diff
-						  , prior_name+diff
-						  , desc?desc:"" );
+				class = GetRegisteredValue( (CTEXTSTR)_current, "Command Class" );
+				vtprintf( vt,"%s%s[%.*s]%-*s - %s"
+				        , class?class:""
+				        , class?"::":""
+				        , diff
+				        , prior_name
+				        , 10-diff
+				        , prior_name+diff
+				        , desc?desc:"" );
 				//lprintf( "Enque command: %s", GetText( VarTextPeek( vt )));
 				EnqueLink( Output, VarTextGet( vt ) );
 			}
@@ -404,14 +408,18 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 
 		PCLASSROOT tmp;
 		CTEXTSTR desc;
+		CTEXTSTR class;
 		tmp = GetClassRootEx( (PCLASSROOT)root, prior_name );
 		desc = GetRegisteredValue( (CTEXTSTR)tmp, "Description" );
-		vtprintf( vt,"[%.*s]%-*s - %s"
-				  , diff
-				  , prior_name
-				  , 10-diff
-				  , prior_name+diff
-				  , desc?desc:"" );
+		class = GetRegisteredValue((CTEXTSTR)_current, "Command Class");
+		vtprintf( vt,"%s%s[%.*s]%-*s - %s"
+		        , class?class:""
+		        , class?"::":""
+		        , diff
+		        , prior_name
+		        , 10-diff
+		        , prior_name+diff
+		        , desc?desc:"" );
 		EnqueLink( Output, VarTextGet( vt ) );
 	}
 	VarTextDestroy( &vt );
