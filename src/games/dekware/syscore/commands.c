@@ -359,7 +359,7 @@ CORE_PROC( void, WriteCommandList2 )( PLINKQUEUE *Output, CTEXTSTR root
 		  name = GetNextRegisteredName( &current ) )
 	{
 		size_t diff;
-		lprintf( "Got name: %p", name );
+		//lprintf( "Got name: %p", name );
 		//if( commands[count].maxlen < 0 )  // skip disabled commands
 		//	continue;
 		if( pMatch )
