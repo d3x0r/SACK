@@ -257,7 +257,7 @@ static void LocalInit( void )
 			sack_register_filesystem_interface( "native", &native_fsi );
 		if( !( *winfile_local )._default_mount )
 			( *winfile_local )._default_mount = sack_mount_filesystem( "native", &native_fsi, 1000, (uintptr_t)NULL, TRUE );
-		OnThreadCreate( threadInit );
+		OnThreadCreate( threadInit ); // this only works for threads WE create... maybe that's fixable someday
 		OnThreadExit( threadExit );
 		InitializeCriticalSec( &( *winfile_local ).cs_files );
 		( *winfile_local ).flags.bInitialized = 1;
@@ -2977,6 +2977,7 @@ static int CPROC sack_filesys_exists( uintptr_t psv, const char* filename ) {
 }
 
 struct file_system_mounted_interface* sack_get_default_mount( void ) {
+	if( !FileSysThreadInfo._mounted_file_systems ) threadInit();
 	return FileSysThreadInfo.default_mount;
 }
 
