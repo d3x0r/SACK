@@ -2228,7 +2228,7 @@ LOGICAL sack_exists( const char* filename )
 
 LOGICAL sack_isPathEx( const char* filename, struct file_system_mounted_interface* mount )
 {
-	if( mount && mount->fsi && mount->fsi->exists ) {
+	if( mount && mount->fsi && mount->fsi->is_directory ) {
 		{
 			struct directory* d;
 			INDEX i;
@@ -2241,7 +2241,7 @@ LOGICAL sack_isPathEx( const char* filename, struct file_system_mounted_interfac
 		}
 		int result = mount->fsi->is_directory( mount->psvInstance, filename );
 		return result;
-	}
+	} else if( !mount || !mount->fsi ) return sack_isPath( filename );
 	return FALSE;
 }
 
