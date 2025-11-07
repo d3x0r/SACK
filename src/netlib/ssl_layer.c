@@ -2068,7 +2068,7 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 	HCERTSTORE hStore;
 	PCCERT_CONTEXT pContext = NULL;
 	X509 *x509;
-lprintf( "Loading System Certs");
+	//lprintf( "Loading System Certs");
 	hStore = CertOpenSystemStore((HCRYPTPROV_LEGACY)NULL, "ROOT");
 
 	if( !hStore ) {
