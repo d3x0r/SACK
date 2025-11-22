@@ -1726,7 +1726,10 @@ static LOGICAL hasPending( PCLIENT pc ) {
 	i = 0;
 	while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i++ ) ){
 		if( pending.pc == pc ) {
-			lprintf( "Might have still been able to get the lock...");
+			// results with 'don't clear wake'
+			//  if( pending ) already waiting, don't clear
+			//  if( !pending ) clear that we want to be woken, just completed sending all the pending data
+			//lprintf( "Might have still been able to get the lock...");
 			return TRUE;
 		}
 	}
