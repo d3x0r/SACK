@@ -302,6 +302,8 @@ PRIORITY_PRELOAD( LowLevelInit, TIMER_MODULE_PRELOAD_PRIORITY )
 	// there is a small chance the local is already initialized.
 #  ifndef __STATIC_GLOBALS__
 	if( !global_timer_structure ) {
+		MyThreadInfo.pThread = MakeThread(); // init thread local variable with thread id and self thread.
+		MyThreadInfo.nThread = MyThreadInfo.pThread->thread_ident;
 		SimpleRegisterAndCreateGlobal( global_timer_structure );
 		OnThreadCreate( (void(*)(void))MakeThread );
 		MakeThread(); // init thread local variable with thread id and self thread.
