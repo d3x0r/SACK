@@ -32,7 +32,7 @@ if( __NO_ODBC__ )
     ADD_DEFINITIONS( -D__NO_ODBC__=1 )
 endif( __NO_ODBC__ )
 
-		FILE( APPEND ${FILEOUT} "SET(  SHARED_PLUGINPATH $" "{TARGET_INSTALL_PREFIX}/share/SACK/plugins )\n" )
+		FILE( APPEND ${FILEOUT} "SET(  SHARED_PLUGINPATH share/SACK/plugins )\n" )
 
 		FILE( APPEND ${FILEOUT} "#set was_monolithic_build to build mode\n" )
 		FILE( APPEND ${FILEOUT} "set( WAS_MONOLITHIC @BUILD_MONOLITHIC@ )\n" )
@@ -495,7 +495,7 @@ endif( DIRECTX_SDK AND NOT WATCOM AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU" )
 
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_libfile_list} DESTINATION $" "{LIBRARY_OUTPUT_DIR} )\n" )
 if( NOT __ANDROID__ )
-		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_literal_libfile_list} DESTINATION $" "{SHARED_PLUGINPATH} )\n" )
+		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_literal_libfile_list} DESTINATION $" "{dest}/$" "{SHARED_PLUGINPATH} )\n" )
 		FILE( APPEND ${FILEOUT} "install( PROGRAMS $" "{sack_progfile_list} DESTINATION $" "{BINARY_OUTPUT_DIR} )\n" )
 else( NOT __ANDROID__ )
                 foreach( lib ${literal_libfile_list} )
