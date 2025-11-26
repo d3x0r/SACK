@@ -464,7 +464,10 @@ LOGICAL IMGVER(JpgImageFile)( Image image, uint8_t **buf, size_t *size, int Q )
      * Here the array is only one element long, but you could pass
      * more than one scanline at a time if that's more convenient.
      */
-    row_pointer[0] = & tmpbuf[cinfo.next_scanline * row_stride];
+	  if (image->flags & IF_FLAG_INVERTED)
+		  row_pointer[0] = &tmpbuf[(image->height-1-cinfo.next_scanline) * row_stride];
+	  else
+	    row_pointer[0] = & tmpbuf[cinfo.next_scanline * row_stride];
     (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
 

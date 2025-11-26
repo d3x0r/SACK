@@ -1,3 +1,6 @@
+#error libPNG simplified API cannot set allocator
+#error libPNG simplified API cannot deal with inverted images.
+
 /*
  *  Crafted by Jim Buckeyne
  *   (c)1999-2006++ Freedom Collective
