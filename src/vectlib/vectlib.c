@@ -12,6 +12,13 @@
 
 //----------------------------------------------------------------
 
+
+#include <immintrin.h>
+// double...
+// __m256d
+// single...
+// __m128f
+
 #include <vectlib.h>
 #include "vecstruc.h"
 //#include "vectlib.h"
@@ -1928,6 +1935,432 @@ RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 	EXTERNAL_NAME( IntersectLineWithPlane)( i, p, n, o, &t );
 	return t;
 }
+
+
+void EXTERNAL_NAME(basis_lq)( PVECTOR4 v4, PMatrix basis ) {
+	// tr(M)=2cos(theta)+1 .
+	const RCOORD t = ( ( (*basis)[0][0] + (*basis)[1][1] + (*basis)[2][2] ) - 1 )/2;
+	//console.log( "FB t is:", t, basis.right.x, basis.up.y, basis.forward.z );
+	//	if( t > 1 || t < -1 )
+	//  1,1,1 -1 = 2;/2 = 1
+	// -1-1-1 -1 = -4 /2 = -2;
+	/// okay; but a rotation matrix never gets back to the full rotation? so 0-1 is enough?  is that why evertyhing is biased?
+	//  I thought it was more that sine() - 0->pi is one full positive wave... where the end is the same as the start
+	//  and then pi to 2pi is all negative, so it's like the inverse of the rotation (and is only applied as an inverse? which reverses the negative limit?)
+	//  So maybe it seems a lot of this is just biasing math anyway?
+	const double angle = acos(t);
+	if( !angle ) {
+		//console.log( "primary rotation is '0'", t, angle, this.θ, basis.right.x, basis.up.y, basis.forward.z );
+		v4[0] = 0;
+		v4[1] = 1;
+		v4[2] = 0;
+		v4[3] = 0;
+		return;
+	}
+	/*
+	https://stackoverflow.com/a/12472591/4619267
+	x = (R21 - R12)/sqrt((R21 - R12)^2+(R02 - R20)^2+(R10 - R01)^2);
+	y = (R02 - R20)/sqrt((R21 - R12)^2+(R02 - R20)^2+(R10 - R01)^2);
+	z = (R10 - R01)/sqrt((R21 - R12)^2+(R02 - R20)^2+(R10 - R01)^2);
+	*/	
+	RCOORD yz = (*basis)[1][2] - (*basis)[2][1];
+	RCOORD xz = (*basis)[2][0] - (*basis)[0][2];
+	RCOORD xy = (*basis)[0][1] - (*basis)[1][0];
+	double tmp = 1 /sqrt(yz*yz + xz*xz + xy*xy );
+	v4[3] = angle;
+	v4[0] = yz *tmp;
+	v4[1] = xz *tmp;
+	v4[2] = xy *tmp;
+}
+
+
+void EXTERNAL_NAME(lq_exp)( PVECTOR4 q, PCVECTOR4 v) {
+	RCOORD c = cos( v[3]/2 );
+	RCOORD s = sin( v[3]/2 );
+	q[0] = c;
+	q[1] = v[0] * s;
+	q[2] = v[1] * s;
+	q[3] = v[2] * s;
+}
+
+
+PMatrix EXTERNAL_NAME(lq_basis)(PMatrix matrix, PCVECTOR4 v ) {
+	RCOORD nt = v[3];
+	RCOORD s  = sin( nt ); // sin/cos are the function of exp()
+	RCOORD c1 = cos( nt ); // sin/cos are the function of exp()
+	RCOORD c = 1- c1; // sin/cos are the function of exp()
+
+	RCOORD xy = c*v[0]*v[1];  // x * y / (xx+yy+zz) * (1 - cos(2t))
+	RCOORD yz = c*v[1]*v[2];  // y * z / (xx+yy+zz) * (1 - cos(2t))
+	RCOORD xz = c*v[0]*v[2];  // x * z / (xx+yy+zz) * (1 - cos(2t))
+
+	RCOORD wx = s*v[0];     // x / sqrt(xx+yy+zz) * sin(2t)
+	RCOORD wy = s*v[1];     // y / sqrt(xx+yy+zz) * sin(2t)
+	RCOORD wz = s*v[2];     // z / sqrt(xx+yy+zz) * sin(2t)
+
+	(*matrix)[0][0] = c1 + c*v[0]*v[0];
+	(*matrix)[0][1] =     ( xy + wz );
+	(*matrix)[0][2] =     ( xz - wy );
+	(*matrix)[1][0] =     ( xy - wz );
+	(*matrix)[1][1] = c1 + c*v[1]*v[1];
+	(*matrix)[1][2] =     ( wx + yz );
+	(*matrix)[2][0] =     ( wy + xz );
+	(*matrix)[2][1] =     ( yz - wx );
+	(*matrix)[2][2] = c1 + c*v[2]*v[2];
+	return matrix;
+}
+
+PMatrix EXTERNAL_NAME( lq_gl_basis )( PMatrix matrix, PCVECTOR4 v ) {
+	RCOORD nt = v[3];
+	RCOORD s  = sin( nt ); // sin/cos are the function of exp()
+	RCOORD c1 = cos( nt ); // sin/cos are the function of exp()
+	RCOORD c = 1- c1; // sin/cos are the function of exp()
+
+	RCOORD xy = c*v[0]*v[1];  // x * y / (xx+yy+zz) * (1 - cos(2t))
+	RCOORD yz = c*v[1]*v[2];  // y * z / (xx+yy+zz) * (1 - cos(2t))
+	RCOORD xz = c*v[0]*v[2];  // x * z / (xx+yy+zz) * (1 - cos(2t))
+
+	RCOORD wx = s*v[0];     // x / sqrt(xx+yy+zz) * sin(2t)
+	RCOORD wy = s*v[1];     // y / sqrt(xx+yy+zz) * sin(2t)
+	RCOORD wz = s*v[2];     // z / sqrt(xx+yy+zz) * sin(2t)
+
+	(*matrix)[0][0] = c1 + c*v[0]*v[0];
+	(*matrix)[1][0] =     ( xy + wz );
+	(*matrix)[2][0] =     ( xz - wy );
+	(*matrix)[0][1] =     ( xy - wz );
+	(*matrix)[1][1] = c1 + c*v[1]*v[1];
+	(*matrix)[2][1] =     ( wx + yz );
+	(*matrix)[0][2] =     ( wy + xz );
+	(*matrix)[1][2] =     ( yz - wx );
+	(*matrix)[2][2] = c1 + c*v[2]*v[2];
+	return matrix;
+}
+
+
+
+VECTOR_METHOD( void, lq_spin, (PVECTOR4 out, PCVECTOR4 r, PCVECTOR4 around ) ){
+	}
+VECTOR_METHOD( void, lq_up, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
+	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
+	const RCOORD c  = 1 - c1;
+	const RCOORD cn = c * r[ 1 ];
+
+	out[ 0 ]        = -s * r[ 2 ] + cn * r[ 0 ];
+	out[ 1 ]        = c1 + cn * r[ 1 ];
+	out[ 2 ]        = s * r[ 0 ] + cn * r[ 2 ];
+}
+VECTOR_METHOD( void, lq_right, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
+	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
+	const RCOORD c  = 1 - c1;
+	const RCOORD cn = c * r[ 0 ];
+	out[ 0 ]        = c1 + cn * r[ 0 ];
+	out[ 1 ]        = s * r[ 2 ] + cn * r[ 1 ];
+	out[ 2 ]        = -s * r[ 1 ] + cn * r[ 2 ];
+}
+VECTOR_METHOD( void, lq_forward, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
+	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
+	const RCOORD c  = 1 - c1;
+	const RCOORD cn = c * r[ 2 ];
+	out[ 0 ]        = s * r[ 1 ] + cn * r[ 0 ];
+	out[ 1 ]        = -s * r[ 0 ] + cn * r[ 1 ];
+	out[ 2 ]        = c1 + cn * r[ 2 ];
+}
+
+RCOORD EXTERNAL_NAME(lq_roll)( PCVECTOR4 r ) {
+	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
+	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
+	return asin( s * r[ 2 ] + ( (1 - c1) * r[ 0 ] ) * r[ 1 ] );
+}
+
+RCOORD EXTERNAL_NAME(lq_yaw)( PCVECTOR4 r ) {
+	const RCOORD s         = sin( r[ 3 ] ); // double angle sin
+	const RCOORD c1        = cos( r[ 3 ] ); // sin/cos are the function of exp()
+	const RCOORD c         = 1 - c1;
+
+	const RCOORD principal = -asin( -s * r[1] + ( 1 - c1 ) * r[0] * r[2] );
+	const RCOORD rx        = c1 + c * r[ 0 ] * r[ 0 ];
+	if( rx < 0 )
+		return principal;
+	return ( principal < 0 ) ? ( -M_PI - principal ) : ( M_PI - principal );
+}
+
+RCOORD EXTERNAL_NAME(lq_pitch)( PCVECTOR4 r ) {
+	const RCOORD s  = sin( r[3] ); // double angle sin
+	const RCOORD c1 = cos( r[3] ); // sin/cos are the function of exp()
+	return asin( s * r[ 0 ] + ( c1 - 1 ) * r[ 2 ] * r[ 1 ] );
+}
+
+VECTOR_METHOD( void, lq_apply, ( PVECTOR out, PCVECTOR4 r, PCVECTOR v ) ) {
+	// rodrigues full angle multiply
+	const RCOORD c = cos( r[ 3 ] );
+	const RCOORD s = sin( r[ 3 ] );
+	const RCOORD dot = ( 1 - c ) * ( ( r[ 0 ] * v[ 0 ] ) + ( r[ 1 ] * v[ 1 ] ) + ( r[ 2 ] * v[ 2 ] ) );
+	// v *cos(theta) + sin(theta)*cross + q * dot * (1-c)
+	out[ 0 ]  = v[ 0 ] * c + s * ( r[ 1 ] * v[ 2 ] - r[ 2 ] * v[ 1 ] ) + r[ 0 ] * dot;
+	out[ 1 ]  = v[ 1 ] * c + s * ( r[ 2 ] * v[ 0 ] - r[ 0 ] * v[ 2 ] ) + r[ 1 ] * dot;
+	out[ 2 ]  = v[ 2 ] * c + s * ( r[ 0 ] * v[ 1 ] - r[ 1 ] * v[ 0 ] ) + r[ 2 ] * dot;
+}
+VECTOR_METHOD( PVECTOR4, lq_applyRotation, ( PVECTOR4 out, PCVECTOR4 r, PCVECTOR4 a ) ) {
+
+	// RCOORD oct         = oct || floor( r[3]� ( M_PI * 2 ) );
+	// A dot B   = cos( angle A->B )
+	// cos( C/2 )
+	//  cos(angle between the two rotation axii)
+	const RCOORD AdotB = ( r[ 0 ] * a[ 0 ] + r[ 1 ] * a[ 1 ] + r[ 2 ] * a[ 2 ] );
+	/*
+	// orbital hopping mechanic...
+	// hypothetical relation mass to orbital
+	if( AdotB > 0.99 ) {
+	   if( q.θ + th > M_PI*4 )
+	      oct++;
+	} else if( cosCo2 < -0.99 ){
+	   if( q.θ - th < -M_PI*4 )
+	      oct--;
+	}
+	*/
+
+	// using sin(x+y)+sin(x-y)  expressions replaces multiplications with additions...
+	// same sin/cos lookups sin(x),cos(x),sin(y),cos(y)
+	//   or sin(x+y),cos(x+y),sin(x-y),cos(x-y)
+	const RCOORD xmy   = ( a[ 3 ] - r[ 3 ] ) / 2; // X - Y  ('x' 'm'inus 'y')
+	const RCOORD xpy   = ( a[ 3 ] + r[ 3 ] ) / 2; // X + Y  ('x' 'p'lus 'y' )
+	const RCOORD cxmy  = cos( xmy );
+	const RCOORD cxpy  = cos( xpy );
+
+	// cos(angle result)
+	// const cosCo2 = ( ( 1-AdotB )*cxmy + (1+AdotB)*cxpy )/2;
+	// ( 2 cos(x) cos(y) - 2 A sin(x) sin(y) ) / 2
+	const RCOORD cosCo2 = ( ( AdotB ) * ( cxpy - cxmy ) + cxmy + cxpy ) / 2;
+	//   (1-cos(A))cos(x-y)+(1+cos(A))cos(x+y)
+	//    cos(A) (cos(x + y) - cos(x - y)) + cos(x - y) + cos(x + y)
+	// octive should have some sort of computation that gets there...s
+	// would have to be a small change
+	const RCOORD ang  = acos( cosCo2 ) * 2/* + oct * ( M_PI * 2 )*/;
+
+	if( ang ) {
+		const RCOORD sxmy = sin( xmy );
+		const RCOORD sxpy = sin( xpy );
+		// vector rotation is just...
+		// when both are large, cross product is dominant (pi/2)
+		const RCOORD ss1  = sxmy + sxpy; // 2 cos(y) sin(x)
+		const RCOORD ss2  = sxpy - sxmy; // 2 cos(x) sin(y)
+		const RCOORD cc1  = cxmy - cxpy; // 2 sin(x) sin(y)
+
+		// 1/2 (B sin(a/2) cos(b/2) - A sin^2(b/2) + A cos^2(b/2))
+		//  the following expression is /2 (has to be normalized anywa[1] keep 1 bit)
+		//  and is not normalized with sin of angle/2.
+		const RCOORD crsX = ( a[ 1 ] * r[ 2 ] - a[ 2 ] * r[ 1 ] );
+		const RCOORD crsY = ( a[ 2 ] * r[ 0 ] - a[ 0 ] * r[ 2 ] );
+		const RCOORD crsZ = ( a[ 0 ] * r[ 1 ] - a[ 1 ] * r[ 0 ] );
+		const RCOORD Cx   = ( crsX * cc1 + a[ 0 ] * ss1 + r[ 0 ] * ss2 );
+		const RCOORD Cy   = ( crsY * cc1 + a[ 1 ] * ss1 + r[ 1 ] * ss2 );
+		const RCOORD Cz   = ( crsZ * cc1 + a[ 2 ] * ss1 + r[ 2 ] * ss2 );
+		// this is NOT /sin(theta);  it is, but only in some ranges...
+		const RCOORD lensq = Cx * Cx + Cy * Cy + Cz * Cz;
+		if( lensq > 0.0000000000000001 ) {
+			const RCOORD Clx = /*( lnQuat.sinNormal ) ? ( 1 / ( 2 * sin( ang / 2 ) ) ) :*/ 1 / lensq;
+
+			//RCOORD qrn       = Clx; // I'd like to save this to see what the normal actually was
+			out[ 3 ]   = ang;
+			out[ 0 ]   = Cx * Clx;
+			out[ 1 ]   = Cy * Clx;
+			out[ 2 ]   = Cz * Clx;
+		} else {
+			// result angle is 0
+			out[ 0 ] = r[ 0 ];
+			out[ 1 ] = r[ 1 ];
+			out[ 2 ] = r[ 2 ];
+			if( AdotB > 0 ) {
+				out[ 3 ] = r[ 3 ] + a[3];
+			} else {
+				out[ 3 ] = r[ 3 ] - a[3];
+			}
+		}
+	}
+	return out;
+}
+
+PVECTOR4 EXTERNAL_NAME(lq_set4)( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z, RCOORD angle ) {
+	const RCOORD len = sqrt( x * x + y * y + z * z );
+	if( len > 0.00000001 ) {
+		const RCOORD ilen = 1 / len;
+		out[ 0 ]         = x * ilen;
+		out[ 1 ]         = y * ilen;
+		out[ 2 ]         = z * ilen;
+	} else {
+		out[ 0 ] = 0;
+		out[ 1 ] = 1;
+		out[ 2 ] = 0;
+	}
+	out[ 3 ] = angle;
+	return out;
+}
+
+PVECTOR4 EXTERNAL_NAME(lq_set3)( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z ) {
+	const RCOORD len = sqrt( x * x + y * y + z * z );
+	if( len > 0.00000001 ) {
+		const RCOORD ilen = 1 / len;
+		out[ 0 ]          = x * ilen;
+		out[ 1 ]          = y * ilen;
+		out[ 2 ]          = z * ilen;
+	} else {
+		out[ 0 ] = 0;
+		out[ 1 ] = 1;
+		out[ 2 ] = 0;
+	}
+	out[ 3 ] = len;
+	return out;
+}
+
+static PVECTOR4 alignZero( PVECTOR4 q ) {
+	// const fN = 1/Math.sqrt( tz*tz+tx*tx );
+	MATRIX b;
+
+	EXTERNAL_NAME( lq_basis )( &b, q );
+
+	const RCOORD ty       = b[ 1 ][ 1 ];
+	const RCOORD cosTheta = acos( ty ); // 1->-1 (angle from pole around this circle.
+	const RCOORD txn = -q[ 2 ];
+	const RCOORD tzn = q[ 0 ];
+
+	const RCOORD s = sin( cosTheta );     // double angle substituted
+	const RCOORD c = 1 - cos( cosTheta ); // double angle substituted
+
+	// determinant coordinates
+	const RCOORD angle = txn == 1 ? cosTheta : acos( ( ty + 1 ) * ( 1 - txn ) / 2 - 1 );
+
+	// compute the axis
+	const RCOORD yz           = s * q[0];
+	const RCOORD xz       = ( 2 - c * ( q[0] * q[0] + q[2] * q[2] ) ) * tzn;
+	const RCOORD xy = txn == 1 ? ( s * q[0] * tzn + s * q[2] * ( 1 ) ) : ( s * q[0] * tzn + s * q[2] * ( 1 - txn ) );
+
+	// if( txn === 1 ) angle += M_PI*2;
+
+	const RCOORD newlen       = sqrt( yz * yz + xz * xz + xy * xy );
+	if( newlen > 0.00000001 ) {
+		const RCOORD tmp = 1 / newlen;
+		q[0]      = yz * tmp;
+		q[1]      = xz * tmp;
+		q[2]      = xy * tmp;
+	} else {
+		q[0] = 0;
+		q[1] = 1;
+		q[2] = 0;
+	}
+	q[ 3 ]             = angle;
+	return q;
+}
+
+
+PVECTOR4 EXTERNAL_NAME( lq_set_xy )( PVECTOR4 out, RCOORD x, RCOORD y ) {
+	out[ 0 ] = x;
+	out[ 1 ] = 0;
+	out[ 2 ] = y;
+	return alignZero( EXTERNAL_NAME( lq_normalize )( out ) );
+}
+
+PVECTOR4 EXTERNAL_NAME(lq_normalize)( PVECTOR4 out ) {
+	RCOORD len = out[ 0 ] * out[ 0 ] + out[ 1 ] * out[ 1 ] + out[ 2 ] * out[ 2 ];
+	if( len > 0.00000001 ) {
+		const RCOORD angle = sqrt( len );
+		const RCOORD ilen  = 1 / angle;
+		out[ 0 ]           = out[ 0 ] * ilen;
+		out[ 1 ]           = out[ 1 ] * ilen;
+		out[ 2 ]           = out[ 2 ] * ilen;
+		out[ 3 ]           = angle;
+	} else {
+		out[ 0 ] = 0;
+		out[ 1 ] = 1;
+		out[ 2 ] = 0;
+		out[ 3 ] = 0;
+	}
+	return out;
+}
+
+static const RCOORD p2 = 2 * M_PI;
+
+static //            0-1 1-2 2-3 3-4
+     const RCOORD grid[ 4 ][ 4 ]
+     = { { 0, p2, p2, 0 } //>0 - 1
+       , { p2, 0, 0, p2 } // 1-2
+       , { p2, 0, 0, p2 } // 2-3
+       , { 0, p2, p2, 0 } // 3-4
+};
+
+// it's hard to see this because they're all in the same plane...
+// not sure this is really needed, because the twist is just around this
+// same axis.
+static const RCOORD grid2[ 4 ][ 4 ] = {
+     { 0, p2, 0, 0 } //>0 - 1
+   , { p2, 0, 0, p2 } // 1-2
+   , { 0, 0, 0, p2 * 2 } // 2-3
+   , { 0, 0, 0, p2 * 2 } // 3-4
+};
+
+
+PVECTOR4 EXTERNAL_NAME( lq_set_latlong )( PVECTOR4 out, RCOORD lat, RCOORD lng ) {
+
+	if( !lat ) {
+		out[ 0 ] = 0;
+		out[ 2 ] = 0;
+		out[ 1 ] = lng; // + twistDelta;
+		return EXTERNAL_NAME(lq_normalize)( out );
+	}
+	const int d          = 0;
+	const int gridlat    = floor( fabs( lat ) / M_PI );
+	const int gridlng    = floor( fabs( lng ) / M_PI );
+	const int gridlatoct = gridlat >> 2;
+	const int gridlngoct = gridlng >> 2;
+	const RCOORD spin
+	     = ( ( d ) ? grid : grid2 )[ gridlat % 4 ][ gridlng % 4 ] + ( ( gridlatoct + gridlngoct ) * M_PI * 4 );
+	const RCOORD latmul = 1; //(!d)?gridn[gridlat%4][gridlng%4]:1;
+
+	const RCOORD x      = sin( lng );
+	const RCOORD z      = cos( lng );
+	out[ 3 ]            = ( latmul * lat + spin );
+	out[ 0 ]            = x;
+	out[ 1 ]            = 0;
+	out[ 2 ]            = z;
+	return out;
+}
+
+
+PVECTOR4 EXTERNAL_NAME(lq_cross)( PVECTOR4 out, PCVECTOR a, PCVECTOR b ) {
+	const RCOORD alen         = sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
+	const RCOORD blen  = sqrt( b[ 0 ] * b[ 0 ] + b[ 1 ] * b[ 1 ] + b[ 2 ] * b[ 2 ] );
+	const RCOORD dot   = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])/(alen*blen);
+	const RCOORD angle = acos( dot ); // returns 0 to pi; 0 to 1/2 turn.
+
+	const RCOORD norm  = sin( angle );
+
+	const RCOORD crsX  = -( a[1] * b[2] - a[2] * b[1] );
+	const RCOORD crsY  = -( a[2] * b[0] - a[0] * b[2] );
+	const RCOORD crsZ  = -( a[0] * b[1] - a[1] * b[0] );
+	if( norm ) {
+		out[3] = angle;
+		out[0] = crsX / norm;
+		out[1] = crsY / norm;
+		out[2] = crsZ / norm;
+	} else {
+		if( angle > M_PI ) {
+			out[ 3 ]  = angle;
+			out[ 0 ]  = a[0];
+			out[ 1 ]  = a[1];
+			out[ 2 ] = a[2];
+		} else {
+			out[ 3 ]  = angle;
+			out[ 0 ]  = a[0];
+			out[ 1 ]  = a[1];
+			out[ 2 ]  = a[2];
+		}
+	}
+	return out;
+}
+
+
 
 
 #undef l

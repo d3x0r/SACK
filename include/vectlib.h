@@ -48,25 +48,25 @@
    #define vRight   0
    #define _1D(exp)  exp
    #if( DIMENSIONS > 1 )
-      #define vUp      1
-      #define _2D(exp)  exp
-      #if( DIMENSIONS > 2 )
-         #define vForward 2
-         #define _3D(exp)  exp
-         #if( DIMENSIONS > 3 )
-            #define vIn      3  // 4th dimension 'IN'/'OUT' since projection is scaled 3d...
-            #define _4D(exp)  exp
-         #else
-            #define _4D(exp)
-         #endif
-      #else
-         #define _3D(exp)
-         #define _4D(exp)
-      #endif
+	  #define vUp      1
+	  #define _2D(exp)  exp
+	  #if( DIMENSIONS > 2 )
+		 #define vForward 2
+		 #define _3D(exp)  exp
+		 #if( DIMENSIONS > 3 )
+			#define vIn      3  // 4th dimension 'IN'/'OUT' since projection is scaled 3d...
+			#define _4D(exp)  exp
+		 #else
+			#define _4D(exp)
+		 #endif
+	  #else
+		 #define _3D(exp)
+		 #define _4D(exp)
+	  #endif
    #else
-      #define _2D(exp)
-      #define _3D(exp)
-      #define _4D(exp)
+	  #define _2D(exp)
+	  #define _3D(exp)
+	  #define _4D(exp)
    #endif
 #else
    // print out a compiler message can't perform zero-D transformations...
@@ -115,30 +115,66 @@
 #include <vectypes.h>
 
 SACK_NAMESPACE
-	_MATH_NAMESPACE
-	/* Vector namespace contains methods for operating on vectors. Vectors
-	   are multi-dimensional scalar quantities, often used to
-	   represent coordinates and directions in space.                      */
-   _VECTOR_NAMESPACE
+_MATH_NAMESPACE
+/* Vector namespace contains methods for operating on vectors. Vectors
+   are multi-dimensional scalar quantities, often used to
+   represent coordinates and directions in space.
 
-//#include "../src/vectlib/vecstruc.h"
+	PTRANSFORM can also be a MATRIX, however, instances of transforms should be
+	created with CreateTransform and deleted with DeleteTransform.
+
+	PTRANSFORM is an opaque type representing a transformation matrix. It has scaling 
+	internally separate from the orientation and position matrix.
+	
+
+   */
+#ifdef __cplusplus
+	namespace vector {
+#  ifndef MAKE_RCOORD_SINGLE
+		namespace Double {
+#  else
+		namespace Float {
+#  endif
+#endif
 
 
 
+/* A 4 dimensional point type. Contains 4 values. 
+*  Rotation Vectors are saved as normalized axis-angle, with the angle as the 4th element.
+*/
 typedef RCOORD _POINT4[4];
+
+/* A point type. Contains 3 values by default, library can
+   handle 4 dimensional transformations(?)                  */
 typedef RCOORD _POINT[DIMENSIONS];
-/* pointer to a point. */
+
+/* pointer to a (DIMENSIONS) point. */
 typedef RCOORD *P_POINT;
+/* for consistency, a 4 dimensional point pointer. */
+typedef RCOORD* P_POINT4;
 /* pointer to a constant point. */
 typedef const RCOORD *PC_POINT;
+/* for consistency a pointer that should have 4 elements, pointer to a constant point. */
+typedef const RCOORD* PC_POINT4;
 
 /* A vector type. Contains 3 values by default, library can
    handle 4 dimensional transformations(?)                  */
 typedef _POINT VECTOR;
+
+/* A 4 dimensional vector type. Contains 4 values. 
+* Rotation Vectors are saved as normalized axis-angle, with the angle as the 4th element.
+*/
+typedef _POINT4 VECTOR4;
+
+
 /* pointer to a vector. */
 typedef P_POINT PVECTOR;
+/* pointer to a 4 dimensional vector. */
+typedef P_POINT4 PVECTOR4;
 /* pointer to a constant vector. */
 typedef PC_POINT PCVECTOR;
+/* pointer to a constant 4 dimensional vector. */
+typedef PC_POINT4 PCVECTOR4;
 
 /* <combine sack::math::vector::RAY@1>
    
@@ -185,12 +221,12 @@ typedef struct orthoarea_tag ORTHOAREA;
 typedef struct orthoarea_tag *PORTHOAREA;
 /* A representation of a rectangular 2 dimensional area. */
 struct orthoarea_tag {
-    /* x coorindate of a rectangular area. */
-    /* y coordinate of a rectangular area. */
-    RCOORD x, y;
-    /* height (y + h = area end). height may be negative. */
-    /* with (x + w = area end). with may be negative. */
-    RCOORD w, h;
+	/* x coorindate of a rectangular area. */
+	/* y coordinate of a rectangular area. */
+	RCOORD x, y;
+	/* height (y + h = area end). height may be negative. */
+	/* with (x + w = area end). with may be negative. */
+	RCOORD w, h;
 } ;
 
 // relics from fixed point math dayz....
@@ -226,7 +262,7 @@ struct orthoarea_tag {
 /* Inverts a vector. that is vector * -1. (a,b,c) = (-a,-b,-c)
    
    <b>Parameters</b>
-                                                               */
+															   */
 VECTOR_METHOD( P_POINT, Invert, ( P_POINT a ) );
 
 /* Macro which can be used to make a vector's direction be
@@ -329,7 +365,7 @@ MATHLIB_DEXPORT VECTLIBCONST PCTRANSFORM VectorConst_I;
 #define _I ((PC_POINT)VectorConst_I)
 #endif
 
-                                   
+								   
 /* compares two vectors to see if they are near each other. Boundary
    \conditions exist around 0, when the values are on opposite
    sides, but it's pretty good.                                      */
@@ -370,7 +406,7 @@ VECTOR_METHOD( P_POINT, scale, ( P_POINT pr, PC_POINT pv1, RCOORD k ) );
    pv1 :  pointer to vector 1
    pv2 :  pointer to vector 2
    k :    scalar quantity to apply to vector 2 when adding to
-          vector 1.
+		  vector 1.
    
    Remarks
    The pointer to the result vector may be the same vector as
@@ -445,13 +481,13 @@ VECTOR_METHOD( RCOORD, DirectedDistance, ( PC_POINT pvOn, PC_POINT pvOf ) );
    
    </code>                                    */
 #define SetRay( pr1, pr2 ) { SetPoint( (pr1)->o, (pr2)->o ),  \
-                             SetPoint( (pr1)->n, (pr2)->n ); }
+							 SetPoint( (pr1)->n, (pr2)->n ); }
 
 
 
 		/* Allocates and initializes a new transform for the user.
 		 if name is NULL, allocates an unnamed transform; otherwise
-       the transform is created in a known namespace that can be browsed.
+	   the transform is created in a known namespace that can be browsed.
 		 */
 VECTOR_METHOD( PTRANSFORM, CreateNamedTransform, ( CTEXTSTR name ) );
 #define CreateTransform() CreateNamedTransform( NULL )
@@ -468,17 +504,17 @@ VECTOR_METHOD( void, ClearTransform       , ( PTRANSFORM pt ) );
    <code lang="c++">
    
    
-     \+-         -+
-     | 0   1   2 |
-     | 3   4   5 |
-     | 6   7   8 |
-     \+-         -+
+	 \+-         -+
+	 | 0   1   2 |
+	 | 3   4   5 |
+	 | 6   7   8 |
+	 \+-         -+
    becomes
-     \+-         -+
-     | 0   3   6 |
-     | 1   4   7 |
-     | 2   5   8 |
-     \+-         -+
+	 \+-         -+
+	 | 0   3   6 |
+	 | 1   4   7 |
+	 | 2   5   8 |
+	 \+-         -+
    
    
    Not entirely useful at all :)
@@ -500,12 +536,12 @@ VECTOR_METHOD( void, RotateAbsV, ( PTRANSFORM pt, PC_POINT ) );
    Parameters
    pt :  transform to rotate
    rx :  amount around the x axis to rotate (pitch)(positive is
-         clockwise looking at the object from the right, axis up is
-         moved towards forward )
+		 clockwise looking at the object from the right, axis up is
+		 moved towards forward )
    ry :  amount around the y axis to rotate (yaw) (positive is
-         counter clockwise, moves right to forward)
+		 counter clockwise, moves right to forward)
    rz :  amount around the z axis to rotate (roll) (positive is
-         clockwise, moves up towards right )
+		 clockwise, moves up towards right )
    
    See Also
    RotateRelV                                                       */
@@ -521,8 +557,8 @@ VECTOR_METHOD( void, RotateRelV, ( PTRANSFORM pt, PC_POINT ) );
    Parameters
    pt :      transform to update
    p :       P defines an axis around which the rotation portion
-             of the matrix is rotated by an amount. Can be any
-             arbitrary axis.
+			 of the matrix is rotated by an amount. Can be any
+			 arbitrary axis.
    amount :  an amount to rotate by.
    
    Note
@@ -531,7 +567,7 @@ VECTOR_METHOD( void, RotateRelV, ( PTRANSFORM pt, PC_POINT ) );
    and
    http://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/3drota.htm
    and http://astronomy.swin.edu.au/~pbourke/geometry/rotate/.
-                                                                                       */
+																					   */
 VECTOR_METHOD( void, RotateAround, ( PTRANSFORM pt, PC_POINT p, RCOORD amount ) );
 /* Sets the current 'up' axis of a transformation. The forward
    axis is adjusted so that it remains perpendicular to the mast
@@ -555,7 +591,7 @@ VECTOR_METHOD( void, RotateMast, ( PTRANSFORM pt, PCVECTOR vup ) );
    Parameters
    pt :     transformation to rotate
    angle :  angle to rotate \- positive should be clockwise,
-            looking from top down.                              */
+			looking from top down.                              */
 VECTOR_METHOD( void, RotateAroundMast, ( PTRANSFORM pt, RCOORD angle ) );
 
 /* Recovers a transformation state from a file.
@@ -605,7 +641,7 @@ typedef void (*MotionCallback)( uintptr_t, PTRANSFORM );
    pt :        PTRANSFORM transform matrix to hook to
    callback :  user callback routine
    psv :       pointer size value data to be passed to user
-               callback routine.                             */
+			   callback routine.                             */
 VECTOR_METHOD( void, AddTransformCallback, ( PTRANSFORM pt, MotionCallback callback, uintptr_t psv ) );
 
 /* Set the speed vector used when Move is applied to a
@@ -652,9 +688,9 @@ VECTOR_METHOD( PC_POINT, SetRotationAccel, ( PTRANSFORM pt, PC_POINT r ) );
    Parameters
    pt :                 transform to set the time interval on.
    speed_interval :     what the time interval should be for
-                        speed.
+						speed.
    rotation_interval :  what the time interval should be for
-                        rotation.
+						rotation.
    Remarks
    A default interval of 1000 is used. So it will take 1000
    milliseconds to move one unit of speed. This could be set to
@@ -668,7 +704,7 @@ VECTOR_METHOD( PC_POINT, SetRotationAccel, ( PTRANSFORM pt, PC_POINT r ) );
    would revolve one full rotation in the said time.
    
    
-                                                                 */
+																 */
 VECTOR_METHOD( void, SetTimeInterval, ( PTRANSFORM pt, RCOORD speed_interval, RCOORD rotation_interval ) );
 
 /* Updates a transform by it's current speed and rotation
@@ -720,6 +756,59 @@ VECTOR_METHOD( RCOORD, IntersectLineWithPlane, (PCVECTOR Slope, PCVECTOR Origin,
 	PCVECTOR n, PCVECTOR o,  // plane n, o
 	RCOORD *time) );
 VECTOR_METHOD( RCOORD, PointToPlaneT, (PCVECTOR n, PCVECTOR o, PCVECTOR p) );
+
+/* convert basis matrix to rotation vector v */
+VECTOR_METHOD( void, basis_lq, (PVECTOR4 v4, PMatrix basis) );
+
+/* convert rotation vector v to quaternion q */
+VECTOR_METHOD( void, lq_exp, (PVECTOR4 q, PCVECTOR4 v) );
+
+/* convert rotation vector v to basismatrix  */
+VECTOR_METHOD( PMatrix, lq_basis, ( PMatrix matrix, PCVECTOR4 v ) );
+
+/* convert rotation vector v to colmajor (opengl) basismatrix  */
+VECTOR_METHOD( PMatrix, lq_gl_basis, ( PMatrix matrix, PCVECTOR4 v ) );
+
+/* get a vector representing the up (y) direction from a rotation vector */
+VECTOR_METHOD( void, lq_up, ( PVECTOR4 out, PCVECTOR4 r ) );
+
+/* get a vector representing the right (x) direction from a rotation vector */
+VECTOR_METHOD( void, lq_right, ( PVECTOR4 out, PCVECTOR4 r ) );
+
+/* get a vector representing the forward (z) direction from a rotation vector */
+VECTOR_METHOD( void, lq_forward, ( PVECTOR4 out, PCVECTOR4 r ) );
+
+/* get how much roll there is from the identity matrix orientation 
+ * The raw rotation angles of the axis-angle vector has a complex interaction over 
+ * 1 tick that results in an orientation, and it is that resulting orientation that
+ * determines the roll, yaw, and pitch. So the values returned here are not
+ * just the components of the axis-angle vector.
+ */
+VECTOR_METHOD( RCOORD, lq_roll, ( PCVECTOR4 r ) );
+
+/* get how much yaw there is from the identity matrix orientation
+ * The raw rotation angles of the axis-angle vector has a complex interaction over
+ * 1 tick that results in an orientation, and it is that resulting orientation that
+ * determines the roll, yaw, and pitch. So the values returned here are not
+ * just the components of the axis-angle vector.
+ * 
+ * this function does attempt to return +/- 360 degrees, which is closer to the spin angles.
+ */
+VECTOR_METHOD( RCOORD, lq_yaw, ( PCVECTOR4 r ) );
+
+/* get how much pitch there is from the identity matrix orientation
+ * The raw rotation angles of the axis-angle vector has a complex interaction over
+ * 1 tick that results in an orientation, and it is that resulting orientation that
+ * determines the roll, yaw, and pitch. So the values returned here are not
+ * just the components of the axis-angle vector.
+ */
+VECTOR_METHOD( RCOORD, lq_pitch, ( PCVECTOR4 r ) );
+VECTOR_METHOD( PVECTOR4, lq_normalize, ( PVECTOR4 out ) );
+// cross product between two vectors; result as a rotation vector 
+// this is the rotation that rotates one to the other.
+VECTOR_METHOD( PVECTOR4, lq_cross, ( PVECTOR4 out, PCVECTOR a, PCVECTOR b ) );
+VECTOR_METHOD( PVECTOR4, lq_set, ( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z, RCOORD angle ) ); 
+VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng ) );
 
 #if ( !defined( VECTOR_LIBRARY_SOURCE ) && !defined( NO_AUTO_VECTLIB_NAMES ) ) || defined( NEED_VECTLIB_ALIASES )
 #define add EXTERNAL_NAME(add)
