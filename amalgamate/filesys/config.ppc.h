@@ -5,5 +5,5 @@
 #define NO_FILEOP_ALIAS
 #define SACK_BAG_EXPORTS
 //#define TYPELIB_SOURCE
-#define __NO_INTERFACE_SUPPORT__
+//#define __NO_INTERFACE_SUPPORT__
 
