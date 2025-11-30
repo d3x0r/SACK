@@ -406,7 +406,8 @@ struct rt_init // structure placed in XI/YI segment
     __type_rtp  rtn_type; // - near=0/far=1 routine indication
                           //   also used when walking table to flag
                           //   completed entries
-    __type_rtp  priority; // - priority (0-highest 255-lowest)
+	 __type_rtp  priority; // - priority (0-highest 255-lowest)
+#define RUNTIME_PRIORITY_FILTER(x)  (((x)>255)?255:(x))
     __type_rtn  rtn;      // - routine
 };
 #pragma pack()
@@ -422,13 +423,13 @@ struct rt_init // structure placed in XI/YI segment
 #define PRIORITY_PRELOAD(name,priority) static void pastejunk(schedule_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_ctor_label)={0,(DEADSTART_PRELOAD_PRIORITY-1),pastejunk(schedule_,name)}; \
 	static void pastejunk(schedule_,name)(void) {                 \
-	RegisterPriorityStartupProc( name,TOSTR(name),priority,&pastejunk(name,_ctor_label) DBG_SRC );\
+	RegisterPriorityStartupProc( name,TOSTR(name),RUNTIME_PRIORITY_FILTER(priority),&pastejunk(name,_ctor_label) DBG_SRC );\
 	}                                       \
 	void name(void)
 #define ATEXIT_PRIORITY(name,priority) static void pastejunk(schedule_exit_,name)(void); static void CPROC name(void); \
 	static struct rt_init __based(__segname("XI")) pastejunk(name,_dtor_label)={0,69,pastejunk(schedule_exit_,name)}; \
 	static void pastejunk(schedule_exit_,name)(void) {                                              \
-	RegisterPriorityShutdownProc( name,TOSTR(name),priority,&name##_dtor_label DBG_SRC );\
+	RegisterPriorityShutdownProc( name,TOSTR(name),RUNTIME_PRIORITY_FILTER(priority),&name##_dtor_label DBG_SRC );\
 	}                                       \
 	void name(void)
 
@@ -465,21 +466,17 @@ static void name(void); static void name##_x_(void);\
 
 /* code taken from openwatcom/bld/watcom/h/rtinit.h */
 typedef unsigned char   __type_rtp;
+typedef unsigned short   __type_rtp_priority;
 typedef void(*__type_rtn ) ( void );
 struct rt_init // structure placed in XI/YI segment
 {
 #define DEADSTART_RT_LIST_START 0xFF
-    __type_rtp  rtn_type; // - near=0/far=1 routine indication
+    __type_rtp       rtn_type; // - near=0/far=1 routine indication
                           //   also used when walking table to flag
                           //   completed entries
-    __type_rtp  scheduled; // has this been scheduled? (0 if no)
-    __type_rtp  priority; // - priority (0-highest 255-lowest)
-#if defined( __64__ ) ||defined( __arm__ )||defined( __GNUC__ )
-#define INIT_PADDING ,{0}
-	 char padding[1]; // need this otherwise it's 23 bytes and that'll be bad.
-#else
-#define INIT_PADDING
-#endif
+    __type_rtp       scheduled; // has this been scheduled? (0 if no)
+    __type_rtp_priority  priority; // - priority (0-highest 255-lowest)
+#define RT_LIST_INIT_PADDING
 	 int line; // 32 bits in 64 bits....
 // this ends up being nicely aligned for 64 bit platforms
 // specially with the packed attributes
@@ -531,7 +528,7 @@ struct rt_init // structure placed in XI/YI segment
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label)	\
 	__attribute__((section(DEADSTART_SECTION))) __attribute__((used))	 = \
-	{0,0,pr INIT_PADDING, __LINE__, name PASS_FILENAME	, TOSTR(name) JUNKINIT(name)} ; \
+	{0,0,pr RT_LIST_INIT_PADDING, __LINE__, name PASS_FILENAME	, TOSTR(name) JUNKINIT(name)} ; \
 	void name(void); \
 	void pastejunk(registerStartup,name)(void) __attribute__((constructor)); \
 	void pastejunk(registerStartup,name)(void) {	 RegisterPriorityStartupProc(name,TOSTR(name),pr,NULL DBG_SRC); } \
@@ -548,7 +545,7 @@ struct rt_init // structure placed in XI/YI segment
 #define PRIORITY_PRELOAD(name,pr) static void name(void);         \
 	RTINIT_STATIC struct rt_init pastejunk(name,_ctor_label)       \
 	  __attribute__((section(DEADSTART_SECTION))) __attribute__((used))  \
-	={0,0,pr INIT_PADDING                                          \
+	={0,0,pr RT_LIST_INIT_PADDING                                  \
 	 ,__LINE__,name                                                \
 	 PASS_FILENAME                                                 \
 	,TOSTR(name)                                                   \
@@ -582,6 +579,7 @@ void name(void)
 
 /* code taken from openwatcom/bld/watcom/h/rtinit.h */
 typedef unsigned char   __type_rtp;
+typedef unsigned short  __type_rtp_priority;
 typedef void(*__type_rtn ) ( void );
 struct rt_init // structure placed in XI/YI segment
 {
@@ -603,13 +601,8 @@ struct rt_init // structure placed in XI/YI segment
                           //   also used when walking table to flag
                           //   completed entries
     __type_rtp  scheduled; // has this been scheduled? (0 if no)
-    __type_rtp  priority; // - priority (0-highest 255-lowest)
-#if defined( __GNUC__ ) || defined( __64__ ) || defined( __arm__ ) || defined( __CYGWIN__ )
-#define INIT_PADDING ,{0}
-	 char padding[1]; // need this otherwise it's 23 bytes and that'll be bad.
-#else
-#define INIT_PADDING
-#endif
+    __type_rtp_priority  priority; // - priority (0-highest 255-lowest)
+#define RT_LIST_INIT_PADDING
 	 int line; // 32 bits in 64 bits....
 // this ends up being nicely aligned for 64 bit platforms
 // specially with the packed attributes
@@ -658,7 +651,7 @@ void name( void)
 #define PRIORITY_PRELOAD(name,pr) static void name(void); \
 	RTINIT_STATIC struct pastejunk(rt_init name,_ctor_label) \
 	  __attribute__((section("deadstart_list"))) \
-	={0,0,pr INIT_PADDING    \
+	={0,0,pr RT_LIST_INIT_PADDING    \
 	 ,__LINE__,name         \
 	 PASS_FILENAME        \
 	,TOSTR(name)        \
