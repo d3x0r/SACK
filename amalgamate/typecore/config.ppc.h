@@ -6,6 +6,7 @@
 #define SACK_BAG_EXPORTS
 //#define TYPELIB_SOURCE
 #define __NO_INTERFACE_SUPPORT__
+#define __NO_VECTOR_NAMED_TRANSFORM__
 
 #include <stdio.h>
 #include <stdarg.h> 

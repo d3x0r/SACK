@@ -24,7 +24,8 @@
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/json6_parser.c
 @set SRCS= %SRCS%   ../../src/netlib/html5.websocket/json/jsox_parser.c
 @set SRCS= %SRCS%   ../../src/fractionlib/fractions.c
-:@set SRCS= %SRCS%   ../../src/vectlib/vectlib.c
+@set SRCS= %SRCS%   ../../src/vectlib/vectlib.c
+:@set SRCS= %SRCS%   ../../src/procreglib/names.c
 :@set SRCS= %SRCS%   ../../src/filesyslib/winfiles.c
 @set SRCS= %SRCS%   ../../src/memlib/sharemem.c 
 @set SRCS= %SRCS%   ../../src/memlib/memory_operations.c 
@@ -48,6 +49,8 @@ cd h
 @set HDRS= %HDRS% ../../../include/json_emitter.h
 @set HDRS= %HDRS% ../../../include/jsox_parser.h
 @set HDRS= %HDRS% ../../../include/fractions.h
+@set HDRS= %HDRS% ../../../include/vectlib.h
+:@set HDRS= %HDRS% ../../../include/procreg.h
 
 
 c:\tools\ppc.exe -c -K -once -ssio -sd -I../../../include -p -o../sack_ucb_typelib.h %HDRS%
