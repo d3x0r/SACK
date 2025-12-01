@@ -119,7 +119,7 @@ to disable the dependancy of the odbc libraries... many more.
 
  - (linux) unixodbc (cmake options using ccmake in core can disable this dependancy);
  
- - (OpenSSL?)/LibreSSL  (has LibreSSL 3.2.1(latest) included)
+ - (OpenSSL?)/LibreSSL  (has LibreSSL 4.1.0(latest) included)
 
  - Gui Parts (Ubuntu package names, may differ for other systems)
     - (opt) system freetype-dev, png, jpeg, zlib (has latest versions included)
