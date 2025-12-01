@@ -1,3 +1,4 @@
+#pragma multiinclude
 // one day I'd like to make a multidimensional library
 // but for now - 3D is sufficient - it can handle everything
 // under 2D ignoring the Z axis... although it would be more
@@ -424,8 +425,9 @@ VECTOR_METHOD( P_POINT, scale, ( P_POINT pr, PC_POINT pv1, RCOORD k ) );
 VECTOR_METHOD( P_POINT, addscaled, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2, RCOORD k ) );
 /* Normalizes a non-zero vector. That is the resulting length of
    the vector is 1.0. Modifies the vector in place.              */
-VECTOR_METHOD( void, normalize, ( P_POINT pv ) );
-VECTOR_METHOD( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) );
+VECTOR_METHOD( P_POINT, normalize, ( P_POINT pv ) );
+VECTOR_METHOD( P_POINT4, normalize4, ( P_POINT4 pv ) );
+VECTOR_METHOD( P_POINT, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) );
 /* \Returns the sin of the angle between two vectors.
    Parameters
    pv1 :  one vector
@@ -612,6 +614,23 @@ VECTOR_METHOD( void, RotateRight, ( PTRANSFORM pt, int A1, int A2 ) );
 VECTOR_METHOD( void, Apply           , ( PCTRANSFORM pt, P_POINT dest, PC_POINT src ) );
 VECTOR_METHOD( void, ApplyR          , ( PCTRANSFORM pt, PRAY dest, PRAY src ) );
 VECTOR_METHOD( void, ApplyT          , ( PCTRANSFORM pt, PTRANSFORM dest, PCTRANSFORM src ) );
+
+/* row major multiplication
+ ptd is destination
+ pts is matrix to transform
+ pt is matrix to transform pts with
+ rows of pt apply to columns of pts
+ */
+VECTOR_METHOD( void, ApplyM          , ( PMatrix pt, PMatrix ptd, PMatrix pts ) );
+/* column major multiplication
+ ptd is destination
+ pts is matrix to transform
+ pt is matrix to transform pts with
+ rows of pt apply to columns of pts
+
+ */
+VECTOR_METHOD( void, ApplyMcm        , ( PMatrix pt, PMatrix ptd, PMatrix pts ) );
+
 // I know this was a result - unsure how it was implented...
 //void ApplyT              (PTRANFORM pt, PTRANSFORM pt1, PTRANSFORM pt2 );
 
@@ -842,11 +861,13 @@ VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng 
 #define Length EXTERNAL_NAME(Length)
 #define PointToPlaneT EXTERNAL_NAME(PointToPlaneT)
 #define normalize EXTERNAL_NAME(normalize)
+#define normalize4 EXTERNAL_NAME(normalize4)
 #define Translate EXTERNAL_NAME(Translate)
 #define TranslateV EXTERNAL_NAME(TranslateV)
 #define Apply EXTERNAL_NAME(Apply)
 #define ApplyR EXTERNAL_NAME(ApplyR)
 #define ApplyT EXTERNAL_NAME(ApplyT)
+#define ApplyM EXTERNAL_NAME(ApplyM)
 #define ApplyTranslation EXTERNAL_NAME(ApplyTranslation)
 #define ApplyTranslationR EXTERNAL_NAME(ApplyTranslationR)
 #define ApplyTranslationT EXTERNAL_NAME(ApplyTranslationT)
@@ -878,6 +899,21 @@ VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng 
 #define RotateAbsV EXTERNAL_NAME(RotateAbsV)
 #define GetRotationMatrix EXTERNAL_NAME(GetRotationMatrix)
 #define SetRotationMatrix EXTERNAL_NAME(SetRotationMatrix)
+
+#define basis_lq EXTERNAL_NAME(basis_lq)
+#define lq_exp EXTERNAL_NAME(lq_exp)
+#define lq_basis EXTERNAL_NAME(lq_basis)
+#define lq_gl_basis EXTERNAL_NAME(lq_gl_basis)
+#define lq_up EXTERNAL_NAME(lq_up)
+#define lq_right EXTERNAL_NAME(lq_right)
+#define lq_forward EXTERNAL_NAME(lq_forward)
+#define lq_roll EXTERNAL_NAME(lq_roll)
+#define lq_yaw EXTERNAL_NAME(lq_yaw)
+#define lq_pitch EXTERNAL_NAME(lq_pitch)
+#define lq_normalize EXTERNAL_NAME(lq_normalize)
+#define lq_cross EXTERNAL_NAME(lq_cross)
+#define lq_set EXTERNAL_NAME(lq_set)
+#define lq_set_latlong EXTERNAL_NAME(lq_set_latlong)
 
 
 #endif

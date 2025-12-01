@@ -175,6 +175,17 @@ INLINEFUNC( P_POINT, scale, ( P_POINT pr, PC_POINT pv1, RCOORD k ) )
 
 REALFUNCT( P_POINT, scale, ( PVECTOR pr, PCVECTOR pv1, RCOORD k ), (pr, pv1, k ) )
 
+INLINEFUNC( P_POINT4, scale4, ( P_POINT4 pr, PC_POINT4 pv1, RCOORD k ) )
+{
+   pr[0] = pv1[0] * k;
+   pr[1] = pv1[1] * k;
+   pr[2] = pv1[2] * k;
+   pr[3] = pv1[3] * k;
+   return pr;
+}
+
+REALFUNCT( P_POINT4, scale4, ( PVECTOR4 pr, PCVECTOR4 pv1, RCOORD k ), (pr, pv1, k ) )
+
 INLINEFUNC( P_POINT, Invert, ( P_POINT a ) )
 {
 	a[0] = -a[0];
@@ -209,6 +220,16 @@ INLINEFUNC( RCOORD, Length, ( PC_POINT v ) )
 
 REALFUNCT( RCOORD, Length, ( PCVECTOR pv ), (pv) )
 
+INLINEFUNC( RCOORD, Length4, ( PC_POINT v ) )
+{
+   return sqrt( v[0] * v[0] +
+                v[1] * v[1]
+                + v[2] * v[2]
+                + v[3] * v[3] );
+}
+
+REALFUNCT( RCOORD, Length4, ( PCVECTOR pv ), (pv) )
+
 //----------------------------------------------------------------
 
 RCOORD EXTERNAL_NAME(Distance)( PC_POINT v1, PC_POINT v2 )
@@ -220,25 +241,36 @@ RCOORD EXTERNAL_NAME(Distance)( PC_POINT v1, PC_POINT v2 )
 
 //----------------------------------------------------------------
 
- INLINEFUNC( void, normalize, ( P_POINT pv ) )
+ INLINEFUNC( P_POINT, normalize, ( P_POINT pv ) )
 {
 	RCOORD k = DOFUNC(Length)( pv );
    if( k != 0 )
 		DOFUNC(scale)( pv, pv, ONE / k );
+   return pv;
 }
- REALVOIDFUNCT( void,  normalize, ( P_POINT pv ), (pv) )
+ REALFUNCT( P_POINT,  normalize, ( P_POINT pv ), (pv) )
+
+ INLINEFUNC( P_POINT4, normalize4, ( P_POINT4 pv ) )
+{
+	RCOORD k = DOFUNC(Length4)( pv );
+   if( k != 0 )
+		DOFUNC(scale4)( pv, pv, ONE / k );
+   return pv;
+}
+ REALFUNCT( P_POINT4,  normalize4, ( P_POINT pv ), (pv) )
 //----------------------------------------------------------------
 
- INLINEFUNC( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) )
+ INLINEFUNC( P_POINT, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ) )
 {
    // this must be limited to 3D only, huh???
    // what if we are 4D?  how does this change??
   // evalutation of 4d matrix is 3 cross products of sub matriccii...
   pr[0] = pv2[2] * pv1[1] - pv2[1] * pv1[2]; //b2c1-c2b1
   pr[1] = pv2[0] * pv1[2] - pv2[2] * pv1[0]; //a2c1-c2a1 ( - determinaent )
-  pr[2] = pv2[1] * pv1[0] - pv2[0] * pv1[1]; //b2a1-a2b1 
+  pr[2] = pv2[1] * pv1[0] - pv2[0] * pv1[1]; //b2a1-a2b1
+  return pr;
 }
-REALVOIDFUNCT( void, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (pr,pv1,pv2) )
+REALFUNCT( P_POINT, crossproduct, ( P_POINT pr, PC_POINT pv1, PC_POINT pv2 ), (pr,pv1,pv2) )
 // hmmm
 // 2 4 dimensional vectors would be insufficient to determine
 // a single perpendicular vector... as it could lay  in a perpendular
@@ -331,6 +363,7 @@ static void CPROC transform_created( void *data, uintptr_t size )
 PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 {
 	PTRANSFORM pt;
+#ifndef __NO_VECTOR_NAMED_TRANSFORM__
 	if( name )
 	{
 		if( !l.flags.bRegisteredTransform )
@@ -347,6 +380,7 @@ PTRANSFORM EXTERNAL_NAME(CreateNamedTransform)( CTEXTSTR name  )
 		pt = (PTRANSFORM)CreateRegisteredDataType( "SACK/vectlib", TYPENAME, name );
 	}
 	else
+#endif
 	{
 		pt = New( struct transform_tag );
 		pt->motions = NULL;
@@ -778,6 +812,38 @@ void EXTERNAL_NAME(ApplyT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 	MemCpy( ptd->m, t.m, sizeof( t.m ) );
 }
 
+//----------------------------------------------------------------
+
+void EXTERNAL_NAME(ApplyM)( PMatrix pt, PMatrix ptd, PMatrix pts )
+{
+	RCOORD tmp;
+	int i,j, k;
+	for( k = 0; k < 4; k++ ) {
+		for( i = 0; i < 4; i++ ) {
+			tmp = 0;
+			for( j = 0; j < 4; j++ ) {
+				tmp += pt[0][k][j] * pts[0][j][i];
+			}
+			ptd[0][k][i] = tmp;
+		}
+	}
+}
+//----------------------------------------------------------------
+
+void EXTERNAL_NAME(ApplyMcm)( PMatrix pt, PMatrix ptd, PMatrix pts )
+{
+	RCOORD tmp;
+	int i,j, k;
+	for( k = 0; k < 4; k++ ) {
+		for( i = 0; i < 4; i++ ) {
+			tmp = 0;
+			for( j = 0; j < 4; j++ ) {
+				tmp += pt[0][j][k] * pts[0][i][j];
+			}
+			ptd[0][k][i] = tmp;
+		}
+	}
+}
 //----------------------------------------------------------------
 
 void EXTERNAL_NAME(ApplyCameraT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
@@ -1822,7 +1888,7 @@ void EXTERNAL_NAME(showstd)( PTRANSFORM pt, const char *header )
 #undef F4
 #undef F
 
-
+#ifdef VECTLIB_FILEIO_SUPPORTED
 void EXTERNAL_NAME(SaveTransform)( PTRANSFORM pt, CTEXTSTR filename )
 {
 	FILE *file;
@@ -1845,8 +1911,8 @@ void EXTERNAL_NAME(LoadTransform)( PTRANSFORM pt, CTEXTSTR filename )
 		pt->nMotion = 0;
 		sack_fclose( file );
 	}
-
 }
+#endif
 
 void EXTERNAL_NAME(GetPointOnPlane)( PRAY plane, PCVECTOR up, PCVECTOR size, PCVECTOR point )
 {
