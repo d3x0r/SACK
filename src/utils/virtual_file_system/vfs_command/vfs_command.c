@@ -16,6 +16,8 @@
 struct source_volume {
 	struct file_system_mounted_interface* mount;
 	struct sack_vfs_volume* vol;
+	const char* name;
+	LOGICAL keep;
 };
 
 static struct vfs_command_local
@@ -58,11 +60,18 @@ static void closeSource( void ) {
 	INDEX idx;
 	struct source_volume* vol;
 	DATA_FORALL( l.current_vol_source_list, idx, struct source_volume*, vol ) {
-		sack_unmount_filesystem( vol->mount );
-		sack_vfs_unload_volume( vol->vol );
+		if (!vol->keep) {
+			if( l.verbose ) printf("closing a volume... %s\n", vol->name);
+			if(vol->mount )
+				sack_unmount_filesystem(vol->mount);
+			sack_vfs_unload_volume(vol->vol);
+			Release(vol->name);
+		}
+		else break; // keep list is dense from the start
 	}
-	DeleteDataList( &l.current_vol_source_list );
-
+	if( !vol ) {
+		DeleteDataList( &l.current_vol_source_list );
+	}
 }
 static int openSource( const char* name ) {
 	// ifi the name is still the same, don't re-open the volumes.
@@ -70,12 +79,13 @@ static int openSource( const char* name ) {
 		struct source_volume volInfo;
 		if( l.source_name ) Deallocate( const char*, l.source_name );
 		l.source_name = StrDup( name );
-
+		volInfo.name = StrDup(name);
 		if( l.current_vol_source_list ) {
 			closeSource();
 		}
-		l.current_vol_source_list = CreateDataList( sizeof( struct source_volume ) );
-
+		if( !l.current_vol_source_list )
+			l.current_vol_source_list = CreateDataList( sizeof( struct source_volume ) );
+		if (l.verbose) printf("open source %s\n", name);
 		if( name[0] == '@' ) {
 			char lineBuffer[256];
 			FILE* list = sack_fopen( 0, name + 1, "rt" );
@@ -95,7 +105,7 @@ static int openSource( const char* name ) {
 				}
 				if( l.verbose ) printf( "Opened source volume:%s\n", lineBuffer );
 
-				volInfo.mount = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1 );
+				volInfo.mount = sack_mount_filesystem("vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1);
 				AddDataItem( &l.current_vol_source_list, &volInfo );
 			}
 			sack_fclose( list );
@@ -104,7 +114,9 @@ static int openSource( const char* name ) {
 			}
 		} else {
 			volInfo.vol = sack_vfs_load_volume( name );
-			volInfo.mount = sack_mount_filesystem( "vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1 );
+			volInfo.mount = sack_mount_filesystem("vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1);
+			volInfo.keep = FALSE;
+			volInfo.name = StrDup(name);
 			if (!volInfo.vol) lprintf("Failed to load VFS:%s", name);
 			AddDataItem( &l.current_vol_source_list, &volInfo );
 		}
@@ -113,12 +125,16 @@ static int openSource( const char* name ) {
 }
 
 static FILE* openSourceFile( const char* name ) {
-	INDEX lastMount = l.current_vol_source_list->Cnt;
-	while( lastMount-- > 0 ) {
-		struct source_volume* vol = GetDataItem( &l.current_vol_source_list, lastMount );
-		FILE* file = sack_fopenEx( 0, name, "rb", vol->mount );
-		if( file ) return file;
+	if (l.current_vol_source_list) {
+		INDEX lastMount = l.current_vol_source_list->Cnt;
+		while (lastMount-- > 0) {
+			struct source_volume* vol = GetDataItem(&l.current_vol_source_list, lastMount);
+			FILE* file = sack_fopenEx(0, name, "rb", vol->mount);
+			if (l.verbose) printf("Checking mount %s for file %s %p\n", vol->name, name, file);
+			if (file) return file;
+		}
 	}
+	if (l.verbose) printf("Failed to find file %s in any source volume. %p\n", name, l.current_vol_source_list);
 	return NULL;
 }
 
@@ -317,7 +333,7 @@ static void StoreFileAs( CTEXTSTR filename, CTEXTSTR asfile )
 static int PatchFileAs( CTEXTSTR filename, CTEXTSTR asfile, CTEXTSTR vfsName, uintptr_t version, CTEXTSTR key1, CTEXTSTR key2 ) {
 	FILE* in = sack_fopenEx( 0, filename, "rbn", sack_get_default_mount() );
 
-	if( !openSource( vfsName ) )
+	if( vfsName && vfsName[0] && !openSource( vfsName ) )
 		return 2;
 
 	if( l.verbose ) printf( " Opened file %s = %p\n", filename, in );
@@ -422,8 +438,11 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 	if( flags & SFF_DIRECTORY ) {
 		// don't need to do anything with directories... already
       // doing subcurse option.
+		if (l.verbose) printf("Got Subdirectory:%s\n", filename);
 	} else {
+		if (l.verbose) printf("Patching file %s to %s\n", filename, outName);
 		FILE *in = sack_fopenEx( 0, filename, "rb", sack_get_default_mount() );
+		if (l.verbose) printf(" Opened patch file in file %s = %p\n", filename, in);
 		FILE *in2 = openSourceFile( outName );
 		if( l.verbose ) printf( " Opened patch file in file %s %s = %p %p\n", filename, outName, in, in2 );
 		if( in )
@@ -536,7 +555,6 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 {
 	void *info = NULL;
 	struct store_file_info storeOptions;
-
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
 		static char buffer[1024];
@@ -572,8 +590,10 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 		} else return 2;
 		return 0;
 	}
-
-	if( !openSource( vfsName ) ) return 2;
+	if (vfsName && vfsName[0] && !openSource(vfsName)) {
+		if (l.verbose) printf("Vfs specified was not found?\n");
+		return 2;
+	}
 
 	char* tmppath = StrDup( filemask );
 	char* end = (char*)pathrchr( tmppath );
@@ -597,7 +617,6 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 		firstSlash = tmppath + StrLen( tmppath );
 	storeOptions.usePath = asPath;
 	storeOptions.skipLength = replace ? ( (int)( ( firstSlash - tmppath ) + 1 ) ) : 0;
-
 	if( doScan ) {
 		while( ScanFilesEx( tmppath, end, &info, _PatchFile, SFF_DIRECTORIES | SFF_SUBCURSE | SFF_SUBPATHONLY
 			, (uintptr_t)&storeOptions, FALSE, sack_get_default_mount() ) );
@@ -932,6 +951,7 @@ static void usage( void )
 	printf( "   storein <filemask> <path>           : similar to 'store' but replaces the leading path part with <path> option.\n" );
 	printf( "   storewith <filemask> <path>         : similar to 'storein' but does not replace the leading path.\n" );
 	printf( "   storeas <filename> <as file>        : store file from <filename> into VFS as <as file>.\n" );
+	printf( "   patchvfs <vfsName>                  : adds a layer of source VFS for patch to work against; first is last to check.\n" );
 	printf( "   patch <vfsName> <filemask>          : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   patchin <vfsName> <filemask> <path> : store files that match the name and are different from those in the VFS.\n" );
 	printf( "   patchwith <vfsName> <filemask> <path>     : store files that match the name and are different from those in the VFS.\n" );
@@ -963,6 +983,7 @@ SaneWinMain( argc, argv )
 	SetSystemLog( SYSLOG_FILE, stdout );
 	SetSystemLoggingLevel( 2000 );
 	if( argc < 2 ) { usage(); return 0; }
+	l.current_vol_source_list = CreateDataList(sizeof(struct source_volume));
 
 	l.fsi = sack_get_filesystem_interface( SACK_VFS_FILESYSTEM_NAME );
 	if( !l.fsi ) {
@@ -1027,6 +1048,27 @@ SaneWinMain( argc, argv )
 				return 2;
 			}
 			l.current_mount = sack_mount_filesystem( "vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1 );
+			arg++;
+		}
+		else if (StrCaseCmp(argv[arg], "patchvfs") == 0)
+		{
+			struct source_volume volInfo;
+			volInfo.vol = sack_vfs_load_volume(argv[arg + 1]);
+			volInfo.keep = TRUE;
+			if (!volInfo.vol)
+			{
+				printf("Failed to load patch source vfs: %s", argv[arg + 1]);
+				return 2;
+			}
+			// patch vfs is not mounted, it's accessed by volume pointer directly.
+			volInfo.mount = sack_mount_filesystem("vfs2", l.fsi, 10, (uintptr_t)volInfo.vol, 1);
+			volInfo.name = argv[arg + 1];
+			if (l.source_name) Deallocate(CTEXTSTR, l.source_name);
+			l.source_name = StrDup(argv[arg + 1]);
+			if (l.verbose) printf("Adding patch source volume: %s\n", volInfo.name);
+			AddDataItem(&l.current_vol_source_list, &volInfo);
+
+			//l.current_mount = sack_mount_filesystem("vfs", l.fsi, 10, (uintptr_t)l.current_vol, 1);
 			arg++;
 		}
 		else if( StrCaseCmp( argv[arg], "os" ) == 0 ) {
