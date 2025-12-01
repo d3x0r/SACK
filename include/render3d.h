@@ -8,6 +8,16 @@
 #include <render.h>
 #include <vectlib.h>
 
+
+#ifdef _VULKAN_DRIVER 
+#  define sack_render_context struct VulkanContext
+#  define sack_render_pipeline struct VulkanPipeeline
+#endif
+
+typedef sack_render_context  *RenderContext;
+typedef sack_render_pipeline *RenderPipeline;
+typedef sack_render_shader   *RenderShader;
+
 typedef struct render_3d_interface_tag
 {
 	RENDER_PROC_PTR( PTRANSFORM, GetRenderTransform)         ( PRENDERER );
@@ -15,6 +25,71 @@ typedef struct render_3d_interface_tag
 	RENDER_PROC_PTR( LOGICAL, ClipPoints)         ( P_POINT points, int nPoints );
 	RENDER_PROC_PTR( void, GetViewVolume )( PRAY *planes ); // array of 6 planes
 	RENDER_PROC_PTR( void, SetRendererAnchorSpace )( PRENDERER display, int anchor ); // 0=world;1=local;2=view
+
+	RENDER_PROC_PTR( RenderPipeline, GetRenderPipe, ( RenderContext context ) );
+	RENDER_PROC_PTR( RenderShader, AddShader, ( RenderPipeline context, ... ) );
+
+
+
+
+#if 0
+PImageShaderTracker CPROC GetShaderInit( CTEXTSTR name, uintptr_t (CPROC*)(uintptr_t), void(CPROC*)(uintptr_t,PImageShaderTracker), uintptr_t );
+#define GetShader(name) GetShaderInit( name, NULL, NULL, 0 )
+void CPROC SetShaderModelView( PImageShaderTracker tracker, RCOORD *matrix );
+
+int CPROC CompileShaderEx( PImageShaderTracker shader, char const *const *vertex_code, int vert_blocks, char const*const*frag_code, int frag_blocks, struct image_shader_attribute_order *, int nAttribs );
+int CPROC CompileShader( PImageShaderTracker shader, char const *const*vertex_code, int vert_blocks, char const*const*frag_code, int frag_blocks );
+void CPROC ClearShaders( void );
+
+void CPROC EnableShader( PImageShaderTracker shader, ... );
+
+
+// verts and a single color
+uintptr_t CPROC SetupSuperSimpleShader( uintptr_t );
+void CPROC InitSuperSimpleShader( uintptr_t psv, PImageShaderTracker tracker );
+
+// verts, texture verts and a single texture
+uintptr_t CPROC SetupSimpleTextureShader( uintptr_t );
+void CPROC InitSimpleTextureShader( uintptr_t psv, PImageShaderTracker tracker );
+
+// verts, texture_verts, texture and a single texture
+uintptr_t CPROC SetupSimpleShadedTextureShader( uintptr_t );
+void CPROC InitSimpleShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker );
+
+//
+uintptr_t CPROC SetupSimpleMultiShadedTextureShader( uintptr_t );
+void CPROC InitSimpleMultiShadedTextureShader( uintptr_t psv, PImageShaderTracker tracker );
+
+void DumpAttribs( PImageShaderTracker tracker, int program );
+
+void CloseShaders( struct sack_vkSurfaceData *glSurface );
+void FlushShaders( struct sack_vkSurfaceData *glSurface );
+
+struct shader_buffer *CPROC CreateShaderBuffer( int dimensions, int start_size, int expand_by );
+void CPROC AppendShaderData( struct image_shader_op *op, struct shader_buffer *buffer, float *data );
+
+void CPROC  SetShaderEnable( PImageShaderTracker tracker, void (CPROC*EnableShader)( PImageShaderTracker tracker, uintptr_t, va_list args ), uintptr_t psv );
+void CPROC  SetShaderOpInit( PImageShaderTracker tracker, uintptr_t (CPROC*InitOp)( PImageShaderTracker tracker, uintptr_t, int *existing_verts, va_list args ) );
+//void CPROC  SetShaderFlush( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, uintptr_t, uintptr_t, int from, int to ) );
+void CPROC  SetShaderOutput( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, uintptr_t, uintptr_t, int, int  ) );
+void CPROC  SetShaderReset( PImageShaderTracker tracker, void (CPROC*FlushShader)( PImageShaderTracker tracker, uintptr_t, uintptr_t  ) );
+void CPROC  SetShaderAppendTristrip( PImageShaderTracker tracker, void (CPROC*AppendTriStrip)(  struct image_shader_op *op, int triangles, uintptr_t,va_list args ) );
+void CPROC  AppendShaderTristripQuad( struct image_shader_op * op, ... );
+void CPROC  AppendShaderTristrip( struct image_shader_op * op, int triangles, ... );
+
+size_t CPROC AppendShaderBufferData( struct shader_buffer *buffer, float *data );
+
+struct image_shader_op * CPROC BeginShaderOp(PImageShaderTracker tracker, ... );
+
+struct image_shader_op * BeginImageShaderOp(PImageShaderTracker tracker, Image target, ... );
+void AppendImageShaderOpTristrip( struct image_shader_op *op, int triangles, ... );
+
+void SetShaderDepth( Image pImage, LOGICAL enable );
+int GetShaderUniformLocation( PImageShaderTracker shader, const char *uniformName );
+void SetUniform4f( int uniformId, RCOORD v1, RCOORD v2, RCOORD v3, RCOORD v4 );
+#endif
+
+
 
 #ifdef _D3D_DRIVER
 	IDirect3DDevice9 *current_device;
@@ -40,25 +115,21 @@ typedef struct render_3d_interface_tag
 
 } RENDER3D_INTERFACE, *PRENDER3D_INTERFACE;
 
-struct SwapChain;
+struct VulkanContext;
 
 
 #ifdef _VULKAN_DRIVER
-RENDER_PROC( void, createCommandBuffers )( struct SwapChain* chain, VkCommandBuffer* buffers, uint32_t count, LOGICAL primary );
+#   define EXTRA_INIT_PARAM struct VulkanContext *context,
+#   define EXTRA_INIT_ARG_TYPE struct VulkanContext *,
+RENDER_PROC( void, createCommandBuffers )( struct VulkanContext *context, VkCommandBuffer *buffers, uint32_t count,
+                                           LOGICAL primary );
 #endif
 
-#if defined( _VULKAN_DRIVER )
-#  define EXTRA_INIT_PARAM struct SwapChain* chain,
-#  define EXTRA_INIT_ARG_TYPE struct SwapChain*,
-#else
-#  define EXTRA_INIT_PARAM
-#  define EXTRA_INIT_ARG_TYPE 
-#endif
 
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
-#define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
-#define g_d3d_device_context  (USE_RENDER3D_INTERFACE)->current_device_context
+#   define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
+#   define g_d3d_device_context  (USE_RENDER3D_INTERFACE)->current_device_context
 #endif
 
 // static uintptr_t OnInit3d( "Virtuality" )( PMatrix projection, PTRANSFORM camera, RCOORD *identity_depth, RCOORD *aspect )
