@@ -619,7 +619,7 @@ static void InvokeExtraInit( struct display_camera *camera, PTRANSFORM view_came
 		if( Init3d )
 		{
 			struct plugin_reference *reference;
-			uintptr_t psvInit = Init3d( &camera->chain, &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
+			uintptr_t psvInit = Init3d( &camera->context, &l.fProjection, view_camera, &camera->identity_depth, &camera->aspect );
 			if( psvInit )
 			{
 				INDEX idx;
@@ -779,7 +779,7 @@ struct display_camera *SACK_Vidlib_OpenCameras( void )
 
 #ifndef __ANDROID__
 // when a library is loaded later, invoke it's Init3d with existing cameras
-static void OnLibraryLoad( "Video Render PureGL 2" )( void )
+static void OnLibraryLoad( "Video Render Vulkan" )( void )
 {
 #  if defined( WIN32 )
 	if( l.bThreadRunning )
@@ -1985,7 +1985,7 @@ static LOGICAL OnKey3d( "Video Render Common" )( uintptr_t psv, uint32_t key )
 	return 0;
 }
 
-static uintptr_t OnInit3d( "Video Render Common" )(struct SwapChain* chain, PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
+static uintptr_t OnInit3d( "Video Render Common" )(struct VulkanContext* context, PMatrix m,PTRANSFORM c,RCOORD*identity_dept,RCOORD*aspect)
 {
 	// provide one of these so key can get called.
 	return 1;

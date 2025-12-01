@@ -40,6 +40,7 @@ set( COMMON_SOURCES
         vidlib_interface.c  # common interface export
         vidlib_3d_mouse.c  # mouse utilties; reverse map points into screen
         vidlib_render_loop.c  # dispach draw to all windows in a camera
+	vulkan_abstraction.c  # get attribute buffers/programs run render commands
    )     
 
 if( __LINUX__ )

@@ -34,7 +34,7 @@ int FindIntersectionTime( RCOORD *pT1, PVECTOR s1, PVECTOR o1
 #define nf (s2[2])
 
    crossproduct(denoms, s1, s2 ); // - result...
- PrintVector( denoms );
+  //PrintVector( denoms );
    denom = denoms[2];
 //   denom = ( nd * nb ) - ( ne * na );
    if( NearZero( denom ) )

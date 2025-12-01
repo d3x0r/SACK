@@ -7,6 +7,7 @@
 
 #include <stdhdrs.h>
 #include <vulkan/vulkan.h>
+#include <vma/vk_mem_alloc.h>
 
 #include "local.h"
 #include "vulkaninfo.h"
@@ -17,6 +18,14 @@
 
 
 static struct vulkan_local vl;
+
+
+struct sack_vulkan_buffer {
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+	size_t size;
+};
+
 
 /* begin drawing (setup projection); also does SetActiveXXXDIsplay */
 int Init3D( struct display_camera *camera )
@@ -42,8 +51,8 @@ void createSemaphores( struct display_camera *camera ) {
 	VkSemaphoreCreateInfo semaphoreInfo = {0};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-	if( vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.imageAvailableSemaphore ) != VK_SUCCESS ||
-		vkCreateSemaphore( camera->chain.device, &semaphoreInfo, NULL, &camera->chain.renderFinishedSemaphore ) != VK_SUCCESS ) {
+	if( vkCreateSemaphore( camera->context.device, &semaphoreInfo, NULL, &camera->context.imageAvailableSemaphore ) != VK_SUCCESS ||
+		vkCreateSemaphore( camera->context.device, &semaphoreInfo, NULL, &camera->context.renderFinishedSemaphore ) != VK_SUCCESS ) {
 		return;// FALSE;
 		//throw std::runtime_error( "failed to create semaphores!" );
 	}
@@ -53,26 +62,26 @@ void createSemaphores( struct display_camera *camera ) {
 void drawFrame( struct display_camera* camera ) {
 
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR( camera->chain.device, camera->chain.swapChain, UINT64_MAX, camera->chain.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex );
+	vkAcquireNextImageKHR( camera->context.device, camera->context.swapChain, UINT64_MAX, camera->context.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex );
 
 
 	VkSubmitInfo submitInfo = {0};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { camera->chain.imageAvailableSemaphore };
+	VkSemaphore waitSemaphores[] = { camera->context.imageAvailableSemaphore };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &camera->chain.buffers[imageIndex];
+	submitInfo.pCommandBuffers = &camera->context.buffers[imageIndex];
 
-	VkSemaphore signalSemaphores[] = { camera->chain.renderFinishedSemaphore };
+	VkSemaphore signalSemaphores[] = { camera->context.renderFinishedSemaphore };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	if( vkQueueSubmit( camera->chain.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) != VK_SUCCESS ) {
+	if( vkQueueSubmit( camera->context.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE ) != VK_SUCCESS ) {
 		//throw std::runtime_error( "failed to submit draw command buffer!" );
 		lprintf( "Failed to submit frame" );
 	}
@@ -84,7 +93,7 @@ void drawFrame( struct display_camera* camera ) {
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
-	VkSwapchainKHR swapChains[] = { camera->chain.swapChain };
+	VkSwapchainKHR swapChains[] = { camera->context.swapChain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
 	presentInfo.pImageIndices = &imageIndex;
@@ -92,9 +101,9 @@ void drawFrame( struct display_camera* camera ) {
 	// array of results for each swap chain passed...
 	presentInfo.pResults = NULL; // Optional
 
-	vkQueuePresentKHR( camera->chain.graphicsQueue, &presentInfo );
+	vkQueuePresentKHR( camera->context.graphicsQueue, &presentInfo );
 
-	vkQueueWaitIdle( camera->chain.graphicsQueue );
+	vkQueueWaitIdle( camera->context.graphicsQueue );
 }
 
 void presentFrame( struct display_camera* camera ) {
@@ -103,7 +112,7 @@ void presentFrame( struct display_camera* camera ) {
 
 void createRenderPass( struct display_camera* camera ) {
 	VkAttachmentDescription colorAttachment = {0};
-	colorAttachment.format = camera->chain.colorFormat;
+	colorAttachment.format = camera->context.colorFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -143,7 +152,7 @@ void createRenderPass( struct display_camera* camera ) {
 	renderPassInfo.dependencyCount = 1;
 	renderPassInfo.pDependencies = &dependency;
 
-	if( vkCreateRenderPass( camera->chain.device, &renderPassInfo, NULL, &camera->chain.renderPass ) != VK_SUCCESS ) {
+	if( vkCreateRenderPass( camera->context.device, &renderPassInfo, NULL, &camera->context.renderPass ) != VK_SUCCESS ) {
 		lprintf( "Failed to create render pass" );
 		//throw std::runtime_error( "failed to create render pass!" );
 	}
@@ -166,8 +175,8 @@ struct QueueFamilyIndices  findQueueFamilies( VkPhysicalDevice device ) {
 	return indices;
 	// Logic to find graphics queue family
 }
-void createCommandPool( struct SwapChain *chain ) {
-	struct QueueFamilyIndices queueFamilyIndices = findQueueFamilies( chain->device );
+void createCommandPool( struct VulkanContext *context ) {
+	struct QueueFamilyIndices queueFamilyIndices = findQueueFamilies( context->device );
 
 	VkCommandPoolCreateInfo poolInfo = {0};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -176,22 +185,22 @@ void createCommandPool( struct SwapChain *chain ) {
 	// VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT  // individual commands can be reset
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
 
-	if( vkCreateCommandPool( chain->device, &poolInfo, NULL, &chain->commandPool ) != VK_SUCCESS ) {
+	if( vkCreateCommandPool( context->device, &poolInfo, NULL, &context->commandPool ) != VK_SUCCESS ) {
 		lprintf( "Failed to create command pool." );
 		//throw std::runtime_error( "failed to create command pool!" );
 	}
 
 }
 
-void createCommandBuffers( struct SwapChain* chain,  VkCommandBuffer *buffers, uint32_t count, LOGICAL primary ) {
+void createCommandBuffers( struct VulkanContext* context,  VkCommandBuffer *buffers, uint32_t count, LOGICAL primary ) {
 
 	VkCommandBufferAllocateInfo allocInfo = {0};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = chain->commandPool;
+	allocInfo.commandPool = context->commandPool;
 	allocInfo.level = primary?VK_COMMAND_BUFFER_LEVEL_PRIMARY: VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 	allocInfo.commandBufferCount = (uint32_t)count;
 
-	if( vkAllocateCommandBuffers( chain->device, &allocInfo, buffers ) != VK_SUCCESS ) {
+	if( vkAllocateCommandBuffers( context->device, &allocInfo, buffers ) != VK_SUCCESS ) {
 		lprintf( "Failed to create a command buffer" );
 		//throw std::runtime_error( "failed to allocate command buffers!" );
 	}
@@ -213,11 +222,6 @@ uint32_t findMemoryType( VkDevice device, uint32_t typeFilter, VkMemoryPropertyF
 	//throw std::runtime_error( "failed to find suitable memory type!" );
 }
 
-struct sack_vulkan_buffer {
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-	size_t size;
-};
 
 struct sack_vulkan_buffer *createVertexBuffer( VkDevice device, POINTER p, int cnt, size_t sz ) {
 	VkBufferCreateInfo bufferInfo;
@@ -497,28 +501,34 @@ void CreateDevice(  struct display_camera *camera, VkPhysicalDevice physicalDevi
 		deviceInfo.pEnabledFeatures = NULL;
 
 		{
-		// Here's where we initialize our queues
-		float queuePriorities[] = { 1.0f };
-		VkDeviceQueueCreateInfo deviceQueueInfo;
-		deviceQueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		deviceQueueInfo.pNext = NULL;
-		deviceQueueInfo.flags = 0;
-		// Use the first queue family in the family list
-		deviceQueueInfo.queueFamilyIndex = 0;
+			// Here's where we initialize our queues
+			float queuePriorities[] = { 1.0f };
+			VkDeviceQueueCreateInfo deviceQueueInfo;
+			deviceQueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			deviceQueueInfo.pNext = NULL;
+			deviceQueueInfo.flags = 0;
+			// Use the first queue family in the family list
+			deviceQueueInfo.queueFamilyIndex = 0;
 
-		// Create only one queue
-		deviceQueueInfo.queueCount = 1;
-		deviceQueueInfo.pQueuePriorities = queuePriorities;
-		// Set queue(s) into the device
-		deviceInfo.queueCreateInfoCount = 1;
-		deviceInfo.pQueueCreateInfos = &deviceQueueInfo;
+			// Create only one queue
+			deviceQueueInfo.queueCount = 1;
+			deviceQueueInfo.pQueuePriorities = queuePriorities;
+			// Set queue(s) into the device
+			deviceInfo.queueCreateInfoCount = 1;
+			deviceInfo.pQueueCreateInfos = &deviceQueueInfo;
 
-		result = vkCreateDevice( physicalDevice, &deviceInfo, NULL, &camera->chain.device );
-		if( result != VK_SUCCESS ) {
-			fprintf( stderr, "Failed creating logical device: %d", result );
-			abort();
+			result = vkCreateDevice( physicalDevice, &deviceInfo, NULL, &camera->context.device );
+			if( result != VK_SUCCESS ) {
+				fprintf( stderr, "Failed creating logical device: %d", result );
+				abort();
+			}
 		}
-		}
+		VmaAllocatorCreateInfo createInfo = {};
+		createInfo.physicalDevice         = camera->context.physicalDevice;
+		createInfo.device                 = camera->context.device;
+
+		vmaCreateAllocator( &createInfo, &camera->context.allocator );
+
 	}
 	{
 		// somewhere in initialization code
@@ -532,10 +542,10 @@ void CreateDevice(  struct display_camera *camera, VkPhysicalDevice physicalDevi
 
 
 
-void *swapChainGetInstanceProc( struct SwapChain *swapChain, const char *name ) {
+void *swapChainGetInstanceProc( struct VulkanContext *swapChain, const char *name ) {
 	return vkGetInstanceProcAddr( swapChain->instance, name );
 }
-void *swapChainGetDeviceProc( struct SwapChain *swapChain, const char *name ) {
+void *swapChainGetDeviceProc( struct VulkanContext *swapChain, const char *name ) {
 	return vkGetDeviceProcAddr( swapChain->device, name );
 }
 
@@ -559,8 +569,7 @@ void *swapChainGetDeviceProc( struct SwapChain *swapChain, const char *name ) {
 
 
 
-LOGICAL swapChainConnect( struct SwapChain *swapChain )
-{
+LOGICAL swapChainConnect( struct VulkanContext *swapChain ) {
 	swapChain->instance = vl.instance;
 	//swapChain->physicalDevice = vl.physicalDevices[0];
 	//swapChain->device = vl.device;
@@ -582,14 +591,14 @@ LOGICAL swapChainConnect( struct SwapChain *swapChain )
 
 
 #if defined(_WIN32)
-LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
+LOGICAL swapChainPlatformConnect( struct VulkanContext *swapChain,
 	HINSTANCE handle,
 	HWND window )
-#elif defined(__ANDROID__)
-LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
+#elif defined(__ANDROID__VulkanContext
+LOGICAL swapChainPlatformConnect( struct VulkanContext *swapChain,
 	ANativeWindow *window )
 #else
-LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
+LOGICAL swapChainPlatformConnect( struct VulkanContext *swapChain,
 	xcb_connection_t *connection,
 	xcb_window_t *window )
 #endif
@@ -623,8 +632,7 @@ LOGICAL swapChainPlatformConnect( struct SwapChain *swapChain,
 }
 
 
-LOGICAL swapChainInit( struct SwapChain *swapChain )
-{
+LOGICAL swapChainInit( struct VulkanContext *swapChain ) {
 	{
 		uint32_t queueCount;
 		vkGetPhysicalDeviceQueueFamilyProperties( swapChain->physicalDevice,
@@ -820,7 +828,7 @@ LOGICAL swapChainInit( struct SwapChain *swapChain )
 
 
 
-LOGICAL swapChainCreate( struct SwapChain *swapChain,
+LOGICAL swapChainCreate( struct VulkanContext *swapChain,
 	VkCommandBuffer commandBuffer,
 	uint32_t *width,
 	uint32_t *height )
@@ -1017,7 +1025,7 @@ LOGICAL swapChainCreate( struct SwapChain *swapChain,
 
 
 
-VkResult swapChainAcquireNext( struct SwapChain *swapChain,
+VkResult swapChainAcquireNext( struct VulkanContext *swapChain,
 	VkSemaphore presentCompleteSemaphore,
 	uint32_t *currentBuffer )
 {
@@ -1029,7 +1037,7 @@ VkResult swapChainAcquireNext( struct SwapChain *swapChain,
 		currentBuffer );
 }
 
-VkResult swapChainQueuePresent( struct SwapChain *swapChain,
+VkResult swapChainQueuePresent( struct VulkanContext *swapChain,
 	VkQueue queue,
 	uint32_t currentBuffer )
 {
@@ -1042,7 +1050,7 @@ VkResult swapChainQueuePresent( struct SwapChain *swapChain,
 	return swapChain->fpQueuePresentKHR( queue, &presentInfo );
 }
 
-void swapChainCleanup( struct SwapChain *swapChain ) {
+void swapChainCleanup( struct VulkanContext *swapChain ) {
 	//struct SwapChainBuffer *buf;
 	int n;
 	for( n = 0; n < swapChain->nImages; n++ ) {
@@ -1077,15 +1085,15 @@ void EnableVulkan( xcb_connection_t *connection,
 	useDevice = vl.physicalDevices[0];
 	CreateDevice( camera, useDevice );
 
-	swapChainConnect( &camera->chain );
+	swapChainConnect( &camera->context );
 
 	// maybe not here... 
 	createRenderPass( camera );
 
-	createCommandPool( &camera->chain );
+	createCommandPool( &camera->context );
 
 	#if WIN32
-		swapChainPlatformConnect( &camera->chain, hInstance, camera->hWndInstance );
+		swapChainPlatformConnect( &camera->context, hInstance, camera->hWndInstance );
 	#elif defined( __LINUX__ )
 		swapChainPlatformConnect( &camera->chain, vl.surfaceCreateInfo.connection, vl.surfaceCreateInfo.window );
 	#elif defined( __MAC__ )

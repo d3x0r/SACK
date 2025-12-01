@@ -8,8 +8,12 @@
 #  define VK_USE_PLATFORM_XCB_KHR
 #endif
 
+#include <stdhdrs.h>
+
 #ifndef VULKAN_H_
 #  include <vulkan/vulkan.h>
+//#  include <vulkan/vk_memory_allocator.h>
+#  include <vma/vk_mem_alloc.h>
 #endif
 
 struct SwapChainBuffer {
@@ -17,7 +21,8 @@ struct SwapChainBuffer {
 	VkImageView view;
 };
 
-struct SwapChain {
+// this is more like 'VulkanPipeline' or 'VulkanContext'
+struct VulkanContext {
 	VkInstance instance;
 	VkDevice device;
 	VkPhysicalDevice physicalDevice;
@@ -58,7 +63,6 @@ struct vulkan_local {
 	VkPhysicalDevice *physicalDevices;
 
 #if defined(_WIN32)
-	int a;
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
 #elif defined(__ANDROID__)
 	VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo;

@@ -1741,7 +1741,7 @@ uintptr_t CPROC VideoThreadProc (PTHREAD thread)
 	l.actual_thread = thread;
 	l.dwThreadID = GetCurrentThreadId ();
 	l.bThreadRunning = TRUE;
-	//SACK_Vidlib_OpenCameras();
+	SACK_Vidlib_OpenCameras();
 #ifdef LOG_STARTUP
 	Log( "Registered Idle, and starting message loop" );
 #endif

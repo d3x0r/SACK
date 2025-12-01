@@ -84,6 +84,9 @@ struct plugin_reference
 	} flags;
 	CTEXTSTR name;
 	uintptr_t psv;
+	// init is called, once, when plugin is attached to camera
+	// so it's not kept as a method; but the result of init goes
+	// into psv, and psv is passed to all other methods.
 	LOGICAL (CPROC *Update3d)(PTRANSFORM origin);
 	void (CPROC *FirstDraw3d)(uintptr_t);
 	void (CPROC *ExtraDraw3d)(uintptr_t,PTRANSFORM camera);
@@ -94,33 +97,19 @@ struct plugin_reference
    LOGICAL (CPROC *Key3d)(uintptr_t,uint32_t);
 };
 
-#if defined( _D3D11_DRIVER )
-struct dxgi_adapter_output
-{
-	unsigned int ID;
-	IDXGIOutput* adapterOutput;
-	DXGI_OUTPUT_DESC adapterOutputDesc;
-	unsigned int numModes;
-	DXGI_MODE_DESC* displayModeList;
-};
-struct dxgi_adapter
-{
-	unsigned int ID;
-	IDXGIAdapter *adapter;
-	DXGI_ADAPTER_DESC adapterDesc;
-	PLIST adapter_outputs; // list of struct dxgi_adapter_output
-};
-#endif
 
 struct display_camera
 {
 	int32_t x, y;
 	uint32_t w, h;
 	int display;
+
+	/* these are the values passed to init */
 	RCOORD aspect;
 	RCOORD depth; // far field
 	RCOORD identity_depth;
 	PTRANSFORM origin_camera;
+
 	PRENDERER hVidCore; // common, invisible surface behind all windows (application container)
 #if defined( __LINUX__ )
 	// X11 handle?
@@ -128,7 +117,7 @@ struct display_camera
 	HWND hWndInstance;
 #endif
 
-	struct SwapChain chain; // chain owns the device.
+	struct VulkanContext context; // chain owns the device.
 
 	RAY mouse_ray;
 	struct {
@@ -299,9 +288,11 @@ LOGICAL CreateDrawingSurface (PVIDEO hVideo);
 void DoDestroy (PVIDEO hVideo);
 LOGICAL  CreateWindowStuffSizedAt (PVIDEO hVideo, int x, int y,
                                               int wx, int wy);
+
 void CPROC PureGL2_Vidlib_SuspendSystemSleep( int suspend );
 void CPROC PureGL2_Vidlib_SetDisplayCursor( CTEXTSTR cursor );
 LOGICAL CPROC PureGL2_Vidlib_AllowsAnyThreadToUpdate( void );
+
 void OpenCamera( struct display_camera *camera );
 
 
@@ -348,29 +339,6 @@ void SACK_Vidlib_ToggleInputDevice( void );
 int Init3D( struct display_camera *camera ); // begin drawing (setup projection); also does SetActiveXXXDIsplay
 void EndActive3D( struct display_camera *camera ); // does appropriate EndActiveXXDisplay
 void SetupPositionMatrix( struct display_camera *camera );
-#endif
-
-#if defined( _OPENGL_DRIVER )
-int EnableOpenGL( struct display_camera *camera );
-int SetActiveGLDisplayView( struct display_camera *camera, int nFracture );
-#endif
-#if defined( USE_EGL )
-void EnableEGLContext( struct display_camera *camera );
-#endif
-
-#if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
-int EnableD3d( struct display_camera *camera );
-int EnableD3dView( struct display_camera *camera, int x, int y, int w, int h );
-void DisableD3d( struct display_camera *camera );
-
-int SetActiveD3DDisplay( struct display_camera *hVideo );
-int SetActiveD3DDisplayView( struct display_camera *hVideo, int nFracture );
-
-
-#  ifndef VIDLIB_INTERFACE_DEFINED
-extern
-	  RENDER3D_INTERFACE Render3d;
-#  endif
 #endif
 
 //--------------------------vulkan_interface.c 
