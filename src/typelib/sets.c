@@ -489,6 +489,56 @@ void **GetLinearSetArrayEx( GENERICSET *pSet, int *pCount, int unitsize, int max
 
 //----------------------------------------------------------------------------
 
+void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
+{
+   // get a byte countable pointer
+	uint8_t    *array = (uint8_t*)unit;
+	int items, cnt, n, ofs;
+	INDEX nMin, nNewMin;
+	GENERICSET *pCur;
+	GENERICSET *pNewMin = NULL; // useless initialization.  nNewMin will be set if this is valid; and there was no error generated for using THAT uninitialized.
+
+	//Log2( "Building Array unit size: %d(%08x)", unitsize, unitsize );
+	items = CountUsedInSetEx( pSet, max );
+
+	ofs = ( ( max + (FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8);
+	nMin = 0; // 0
+	uint8_t *base;
+  	cnt = 0;
+	do
+	{
+		pCur = pSet;
+		nNewMin = INVALID_INDEX; // 0xFFFFFFFF (max)
+		while( pCur )
+		{
+			nNewMin = pCur->nBias;
+
+         memcpy( array + (nNewMin+n)*unitsize,
+			if( (uintptr_t)pCur->nBias < nNewMin &&
+				 (uintptr_t)pCur->nBias >= nMin )
+			{
+				pNewMin = pCur;
+				nNewMin = pCur->nBias;
+			}
+			pCur = pCur->next;
+		}
+		if( (uintptr_t)nNewMin != INVALID_INDEX )
+		{
+			base = (uint8_t*)(pNewMin->bUsed + ofs);
+			for( n = 0; n < max; n++ )
+				if( IsUsed( pNewMin, n ) )
+				{
+					memcpy( array+cnt*unitsize, base + n*unitsize, unitsize );
+					cnt++;
+				}
+		}
+		nMin = nNewMin+1;
+	}while( nNewMin != INVALID_INDEX );
+	return array;
+}
+
+//----------------------------------------------------------------------------
+
 int FindInArray( void **pArray, int nArraySize, void *unit )
 {
 	//int32_t idx;

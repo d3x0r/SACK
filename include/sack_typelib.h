@@ -1347,6 +1347,13 @@ TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE  _ForAllInSet( GENERICSET *pSet, int un
 typedef uintptr_t (CPROC *FESMCallback)(INDEX,uintptr_t);
 TYPELIB_PROC  uintptr_t TYPELIB_CALLTYPE  ForEachSetMember ( GENERICSET *pSet, int unitsize, int max, FESMCallback f, uintptr_t psv );
 
+/*
+ StoreSetIntoEx() - stores a set into a packed linear array passed in.
+ to get the size to create the array, can use CountUsedInSet()...
+ doing it this way is less calls then a for-each-set-member self-copy.
+
+    */
+TYPELIB_PROC  void * TYPELIB_CALLTYPE  StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max );
 
 #if 0 //def __cplusplus
 
