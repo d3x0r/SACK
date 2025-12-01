@@ -13,6 +13,7 @@
 #endif
 #define _POSIX_SOURCE
 #include <stdhdrs.h>
+#include <deadstart.h>
 #include <string.h>
 #include <idle.h>
 
@@ -2148,7 +2149,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchProgram )( CTEXTSTR program, CTEXTSTR path, PCTEX
 
 //--------------------------------------------------------------------------
 
-void InvokeLibraryLoad( void )
+static void InvokeLibraryLoad( void )
 {
 	void (CPROC *f)(void);
 	PCLASSROOT data = NULL;
@@ -2158,13 +2159,18 @@ void InvokeLibraryLoad( void )
 		 name;
 		  name = GetNextRegisteredName( &data ) )
 	{
-		f = GetRegisteredProcedureExx( data,(CTEXTSTR)NULL,void,name,(void));
-		if( f )
-		{
-			f();
+		if( !GetRegisteredIntValue( data, "ran" ) ) {
+			f = GetRegisteredProcedureExx( data, (CTEXTSTR)NULL, void, name, (void));
+			if( f ) {
+				f();
+			}
+			RegisterIntValue( (CTEXTSTR)data, "ran", 1 );
 		}
 	}
 }
+
+// dispatch late scheduled preloaded scheduled library loads.
+PRIORITY_PRELOAD( checkLibraryLoads, 1000 ) { InvokeLibraryLoad(); }
 
 // look for all the libraries that are currently already loaded (so we know to just load them the normal way)
 #define Seek(a,b) (((uintptr_t)a)+(b))
