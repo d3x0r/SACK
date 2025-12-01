@@ -20,11 +20,14 @@ IMAGE_NAMESPACE
 
 struct sack_vkSurfaceData 
 {
-	struct SwapChain* device; // the chain associated with this camera context
+	struct VulkanContext* device; // the chain associated with this camera context
+
+	// these are references to the original display_camera
 	PMatrix M_Projection;
 	PTRANSFORM T_Camera;
 	RCOORD *identity_depth;
 	RCOORD *aspect;
+
 	int index;
 	struct vk_shader_data {
 		uint32_t multi_shader;
