@@ -216,7 +216,11 @@ static struct global_memory_tag global_memory_data = { 0x10000 * 0x08
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
+#ifdef __cplusplus
 																	  , {{{0}}}
+#else
+																	  , {}
+#endif
 #endif
 																	  , 0
 																	  , 0
@@ -242,7 +246,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
+#ifdef __cplusplus
 																	  , {{{0}}}
+#else
+																	  , {}
+#endif
 #endif
 																	  , 0
 																	  , 0
@@ -261,7 +269,11 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 																	  , 0
 																	  , NULL
 #ifdef _WIN32
+#ifdef __cplusplus
 																	  , {{{0}}}
+#else
+																	  , {}
+#endif
 #endif
 																	  , 0
 																	  , 0
@@ -3120,7 +3132,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 	g.last_set_allocate = nLine;
 #endif	
 	g.bDefaultLogAllocate = g.bLogAllocate = bTrueFalse;
-	_lprintf(DBG_RELAY)( "--------- USE CLEAR OR RESET LOGGING!" );
+	//_lprintf(DBG_RELAY)( "--------- USE CLEAR OR RESET LOGGING!" );
 	return prior;
 }
 
