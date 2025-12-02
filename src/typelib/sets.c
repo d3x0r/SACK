@@ -511,9 +511,6 @@ void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
 		nNewMin = INVALID_INDEX; // 0xFFFFFFFF (max)
 		while( pCur )
 		{
-			nNewMin = pCur->nBias;
-
-         memcpy( array + (nNewMin+n)*unitsize,
 			if( (uintptr_t)pCur->nBias < nNewMin &&
 				 (uintptr_t)pCur->nBias >= nMin )
 			{
@@ -524,15 +521,23 @@ void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
 		}
 		if( (uintptr_t)nNewMin != INVALID_INDEX )
 		{
-			base = (uint8_t*)(pNewMin->bUsed + ofs);
-			for( n = 0; n < max; n++ )
-				if( IsUsed( pNewMin, n ) )
-				{
-					memcpy( array+cnt*unitsize, base + n*unitsize, unitsize );
-					cnt++;
+			do {
+				base = ((uint8_t*)pNewMin->bUsed) + ofs;
+				for( n = 0; n < max; n++ )
+					if( IsUsed( pNewMin, n ) )
+					{
+						memcpy( array+cnt*unitsize, base + n*unitsize, unitsize );
+						cnt++;
+					}
+				nMin = nNewMin+1;
+				if( pNewMin->next && pNewMin->next->nBias == nMin ) {
+					pNewMin = pNewMin->next;
+					nNewMin = pNewMin->nBias;
+					continue;
 				}
+				break;
+			} while(1);
 		}
-		nMin = nNewMin+1;
 	}while( nNewMin != INVALID_INDEX );
 	return array;
 }
