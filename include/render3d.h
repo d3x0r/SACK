@@ -14,9 +14,11 @@
 #  define sack_render_pipeline struct VulkanPipeeline
 #endif
 
-typedef sack_render_context  *RenderContext;
-typedef sack_render_pipeline *RenderPipeline;
-typedef sack_render_shader   *RenderShader;
+
+
+typedef struct sack_render_context  *RenderContext;
+typedef struct sack_render_pipeline *RenderPipeline;
+typedef struct sack_render_shader   *RenderShader;
 
 typedef struct render_3d_interface_tag
 {
