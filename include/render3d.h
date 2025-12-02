@@ -28,8 +28,8 @@ typedef struct render_3d_interface_tag
 	RENDER_PROC_PTR( void, GetViewVolume )( PRAY *planes ); // array of 6 planes
 	RENDER_PROC_PTR( void, SetRendererAnchorSpace )( PRENDERER display, int anchor ); // 0=world;1=local;2=view
 
-	RENDER_PROC_PTR( RenderPipeline, GetRenderPipe, ( RenderContext context ) );
-	RENDER_PROC_PTR( RenderShader, AddShader, ( RenderPipeline context, ... ) );
+	RENDER_PROC_PTR( RenderPipeline, GetRenderPipe) ( RenderContext context ) ;
+	RENDER_PROC_PTR( RenderShader, AddShader )( RenderPipeline context, ... );
 
 
 
