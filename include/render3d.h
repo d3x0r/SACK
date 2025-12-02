@@ -11,14 +11,17 @@
 
 #ifdef _VULKAN_DRIVER 
 #  define sack_render_context struct VulkanContext
-#  define sack_render_pipeline struct VulkanPipeeline
+#  define sack_render_pipeline struct VulkanPipeline
+#  define sack_render_shader struct VulkanShader
 #endif
 
+sack_render_context;
+sack_render_pipeline;
+sack_render_shader;
 
-
-typedef struct sack_render_context  *RenderContext;
-typedef struct sack_render_pipeline *RenderPipeline;
-typedef struct sack_render_shader   *RenderShader;
+typedef sack_render_context  *RenderContext;
+typedef sack_render_pipeline *RenderPipeline;
+typedef sack_render_shader   *RenderShader;
 
 typedef struct render_3d_interface_tag
 {
@@ -127,7 +130,7 @@ RENDER_PROC( void, createCommandBuffers )( struct VulkanContext *context, VkComm
                                            LOGICAL primary );
 #endif
 
-#if defined( USE_PUREGL2 )
+#if defined( USE_PUREGL2 ) || defined( USE_PUREGL )
 #   define EXTRA_INIT_PARAM
 #   define EXTRA_INIT_ARG_TYPE
 #endif
