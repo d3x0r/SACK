@@ -13,8 +13,8 @@
 #ifndef VULKAN_H_
 #  include <vulkan/vulkan.h>
 //#  include <vulkan/vk_memory_allocator.h>
-#  include <vma/vk_mem_alloc.h>
 #endif
+#include <vma/vk_mem_alloc.h>
 
 struct SwapChainBuffer {
 	VkImage image;
@@ -32,6 +32,7 @@ struct VulkanContext {
 	VkSwapchainKHR swapChain;
 	VkImage *images; // VkImage list
 	VkCommandPool commandPool;
+	VmaAllocator allocator;
 
 	// these should probably be available for application instancing.
 	VkRenderPass renderPass;
