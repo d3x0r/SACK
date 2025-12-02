@@ -9,6 +9,8 @@ if( WIN32 )
     INCLUDE_DIRECTORIES( ../../vidlib/puregl/glew-1.9.0/include )
 else( WIN32 )
    
+ADD_DEFINITIONS( -DUSE_PUREGL )
+
 if( __ANDROID__ OR QNX )
 	ADD_DEFINITIONS( -DUSE_GLES )
 endif( __ANDROID__ OR QNX )

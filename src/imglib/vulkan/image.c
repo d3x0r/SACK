@@ -55,8 +55,8 @@ static void OnFirstDraw3d( "@00 Vulkan Image Library" )( uintptr_t psv )
 	}
 }
 
-static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( struct SwapChain *device,PMatrix projection, PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect )
-{
+static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( struct VulkanContext *device, PMatrix projection,
+                                                         PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect ) {
 	INDEX idx;
 	struct sack_vkSurfaceData *vkSurface;
 	LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, vkSurface )
