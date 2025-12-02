@@ -14,7 +14,7 @@ typedef struct mydatapath_tag {
 	PVARTEXT vt; // collects var text....
 
 	struct ssh_session *session;
-	struct ssh_chanel *channel;
+	struct ssh_channel *channel;
 
 } MYDATAPATH, *PMYDATAPATH;
 
