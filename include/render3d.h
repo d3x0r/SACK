@@ -127,7 +127,10 @@ RENDER_PROC( void, createCommandBuffers )( struct VulkanContext *context, VkComm
                                            LOGICAL primary );
 #endif
 
-
+#if defined( USE_PUREGL2 )
+#   define EXTRA_INIT_PARAM
+#   define EXTRA_INIT_ARG_TYPE
+#endif
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )
 #   define g_d3d_device  (USE_RENDER3D_INTERFACE)->current_device
