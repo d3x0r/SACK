@@ -15,6 +15,34 @@
 #  define sack_render_shader struct VulkanShader
 #endif
 
+#ifdef _D3D_DRIVER
+   typedef struct D3DRenderContextTag
+   {
+	   IDirect3DDevice9 *device;
+   } sack_render_context;
+   typedef struct D3DRenderPipelineTag
+   {
+	   // pipeline state objects?
+   } sack_render_pipeline;
+   typedef struct D3DRenderShaderTag
+   {
+	   IDirect3DPixelShader9 *pixel_shader;
+	   IDirect3DVertexShader9 *vertex_shader;
+   } sack_render_shader;
+   #endif
+
+   #ifdef _PUREGL_DRIVER
+#define sack_render_context struct PureGLContext
+#define sack_render_pipeline struct PureGLPipeline
+#define sack_render_shader struct PureGLShader
+   #endif
+
+   #ifndef sack_render_context
+#define sack_render_context int
+#define sack_render_pipeline int
+#define sack_render_shader int
+   #endif
+
 sack_render_context;
 sack_render_pipeline;
 sack_render_shader;
@@ -130,9 +158,14 @@ RENDER_PROC( void, createCommandBuffers )( struct VulkanContext *context, VkComm
                                            LOGICAL primary );
 #endif
 
-#if defined( USE_PUREGL2 ) || defined( USE_PUREGL )
+#if defined( USE_PUREGL2 ) || defined( _PUREGL_DRIVER )
 #   define EXTRA_INIT_PARAM
 #   define EXTRA_INIT_ARG_TYPE
+#endif
+
+#ifndef EXTRA_INIT_PARAM
+#  define EXTRA_INIT_PARAM
+#  define EXTRA_INIT_ARG_TYPE
 #endif
 
 #if defined( _D3D_DRIVER ) || defined( _D3D10_DRIVER ) || defined( _D3D11_DRIVER )

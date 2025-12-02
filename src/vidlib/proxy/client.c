@@ -4,6 +4,7 @@
 #define USE_IMAGE_INTERFACE l.pii
 #define USE_RENDER3D_INTERFACE l.pr3i
 #define USE_IMAGE_3D_INTERFACE l.pi3i
+#define _PUREGL_DRIVER
 #include <render.h>
 #include <render3d.h>
 
