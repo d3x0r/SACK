@@ -217,7 +217,7 @@ static struct global_memory_tag global_memory_data = { 0x10000 * 0x08
 																	  , NULL
 #ifdef _WIN32
 #ifdef __cplusplus
-																	  , {{{0}}}
+																	  , {{0}}
 #else
 																	  , {}
 #endif
@@ -247,7 +247,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 0, 0/*auto check
 																	  , NULL
 #ifdef _WIN32
 #ifdef __cplusplus
-																	  , {{{0}}}
+																	  , {{0}}
 #else
 																	  , {}
 #endif
@@ -270,7 +270,7 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 																	  , NULL
 #ifdef _WIN32
 #ifdef __cplusplus
-																	  , {{{0}}}
+																	  , {{0}}
 #else
 																	  , {}
 #endif
