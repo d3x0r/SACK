@@ -31,6 +31,7 @@ static struct vfs_runner_local
 	PCONFIG_HANDLER pch;
 	int status;
 	LOGICAL verbose;
+	LOGICAL checkOnly;
 }l;
 
 //---------------------------------------------------------------------------
@@ -108,14 +109,30 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 				{
 					FILE *out;
 					if( l.verbose ) printf("Update: %s to %s\n", name, target);
-					out = sack_fopenEx( 0, target, "wb", sack_get_default_mount() );
+					out = sack_fopenEx( 0, target, l.checkOnly?"rb":"wb", sack_get_default_mount() );
 					if( out ) {
-						if( !l.first_file )
-							l.first_file = strdup( target );
-						sack_fwrite( data, sz, 1, out );
+						if( l.checkOnly ) {
+							size_t existing_size = sack_fsize( out );
+							if( existing_size == sz ) {
+								uint8_t *existing_data = NewArray( uint8_t, existing_size );
+								sack_fread( existing_data, existing_size, 1, out );
+								if( MemCmp( existing_data, data, sz ) != 0 ) {
+									// already in 'check only' so output
+									printf( "would update: %s\n", target );
+								}
+								Release( existing_data );
+							} else {
+								// already in 'check only' so output
+								printf( "would update: %s\n", target );
+							}
+						} else {
+							if( !l.first_file )
+								l.first_file = strdup( target );
+							sack_fwrite( data, sz, 1, out );
+						}
 						sack_fclose( out );
 					}
-					else printf("Failed to open: %s\n", target);
+					else printf("Failed to open target: %s\n", target);
 				}
 			}
 			Release( data );
@@ -178,7 +195,11 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 				l.verbose = TRUE;
 				argofs++;
 			}
-			else break;
+			else if( StrCaseCmp( argv[ 1 + argofs ], "-check" ) == 0 ) {
+				l.checkOnly = TRUE;
+				argofs++;
+			} else
+				break;
 		}
 	}
 
