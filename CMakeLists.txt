@@ -1718,6 +1718,12 @@ SET_TARGET_PROPERTIES(  bag bag.externals bag++
     INSTALL_RPATH "\$ORIGIN"
 )
 
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+
+   TARGET_COMPILE_OPTIONS( bag++ PRIVATE  "-Wno-deprecated-volatile" )
+endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+
+
 # get the libraries..
 SET( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP 1 )
 if( ${CMAKE_BUILD_TYPE} MATCHES "[dD][eE][bB][uU][gG]" )
