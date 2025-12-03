@@ -493,13 +493,10 @@ void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
 {
    // get a byte countable pointer
 	uint8_t    *array = (uint8_t*)unit;
-	int items, cnt, n, ofs;
+	int cnt, n, ofs;
 	INDEX nMin, nNewMin;
 	GENERICSET *pCur;
 	GENERICSET *pNewMin = NULL; // useless initialization.  nNewMin will be set if this is valid; and there was no error generated for using THAT uninitialized.
-
-	//Log2( "Building Array unit size: %d(%08x)", unitsize, unitsize );
-	items = CountUsedInSetEx( pSet, max );
 
 	ofs = ( ( max + (FLAGSET_MIN_SIZE-1)) / FLAGSET_MIN_SIZE ) * (FLAGSET_MIN_SIZE/8);
 	nMin = 0; // 0
@@ -530,8 +527,9 @@ void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
 						cnt++;
 					}
 				nMin = nNewMin+1;
-				if( pNewMin->next && pNewMin->next->nBias == nMin ) {
-					pNewMin = pNewMin->next;
+				// check if the next block is the continued bias
+				if( pNewMin != pSet && pNewMin->me[ 0 ]->nBias == nMin ) {
+					pNewMin = pNewMin->me[ 0 ];
 					nNewMin = pNewMin->nBias;
 					continue;
 				}
