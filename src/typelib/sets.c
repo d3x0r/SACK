@@ -528,8 +528,8 @@ void *StoreSetIntoEx( GENERICSET *pSet, void*unit, int unitsize, int max )
 					}
 				nMin = nNewMin+1;
 				// check if the next block is the continued bias
-				if( pNewMin != pSet && pNewMin->me[ 0 ]->nBias == nMin ) {
-					pNewMin = pNewMin->me[ 0 ];
+				if( pNewMin != pSet && ((GENERICSET *)pNewMin->me )->nBias == nMin ) {
+					pNewMin = (GENERICSET *)pNewMin->me;
 					nNewMin = pNewMin->nBias;
 					continue;
 				}
