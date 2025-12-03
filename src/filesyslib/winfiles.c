@@ -1782,7 +1782,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 #endif
 
 	if( mount && mount->fsi ) {
-		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) || !StrChr( opts, 'w' ) ) {
+		if( ( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) ) || !StrChr( opts, 'w' ) ) {
 			struct file_system_mounted_interface* test_mount = mount;
 			while( !handle && test_mount ) {
 				if( test_mount->fsi ) {
