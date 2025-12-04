@@ -2194,7 +2194,9 @@ RCOORD EXTERNAL_NAME(lq_yaw)( PCVECTOR4 r ) {
 RCOORD EXTERNAL_NAME(lq_pitch)( PCVECTOR4 r ) {
 	// this is the inverse coordinate for the z coordinate of the y axis
 	// for the forward axis.
-	return asin( ( cos( r[3] ) - 1 ) * r[ 2 ] * r[ 1 ] - sin( r[3] ) * r[ 0 ] );
+	// the negative is distributed, the way this works is inverted to 
+   // what a UI would want to see.
+	return asin( sin( r[3] ) * r[ 0 ] - ( cos( r[3] ) - 1 ) * r[ 2 ] * r[ 1 ] );
 }
 
 VECTOR_METHOD( void, lq_apply, ( PVECTOR out, PCVECTOR4 r, PCVECTOR v ) ) {
@@ -2487,11 +2489,29 @@ PVECTOR4 EXTERNAL_NAME( lq_free_look )( PVECTOR4 out, PCVECTOR4 orientation, RCO
 }
 
 
-PVECTOR4 EXTERNAL_NAME( lq_level_look )( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw ) {
+PVECTOR4 EXTERNAL_NAME( lq_level_look )( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw, RCOORD k ) {
 	VECTOR4 rotation;
 	const RCOORD len2 = pitch*pitch + yaw*yaw;
 	if( len2 < 0.00000000001 ) {
-		if( out != orientation ) {
+		const RCOORD orientation_roll = asin( ( 1 - cos( orientation[ 3 ] ) ) * orientation[ 0 ] * orientation[ 1 ] - sin( orientation[ 3 ] ) * orientation[ 2 ] ) * k;
+		const int bigroll = fabs( orientation_roll ) > 0.000000001;
+		if( out != orientation || bigroll ) {
+			if( bigroll ) {
+				rotation[0] = 0;
+				rotation[1] = 0;
+				rotation[2] = 1;
+				rotation[3] = orientation_roll;
+				// get inverse-x-axis y coordinate for roll
+				//rotation[3] = asin( ( 1 - cos( out[ 3 ] ) ) * out[ 0 ] * out[ 1 ] - sin( out[ 3 ] ) * out[ 2 ] ) * k;
+				EXTERNAL_NAME(lq_applyRotation)( out, orientation, rotation );
+			} else {
+				// not a big roll, and isn't same vector, copy
+				out[0]=orientation[0];
+				out[1]=orientation[1];
+				out[2]=orientation[2];
+				out[3]=orientation[3];
+			}
+		} else if( out != orientation ) {
 			out[0]=orientation[0];
 			out[1]=orientation[1];
 			out[2]=orientation[2];
@@ -2511,7 +2531,7 @@ PVECTOR4 EXTERNAL_NAME( lq_level_look )( PVECTOR4 out, PCVECTOR4 orientation, RC
 	rotation[1] = 0;
 	rotation[2] = 1;
 	// get inverse-x-axis y coordinate for roll
-	rotation[3] = asin( ( 1 - cos( out[ 3 ] ) ) * out[ 0 ] * out[ 1 ] - sin( out[ 3 ] ) * out[ 2 ] );
+	rotation[3] = asin( ( 1 - cos( out[ 3 ] ) ) * out[ 0 ] * out[ 1 ] - sin( out[ 3 ] ) * out[ 2 ] ) * k;
 	EXTERNAL_NAME(lq_applyRotation)( out, out, rotation );
 	return out;
 }
