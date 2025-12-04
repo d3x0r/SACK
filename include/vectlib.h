@@ -799,8 +799,9 @@ VECTOR_METHOD( PVECTOR4, lq_free_look, ( PVECTOR4 out, PCVECTOR4 orientation, RC
 /* use a mouse sort of left-right/updown (yaw/pitch) input to update the orientation.
  This restricts the roll, expecting you're on a level ground; whereas the free-look is more suited to space.
  put the output in out, and return out.
+ k is the factor to adjust the roll by; 1.0 is immediate fix...
  */
-VECTOR_METHOD( PVECTOR4, lq_level_look, ( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw ) );
+VECTOR_METHOD( PVECTOR4, lq_level_look, ( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw, RCOORD k ) );
 
 /* convert rotation vector v to colmajor (opengl) basismatrix
  this is probably redundant - native matrix is the correct direction already...
@@ -809,13 +810,13 @@ VECTOR_METHOD( PVECTOR4, lq_level_look, ( PVECTOR4 out, PCVECTOR4 orientation, R
 VECTOR_METHOD( PMatrix, lq_gl_basis, ( PMatrix matrix, PCVECTOR4 v ) );
 
 /* get a vector representing the up (y) direction from a rotation vector */
-VECTOR_METHOD( void, lq_up, ( PVECTOR4 out, PCVECTOR4 r ) );
+VECTOR_METHOD( PVECTOR, lq_up, ( PVECTOR out, PCVECTOR4 r ) );
 
 /* get a vector representing the right (x) direction from a rotation vector */
-VECTOR_METHOD( void, lq_right, ( PVECTOR4 out, PCVECTOR4 r ) );
+VECTOR_METHOD( PVECTOR, lq_right, ( PVECTOR out, PCVECTOR4 r ) );
 
 /* get a vector representing the forward (z) direction from a rotation vector */
-VECTOR_METHOD( void, lq_forward, ( PVECTOR4 out, PCVECTOR4 r ) );
+VECTOR_METHOD( PVECTOR, lq_forward, ( PVECTOR out, PCVECTOR4 r ) );
 
 /* get how much roll there is from the identity matrix orientation 
  * The raw rotation angles of the axis-angle vector has a complex interaction over 
