@@ -816,18 +816,17 @@ void EXTERNAL_NAME(ApplyT)( PCTRANSFORM pt, PTRANSFORM ptd, PCTRANSFORM pts )
 
 void EXTERNAL_NAME(ApplyM)( PMatrix pt, PMatrix ptd, PMatrix pts )
 {
-	RCOORD tmp;
-	int i,j, k;
+	int i,k;
 	for( k = 0; k < 4; k++ ) {
 		for( i = 0; i < 4; i++ ) {
-			tmp = 0;
-			for( j = 0; j < 4; j++ ) {
-				tmp += pt[0][k][j] * pts[0][j][i];
-			}
-			ptd[0][k][i] = tmp;
+			ptd[0][i][k] = pt[0][0][k] * pts[0][i][0]
+			             + pt[0][1][k] * pts[0][i][1]
+			             + pt[0][2][k] * pts[0][i][2]
+			             + pt[0][3][k] * pts[0][i][3];
 		}
 	}
 }
+
 //----------------------------------------------------------------
 
 void EXTERNAL_NAME(ApplyMcm)( PMatrix pt, PMatrix ptd, PMatrix pts )
@@ -2051,6 +2050,32 @@ void EXTERNAL_NAME(lq_exp)( PVECTOR4 q, PCVECTOR4 v) {
 
 
 PMatrix EXTERNAL_NAME(lq_basis)(PMatrix matrix, PCVECTOR4 v ) {
+	const RCOORD nt = v[3];
+	const RCOORD s  = sin( nt ); // sin/cos are the function of exp()
+	const RCOORD c1 = cos( nt ); // sin/cos are the function of exp()
+	const RCOORD c = 1- c1; // sin/cos are the function of exp()
+
+	const RCOORD xy = c*v[0]*v[1];  // x * y / (xx+yy+zz) * (1 - cos(2t))
+	const RCOORD yz = c*v[1]*v[2];  // y * z / (xx+yy+zz) * (1 - cos(2t))
+	const RCOORD xz = c*v[0]*v[2];  // x * z / (xx+yy+zz) * (1 - cos(2t))
+
+	const RCOORD wx = s*v[0];     // x / sqrt(xx+yy+zz) * sin(2t)
+	const RCOORD wy = s*v[1];     // y / sqrt(xx+yy+zz) * sin(2t)
+	const RCOORD wz = s*v[2];     // z / sqrt(xx+yy+zz) * sin(2t)
+
+	(*matrix)[0][0] = c1 + c*v[0]*v[0];
+	(*matrix)[0][1] =     ( xy + wz );
+	(*matrix)[0][2] =     ( xz - wy );
+	(*matrix)[1][0] =     ( xy - wz );
+	(*matrix)[1][1] = c1 + c*v[1]*v[1];
+	(*matrix)[1][2] =     ( wx + yz );
+	(*matrix)[2][0] =     ( wy + xz );
+	(*matrix)[2][1] =     ( yz - wx );
+	(*matrix)[2][2] = c1 + c*v[2]*v[2];
+	return matrix;
+}
+
+PMatrix EXTERNAL_NAME(lq_matrix)(PMatrix matrix, PCVECTOR4 v, PCVECTOR position ) {
 	RCOORD nt = v[3];
 	RCOORD s  = sin( nt ); // sin/cos are the function of exp()
 	RCOORD c1 = cos( nt ); // sin/cos are the function of exp()
@@ -2073,8 +2098,17 @@ PMatrix EXTERNAL_NAME(lq_basis)(PMatrix matrix, PCVECTOR4 v ) {
 	(*matrix)[2][0] =     ( wy + xz );
 	(*matrix)[2][1] =     ( yz - wx );
 	(*matrix)[2][2] = c1 + c*v[2]*v[2];
+
+	(*matrix)[3][0] = position[0] * (*matrix)[0][0] + position[1] * (*matrix)[1][0] + position[2] * (*matrix)[2][0];
+	(*matrix)[3][1] = position[0] * (*matrix)[0][1] + position[1] * (*matrix)[1][1] + position[2] * (*matrix)[2][1];
+	(*matrix)[3][2] = position[0] * (*matrix)[0][2] + position[1] * (*matrix)[1][2] + position[2] * (*matrix)[2][2];
+	(*matrix)[0][3] = (*matrix)[1][3] = (*matrix)[2][3] = 0;
+	(*matrix)[3][3] = 1;
+
 	return matrix;
 }
+
+
 
 PMatrix EXTERNAL_NAME( lq_gl_basis )( PMatrix matrix, PCVECTOR4 v ) {
 	RCOORD nt = v[3];
@@ -2104,9 +2138,8 @@ PMatrix EXTERNAL_NAME( lq_gl_basis )( PMatrix matrix, PCVECTOR4 v ) {
 
 
 
-VECTOR_METHOD( void, lq_spin, (PVECTOR4 out, PCVECTOR4 r, PCVECTOR4 around ) ){
-	}
-VECTOR_METHOD( void, lq_up, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+
+VECTOR_METHOD( PVECTOR, lq_up, ( PVECTOR out, PCVECTOR4 r ) ) {
 	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
 	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
 	const RCOORD c  = 1 - c1;
@@ -2115,8 +2148,9 @@ VECTOR_METHOD( void, lq_up, ( PVECTOR4 out, PCVECTOR4 r ) ) {
 	out[ 0 ]        = -s * r[ 2 ] + cn * r[ 0 ];
 	out[ 1 ]        = c1 + cn * r[ 1 ];
 	out[ 2 ]        = s * r[ 0 ] + cn * r[ 2 ];
+	return out;
 }
-VECTOR_METHOD( void, lq_right, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+VECTOR_METHOD( PVECTOR, lq_right, ( PVECTOR out, PCVECTOR4 r ) ) {
 	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
 	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
 	const RCOORD c  = 1 - c1;
@@ -2124,8 +2158,9 @@ VECTOR_METHOD( void, lq_right, ( PVECTOR4 out, PCVECTOR4 r ) ) {
 	out[ 0 ]        = c1 + cn * r[ 0 ];
 	out[ 1 ]        = s * r[ 2 ] + cn * r[ 1 ];
 	out[ 2 ]        = -s * r[ 1 ] + cn * r[ 2 ];
+	return out;
 }
-VECTOR_METHOD( void, lq_forward, ( PVECTOR4 out, PCVECTOR4 r ) ) {
+VECTOR_METHOD( PVECTOR, lq_forward, ( PVECTOR out, PCVECTOR4 r ) ) {
 	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
 	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
 	const RCOORD c  = 1 - c1;
@@ -2133,30 +2168,33 @@ VECTOR_METHOD( void, lq_forward, ( PVECTOR4 out, PCVECTOR4 r ) ) {
 	out[ 0 ]        = s * r[ 1 ] + cn * r[ 0 ];
 	out[ 1 ]        = -s * r[ 0 ] + cn * r[ 1 ];
 	out[ 2 ]        = c1 + cn * r[ 2 ];
+	return out;
 }
 
 RCOORD EXTERNAL_NAME(lq_roll)( PCVECTOR4 r ) {
-	const RCOORD s  = sin( r[ 3 ] ); // double angle sin
-	const RCOORD c1 = cos( r[ 3 ] ); // sin/cos are the function of exp()
-	return asin( s * r[ 2 ] + ( (1 - c1) * r[ 0 ] ) * r[ 1 ] );
+	// this is the inverse of the y coordinate of the x axis.
+   // if x is not flat, then it has some position change in the y direction
+	return asin( ( (1 - cos( r[ 3 ] )) * r[ 0 ] ) * r[ 1 ] - sin( r[ 3 ] ) * r[ 2 ] );
 }
 
 RCOORD EXTERNAL_NAME(lq_yaw)( PCVECTOR4 r ) {
 	const RCOORD s         = sin( r[ 3 ] ); // double angle sin
 	const RCOORD c1        = cos( r[ 3 ] ); // sin/cos are the function of exp()
 	const RCOORD c         = 1 - c1;
-
+	// this is the inverse  x coordinate of the Z axis.
+	// if x is not 0 then there is a yaw.
 	const RCOORD principal = -asin( -s * r[1] + ( 1 - c1 ) * r[0] * r[2] );
+	// then we can look at the x of the x axis, and if it is negative
 	const RCOORD rx        = c1 + c * r[ 0 ] * r[ 0 ];
-	if( rx < 0 )
+	if( rx > 0 )
 		return principal;
 	return ( principal < 0 ) ? ( -M_PI - principal ) : ( M_PI - principal );
 }
 
 RCOORD EXTERNAL_NAME(lq_pitch)( PCVECTOR4 r ) {
-	const RCOORD s  = sin( r[3] ); // double angle sin
-	const RCOORD c1 = cos( r[3] ); // sin/cos are the function of exp()
-	return asin( s * r[ 0 ] + ( c1 - 1 ) * r[ 2 ] * r[ 1 ] );
+	// this is the inverse coordinate for the z coordinate of the y axis
+	// for the forward axis.
+	return asin( ( cos( r[3] ) - 1 ) * r[ 2 ] * r[ 1 ] - sin( r[3] ) * r[ 0 ] );
 }
 
 VECTOR_METHOD( void, lq_apply, ( PVECTOR out, PCVECTOR4 r, PCVECTOR v ) ) {
@@ -2227,7 +2265,7 @@ VECTOR_METHOD( PVECTOR4, lq_applyRotation, ( PVECTOR4 out, PCVECTOR4 r, PCVECTOR
 		// this is NOT /sin(theta);  it is, but only in some ranges...
 		const RCOORD lensq = Cx * Cx + Cy * Cy + Cz * Cz;
 		if( lensq > 0.0000000000000001 ) {
-			const RCOORD Clx = /*( lnQuat.sinNormal ) ? ( 1 / ( 2 * sin( ang / 2 ) ) ) :*/ 1 / lensq;
+			const RCOORD Clx = /*( lnQuat.sinNormal ) ? ( 1 / ( 2 * sin( ang / 2 ) ) ) :*/ 1 / sqrt(lensq);
 
 			//RCOORD qrn       = Clx; // I'd like to save this to see what the normal actually was
 			out[ 3 ]   = ang;
@@ -2427,6 +2465,56 @@ PVECTOR4 EXTERNAL_NAME(lq_cross)( PVECTOR4 out, PCVECTOR a, PCVECTOR b ) {
 }
 
 
+PVECTOR4 EXTERNAL_NAME( lq_free_look )( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw, RCOORD roll ) {
+	VECTOR4 rotation;
+	const RCOORD len2 = pitch*pitch + yaw*yaw + roll*roll;
+	if( len2 < 0.00000000001 ) {
+		if( out != orientation ) {
+			out[0]=orientation[0];
+			out[1]=orientation[1];
+			out[2]=orientation[2];
+			out[3]=orientation[3];
+		}
+		return out;
+	}
+	const RCOORD scalar = sqrt(len2);
+	rotation[ 0 ] = pitch / scalar;
+	rotation[ 1 ] = yaw   / scalar;
+	rotation[ 2 ] = roll  / scalar;
+	rotation[ 3 ] = scalar;
+	EXTERNAL_NAME(lq_applyRotation)( out, orientation, rotation );
+	return out;
+}
+
+
+PVECTOR4 EXTERNAL_NAME( lq_level_look )( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw ) {
+	VECTOR4 rotation;
+	const RCOORD len2 = pitch*pitch + yaw*yaw;
+	if( len2 < 0.00000000001 ) {
+		if( out != orientation ) {
+			out[0]=orientation[0];
+			out[1]=orientation[1];
+			out[2]=orientation[2];
+			out[3]=orientation[3];
+		}
+		return out;
+	}
+	const RCOORD scalar = sqrt(len2);
+	rotation[ 0 ] = pitch / scalar;
+	rotation[ 1 ] = yaw   / scalar;
+	rotation[ 2 ] = 0;
+	rotation[ 3 ] = scalar;
+	
+	EXTERNAL_NAME(lq_applyRotation)( out, orientation, rotation );
+
+	rotation[0] = 0;
+	rotation[1] = 0;
+	rotation[2] = 1;
+	// get inverse-x-axis y coordinate for roll
+	rotation[3] = asin( ( 1 - cos( out[ 3 ] ) ) * out[ 0 ] * out[ 1 ] - sin( out[ 3 ] ) * out[ 2 ] );
+	EXTERNAL_NAME(lq_applyRotation)( out, out, rotation );
+	return out;
+}
 
 
 #undef l

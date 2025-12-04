@@ -1,4 +1,3 @@
-#pragma multiinclude
 // one day I'd like to make a multidimensional library
 // but for now - 3D is sufficient - it can handle everything
 // under 2D ignoring the Z axis... although it would be more
@@ -785,7 +784,28 @@ VECTOR_METHOD( void, lq_exp, (PVECTOR4 q, PCVECTOR4 v) );
 /* convert rotation vector v to basismatrix  */
 VECTOR_METHOD( PMatrix, lq_basis, ( PMatrix matrix, PCVECTOR4 v ) );
 
-/* convert rotation vector v to colmajor (opengl) basismatrix  */
+/* convert rotation vector v to basismatrix
+   sets the origin, so the resulting matrix is a valid view matrix for Vulkan
+ */
+VECTOR_METHOD( PMatrix, lq_matrix, ( PMatrix matrix, PCVECTOR4 v, PCVECTOR position ) );
+
+/* use a mouse sort of left-right/updown (yaw/pitch) input to update the orientation.
+ This has no restrictions on the resulting output, and the rotation is already relative to the
+ current viewpoint.
+ put the output in out, and return out.
+ */
+VECTOR_METHOD( PVECTOR4, lq_free_look, ( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw, RCOORD roll ) );
+
+/* use a mouse sort of left-right/updown (yaw/pitch) input to update the orientation.
+ This restricts the roll, expecting you're on a level ground; whereas the free-look is more suited to space.
+ put the output in out, and return out.
+ */
+VECTOR_METHOD( PVECTOR4, lq_level_look, ( PVECTOR4 out, PCVECTOR4 orientation, RCOORD pitch, RCOORD yaw ) );
+
+/* convert rotation vector v to colmajor (opengl) basismatrix
+ this is probably redundant - native matrix is the correct direction already...
+
+ */
 VECTOR_METHOD( PMatrix, lq_gl_basis, ( PMatrix matrix, PCVECTOR4 v ) );
 
 /* get a vector representing the up (y) direction from a rotation vector */
@@ -822,11 +842,30 @@ VECTOR_METHOD( RCOORD, lq_yaw, ( PCVECTOR4 r ) );
  * just the components of the axis-angle vector.
  */
 VECTOR_METHOD( RCOORD, lq_pitch, ( PCVECTOR4 r ) );
+
+// apply the rotation A to R and store in OUT
+VECTOR_METHOD( PVECTOR4, lq_applyRotation, ( PVECTOR4 out, PCVECTOR4 r, PCVECTOR4 a ) );
+// rotate vector V around R and store in out  (out and V could be the same?)
+VECTOR_METHOD( void, lq_apply, ( PVECTOR out, PCVECTOR4 r, PCVECTOR v ) );
+
 VECTOR_METHOD( PVECTOR4, lq_normalize, ( PVECTOR4 out ) );
 // cross product between two vectors; result as a rotation vector 
 // this is the rotation that rotates one to the other.
 VECTOR_METHOD( PVECTOR4, lq_cross, ( PVECTOR4 out, PCVECTOR a, PCVECTOR b ) );
-VECTOR_METHOD( PVECTOR4, lq_set, ( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z, RCOORD angle ) ); 
+VECTOR_METHOD( PVECTOR4, lq_set, ( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z, RCOORD angle ) );
+
+/* sets rotation vector from pitch and roll (?) */
+VECTOR_METHOD( PVECTOR4, lq_set_xy, ( PVECTOR4 out, RCOORD x, RCOORD z ) );
+/* sets the rotataion vector, and normalizes it into axis&angle internal format */
+VECTOR_METHOD( PVECTOR4, lq_set3, ( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z ) );
+/* normalizes x,y,z axis part, and uses the specified angle */
+VECTOR_METHOD( PVECTOR4, lq_set4, ( PVECTOR4 out, RCOORD x, RCOORD y, RCOORD z, RCOORD angle ) );
+/* treats input as latitude and longitude on a sphere.
+ Lat +/- 90  (+/-360)
+ lng +/- 180 (+/-360)
+
+ This will result in rotation coordinates that are unique for the specified over-latitude range.
+ */
 VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng ) );
 
 #if ( !defined( VECTOR_LIBRARY_SOURCE ) && !defined( NO_AUTO_VECTLIB_NAMES ) ) || defined( NEED_VECTLIB_ALIASES )
@@ -913,8 +952,16 @@ VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng 
 #define lq_normalize EXTERNAL_NAME(lq_normalize)
 #define lq_cross EXTERNAL_NAME(lq_cross)
 #define lq_set EXTERNAL_NAME(lq_set)
+#define lq_set3 EXTERNAL_NAME(lq_set3)
+#define lq_set4 EXTERNAL_NAME(lq_set4)
+#define lq_set_xy EXTERNAL_NAME(lq_set_xy)
 #define lq_set_latlong EXTERNAL_NAME(lq_set_latlong)
-
+#define lq_applyRotation EXTERNAL_NAME(lq_applyRotation)
+#define lq_apply EXTERNAL_NAME(lq_apply)
+#define lq_matrix EXTERNAL_NAME(lq_matrix)
+#define lq_free_look EXTERNAL_NAME(lq_free_look)
+#define lq_level_look EXTERNAL_NAME(lq_level_look)
+//#define lq_ EXTERNAL_NAME(lq_apply)
 
 #endif
 
