@@ -688,7 +688,7 @@ int ProcessDefine( int type )
 		}
 		pCurrentDefine = Allocate( sizeof( DEF ) );
 		MemSet(pCurrentDefine, 0, sizeof( DEF ) );
-		strcpy( pCurrentDefine->pFile, GetCurrentFileName() );
+		StrCpy( pCurrentDefine->pFile, GetCurrentFileName() );
 		pCurrentDefine->nLine = GetCurrentLine();
 		pCurrentDefine->nType = type;
 		pWord = GetCurrentWord();

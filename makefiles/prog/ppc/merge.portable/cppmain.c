@@ -183,7 +183,7 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 		{
 			if( !idx ) // don't use auto path for 'system' includes.
 				continue;
-			sprintf( Workname, "%s/%s", GetText( pPath ), name );
+			snprintf( Workname, sizeof(Workname), "%s/%s", GetText( pPath ), name );
 			if( g.bDebugLog )
 			{
 				fprintf( stddbg, "attempting \"%s\"\n" , Workname );
@@ -197,7 +197,7 @@ int ProcessSystemIncludeFile( char *name, int bAllowAbsolute, int bNext )
 		}
 		LIST_FORALL( g.pSysIncludePath, idx, PTEXT, pPath )
 		{
-			sprintf( Workname, "%s/%s", GetText( pPath ), name );
+			snprintf( Workname, sizeof(Workname), "%s/%s", GetText( pPath ), name );
 			if( g.bDebugLog )
 			{
 				fprintf( stddbg, "attempting <%s>\n" , Workname );
@@ -245,7 +245,7 @@ int ProcessInclude( int bNext )
 			pEnd = NEXTLINE( GetCurrentWord() );
 			while( pEnd && GetText( pEnd )[0] != '\"' )
 			{
-				i += sprintf( basename + i, "%s", GetText( pEnd ) );
+				i += snprintf( basename + i, sizeof(basename)-i, "%s", GetText( pEnd ) );
 				pEnd = NEXTLINE( pEnd );
 			}
 			basename[i] = 0;
@@ -256,7 +256,7 @@ int ProcessInclude( int bNext )
 				g.ErrorCount++;
 				return TRUE;
 			}
-			strcpy( Workname, basename );
+			StrCpy( Workname, basename );
 			if( g.bDebugLog )
 			{
 				fprintf( stddbg, "attempting: \"%s\"\n", basename );
@@ -296,7 +296,7 @@ int ProcessInclude( int bNext )
 				}
 				LIST_FORALL( g.pUserIncludePath, idx, PTEXT, pPath )
 				{
-					sprintf( Workname, "%s/%s", GetText( pPath ), basename );
+					snprintf( Workname, sizeof(Workname), "%s/%s", GetText( pPath ), basename );
 					if( g.bDebugLog )
 					{
 						fprintf( stddbg, "attempting \"%s\"\n" , Workname );
@@ -347,7 +347,7 @@ int ProcessInclude( int bNext )
 			pEnd = NEXTLINE( pWord );
 			while( pEnd && GetText( pEnd )[0] != '>' )
 			{
-				i += sprintf( basename + i, "%s", GetText( pEnd ) );
+				i += snprintf( basename + i, sizeof(basename)-i, "%s", GetText( pEnd ) );
 				pEnd = NEXTLINE( pEnd );
 			}
 			basename[i] = 0;
@@ -380,7 +380,7 @@ int ProcessInclude( int bNext )
 				SetCurrentWord( pWord );
 			}
 			else
-				sprintf( basename, "%s", GetText( pEnd ) );
+				snprintf( basename, sizeof(basename), "%s", GetText( pEnd ) );
 			did_subst++;
 
 		}
@@ -1137,7 +1137,7 @@ void RunProcessFile( void )
 void loadConfig( void ) {
 	{
 		char file[256];
-		sprintf( file, "%s/config.ppc", g.pWorkPath/*g.pExecPath*/ );
+		snprintf( file, sizeof(file), "%s/config.ppc", g.pWorkPath/*g.pExecPath*/ );
 		//printf( "loading defines from %s", file );
 #if defined( __WATCOMC__ ) || defined (__LCC__)
 		{
@@ -1192,9 +1192,9 @@ void ProcessFile( char *file, PVARTEXT pvt )
 		if( g.CurrentOutName[ 0 ] != (char)0xFF ) {
 			if( !g.flags.bStdout ) {
 				if( g.CurrentOutName[ 0 ] )
-					strcpy( newname, g.CurrentOutName );
+					StrCpy( newname, g.CurrentOutName );
 				else {
-					strcpy( newname, file );
+					StrCpy( newname, file );
 					newname[ strlen( newname ) - 1 ] = 'i'; // replace last char with i...
 				}
 				if( !OpenOutputFile( newname ) ) {
@@ -1384,7 +1384,7 @@ int processArguments( int argc, char **argv ) {
 						done = 1;
 						break;
 					case ARG_AUTOTARGET_NAME:
-						strcpy( g.AutoTargetName, argv[i] );
+						StrCpy( g.AutoTargetName, argv[i] );
 						nArgState = ARG_UNKNOWN;
 						done = 1;
 						break;
@@ -1393,7 +1393,7 @@ int processArguments( int argc, char **argv ) {
 						done = 1;
 						break;
 					case ARG_OUT_NAME:
-						strcpy( g.CurrentOutName, argv[i] );
+						StrCpy( g.CurrentOutName, argv[i] );
 						nArgState = ARG_UNKNOWN;
 						done = 1;
 						break;
@@ -1614,7 +1614,7 @@ int processArguments( int argc, char **argv ) {
 							}
 							else if( argv[i][n+1] == 'T' )
 							{
-								if( argv[i][n+2] ) strcpy( g.AutoTargetName, argv[i]+n+2 );
+								if( argv[i][n+2] ) StrCpy( g.AutoTargetName, argv[i]+n+2 );
 								else nArgState = ARG_AUTOTARGET_NAME;
 							}
 							else
@@ -1631,7 +1631,7 @@ int processArguments( int argc, char **argv ) {
 							{
 								if( argv[i][n+1] )
 								{
-									strcpy( g.CurrentOutName, argv[i] + n + 1 );
+									StrCpy( g.CurrentOutName, argv[i] + n + 1 );
 									//printf( "Set output: %s\n", argv[i] + n + 1 );
 									done = 1;
 								}
@@ -1749,6 +1749,37 @@ int processArguments( int argc, char **argv ) {
 	return 2;
 }
 
+static void ResetProcessorEx( LOGICAL bUseAgain ) {
+	// should reset the state enough to start again.
+	VarTextEmpty( g.pvt );
+	{
+		PINCLUDE_REF pRef;
+		while( pRef = PopLink( &g.pIncludeList ) )
+			Release( pRef );
+	}
+	DestoyDepends();
+	DeleteAllDefines( DEFINE_ALL );
+	ReleaseIncludePaths();
+	DeinitDefines();
+
+	if( bUseAgain ) {
+		AddLink( &g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
+	}
+
+}
+
+void ResetProcessor( void ) {
+	ResetProcessorEx( TRUE );
+}
+
+void CloseProcessor( void ) {
+	// should reset the state enough to start again.
+	ResetProcessorEx( FALSE );
+	DeinitDefines();
+
+}
+
+
 #ifdef PPC_LIBRARY
 PRELOAD( initPPC )
 #else
@@ -1769,20 +1800,20 @@ int main( int argc, char **argv, char **env )
 				buf[n] = 0; //linux
 				if( !n )
 				{
-					strcpy( buf, "." );
+					StrCpy( buf, "." );
 					buf[ n = readlink( "/proc/curproc/", buf, 256 ) ] = 0; // fbsd
 				}
 			}
 			else
-				strcpy( buf, "." );
+				StrCpy( buf, "." );
 			pb = strrchr( buf, '/' );
 			if( pb )
 			{
 				pb[0]=0;
 				pb++;
-				strcpy( g.pExecName, pb );
+				StrCpy( g.pExecName, pb );
 			}
-			strcpy( g.pExecPath, buf );
+			StrCpy( g.pExecPath, buf );
 		}
 	}
 #endif
@@ -1792,9 +1823,8 @@ int main( int argc, char **argv, char **env )
 #else
 	printf( "Path is not defined - probably will not work." );
 #endif
-#ifdef __WATCOMC__
+
 	SetMinAllocate( sizeof( TEXT ) + 16 );
-#endif
 	SetAllocateDebug( TRUE );
 	//DisableMemoryValidate(TRUE);
 	// should build this from execution path of this module

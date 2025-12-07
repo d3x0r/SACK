@@ -136,7 +136,7 @@ static PTEXT OutputDanglingCharsEx( PTEXT outdata, PVARTEXT out, uint32_t *space
 }
 
 
-PTEXT ppc_burstEx( PTEXT input DBG_PASS )
+PTEXT PPC_burstEx( PTEXT input DBG_PASS )
 // returns a TEXT list of parsed data
 {
 //#define DBG_OVERRIDE DBG_SRC

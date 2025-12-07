@@ -51,7 +51,7 @@ int CurrentFileDepth( void )
 
 void PPC_SetCurrentPath( char *path )
 {
-	strcpy( g.pCurrentPath.data.data, path );
+	StrCpy( g.pCurrentPath.data.data, path );
 	g.pCurrentPath.data.size = strlen( path );
 }
 
@@ -98,8 +98,8 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 	if( !( pfd = FindDependFile( pfd, basename ) ) )
 	{
 		pfd = Allocate( sizeof( FILEDEP ) );
-		strcpy( pfd->base_name, basename );
-		strcpy( pfd->full_name, filename );
+		StrCpy( pfd->base_name, basename );
+		StrCpy( pfd->full_name, filename );
 		pfd->bAllowMultipleInclude = FALSE;
 		pfd->pAlso = NULL;
 		pfd->pDependsOn = NULL;
@@ -267,7 +267,7 @@ char *FixName( char *file )
 	if( file[0] != '/' && file[1] != ':' )
 		snprintf( realname, __MAX_PATH__, "%s/%s", g.pWorkPath, file );
 	else
-		strcpy( realname, file );
+		StrCpy( realname, file );
 	{
 		char *tmp;
 		while( tmp = strstr( realname, ".." ) ) {
@@ -277,7 +277,7 @@ char *FixName( char *file )
 			if( tmp[-1] == '/' || tmp[-1] == '\\' ) {
 				char *start;
 				tmp[-1] = 0;
-				start = pathrchr( realname );
+				start = (char*)pathrchr( realname );
 				{ int n; for( n = 0; start[n] = tmp[2+n]; n++ ); }
 			}
 		}
@@ -300,7 +300,7 @@ char *GetCurrentShortFileName( void )
 void GetCurrentFileLine( char *name, int *line )
 {
 	if( name )
-		strcpy( name, GetCurrentFileName() );
+		StrCpy( name, GetCurrentFileName() );
 	if( line )
 		*line = GetCurrentLine();
 }
@@ -310,7 +310,7 @@ void GetCurrentFileLine( char *name, int *line )
 void WriteLineInfo( char *name, int line )
 {
 	FILE *out = GetCurrentOutput();
-	PVARTEXT *pvtOut = g.pvtOut;
+	PVARTEXT pvtOut = g.pvtOut;
 	static char  LastFileWritten[__MAX_PATH__];
 	static int	LastLineWritten;
 	if( out || pvtOut )
@@ -319,7 +319,7 @@ void WriteLineInfo( char *name, int line )
 		if( strcmp( name, LastFileWritten ) || // not match
 		    line != LastLineWritten )
 		{
-			strcpy( LastFileWritten, GetCurrentFileName() );
+			StrCpy( LastFileWritten, GetCurrentFileName() );
 			LastLineWritten = line;
 			if( g.flags.bWriteLineInfo )
 			{
@@ -462,8 +462,8 @@ uintptr_t OpenInputFile( char *basename, char *file )
 		pft->nLine = 0;
 		pft->file = fp;
 		pft->nIfLevel = g.nIfLevels;
-		strcpy( pft->name, file );
-		strcpy( pft->longname, tmp );
+		StrCpy( pft->name, file );
+		StrCpy( pft->longname, tmp );
 		FixSlashes( pft->longname );
 		pft->line = NULL;
 		//pft->output = NULL;
@@ -506,8 +506,8 @@ uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, 
 		pftNew->nLine = 0;
 		pftNew->file = fp;
 		pftNew->nIfLevel = g.nIfLevels;
-		strcpy( pftNew->name, name );
-		strcpy( pftNew->longname, tmp );
+		StrCpy( pftNew->name, name );
+		StrCpy( pftNew->longname, tmp );
 		FixSlashes( pftNew->longname );
 
 		// move the current line to the current file... (so we can log #include?)
@@ -681,7 +681,7 @@ Restart:
 			}
 			return NULL;
 		}
-		pNew = burst( pft->line );
+		pNew = PPC_burst( pft->line );
 
 		// strip blank lines...
 		if( pNew && !GetTextSize( pNew ) )

@@ -82,6 +82,10 @@ typedef struct global_tag
 	PFILETRACK pAllFileStack;
 
 	PFILETRACK pFileStack;
+
+	int binding;
+	int layout;
+
 	PVARTEXT pvtOut; // builds output into this buffer instead of writing output to a file.
 } GLOBAL;
 
