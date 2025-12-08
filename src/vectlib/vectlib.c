@@ -2386,7 +2386,7 @@ PVECTOR4 EXTERNAL_NAME(lq_normalize)( PVECTOR4 out ) {
 	return out;
 }
 
-static const RCOORD p2 = 2 * M_PI;
+#define p2 (2*M_PI)
 
 static //            0-1 1-2 2-3 3-4
      const RCOORD grid[ 4 ][ 4 ]
@@ -2405,7 +2405,7 @@ static const RCOORD grid2[ 4 ][ 4 ] = {
    , { 0, 0, 0, p2 * 2 } // 2-3
    , { 0, 0, 0, p2 * 2 } // 3-4
 };
-
+#undef p2
 
 PVECTOR4 EXTERNAL_NAME( lq_set_latlong )( PVECTOR4 out, RCOORD lat, RCOORD lng ) {
 
