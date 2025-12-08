@@ -31,6 +31,8 @@
 @set SRCS= %SRCS%   ../../src/memlib/memory_operations.c 
 @set SRCS= %SRCS%   ../../src/timerlib/timers.c 
 
+@set SRCS= %SRCS%   ../../src/systemlib/args.c
+
 @set SRCS= %SRCS%   ../../src/deadstart/deadstart_core.c 
  
 
