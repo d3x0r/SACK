@@ -5,11 +5,14 @@
 #include "sack_ucb_filelib.h"
 #include "define.h"
 #include "global.h"
-
 #include <time.h>
 
 //#define DEFINE_STDC_VERSION
 
+#ifdef __cplusplus
+namespace d3x0r {
+namespace ppc {
+#endif
 
 #define DEBUG_SUBST 0x02
 #define DEBUG_DEFINES 0x04
@@ -20,14 +23,6 @@ static PDEF pDefineRoot, pCurrentDefine;
 static DEF DefineLine  // static symbol....
 	, DefineFile // static symbol....
 
-// __BINDING__ is an auto-incrementing counter that starts at 0
-// it should also take some sort of external structure to report
-// what it ended up using as a first-binding per-file...
-	, DefineBinding // static symbol....
-// __LAYOUT__ is an auto-incrementing counter that starts at 0
-// it should also take some sort of external structure to report
-// what it ended up using as a first-binding per-file...
-	, DefineLayout // static symbol..
 #ifdef DEFINE_STDC_VERSION
 	, DefineStdCVersion // 199901L
 #endif
@@ -168,22 +163,6 @@ void InitDefines( void )
 		DefineLine.pGreater = NULL;
 	}
 	{
-		DECLTEXT( constname, "__LAYOUT__" );
-		DefineLayout.pName = (PTEXT)&constname;
-		DefineLayout.pParams = NULL;
-		DefineLayout.bUsed = FALSE;
-		DefineLayout.pLesser = NULL;
-		DefineLayout.pGreater = NULL;
-	}
-	{
-		DECLTEXT( constname, "__BINDING__" );
-		DefineBinding.pName = (PTEXT)&constname;
-		DefineBinding.pParams = NULL;
-		DefineBinding.bUsed = FALSE;
-		DefineBinding.pLesser = NULL;
-		DefineBinding.pGreater = NULL;
-	}
-	{
 		DECLTEXT( constname, "__FILE__" );
 		DefineFile.pName = (PTEXT)&constname;
 		DefineFile.pParams = NULL;
@@ -269,15 +248,7 @@ PDEF FindDefineName( PTEXT pName, int params )
 		DefineLine.pData = SegCreateFromInt( GetCurrentLine() );
 		DefineLine.bUsed = FALSE;
 		return &DefineLine;
-	}
-	else if( TextIs( pName, "__BINDING__" ) )
-	{
-	}
-	else if( TextIs( pName, "__LAYOUT__" ) )
-	{
-	}
-	else if( TextIs( pName, "__FILE__" ) )
-	{
+	} else if( TextIs( pName, "__FILE__" ) ) {
 		PVARTEXT vt;
 		vt = VarTextCreate(  );
 		if( DefineFile.pData )
@@ -292,16 +263,10 @@ PDEF FindDefineName( PTEXT pName, int params )
 		VarTextDestroy( &vt );
 		DefineFile.bUsed = FALSE;
 		return &DefineFile;
-	}
-	//if( TextIs( pName, "__TIME__ " ) ) // hh:mm:ss
-	else if( TextIs( pName, "__TIME__" ) )
-	{
+	} else if( TextIs( pName, "__TIME__" ) ) {
 		DefineTime.bUsed = FALSE;
 		return &DefineTime;
-	}
-	//if( TextIs( pName, "__DATE__ " ) ) // Mmm dd yyyy dd = ' x' if <10
-	else if( TextIs( pName, "__DATE__" ) )
-	{
+	} else if( TextIs( pName, "__DATE__" ) ) {
 		DefineDate.bUsed = FALSE;
 		return &DefineDate;
 	}
@@ -394,7 +359,6 @@ void InsertDefine( PDEF pDef, PDEF p )
 	p->me = &pDef->pSame;
 	p->pGreater = NULL;
 	p->pLesser = NULL;
-
 }
 
 //----------------------------------------------------------------------
@@ -647,9 +611,9 @@ void DeleteAllDefines( int type )
 
 //----------------------------------------------------------------------
 
-void DefineDefine( char *name, char *value )
+PDEF DefineDefine( char *name, char *value )
 {
-	PDEF pDefine = Allocate( sizeof( DEF ) );
+	PDEF pDefine = New( DEF );
 	MemSet( pDefine, 0, sizeof( DEF ) );
 	pDefine->nType = DEFINE_COMMANDLINE;
 	pDefine->pName = SegCreateFromText( name );
@@ -657,12 +621,12 @@ void DefineDefine( char *name, char *value )
 	if( pDefine->pData )
 		pDefine->pData->format.position.offset.spaces = 1;
 	HangNode( &pDefineRoot, pDefine );
-
+	return pDefine;
 }
 
 //----------------------------------------------------------------------
 
-int ProcessDefine( int type )
+int ProcessDefine( enum define_type type )
 {
 	//PTEXT def;
 	if( !pCurrentDefine )
@@ -670,6 +634,8 @@ int ProcessDefine( int type )
 		PTEXT pWord = GetCurrentWord();
 		if( TextIs( pWord, "__LINE__" )
 			|| TextIs( pWord, "__FILE__" )
+		    || TextIs( pWord, "__DATE__" )
+		    || TextIs( pWord, "__TIME__" )
 #ifdef DEFINE_STDC_VERSION
 			|| TextIs( pWord, "__STDC_VERSION__" )
 #endif
@@ -686,7 +652,7 @@ int ProcessDefine( int type )
 								, GetCurrentFileName(), GetCurrentLine() );
 			return TRUE; // just a warning
 		}
-		pCurrentDefine = Allocate( sizeof( DEF ) );
+		pCurrentDefine = New( DEF );
 		MemSet(pCurrentDefine, 0, sizeof( DEF ) );
 		StrCpy( pCurrentDefine->pFile, GetCurrentFileName() );
 		pCurrentDefine->nLine = GetCurrentLine();
@@ -1617,7 +1583,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 						for( idx = 0; idx < pArgVals->Cnt; idx++ )
 						//LIST_FORALL( pArgVals, idx, PTEXT, arg )
 						{
-							PTEXT name = GetLink( &pDefine->pParams, idx );
+							PTEXT name = (PTEXT)GetLink( &pDefine->pParams, idx );
 							PTEXT full = BuildLine( (PTEXT)pArgVals->pNode[idx] );
 								fprintf( stddbg, "%s = %s (%p)\n"
 										, name?GetText( name ):"..."
@@ -1628,8 +1594,10 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					}
 				}
 
+				int params = GetLinkCount( pDefine->pParams );
+				int argVals = GetLinkCount( pArgVals );
 				if( pArgVals && pDefine->pParams &&
-					( pArgVals->Cnt < pDefine->pParams->Cnt ) )
+					( argVals < params ) )
 				{
 					fprintf( stderr, "%s(%d): Warning: parameters to macro are short... assuming NIL parameters.\n"
 						 , GetCurrentFileName(), GetCurrentLine() );
@@ -1647,13 +1615,15 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					{
 						for( idx = 0; idx < pArgVals->Cnt; idx++ )
 						{
+							// perform substitutions on each argument before being used as an argument.
 							EvalSubstitutions( (PTEXT*)(pArgVals->pNode + idx), FALSE );
 						}
 					}
 					pDefine->bUsed = TRUE; // is used. now...
+					if( pDefine->nType == DEFINE_EXTERNAL ) {
+						pDefine->cbExternal( g.current_process_info, pArgVals, &pSubst );
 
-					for( p = pDefine->pData; p; p = NEXTLINE( p ) )
-					{
+					} else for( p = pDefine->pData; p; p = NEXTLINE( p ) ) {
 						if( !quote )
 						{
 							if( GetText( p )[0] == '\'' )
@@ -1748,10 +1718,11 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							if( idx == pDefine->pParams->Cnt )
 							{
 								if( TextIs( p, "__SZ_ARGS__" ) )
-									seg = BuildSizeofArgs( GetLink( &pArgVals, idx ) );
-								else
+									seg = BuildSizeofArgs(
+									     (PTEXT)GetLink( &pArgVals, idx ) );
 								{
-									seg = TextDuplicate( GetLink( &pArgVals, idx ), FALSE );
+									seg = TextDuplicate(
+									     (PTEXT)GetLink( &pArgVals, idx ), FALSE );
 									if( !GetLink( &pArgVals, idx ) )
 									{
 										PTEXT prior = pSubst;
@@ -1766,7 +1737,8 @@ void EvalSubstitutions( PTEXT *subst, int more )
 							}
 							else
 							{
-								seg = TextDuplicate( GetLink( &pArgVals, idx ), FALSE );
+								seg = TextDuplicate( (PTEXT)GetLink( &pArgVals, idx ),
+								                     FALSE );
 							}
 
 							if( MakeString == 2 )
@@ -1813,42 +1785,15 @@ void EvalSubstitutions( PTEXT *subst, int more )
 									LineRelease( seg );
 									seg = VarTextGet( g.pvt );
 								}
-									// don't check this for substitution
-							MakeString = 0;
-						}
-						else
-							{
-								// seg will always be a unique thing unto itself here.
-								/*
-								if( g.bDebugLog & DEBUG_SUBST )
-								{
-									fprintf( stddbg, "%s(%d): Doing substitution on substituted parameter: "
-											, GetCurrentFileName()
-											, GetCurrentLine()
-											 );
-									DumpSegs( seg );
-									fprintf( stddbg, "\n" );
-								}
-								EvalSubstitutions( &seg, ppReset );
-								if( g.bDebugLog & DEBUG_SUBST )
-								{
-									fprintf( stddbg, "%s(%d): Did substitution: "
-											, GetCurrentFileName()
-											, GetCurrentLine()
-											 );
-									DumpSegs( seg );
-									fprintf( stddbg, "\n" );
-								}
-								*/
-								if( seg )
-								{
-									seg->format.position.offset.spaces = p->format.position.offset.spaces;
-									//if( p == pDefine->pData )
-									seg->format.position.offset.spaces++;
-								}
-								// check seg itself as a symbol...
+										// don't check this for substitution
+								MakeString = 0;
 							}
-							pSubst = SegAppend( pSubst, seg );
+							else if( seg ) {
+								seg->format.position.offset.spaces = p->format.position.offset.spaces;
+								//if( p == pDefine->pData )
+								seg->format.position.offset.spaces++;
+								pSubst = SegAppend( pSubst, seg );
+							}
 						}
 					}
 					EmptyArgList( &pArgVals );
@@ -1889,7 +1834,9 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					pReset->format.position.offset.spaces = 1;
 				if( pSubst )
 					pReset = pSubst;
+
 				SegSubstRange( &pStart, pWord, pSubst );
+
 				if( pOrigin == *subst )
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
@@ -1898,27 +1845,6 @@ void EvalSubstitutions( PTEXT *subst, int more )
 					}
 					*subst = pStart;
 				}
-
-				// while current is still marked as used, process from HERE
-				// forward... this will allow recursive defines to work.
-				/*
-				if( pStart == *subst )
-				{
-					if( g.bDebugLog & DEBUG_SUBST )
-						fprintf( stddbg, "Doing subst from start of line...\n" );
-					EvalSubstitutions( subst, FALSE ); // need recursion to keep defined substs from redefining...
-					pReset = *ppReset;
-					fprintf( stddbg, "Returning from doing start of line subst...\n" );
-				}
-				else
-				{
-					if( g.bDebugLog & DEBUG_SUBST )
-						fprintf( stddbg, "Doing subst from current start\n" );
-					EvalSubstitutions( &pStart, FALSE ); // need recursion to keep defined substs from redefining...
-					pReset = *ppReset;
-					fprintf( stddbg, "Returning from current spot subst...\n" );
-				}
-				*/
 			}
 			else
 			{
@@ -1998,3 +1924,6 @@ void CommitDefinesToCommandLine( void )
 }
 
 //----------------------------------------------------------------------
+#ifdef __cplusplus
+}}
+#endif

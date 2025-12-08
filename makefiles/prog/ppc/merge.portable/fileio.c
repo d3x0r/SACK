@@ -7,7 +7,10 @@
 #include "global.h"
 
 
-
+#ifdef __cplusplus
+namespace d3x0r {
+namespace ppc {
+#endif
 
 //----------------------------------------------------------------------
 
@@ -97,7 +100,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 		pfd = pfd->pDependedBy;
 	if( !( pfd = FindDependFile( pfd, basename ) ) )
 	{
-		pfd = Allocate( sizeof( FILEDEP ) );
+		pfd = New( FILEDEP );
 		StrCpy( pfd->base_name, basename );
 		StrCpy( pfd->full_name, filename );
 		pfd->bAllowMultipleInclude = FALSE;
@@ -376,10 +379,11 @@ void WriteLine( size_t len, char *line )
 		fputc( '\n', out );
 		//fflush( out );
 	} else if( g.pvtOut ) {
+		// vtprintf( g.pvtOut, "%.*s\n", (int)len, line );
 		VarTextAddData( g.pvtOut, line, len );
 		VarTextAddCharacter( g.pvtOut, '\n' );
-	}
-	//fprintf( out, "%s\n", line );
+	} else if( g.flags.bStdout )
+		printf( "%.*s\n", (int)len, line );
 }
 
 //----------------------------------------------------------------------
@@ -1056,30 +1060,13 @@ Restart:
 						LineRelease( pNew );
 						pNew = pStart;
 					}
-				if( !g.flags.keep_comments ) {
-					SegBreak( pStart );
-					LineRelease( pStart );
-				}
-				/*
-					if( g.flags.keep_comments )
-					{
-						PTEXT pOut;
-						pOut = BuildLineEx( pStart, FALSE DBG_SRC );
-						if( pOut )
-						{
-							if( g.flags.bWriteLine )
-							{
-								WriteCurrentLineInfo();
-							}
-							WriteLine( GetTextSize( pOut ), GetText( pOut ) );
-							LineRelease( pOut );
-						}
+					if( !g.flags.keep_comments ) {
+						SegBreak( pStart );
+						LineRelease( pStart );
 					}
-					*/
 				}
 				else
 				{
-					//printf( "In Block comment(3)...\n" );
 					// ignore this line completely!
 					if( g.flags.keep_comments )
 					{
@@ -1114,3 +1101,6 @@ Restart:
 }
 
 
+#ifdef __cplusplus
+}}
+#endif

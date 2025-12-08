@@ -15,6 +15,11 @@
 #include "expr.h"
 #include "global.h"
 
+#ifdef __cplusplus
+namespace d3x0r {
+namespace ppc {
+#endif
+
 typedef struct opnode {
 	int op;
 	union {
@@ -219,7 +224,7 @@ RELATION Relations[] = { { OP_NOOP      , { { '=', OP_SETEQUAL }
 static POPNODE GetOpNodeEx( DBG_VOIDPASS )
 #define GetOpNode() GetOpNodeEx( DBG_VOIDSRC )
 {
-	POPNODE pOp = AllocateEx( sizeof( OPNODE ) DBG_RELAY );
+	POPNODE pOp = (POPNODE)AllocateEx( sizeof( OPNODE ) DBG_RELAY );
 	memset( pOp, 0, sizeof( OPNODE ) );
 	pOp->op     = OP_NOOP;
 	return pOp;
@@ -1815,3 +1820,7 @@ uint64_t ProcessExpression( void )
 	DestroyExpression( tree );
 	return 0;
 }
+
+#ifdef __cplusplus
+}}
+#endif

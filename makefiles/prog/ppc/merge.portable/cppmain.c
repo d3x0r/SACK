@@ -21,17 +21,15 @@
 #define CPP_MAIN_SOURCE
 #include "global.h"
 
-#ifdef PPC_LIBRARY
 #include "panthers_c_preprocessor.h"
-#else
-static void ProcessFile( char *file, PVARTEXT pvt );
-
-#endif
 
 // this module shall have provision to read a cpp.cnf
 // which will indicate system include paths, and additional symbols
 // which may be defined on a per-compiler basis....
 
+#ifdef __cplusplus
+namespace d3x0r { namespace ppc {
+#endif
 
 #define ARG_UNKNOWN          0
 #define ARG_INCLUDE_PATH     1
@@ -1071,7 +1069,7 @@ int PreProcessLine( void )
 		if( nState )
 			fprintf( stderr, "ERROR: Substituting the line...bad state %d\n", nState );
 		EvalSubstitutions( line, TRUE );
-		SetCurrentWord( pFirstWord );
+		SetCurrentWord( line[0] );
 	}
 	return TRUE;
 }
@@ -1163,7 +1161,7 @@ void loadConfig( void ) {
 			}
 		}
 #endif
-		ProcessFile( file, NULL );
+		ProcessFile( file, NULL, 0 );
 		CommitDefinesToCommandLine();
 		//DestoyDepends();
 	}
@@ -1171,12 +1169,11 @@ void loadConfig( void ) {
 }
 
 
-void ProcessFile( char *file, PVARTEXT pvt )
-{
+void ProcessFile( char *file, PVARTEXT pvt, uintptr_t processInfo ) {
 	char newname[__MAX_PATH__];
 	char *filestart = (char *)pathrchr( file );
 	if( !g.flags.config_loaded ) {
-		g.flags.config_loaded = 1;;
+		g.flags.config_loaded = 1;
 		loadConfig();
 	}
 	if( !filestart )
@@ -1187,7 +1184,9 @@ void ProcessFile( char *file, PVARTEXT pvt )
 	{
 		return;
 	}
-	g.pvtOut = pvt;
+	g.current_process_info       = processInfo;
+	g.current_file_name    = file;
+	g.pvtOut                     = pvt;
 	if( !pvt ) {
 		if( g.CurrentOutName[ 0 ] != (char)0xFF ) {
 			if( !g.flags.bStdout ) {
@@ -1212,7 +1211,7 @@ void ProcessFile( char *file, PVARTEXT pvt )
 	}
 	{
 		PINCLUDE_REF pRef;
-		while( pRef = PopLink( &g.pIncludeList ) ) {
+		while( pRef = (PINCLUDE_REF)PopLink( &g.pIncludeList ) ) {
 			g.flags.bNoOutput = pRef->flags.bMacros;
 			if( !ProcessSystemIncludeFile( pRef->name, TRUE, FALSE ) ) {
 				fprintf( stderr, "%s(%d): Warning could not process include file \'%s\'\n", GetCurrentFileName(),
@@ -1365,7 +1364,7 @@ int processArguments( int argc, char **argv ) {
 					{
 					case ARG_MACRO_FILE:
 						{
-							PINCLUDE_REF pRef = Allocate( sizeof( INCLUDE_REF ) );
+							PINCLUDE_REF pRef = New( INCLUDE_REF );
 							pRef->flags.bMacros = 1;
 							pRef->name = argv[i];
 							PushLink( &g.pIncludeList, pRef );
@@ -1375,7 +1374,7 @@ int processArguments( int argc, char **argv ) {
 						break;
 					case ARG_INCLUDE_FILE:
 						{
-							PINCLUDE_REF pRef = Allocate( sizeof( INCLUDE_REF ) );
+							PINCLUDE_REF pRef = New( INCLUDE_REF );
 							pRef->flags.bMacros = 0;
 							pRef->name = argv[i];
 							PushLink( &g.pIncludeList, pRef );
@@ -1625,7 +1624,7 @@ int processArguments( int argc, char **argv ) {
 						{
 							if( negarg )
 							{
-								g.CurrentOutName[0] = 0xFF;
+								g.CurrentOutName[ 0 ] = -1; //0xFF;
 							}
 							else
 							{
@@ -1738,7 +1737,7 @@ int processArguments( int argc, char **argv ) {
 				{
 					//fprintf( stderr, "Probable error! -include, -imacro directives are lost.\nMultiple sources on command line.\n" );
 				}
-				ProcessFile( argv[i], NULL );
+				ProcessFile( argv[i], NULL, 0 );
 				if( !g.flags.skip_logic_processing )
 					DeleteAllDefines( DEFINE_FILE );
 				//if(  )
@@ -1754,7 +1753,7 @@ static void ResetProcessorEx( LOGICAL bUseAgain ) {
 	VarTextEmpty( g.pvt );
 	{
 		PINCLUDE_REF pRef;
-		while( pRef = PopLink( &g.pIncludeList ) )
+		while( pRef = (PINCLUDE_REF)PopLink( &g.pIncludeList ) )
 			Release( pRef );
 	}
 	DestoyDepends();
@@ -1765,7 +1764,6 @@ static void ResetProcessorEx( LOGICAL bUseAgain ) {
 	if( bUseAgain ) {
 		AddLink( &g.pUserIncludePath, (PTEXT)&g.pCurrentPath );
 	}
-
 }
 
 void ResetProcessor( void ) {
@@ -1878,3 +1876,22 @@ int main( int argc, char **argv, char **env )
 	return g.ErrorCount;
 #endif
 }
+
+
+
+#ifdef PPC_LIBRARY
+
+void DefineExternalDefine( char *name,
+                                    char *args,
+                                    void ( *cb )( uintptr_t psvShaderInfo,
+                                                   PLIST pArgs, PTEXT *pOutput ) ) {
+	PDEF def = DefineDefine( name, args );
+	def->nType = DEFINE_EXTERNAL;
+	def->cbExternal = cb;
+
+}
+
+#ifdef __cplusplus
+}}
+#endif
+#endif
