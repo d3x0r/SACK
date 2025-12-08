@@ -463,24 +463,28 @@ INDEX  GetSegmentLength ( PTEXT segment, size_t position, int nTabSize )
 
 PTEXT SegAppend(PTEXT source,PTEXT other)
 {
-	PTEXT temp=source;
+   return SegAppends( source, other, NULL );
+}
 
-	if( temp )
+PTEXT SegAppends(PTEXT source, ...)
+{
+	PTEXT temp=source;
+   PTEXT other;
+   va_list args;
+   va_start( args, source );
+	while( other = va_arg( args, PTEXT ) )
 	{
-		if( other )
-		{
+      if( temp )
 			SetEnd(temp);
-			SETNEXTLINE(temp,other);
-			SETPRIORLINE(other,temp);
-		}
-	}
-	else
-	{
-		source=other;  // nothing was before...
-	}
+		else
+         temp = other;
+		SETNEXTLINE(temp,other);
+		SETPRIORLINE(other,temp);
+  	}
 	return(source);
 }
 
+//---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 
 void SegReleaseEx( PTEXT seg DBG_PASS)
@@ -2159,7 +2163,82 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 
 //---------------------------------------------------------------------------
 
-LOGICAL VarTextEndEx( PVARTEXT pvt DBG_PASS )
+// combines BuildLine with VarTextOutput (one less move, since we can just output
+// into the vartext without copying to a temporary buffer
+void VarTextAddText( PVARTEXT pvt, PTEXT pt, int bSingle ) {
+	char *buf;
+	int   TopSingle = bSingle;
+	PTEXT pStack[32];
+	int   nStack, spaces = 0;
+	//int   skipspaces = ( PRIORLINE(pt) == NULL );
+	PTEXT pOut;
+	uintptr_t ofs;
+	//DebugBreak();
+	ofs = 0;
+	nStack = 0;
+	while( pt )
+	{
+		if( !(pt->flags& (TF_INDIRECT|IS_DATA_FLAGS)) &&
+			 !pt->data.size
+		  )
+		{
+			VarTextAddCharacter( pvt, '\r' );
+			VarTextAddCharacter( pvt, '\n' );
+		}
+		else
+		{
+			spaces = pt->format.position.offset.tabs;
+			// else we cannot collapse into single line (similar to colors.)
+			while( spaces-- )
+			{
+				VarTextAddCharacter( pvt, '\t' );
+			}
+			spaces = pt->format.position.offset.spaces;
+			// else we cannot collapse into single line (similar to colors.)
+			while( spaces-- )
+			{
+				VarTextAddCharacter( pvt, ' ' );
+			}
+			// at this point spaces before tags, and after tags
+			// which used to be expression level parsed are not
+			// reconstructed correctly...
+			if( pt->flags&TF_INDIRECT )
+			{
+ // will be restored when we get back to top.
+				bSingle = FALSE;
+				pStack[nStack++] = pt;
+				pt = GetIndirect( pt );
+				//if( nStack >= 32 )
+				//	DebugBreak();
+				continue;
+			}
+			else
+			{
+				VarTextAddDataEx( pvt, GetText( pt ), GetTextSize( pt ) DBG_SRC );
+			}
+stack_resume: ;
+		}
+		if( bSingle )
+		{
+			bSingle = FALSE;
+			break;
+		}
+		pt = NEXTLINE( pt );
+	}
+	if( nStack )
+	{
+		pt = pStack[--nStack];
+		if( !nStack )
+			bSingle = TopSingle;
+		goto stack_resume;
+	}
+
+	
+}
+
+//---------------------------------------------------------------------------
+
+PTEXT VarTextEndEx( PVARTEXT pvt DBG_PASS )
 {
 	if( pvt && pvt->collect_used ) // otherwise ofs will be 0...
 	{
@@ -2195,11 +2274,11 @@ LOGICAL VarTextEndEx( PVARTEXT pvt DBG_PASS )
 			pvt->collect_used = 0;
 		}
 		pvt->commit = SegAppend( pvt->commit, segs );
-		return 1;
+		return segs;
 	}
-	if( pvt && pvt->commit )
-		return 1;
-	return 0;
+	//if( pvt && pvt->commit )
+	//	return NULL;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------

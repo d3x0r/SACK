@@ -2106,6 +2106,17 @@ TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegCreateFromFloatEx( double value DBG_PAS
    source :  source list to add to
    other :   additional segments to add to source.                  */
 TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegAppend   ( PTEXT source, PTEXT other );
+
+/* Appends a list of segments to an existing list of segments. This
+   assumes that the additional segment is referncing the head of
+   the segment list.
+
+   Parameters
+   source :  first segment to append to
+	... :   additional segments to add to source.
+	        MUST PASS NULL AS LAST APPEND         */
+TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  SegAppends(PTEXT source, ...);
+
 /* Inserts a segment before another segment.
    Parameters
    what :    what to insert into the list
@@ -2676,7 +2687,17 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextEmptyEx( PVARTEXT pvt DBG_PASS);
    c :         character to add
    DBG_PASS :  optional debug information         */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddCharacterEx( PVARTEXT pvt, TEXTCHAR c DBG_PASS );
+/* Add a unicode RUNE to a buffer (rune should only be up to 21 bits, but encoding probably supports
+ runes up to the full 32 bits
+ */
 TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddRuneEx( PVARTEXT pvt, TEXTRUNE c, LOGICAL overlong DBG_PASS );
+
+/* Aadd a string of text tokens to a vartext output.  This uses
+ the same logic as BuildLine to resolve end of lines and tabs/spaces
+ encoded into text segments.
+
+ */
+TYPELIB_PROC void TYPELIB_CALLTYPE VarTextAddText( PVARTEXT pvt, PTEXT line, int bSingle );
 /* Adds a single character to a PVARTEXT collector.
 
 
@@ -2719,9 +2740,9 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE  VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR bl
 #define VarTextAddData(pvt,block,length) VarTextAddDataEx( (pvt),(block),(length) DBG_SRC )
 /* Commits the currently collected text to segment, and adds the
    segment to the internal line accumulator.
-		 returns true if any data was added...
+		 returns new segment added (can be treated as bool) if any data was added...
        move any collected text to commit... */
-TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE  VarTextEndEx( PVARTEXT pvt DBG_PASS );
+TYPELIB_PROC  PTEXT TYPELIB_CALLTYPE  VarTextEndEx( PVARTEXT pvt DBG_PASS );
 /* <combine sack::containers::text::VarTextEndEx@PVARTEXT pvt>
 
    \ \                                                         */
