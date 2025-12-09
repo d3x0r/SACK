@@ -32,8 +32,8 @@ typedef struct opnode {
 } OPNODE, *POPNODE;
 
 
-static char pHEX[] = "0123456789ABCDEF";
-static char phex[] = "0123456789abcdef";
+static char const pHEX[] = "0123456789ABCDEF";
+static char const phex[] = "0123456789abcdef";
 
 /*
  Section Category Operators
@@ -99,6 +99,8 @@ enum { OP_HANG = -1 // used to indicate prior op complete, please hang on tree
 
      , OP_SETEQUAL                     // =  equality
      , OP_ISEQUAL                      // == comparison
+     , OP_ISJEQUAL                     // === comparison
+     , OP_SETPEQUAL                    // := pascal set-equal
 
      , OP_PLUS                         // +
      , OP_INCREMENT                    // ++
@@ -147,7 +149,7 @@ enum { OP_HANG = -1 // used to indicate prior op complete, please hang on tree
      //, OP_
 };
 
-char *fullopname[] = { "noop", "sub-expr"
+char const *fullopname[] = { "noop", "sub-expr"
                      ,  "uint8_t",  "uint16_t",  "uint32_t",  "uint64_t" // unsigned int
                      , "int8_t", "int16_t", "int32_t", "int64_t" // signed int
                      , "float", "double" // float ops
@@ -174,8 +176,8 @@ typedef struct relation RELATION, *PRELATION;
 struct relation {
 	int thisop;
 	struct {
-		char ch;
-		int becomes;
+		char const ch;
+		int const becomes;
 	}trans[16];
 };
 
@@ -198,6 +200,8 @@ RELATION Relations[] = { { OP_NOOP      , { { '=', OP_SETEQUAL }
                                           , { ':', OP_ELSE_COMPARISON }
                                           , { ',', OP_COMMA } } }
                        , { OP_SETEQUAL  , { { '=', OP_ISEQUAL } } }
+                       , { OP_ISEQUAL   , { { '=', OP_ISJEQUAL } } }
+                       , { OP_ELSE_COMPARISON, { '=', OP_SETPEQUAL } }
                        , { OP_PLUS      , { { '+', OP_INCREMENT }
                                           , { '=', OP_PLUSEQUAL } } }
                        , { OP_MINUS     , { { '-', OP_DECREMENT }
@@ -408,7 +412,7 @@ static int GetInteger( uint64_t *result, int *length )
   		accum = 0;
   		if( p[0] == '0' && p[1] && ( p[1] == 'x' || p[1] == 'X' ) )
   		{
-  			char *hexchar;
+  			char const *hexchar;
   			int okay = 1;
   			p += 2;
   			while( p[0] && okay )

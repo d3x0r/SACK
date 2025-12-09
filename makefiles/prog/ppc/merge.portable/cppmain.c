@@ -18,6 +18,12 @@
 #include "define.h"
 
 
+#ifdef PPC_NODE_MODULE
+#include <node.h>
+#include "../global.h"
+#endif
+
+
 #define CPP_MAIN_SOURCE
 #include "global.h"
 
@@ -1303,9 +1309,9 @@ int ispathchr( char c )
 }
 
 
-char *nextchr( char *string, char *chars )
+char *nextchr( char *string, char const *chars )
 {
-	char *test;
+	char const *test;
 	if( !string || !chars )
 		return NULL;
 	while( string[0] )
@@ -1859,7 +1865,7 @@ int main( int argc, char **argv, char **env )
 	}
 	{
 		PINCLUDE_REF pRef;
-		while( pRef = PopLink( &g.pIncludeList ) )
+		while( pRef = (PINCLUDE_REF)PopLink( &g.pIncludeList ) )
 			Release( pRef );
 	}
 	DestoyDepends();
@@ -1891,7 +1897,59 @@ void DefineExternalDefine( char *name,
 
 }
 
+#ifdef PPC_NODE_MODULE
+
+class PPCInstance {
+};
+
+void processFile( const v8::FunctionCallbackInfo<Value>& args ) {
+	
+}
+
+
+static void NewPPC( const v8::FunctionCallbackInfo<Value>& args ) {
+
+}
+
+void Init( Isolate *isolate, Local<Object> exports ) {
+	
+		Local<FunctionTemplate> parseTemplate;
+		parseTemplate = FunctionTemplate::New( isolate, NewPPC );
+		parseTemplate->SetClassName( String::NewFromUtf8Literal( isolate, "sack.core.jsox_parser" ) );
+		parseTemplate->InstanceTemplate()->SetInternalFieldCount( 1 );  // need 1 implicit constructor for wrap
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "write", JSOXObject::write );
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "parse", JSOXObject::parse );
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "reset", JSOXObject::reset );
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "currentRef", JSOXObject::getCurrentRef );
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "setFromPrototypeMap", JSOXObject::setFromPrototypeMap );
+		NODE_SET_PROTOTYPE_METHOD( parseTemplate, "setPromiseFromPrototypeMap", JSOXObject::setPromiseFromPrototypeMap );
+
+		class constructorSet *c = getConstructors( isolate );
+		c->jsoxConstructor.Reset( isolate, parseTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked() );
+
+
+
+	Local<Object> o2 = Object::New( isolate );
+	SET_READONLY_METHOD( o2, "begin", processFile );
+	SET_READONLY_METHOD( o2, "write", processFile );
+
+
+	SET_READONLY_METHOD( o2, "process", processFile );
+
+	SET_READONLY( exports, "CPP", o2 );
+
+
+}
+
+#endif
+
+
+
+#endif
+
 #ifdef __cplusplus
 }}
 #endif
-#endif
+
+
+

@@ -72,18 +72,6 @@ replaced without regard.
 
 // void junk(void ) <% char test <:5:>; %>
 
-static union {
-	struct {
-		uint32_t bLesser : 1;
-		uint32_t bGreater : 1;
-		uint32_t bColon : 1;
-		uint32_t bPercent : 1;
-		uint32_t bQuestion1 : 1;
-		uint32_t bQuestion2 : 1;
-	};
-	uint32_t dw;
-} flags;
-
 #define DBG_OVERRIDE DBG_RELAY
 
 static PTEXT OutputDanglingCharsEx( PTEXT outdata,
@@ -94,37 +82,37 @@ static PTEXT OutputDanglingCharsEx( PTEXT outdata,
 	outdata = OutputDanglingCharsEx( outdata, out, &spaces, &tabs )
 {
 	int n = 0;
-	if( flags.bPercent ) {
+	if( g.input_flags.bPercent ) {
 		n++;
 		outdata        = BreakAndAddEx( '%', outdata, out, spaces, tabs );
-		flags.bPercent = 0;
+		g.input_flags.bPercent = 0;
 	}
-	if( flags.bColon ) {
+	if( g.input_flags.bColon ) {
 		n++;
 		outdata      = BreakAndAddEx( ':', outdata, out, spaces, tabs );
-		flags.bColon = 0;
+		g.input_flags.bColon = 0;
 	}
-	if( flags.bLesser ) {
+	if( g.input_flags.bLesser ) {
 		n++;
 		outdata       = BreakAndAddEx( '<', outdata, out, spaces, tabs );
-		flags.bLesser = 0;
+		g.input_flags.bLesser = 0;
 	}
-	if( flags.bGreater ) {
+	if( g.input_flags.bGreater ) {
 		n++;
 		outdata        = BreakAndAddEx( '>', outdata, out, spaces, tabs );
-		flags.bGreater = 0;
+		g.input_flags.bGreater = 0;
 	}
-	if( flags.bQuestion2 ) {
+	if( g.input_flags.bQuestion2 ) {
 		n++;
 		outdata          = BreakAndAddEx( '?', outdata, out, spaces, tabs );
 		outdata          = BreakAndAddEx( '?', outdata, out, spaces, tabs );
-		flags.bQuestion2 = 0;
-		flags.bQuestion1 = 0;
+		g.input_flags.bQuestion2 = 0;
+		g.input_flags.bQuestion1 = 0;
 	}
-	if( flags.bQuestion1 ) {
+	if( g.input_flags.bQuestion1 ) {
 		n++;
 		outdata          = BreakAndAddEx( '?', outdata, out, spaces, tabs );
-		flags.bQuestion1 = 0;
+		g.input_flags.bQuestion1 = 0;
 	}
 	if( n > 1 ) {
 		fprintf(
@@ -150,7 +138,7 @@ PTEXT PPC_burstEx( PTEXT input DBG_PASS )
 	uint8_t character;
 	uint32_t elipses = FALSE, spaces = 0, tabs = 0, escape = 0,
 	         quote = 0; // just used for bi-graph/tri-graph stuff...
-	flags.dw       = 0;
+	g.input_flags.dw       = 0;
 	if( !input ) // if nothing new to process- return nothing processed.
 		return ( (PTEXT)NULL );
 
@@ -208,107 +196,107 @@ PTEXT PPC_burstEx( PTEXT input DBG_PASS )
 
 			if( !quote ) {
 				if( character == '<' ) {
-					if( flags.bLesser ) {
+					if( g.input_flags.bLesser ) {
 						BreakAndAdd( '<' );
 					} else {
 						OutputDanglingChars();
-						flags.bLesser = 1;
+						g.input_flags.bLesser = 1;
 					}
 					continue;
 				} else if( character == '>' ) {
-					if( flags.bGreater ) {
+					if( g.input_flags.bGreater ) {
 						BreakAndAdd( '>' );
-					} else if( flags.bColon ) {
+					} else if( g.input_flags.bColon ) {
 						BreakAndAdd( ']' );
-						flags.bColon = 0;
-					} else if( flags.bPercent ) {
+						g.input_flags.bColon = 0;
+					} else if( g.input_flags.bPercent ) {
 						BreakAndAdd( '}' );
-						flags.bPercent = 0;
+						g.input_flags.bPercent = 0;
 					} else {
 						OutputDanglingChars();
-						flags.bGreater = 1;
+						g.input_flags.bGreater = 1;
 					}
 					continue;
 				} else if( character == ':' ) {
-					if( flags.bLesser ) {
+					if( g.input_flags.bLesser ) {
 						BreakAndAdd( '[' );
-						flags.bLesser = 0;
-					} else if( flags.bPercent ) {
+						g.input_flags.bLesser = 0;
+					} else if( g.input_flags.bPercent ) {
 						BreakAndAdd( '#' );
-						flags.bPercent = 0;
-					} else if( flags.bColon ) {
+						g.input_flags.bPercent = 0;
+					} else if( g.input_flags.bColon ) {
 						BreakAndAdd( ':' );
 					} else {
 						OutputDanglingChars();
-						flags.bColon = 1;
+						g.input_flags.bColon = 1;
 					}
 					continue;
 				} else if( character == '%' ) {
-					if( flags.bLesser ) {
+					if( g.input_flags.bLesser ) {
 						BreakAndAdd( '{' );
-						flags.bLesser = 0;
-					} else if( flags.bPercent ) {
+						g.input_flags.bLesser = 0;
+					} else if( g.input_flags.bPercent ) {
 						BreakAndAdd( '%' );
 					} else {
 						OutputDanglingChars();
-						flags.bPercent = 1;
+						g.input_flags.bPercent = 1;
 					}
 					continue;
 				} else
 					OutputDanglingChars();
-			} else if( flags.bQuestion2 ) {
+			} else if( g.input_flags.bQuestion2 ) {
 				if( character == '<' ) {
 					BreakAndAdd( '{' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 				} else if( character == '>' ) {
 					BreakAndAdd( '}' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 				} else if( character == '=' ) {
 					BreakAndAdd( '#' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
 				} else if( character == '(' ) {
 					BreakAndAdd( '[' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
 				} else if( character == '/' ) {
 					BreakAndAdd( '\\' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == ')' ) {
+				} else if( g.input_flags.bQuestion2 && character == ')' ) {
 					BreakAndAdd( ']' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == '\'' ) {
+				} else if( g.input_flags.bQuestion2 && character == '\'' ) {
 					BreakAndAdd( '^' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == '<' ) {
+				} else if( g.input_flags.bQuestion2 && character == '<' ) {
 					BreakAndAdd( '{' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == '!' ) {
+				} else if( g.input_flags.bQuestion2 && character == '!' ) {
 					BreakAndAdd( '|' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == '>' ) {
+				} else if( g.input_flags.bQuestion2 && character == '>' ) {
 					BreakAndAdd( '}' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
-				} else if( flags.bQuestion2 && character == '-' ) {
+				} else if( g.input_flags.bQuestion2 && character == '-' ) {
 					BreakAndAdd( '~' );
-					flags.bQuestion2 = 0;
-					flags.bQuestion1 = 0;
+					g.input_flags.bQuestion2 = 0;
+					g.input_flags.bQuestion1 = 0;
 					continue;
 				} else if( character == '?' ) {
 					BreakAndAdd( '?' );
@@ -319,12 +307,12 @@ PTEXT PPC_burstEx( PTEXT input DBG_PASS )
 					OutputDanglingChars();
 				}
 			} else if( g.flags.do_trigraph && character == '?' ) {
-				if( flags.bQuestion2 ) {
+				if( g.input_flags.bQuestion2 ) {
 					BreakAndAdd( '?' );
-				} else if( flags.bQuestion1 ) {
-					flags.bQuestion2 = 1;
+				} else if( g.input_flags.bQuestion1 ) {
+					g.input_flags.bQuestion2 = 1;
 				} else
-					flags.bQuestion1 = 1;
+					g.input_flags.bQuestion1 = 1;
 				continue;
 			} else {
 				OutputDanglingChars();
@@ -452,29 +440,29 @@ PTEXT PPC_burstEx( PTEXT input DBG_PASS )
 		input = NEXTLINE( input );
 	}
 
-	if( flags.bPercent ) {
+	if( g.input_flags.bPercent ) {
 		BreakAndAdd( '%' );
-		flags.bPercent = 0;
+		g.input_flags.bPercent = 0;
 	}
-	if( flags.bColon ) {
+	if( g.input_flags.bColon ) {
 		BreakAndAdd( ':' );
-		flags.bColon = 0;
+		g.input_flags.bColon = 0;
 	}
-	if( flags.bLesser ) {
+	if( g.input_flags.bLesser ) {
 		BreakAndAdd( '<' );
-		flags.bLesser = 0;
+		g.input_flags.bLesser = 0;
 	}
-	if( flags.bGreater ) {
+	if( g.input_flags.bGreater ) {
 		BreakAndAdd( '>' );
-		flags.bGreater = 0;
+		g.input_flags.bGreater = 0;
 	}
-	if( flags.bQuestion2 ) {
+	if( g.input_flags.bQuestion2 ) {
 		BreakAndAdd( '?' );
-		flags.bQuestion2 = 0;
+		g.input_flags.bQuestion2 = 0;
 	}
-	if( flags.bQuestion1 ) {
+	if( g.input_flags.bQuestion1 ) {
 		BreakAndAdd( '?' );
-		flags.bQuestion1 = 0;
+		g.input_flags.bQuestion1 = 0;
 	}
 	if( ( word
 	      = VarTextGetEx( out DBG_OVERRIDE ) ) ) // any generic outstanding data?

@@ -14,8 +14,6 @@ namespace ppc {
 
 //----------------------------------------------------------------------
 
-// all files in Root->pAlso are top level dependancies.
-static PFILEDEP FileDependancyRoot;
 
 
 void FixSlashes( char *path )
@@ -80,7 +78,7 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 LOGICAL AlreadyLoaded( char *filename )
 {
 	PFILEDEP dep;
-	if( dep = FindDependFile( FileDependancyRoot, filename ) ) {
+	if( dep = FindDependFile( g.FileDependancyRoot, filename ) ) {
 		if( dep->bAllowMultipleInclude )
 			return FALSE;
 		return TRUE;
@@ -94,7 +92,7 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 {
 	PFILEDEP pfd = root;
 	if( !root )
-		root = FileDependancyRoot;
+		root = g.FileDependancyRoot;
 	//fprintf( stderr, "Adding dependancy for: %s %s\n", root?root->full_name:"Base File", filename );
 	while( pfd && pfd->pDependedBy )
 		pfd = pfd->pDependedBy;
@@ -117,8 +115,8 @@ PFILEDEP AddDepend( PFILEDEP root, char *basename, char *filename )
 		}
 		else
 		{
-			pfd->pAlso = FileDependancyRoot;
-			FileDependancyRoot = pfd;
+			pfd->pAlso = g.FileDependancyRoot;
+			g.FileDependancyRoot = pfd;
 		}
 		{
 			PFILEDEP pCheck = pfd->pDependedBy;
@@ -196,7 +194,7 @@ void DumpDepends( void )
 {
 	int level = 0;
 	// trace through root files....
-	PFILEDEP pfd = FileDependancyRoot;
+	PFILEDEP pfd = g.FileDependancyRoot;
 	if( !g.AutoDependFile )
 		g.AutoDependFile = stdout;
 	while( pfd )
@@ -233,14 +231,14 @@ void DestroyDependLevel( PFILEDEP pfd )
 
 void DestoyDepends( void )
 {
-	PFILEDEP pfd = FileDependancyRoot, next;
+	PFILEDEP pfd = g.FileDependancyRoot, next;
 	while( pfd )
 	{
 		next = pfd->pAlso;
 		DestroyDependLevel( pfd );
 		pfd = next;
 	}
-	FileDependancyRoot = NULL;
+	g.FileDependancyRoot = NULL;
 }
 
 //----------------------------------------------------------------------
@@ -254,7 +252,7 @@ int GetCurrentLine( void )
 
 //----------------------------------------------------------------------
 
-char *GetCurrentFileName( void )
+char const *GetCurrentFileName( void )
 {
 	if( g.pFileStack )
 		return g.pFileStack->longname;
@@ -291,7 +289,7 @@ char *FixName( char *file )
 
 //----------------------------------------------------------------------
 
-char *GetCurrentShortFileName( void )
+char const *GetCurrentShortFileName( void )
 {
 	if( g.pFileStack )
 		return g.pFileStack->name;
@@ -310,7 +308,7 @@ void GetCurrentFileLine( char *name, int *line )
 
 //----------------------------------------------------------------------
 
-void WriteLineInfo( char *name, int line )
+void WriteLineInfo( char const *name, int line )
 {
 	FILE *out = GetCurrentOutput();
 	PVARTEXT pvtOut = g.pvtOut;
@@ -485,7 +483,7 @@ uintptr_t OpenInputFile( char *basename, char *file )
 
 //----------------------------------------------------------------------
 
-uintptr_t OpenNewInputFile( char *basename, char *name, char *pFile, int nLine, int bDepend, int bNext )
+uintptr_t OpenNewInputFile( char *basename, char *name, char const *pFile, int nLine, int bDepend, int bNext )
 {
 	PFILETRACK pft = g.pFileStack;
 	PFILETRACK pftNew = NULL;

@@ -91,6 +91,24 @@ typedef struct global_tag {
 	                 // to a file.
 	uintptr_t current_process_info;
 	char const *current_file_name;
+
+
+	// all files in Root->pAlso are top level dependancies.
+	PFILEDEP FileDependancyRoot;
+
+	union {
+		struct {
+			uint32_t bLesser : 1;
+			uint32_t bGreater : 1;
+			uint32_t bColon : 1;
+			uint32_t bPercent : 1;
+			uint32_t bQuestion1 : 1;
+			uint32_t bQuestion2 : 1;
+		};
+		uint32_t dw;
+	} input_flags;
+
+
 } GLOBAL;
 
 // debug Log options....
@@ -101,6 +119,12 @@ typedef struct global_tag {
 
 // extended text flag for internal use
 #define TF_NOEXPAND 0x00200000 // don't expand - define substitution handling...
+
+#ifdef __cplusplus
+thread_local
+#else
+_Thread_local
+#endif
 
 #ifndef CPP_MAIN_SOURCE
 extern

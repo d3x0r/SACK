@@ -51,7 +51,7 @@ uintptr_t OpenOutputFile( char *newfile );
 uintptr_t OpenStdOutputFile( void );
 uintptr_t OpenNewInputFile( char *basename,
                             char *name,
-                            char *pFile,
+                            char const *pFile,
                             int nLine,
                             int bDepend,
                             int bNext );
@@ -69,8 +69,8 @@ void GetIfBegin( char **file, int *line );
 FILE *GetCurrentOutput( void );
 
 int GetCurrentLine( void );
-char *GetCurrentFileName( void );
-char *GetCurrentShortFileName( void );
+char const *GetCurrentFileName( void );
+char const *GetCurrentShortFileName( void );
 void GetCurrentFileLine( char *name, int *line );
 int CurrentFileDepth( void ); // how many files deep we're processing
 
@@ -84,7 +84,7 @@ void SetCurrentWord( PTEXT word );
 PTEXT ReadLineEx( int Append DBG_PASS );
 #define ReadLine( a ) ReadLineEx( a DBG_SRC )
 
-void WriteLineInfo( char *file, int line );
+void WriteLineInfo( char const *file, int line );
 void WriteCurrentLineInfo( void );
 
 void WriteLine( size_t len, char *line );
