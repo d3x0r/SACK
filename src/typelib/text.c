@@ -469,18 +469,19 @@ PTEXT SegAppend(PTEXT source,PTEXT other)
 PTEXT SegAppends(PTEXT source, ...)
 {
 	PTEXT temp=source;
-   PTEXT other;
-   va_list args;
-   va_start( args, source );
+	PTEXT other;
+	va_list args;
+	va_start( args, source );
 	while( other = va_arg( args, PTEXT ) )
 	{
-      if( temp )
+		if( temp ) {
 			SetEnd(temp);
-		else
-         temp = other;
-		SETNEXTLINE(temp,other);
-		SETPRIORLINE(other,temp);
-  	}
+			SETNEXTLINE(temp,other);
+			SETPRIORLINE(other,temp);
+		} else {
+			source = temp = other;
+		}
+	}
 	return(source);
 }
 
