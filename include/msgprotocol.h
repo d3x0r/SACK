@@ -55,7 +55,6 @@ namespace sack {
 // library's interface structure name (the tag of the structure)
 #define MSG_ID(method)  BASE_MESSAGE_ID,( ( offsetof( struct MyInterface, _##method ) / sizeof( void(*)(void) ) ) +  MSG_EventUser )
 #define MSG_OFFSET(method)  ( ( offsetof( struct MyInterface, _##method ) / sizeof( void(*)(void) ) ) + MSG_EventUser )
-#define INTERFACE_METHOD(type,name) type (CPROC*_##name)
 
 // this is the techincal type of SYSV IPC MSGQueues
 #define MSGIDTYPE long
