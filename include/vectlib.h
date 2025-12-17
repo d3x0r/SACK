@@ -899,6 +899,7 @@ VECTOR_METHOD( PVECTOR4, lq_set_latlong, ( PVECTOR4 out, RCOORD lat, RCOORD lng 
 
 #define addscaled EXTERNAL_NAME(addscaled)
 #define Length EXTERNAL_NAME(Length)
+#define Distance EXTERNAL_NAME(Distance)
 #define PointToPlaneT EXTERNAL_NAME(PointToPlaneT)
 #define normalize EXTERNAL_NAME(normalize)
 #define normalize4 EXTERNAL_NAME(normalize4)

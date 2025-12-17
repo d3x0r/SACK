@@ -29,9 +29,9 @@ struct key_function
 typedef struct keybind_tag { // overrides to default definitions
 //DOM-IGNORE-BEGIN
    struct {
-		int bFunction:1;
-		int bRelease:1;
-		int bAll:1; // application wants presses and releases..
+		unsigned int bFunction:1;
+		unsigned int bRelease : 1;
+		unsigned int bAll:1; // application wants presses and releases..
 	} flags;
 	PLIST key_procs;
 #if 0

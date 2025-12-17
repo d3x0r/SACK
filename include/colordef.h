@@ -42,6 +42,7 @@ namespace sack {
 
 #define Color( r,g,b ) MakeColor(r,g,b)
 #define AColor( r,g,b,a ) MakeAlphaColor(r,g,b,a)
+#define GLColor( c )      (c)
 #define SetAlpha( rgb, a ) SetAlphaValue( rgb, a )
 #define SetGreen( rgb, g ) SetGreeValue(rgb,g )
 #define AlphaVal(color) GetAlphaValue( color )
