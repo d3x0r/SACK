@@ -39,14 +39,18 @@ else()
 SET( ENABLE_VULKAN OFF )
 endif()
 
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+  # volatile type return and parameters were deprecated due to poor understanding of usage; this should be rectified eventually.
+  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
+endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+
+
 if( NOT CMAKE_COMPILER_IS_GNUCC
   AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang"
     OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" ) )
   # MESSAGE( "THIS FIXES COMPILER IS GNUCC - ${CMAKE_CXX_COMPILER_ID}" )
-  ADD_DEFINITIONS( -Wno-parentheses )
-  ADD_DEFINITIONS( -Wno-null-dereference )
-  ADD_DEFINITIONS( -Wno-self-assign ) # so what if a variable is assigned to itself - that's what optimizers are for?
-#  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
+
+
   set( GCC 1 )
   ADD_DEFINITIONS( -D_GNU_SOURCE )
   set( CMAKE_COMPILER_IS_GNUCC 0 )
@@ -64,13 +68,6 @@ if( CMAKE_C_COMPILER_ID MATCHES "MSVC" )
    set( __COMPILER_GNU 0 )
 
 endif()
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-   add_definitions( -Wno-parentheses )
-   add_definitions( -Wno-single-bit-bitfield-constant-conversion )
-endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-   
-
 
 SET( MAKING_SACK_CORE ON )
 SET( SACK_SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -419,10 +416,6 @@ else( APPLE )
         SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
         SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic -Wl,--warn-unresolved-symbols" )
 
-        SET( ExtraFlags "${ExtraFlags} -Wno-attributes -Wno-multichar")
-        SET( ExtraFlags "${ExtraFlags} -Wno-address-of-packed-member")
-        SET( ExtraFlags "${ExtraFlags} -Wno-int-to-pointer-cast")
-		  #ADD_DEFINITIONS( ${ExtraFlags} )
     endif( CMAKE_COMPILER_IS_GNUCC )
 endif( APPLE )
 
@@ -464,17 +457,6 @@ if( __NO_MSGSVR__ )
 endif( __NO_MSGSVR__ )
 
 
-#set( ExtraFlags "${ExtraFlags} -std=c99 -Wall -Wextra -Wpedantic -Wshadow -DPEDANTIC_TEST" )
-#set( ExtraFlags "${ExtraFlags} -std=gnu11 -Wall -Wextra -Wpedantic" )
-#set( ExtraFlags "${ExtraFlags} -DPEDANTIC_TEST" )
-#set( ExtraFlags "${ExtraFlags} -Wno-unused-parameter")
-#set( ExtraFlags "${ExtraFlags} -Wno-missing-field-initializers" )
-#set( ExtraFlags "${ExtraFlags} -Wno-shadow" )
-#set( ExtraFlags "${ExtraFlags} -Wno-parentheses" )
-#set( ExtraFlags "${ExtraFlags} -Wno-format" )
-if( GCC )
-  SET( ExtraFlags "${ExtraFlags} -Wno-attributes")
-endif( GCC )
 
 if( EMSCRIPTEN )
    set( CORE_LINKMODE STATIC )
@@ -534,11 +516,6 @@ if( __LINUX__ )
    add_definitions( -D__LINUX__ )
    set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -D__LINUX__ )
 endif( __LINUX__ )
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-   set( PLATFORM_DEFINES ${PLATFORM_DEFINES} -Wno-parentheses )
-endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-
 
 if( __64__ )
   set( TARGET_ARCH x64 )
@@ -1717,11 +1694,6 @@ SET_TARGET_PROPERTIES(  bag bag.externals bag++
   PROPERTIES
     INSTALL_RPATH "\$ORIGIN"
 )
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-
-   TARGET_COMPILE_OPTIONS( bag++ PRIVATE  "-Wno-deprecated-volatile" )
-endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
 
 
 # get the libraries..
