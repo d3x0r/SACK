@@ -105,7 +105,6 @@
 #define _SetWindowLong(a,b,c)   SetWindowLong(a,b,(long)(c))
 #endif
 
-static int stop;
 //HWND     hWndLastFocus;
 
 // commands to the video thread for non-windows native ....
@@ -300,7 +299,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 	// if if above already has things above it, I want to put those above hvideo
 	if( hVideo && hAbove )
 	{
-		if( hVideo->pBelow = hAbove->pBelow )
+		if( ( hVideo->pBelow = hAbove->pBelow ) )
 		{
 			hAbove->pBelow->pAbove = hVideo;
 		}
@@ -327,7 +326,7 @@ void  PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 		if( ( hVideo->pAbove = topmost ) )
 		{
 			//HWND hWndOver = GetNextWindow( topmost->hWndOutput, GW_HWNDPREV );
-			if( hVideo->pBelow = topmost->pBelow )
+			if( ( hVideo->pBelow = topmost->pBelow ) )
 			{
 				hVideo->pBelow->pAbove = hVideo;
 			}
@@ -560,9 +559,9 @@ LRESULT CALLBACK
           BIT_FIELD  down  : 1;
           } keycode;
           */
-         key = ( scancode = (wParam & 0xFF) ) // base keystroke
+         key = ( ( scancode = (wParam & 0xFF) ) // base keystroke
             | ((lParam & 0x1000000) >> 16)   // extended key
-            | (lParam & 0x80FF0000) // repeat count? and down status
+            | (lParam & 0x80FF0000) ) // repeat count? and down status
             ^ (0x80000000) // not's the single top bit... becomes 'press'
             ;
          // lparam MSB is keyup status (strange)
@@ -1427,7 +1426,7 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 			{
 				// drag
 				int delx, dely;
-				int delx2, dely2;
+				//int delx2, dely2;
 				int delxt, delyt;
 				int delx2t, dely2t;
 				lprintf( "drag" );
@@ -1437,8 +1436,8 @@ static int CPROC Handle3DTouches( PRENDERER hVideo, PTOUCHINPUT touches, int nTo
 				dely2t = touch_info.two.y - touch_info.one.y;
 				delx = -touch_info.one.x + touches[0].x;
 				dely = -touch_info.one.y + touches[0].y;
-				delx2 = -touch_info.two.x + touches[1].x;
-				dely2 = -touch_info.two.y + touches[1].y;
+				//delx2 = -touch_info.two.x + touches[1].x;
+				//dely2 = -touch_info.two.y + touches[1].y;
 				{
 					VECTOR v1,v2/*,vr*/;
 					RCOORD delta_x = delx / 40.0f;
@@ -1696,7 +1695,7 @@ VideoWindowProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #else
 #define Return   return 
 #endif
-	PVIDEO hVideo;
+	PVIDEO hVideo = NULL;
 	uint32_t _mouse_b = l.mouse_b;
 	//static UINT uLastMouseMsg;
 #if defined( OTHER_EVENTS_HERE )
@@ -3078,7 +3077,7 @@ static void LoadOptions( void )
 #endif
 	if( !l.origin )
 	{
-		static MATRIX m;
+		//static MATRIX m;
 		// create initial origin camera so a window at x,y = 0,0  will show the same 
 		// as a normal display 0,0.
 		l.origin = CreateNamedTransform( "render.camera" );
@@ -3355,7 +3354,7 @@ static int CPROC InverseOpenGLMouse( struct display_camera *camera, PRENDERER hV
 	if( camera->origin_camera )
 	{
 		VECTOR v1, v2;
-		int v = 0;
+		//int v = 0;
 
 		v2[0] = x;
 		v2[1] = y;
@@ -3606,7 +3605,7 @@ static struct display_camera *OpenCameras( void )
 	#ifdef UNICODE
 													  , (LPWSTR)l.aClass
 	#else
-													  , (LPSTR)l.aClass
+													  , (LPSTR)(WORD)l.aClass
 	#endif
 													  , (l.gpTitle && l.gpTitle[0]) ? l.gpTitle : window_name
 													  , WS_POPUP //| WINDOW_STYLE
@@ -4691,7 +4690,7 @@ PVIDEO  OpenDisplayAboveUnderSizedAt (uint32_t attr, uint32_t wx, uint32_t wy,
 				newvid->pAbove->pBelow = newvid->pBelow;
 
 			newvid->pBelow = barrier;
-			if( newvid->pAbove = barrier->pAbove )
+			if( ( newvid->pAbove = barrier->pAbove ) )
 				barrier->pAbove->pBelow = newvid;
 			barrier->pAbove = newvid;
 		}
@@ -5414,15 +5413,6 @@ void  OwnMouseEx (PVIDEO hVideo, uint32_t own DBG_PASS)
 					l.hCapturedMouseLogical = hVideo;
 					hVideo->flags.bCaptured = 1;
 					SetCapture (hVideo->hWndOutput);
-				}
-				else
-				{
-					if( !hVideo->flags.bCaptured )
-					{
-						lprintf( "This should NEVER happen!" );
-						*(int*)0 = 0;
-					}
-					// should already have the capture...
 				}
 			}
 		}

@@ -163,7 +163,7 @@ int main( int argc, char **argv )
 						vtprintf( pvt,  "%s\"\"" , first ? "" : " " );
 					else if( StrChr( args[ 0 ], '\\' ) ) {
 						char c;
-						char *str = args[ 0 ];
+						char const *str = args[ 0 ];
 						int inQuotes = 0;
 						if( StrChr( args[ 0 ], ' ' ) )
 							inQuotes = 1;

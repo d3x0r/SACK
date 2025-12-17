@@ -201,14 +201,14 @@ void DumpChainAbove( PVIDEO chain, HWND hWnd )
 	TEXTCHAR title[256];
 	GetWindowText( hWnd, title, sizeof( title ) );
 	lprintf( "Dumping chain of windows above %p %s", hWnd, title );
-	while( hWnd = GetNextWindow( hWnd, GW_HWNDPREV ) )
+	while( ( hWnd = GetNextWindow( hWnd, GW_HWNDPREV ) ) )
 	{
 		int ischain;
 		TEXTCHAR title[256];
 		TEXTCHAR classname[256];
 		GetClassName( hWnd, classname, sizeof( classname ) );
 		GetWindowText( hWnd, title, sizeof( title ) );
-		if( ischain = InMyChain( chain, hWnd ) )
+		if( ( ischain = InMyChain( chain, hWnd ) ) )
 		{
 			lprintf( "%s %p %s %s", ischain==2?">>>":"^^^", hWnd, title, classname );
 			not_mine = 0;
@@ -231,13 +231,13 @@ void DumpChainBelow( PVIDEO chain, HWND hWnd DBG_PASS )
 	TEXTCHAR title[256];
 	GetWindowText( hWnd, title, sizeof( title ) );
 	_lprintf(DBG_RELAY)( "Dumping chain of windows below %p", hWnd );
-	while( hWnd = GetNextWindow( hWnd, GW_HWNDNEXT ) )
+	while( ( hWnd = GetNextWindow( hWnd, GW_HWNDNEXT ) ) )
 	{
 		int ischain;
 		TEXTCHAR classname[256];
 		GetClassName( hWnd, classname, sizeof( classname ) );
 		GetWindowText( hWnd, title, sizeof( title ) );
-		if( ischain = InMyChain( chain, hWnd ) )
+		if( ( ischain = InMyChain( chain, hWnd ) ) )
 		{
 			lprintf( "%s %p %s %s", ischain==2?">>>":"^^^", hWnd, title, classname );
 			not_mine = 0;
@@ -929,7 +929,7 @@ RENDER_PROC (void, PutDisplayAbove) (PVIDEO hVideo, PVIDEO hAbove)
 		lprintf( "Putting the above within the list of hVideo... reverse-insert." );
 		//DumpMyChain( hVideo );
 #endif
-		if( hAbove->pAbove = hVideo->pAbove )
+		if( ( hAbove->pAbove = hVideo->pAbove ) )
 			hVideo->pAbove->pBelow = hAbove;
 
 		hAbove->pBelow = hVideo;
@@ -989,7 +989,7 @@ RENDER_PROC (void, PutDisplayAbove) (PVIDEO hVideo, PVIDEO hAbove)
 		if( ( hVideo->pAbove = topmost ) )
 		{
 			//HWND hWndOver = GetNextWindow( topmost->hWndOutput, GW_HWNDPREV );
-			if( hVideo->pBelow = topmost->pBelow )
+			if( ( hVideo->pBelow = topmost->pBelow ) )
 			{
 				hVideo->pBelow->pAbove = hVideo;
 			}
@@ -1346,9 +1346,9 @@ LRESULT CALLBACK
 			  BIT_FIELD  down  : 1;
 			  } keycode;
 			  */
-			key = ( scancode = (wParam & 0xFF) ) // base keystroke
+			key = ( ( scancode = (wParam & 0xFF) ) // base keystroke
 				| ((lParam & 0x1000000) >> 16)	// extended key
-				| (lParam & 0x80FF0000) // repeat count? and down status
+				| (lParam & 0x80FF0000) ) // repeat count? and down status
 				^ (0x80000000) // not's the single top bit... becomes 'press'
 				;
 			// lparam MSB is keyup status (strange)
@@ -1531,17 +1531,15 @@ LRESULT CALLBACK
 		//lprintf( "Received key to %p %p", hWndFocus, hWndFore );
 		//lprintf( "Received key %08x %08x", wParam, lParam );
 
-		if( l.flags.bLogKeyEvent )
-			if( kbhook )
-			lprintf( "KeyHook2 %d %08lx %d %d %d %d %p"
-					 , code, wParam
-					 , kbhook->vkCode, kbhook->scanCode, kbhook->flags, kbhook->time, kbhook->dwExtraInfo );
-			else
-			{
+		if( l.flags.bLogKeyEvent ) {
+			if( kbhook ) {
+				lprintf( "KeyHook2 %d %08lx %d %d %d %d %p", code, wParam, kbhook->vkCode, kbhook->scanCode, kbhook->flags,
+				         kbhook->time, kbhook->dwExtraInfo );
+			} else {
 				lprintf( "kbhook data is NULL!" );
 				return 0;
 			}
-
+		}
 		//lprintf( "Keyhook mesasage... %08x %08x", wParam, lParam );
 		//lprintf( "hWndFocus is %p", hWndFocus );
 		if( hWndFocus == l.hWndInstance )
@@ -1662,7 +1660,7 @@ LRESULT CALLBACK
 			{
 				PVIDEO hVideo = hVid;
 				//lprintf( "..." );
-				if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX )
+				if( FindLink( &l.pActiveList, hVideo ) != INVALID_INDEX ) {
 					if( hVideo && hVideo->pKeyProc )
 					{
 						hVideo->flags.event_dispatched = 1;
@@ -1722,6 +1720,7 @@ LRESULT CALLBACK
 						//lprintf( "calling global events." );
 						dispatch_handled = HandleKeyEvents( KeyDefs, key ); /* global events, if no keyproc */
 					}
+				}
 				//else
 				//	lprintf( "Failed to find active window..." );
 			}
@@ -2845,6 +2844,7 @@ WM_DROPFILES
 		case WM_POINTERDOWN:
 		case WM_POINTERUP:
 			hVideo           = (PVIDEO)GetWindowLongPtr( hWnd, WD_HVIDEO );
+			#if 0
 			UINT32 PointerID = GET_POINTERID_WPARAM( wParam );
 			LOGICAL isNew = IS_POINTER_NEW_WPARAM( wParam );
 			LOGICAL isInRange = IS_POINTER_INRANGE_WPARAM( wParam );
@@ -2855,7 +2855,7 @@ WM_DROPFILES
 			LOGICAL isTertiaryButton  = IS_POINTER_THIRDBUTTON_WPARAM( wParam );
 			LOGICAL isFourthButton    = IS_POINTER_FOURTHBUTTON_WPARAM( wParam );
 			LOGICAL isFifthButton     = IS_POINTER_FIFTHBUTTON_WPARAM( wParam );
-
+			#endif
 			int x = ((int16_t)(lParam&0xFFFF));// the x (horizontal point) coordinate.
 			int y = ((int16_t)(lParam >> 16));//: the y (vertical point) coordinate.
 			struct pen_event Info;
@@ -3058,13 +3058,16 @@ WM_DROPFILES
 				lprintf( "Mouse Moved" );
 			if( (!hVideo->flags.mouse_on || !l.flags.mouse_on ) && !hVideo->flags.bNoMouse)
 			{
+#ifdef LOG_MOUSE_HIDE_IDLE
 				int x;
+#endif
 				if (!hCursor)
 					hCursor = LoadCursor (NULL, IDC_ARROW);
 #ifdef LOG_MOUSE_HIDE_IDLE
 				lprintf( "cursor on." );
+				x =
 #endif
-				x = ShowCursor( TRUE );
+					ShowCursor( TRUE );
 #ifdef LOG_MOUSE_HIDE_IDLE
 				lprintf( "cursor count %d %d", x, hCursor );
 #endif
@@ -3112,7 +3115,7 @@ WM_DROPFILES
 		if( hVideo->flags.bHidden != !wParam )
 		{
 			
-			if( hVideo->flags.bHidden = !wParam )
+			if( ( hVideo->flags.bHidden = !wParam ) )
 			{
 				if( hVideo->pHideCallback )
 					hVideo->pHideCallback( hVideo->dwHideData );
@@ -4519,7 +4522,9 @@ static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 	InitDisplay ();
 	if (!l.flags.bThreadCreated && !hNextVideo->hWndContainer)
 	{
-		int failcount = 0;
+#ifdef __cplusplus_clr
+		int failcount          = 0;
+#endif
 		l.flags.bThreadCreated = 1;
 		//Log( "Starting video thread..." );
 		AddLink( &l.threads, ThreadTo (VideoThreadProc, 0) );
@@ -4532,7 +4537,9 @@ static LOGICAL DoOpenDisplay( PVIDEO hNextVideo )
 		do
 		{
 #endif
+#ifdef __cplusplus_clr
 			failcount++;
+#endif
 			do
 			{
 				Sleep (0);
@@ -5697,15 +5704,6 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 				l.hCaptured = hVideo;
 				hVideo->flags.bCaptured = 1;
 				SetCapture (hVideo->hWndOutput);
-			}
-			else
-			{
-				if( !hVideo->flags.bCaptured )
-				{
-					lprintf( "This should NEVER happen!" );
-					*(int*)0 = 0;
-				}
-				// should already have the capture...
 			}
 		}
 	}
