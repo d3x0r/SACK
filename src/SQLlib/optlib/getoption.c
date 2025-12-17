@@ -1440,7 +1440,7 @@ static void CloseAllODBC( CTEXTSTR dsn ) {
 		LIST_FORALL( tracker->outstanding, idx, PODBC, odbc ) {
 			CloseDatabaseEx( odbc, FALSE );
 		}
-		while( odbc = (PODBC)DequeLink( &tracker->available ) ) {
+		while( (odbc = (PODBC)DequeLink( &tracker->available )) ) {
 			CloseDatabaseEx( odbc, FALSE );
 			AddLink( &list, odbc );
 		}

@@ -142,7 +142,7 @@ CTEXTSTR OSALOT_GetEnvironmentVariable(CTEXTSTR name)
 	static char* lastResult;
 	wchar_t* wName = CharWConvert( name );
 	int size;
-	if( size = GetEnvironmentVariableW( wName, NULL, 0 ) )
+	if( ( size = GetEnvironmentVariableW( wName, NULL, 0 ) ) )
 	{
 		if( size > env_size )
 		{
@@ -1526,7 +1526,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 //#endif
 	}
 	// try and copy some code to it..
-	if( !exited )
+	if( !exited ) {
 #if 0
 		// this is bad, and just causes the remote to crash; left for reference.
 		if( task->pi.hProcess && FALSE )
@@ -1558,6 +1558,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			}
 		}
 #endif
+	}
 #endif
 	if( (!task->pi.hProcess) || WaitForSingleObject( task->pi.hProcess, 1 ) != WAIT_OBJECT_0 ) {
 		//lprintf( "don't think it exited" );
@@ -1596,7 +1597,7 @@ uintptr_t TerminateProgramEx( PTASK_INFO task, int options ) {
 					PushLink( &stack, pair );
 					//dwKillId = pair->child;
 				}
-				while( pair = (struct process_id_pair*)PopLink( &stack ) ) {
+				while( ( pair = (struct process_id_pair*)PopLink( &stack ) ) ) {
 					HANDLE hChild = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pair->child );
 					if( hChild != INVALID_HANDLE_VALUE ) {
 						TerminateProcess( hChild, 0xdead );

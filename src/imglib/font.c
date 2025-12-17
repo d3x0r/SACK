@@ -1177,8 +1177,8 @@ static int Step( CTEXTSTR *pc, size_t *nLen, CDATA *fore_original, CDATA *back_o
 						{
 							if( ( digit - (*pc) ) == 6 )
 								accum = accum | 0xFF000000;
-							else
-								accum = accum;
+							//else
+							//	accum = accum;
 						}
 
 						// constants may need reording (OpenGL vs Windows)
@@ -1328,7 +1328,7 @@ void PutStringVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 	x += bias_x;
 	y += bias_y;
 	if( !pImage || !pc ) return;// y;
-	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 	{
 		if( ch == '\n' )
 		{
@@ -1365,7 +1365,7 @@ void PutStringInvertVerticalFontEx( ImageFile *pImage, int32_t x, int32_t y, int
 	x += bias_x;
 	y += bias_y;
 	if( !pImage || !pc ) return;// y;
-	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 	{
 		if( ch == '\n' )
 		{
@@ -1407,7 +1407,7 @@ void PutStringFontEx( ImageFile *pImage
 	_x = x;
 	if( !pImage || !pc ) return;// x;
 	{
-		while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+		while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 		{
 			if( ch == '\n' )
 			{
@@ -1454,7 +1454,7 @@ void PutStringFontExx( ImageFile *pImage
 		{
 			int ch;
 			start = pc;
-			while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 			{
 				PCHARACTER pchar;
 				pchar = font->character[ ch ];
@@ -1482,7 +1482,7 @@ void PutStringFontExx( ImageFile *pImage
 		else
 		{
 			int ch;
-			while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+			while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 			{
 				if( ch == '\n' )
 				{
@@ -1521,7 +1521,7 @@ void PutStringInvertFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t hei
 	y += bias_y;
 	_x = x;
 	if( !pImage || !pc ) return;// x;
-	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 	{
 		if( ch == '\n' )
 		{
@@ -1558,7 +1558,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 	x += bias_x;
 	y += bias_y;
 	bUnderline = FALSE;
-	while( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) )
+	while( ( ch = Step( &pc, &nLen, &tmp1, &tmp2, &color, &background ) ) )
 	{
 		int w;
 		bUnderline = FALSE;
@@ -1592,7 +1592,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 	if( !width )
 		width = &_width;
 	*width = 0;
-	while( ch = Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+	while( ( ch = Step( &string, &len, &tmp1, &tmp1, &tmp1, &tmp1 ) ) )
 	{
 		if( ch == '&' )
 		{
@@ -1660,7 +1660,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 		// color is irrelavent, safe to use a 0 initialized variable...
 		// Step serves to do some computation and work to update colors, but also to step application commands
 		// application commands should be non-printed.
-		while( character = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+		while( ( character = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) ) )
 		{
 			if( ( nLen & ( (size_t)1 << ( sizeof( nLen ) * CHAR_BIT - 1 ) ) ) )
 				break;
@@ -1725,7 +1725,7 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 	if( pString )
 	{
 		int ch;
-		while( ch = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) )
+		while( ( ch = Step( &pString, &nLen, &tmp1, &tmp1, &tmp1, &tmp1 ) ) )
 		{
 			if( ch == '\n' )
 			{

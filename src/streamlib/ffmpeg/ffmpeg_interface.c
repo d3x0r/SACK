@@ -101,7 +101,7 @@ _FFMPEG_INTERFACE_NAMESPACE
 static struct fmpeg_interface
 {
 #define declare_func(a,b,c) a (CPROC *b) c
-#define setup_func_test(lib, a,b,c) if( ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, #b ) )
+#define setup_func_test(lib, a,b,c) if( (ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, #b )) )
 #define setup_func(lib, a,b,c) do{ ffmpeg.b=(a(CPROC*)c)LoadFunction( lib, #b ); }while(0)
 
 	declare_func( void, av_register_all,(void) );
@@ -752,7 +752,7 @@ static void RequeueAudio( struct ffmpeg_file *file )
 #else
 	struct al_buffer *buffer;
 	int samples_added = 0;
-	while( buffer = (struct al_buffer*)DequeLink( &file->al_reque_buffer_queue ) )
+	while( ( buffer = (struct al_buffer*)DequeLink( &file->al_reque_buffer_queue ) ) )
 	{
 		samples_added++;
 		openal.alBufferData(buffer->buffer, file->al_format, buffer->samplebuf, (ALsizei)buffer->size, file->pAudioCodecCtx->sample_rate);
@@ -929,7 +929,7 @@ static void ClearRequeueAudio( struct ffmpeg_file *file )
 		}
 		while( frameFinished );
 	}
-	while( buffer = (struct al_buffer*)DequeLink( &file->al_reque_buffer_queue ) )
+	while( ( buffer = (struct al_buffer*)DequeLink( &file->al_reque_buffer_queue ) ) )
 	{
 		//lprintf( "release audio buffer.." );
 		ffmpeg.av_free( buffer->samplebuf );
@@ -940,7 +940,7 @@ static void ClearRequeueAudio( struct ffmpeg_file *file )
 	}
 	{
 		AVPacket *packet;
-		while( packet = (AVPacket*)DequeLink( &file->pAudioPackets ) )
+		while( ( packet = (AVPacket*)DequeLink( &file->pAudioPackets ) ) )
 		{
 			//lprintf( "Call free packet.." );
 			ffmpeg.av_free_packet(packet);
@@ -2312,7 +2312,7 @@ static uintptr_t CPROC ProcessAudioFrame( PTHREAD thread )
 
 		//lprintf( "get all packets..." );
 		if( !file->flags.need_audio_dequeue || ( file->flags.need_audio_dequeue && !GetQueueLength( file->al_used_buffer_queue ) ) )
-			while( packet = (AVPacket*)DequeLink( &file->pAudioPackets ) )
+			while( ( packet = (AVPacket*)DequeLink( &file->pAudioPackets ) ) )
 			{
 				//lprintf( "audio stream packet. %d %d", GetQueueLength( file->pAudioPackets ), GetQueueLength( file->packet_queue ) );
 				ffmpeg.avcodec_decode_audio4(file->pAudioCodecCtx, file->pAudioFrame, &frameFinished, packet);
@@ -2436,7 +2436,7 @@ static void ClearPendingVideo( struct ffmpeg_file *file )
 		}
 		while( frameFinished );
 	}
-	while( packet = (AVPacket*)DequeLink( &file->pVideoPackets ) )
+	while( ( packet = (AVPacket*)DequeLink( &file->pVideoPackets ) ) )
 	{
 #ifdef DEBUG_VIDEO_PACKET_READ
 		lprintf( "Call free packet.." );
@@ -2626,7 +2626,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 			}
 
 			//lprintf( "failed to have a pcket...%d", file->flags.no_more_packets );
-			if( file->flags.no_more_packets )
+			if( file->flags.no_more_packets ) {
 				if( !file->flags.video.first_flush )
 				{
 					//lprintf( "first flush, so setup blank packet to get last frame..." );
@@ -2640,7 +2640,7 @@ static uintptr_t CPROC ProcessVideoFrame( PTHREAD thread )
 					//lprintf( "second flush, leave packet NULL" );
 					file->flags.video.flushing = 0;
 				}
-
+			}
 		}
 		else
 		{
@@ -3160,7 +3160,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 		//lprintf( "clean buffers...." );
 		{
 			struct al_buffer *buffer;
-			while( buffer = (struct al_buffer *)DequeLink( &file->al_free_buffer_queue ) )
+			while( ( buffer = (struct al_buffer *)DequeLink( &file->al_free_buffer_queue ) ) )
 			{
 #ifndef USE_OPENSL
 				openal.alDeleteBuffers( 1, &buffer->buffer );
@@ -3168,7 +3168,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 				Release( buffer );
 			}
 			DeleteLinkQueue( &file->al_free_buffer_queue );
-			while( buffer = (struct al_buffer *)DequeLink( &file->al_used_buffer_queue ) )
+			while( ( buffer = (struct al_buffer *)DequeLink( &file->al_used_buffer_queue ) ) )
 			{
 #ifndef USE_OPENSL
 				openal.alDeleteBuffers( 1, &buffer->buffer );
@@ -3178,7 +3178,7 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 			}
 			DeleteLinkQueue( &file->al_used_buffer_queue );
 
-			while( buffer = (struct al_buffer *)DequeLink( &file->al_pending_buffer_queue ) )
+			while( ( buffer = (struct al_buffer *)DequeLink( &file->al_pending_buffer_queue ) ) )
 			{
 #ifndef USE_OPENSL
 				openal.alDeleteBuffers( 1, &buffer->buffer );
@@ -3190,20 +3190,20 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 		}
 		{
 			AVPacket *packet;
-			while( packet = (AVPacket *)DequeLink( &file->packet_queue ) )
+			while( ( packet = (AVPacket *)DequeLink( &file->packet_queue ) ) )
 			{
 				// packets in this queue are already emptied
 				Release( packet );
 			}
 			DeleteLinkQueue( &file->packet_queue );
-			while( packet = (AVPacket *)DequeLink( &file->pVideoPackets ) )
+			while( ( packet = (AVPacket *)DequeLink( &file->pVideoPackets ) ) )
 			{
 				//lprintf( "Call free packet.." );
 				ffmpeg.av_free_packet(packet);
 				Release( packet );
 			}
 			DeleteLinkQueue( &file->pVideoPackets );
-			while( packet = (AVPacket *)DequeLink( &file->pAudioPackets ) )
+			while( ( packet = (AVPacket *)DequeLink( &file->pAudioPackets ) ) )
 			{
 				//lprintf( "Call free packet.." );
 				ffmpeg.av_free_packet(packet);
@@ -3221,13 +3221,13 @@ void ffmpeg_UnloadFile( struct ffmpeg_file *file )
 		ffmpeg.av_frame_free( &file->pAudioFrame );
 		{
 			struct ffmpeg_video_frame *frame;
-			while( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pEmptyVideoFrames ) ) {
+			while( ( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pEmptyVideoFrames ) ) ) {
 				ffmpeg.av_free( frame->rgb_buffer );
 				ffmpeg.av_frame_free( &frame->pVideoFrameRGB );
 				Release( frame );
 			}
 			DeleteLinkQueue( &file->pEmptyVideoFrames );
-			while( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pDecodedVideoFrames ) ) {
+			while( ( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pDecodedVideoFrames ) ) ) {
 				ffmpeg.av_free( frame->rgb_buffer );
 				ffmpeg.av_frame_free( &frame->pVideoFrameRGB );
 				Release( frame );
@@ -3316,7 +3316,7 @@ void ffmpeg_SeekFile( struct ffmpeg_file *file, int64_t target_time )
 		ClearPendingVideo( file );
 		{
 			struct ffmpeg_video_frame *frame;
-			while( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pDecodedVideoFrames ) )
+			while( ( frame = (struct ffmpeg_video_frame *)DequeLink( &file->pDecodedVideoFrames ) ) )
 				EnqueLink( &file->pEmptyVideoFrames, frame );
 		}
 
@@ -3479,7 +3479,7 @@ static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 					n = 0;
 					if( ad->compress_partial_buffer_idx )
 					{
-						for( n = n; n < val; n++ ) //-V570
+						for( /*n = n*/; n < val; n++ ) //-V570
 						{
 							ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
 								= ((gsm_signal*)ad->input_data)[n];
@@ -3510,7 +3510,7 @@ static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							}
 						}
 					}
-					for( n = n; n < val; n += 160 )
+					for( /*n = n*/; n < val; n += 160 )
 					{
 						if( ( val - n ) >= 160 )
 						{
@@ -3550,7 +3550,7 @@ static uintptr_t CPROC audio_ReadCaptureDevice( PTHREAD thread )
 							break;
 						}
 					}
-					for( n = n; n < val; n++ ) //-V570
+					for( /*n = n*/; n < val; n++ ) //-V570
 					{
 						ad->compress_partial_buffer[ad->compress_partial_buffer_idx++] 
 							= ((gsm_signal*)ad->input_data)[n];

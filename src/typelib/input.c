@@ -619,14 +619,14 @@ void DeleteUserInput( PUSER_INPUT_BUFFER pci )
 			PTEXT remaining;
 			if( pNext == pci->CollectionBuffer )
 			{
-				if( remaining = NEXTLINE( pNext ) )
+				if( ( remaining = NEXTLINE( pNext ) ) )
 				{
 					SegUnlink( pNext );
 					LineRelease( pNext );
 					pci->CollectionBuffer = remaining;
 					pci->CollectionIndex = 0;
 				}
-				else if( remaining = PRIORLINE( pNext ) )
+				else if( ( remaining = PRIORLINE( pNext ) ) )
 				{
 					SegUnlink( pNext );
 					LineRelease( pNext );

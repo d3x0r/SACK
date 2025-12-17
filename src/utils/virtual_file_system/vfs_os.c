@@ -1146,11 +1146,12 @@ static int _os_MaskStrCmp( struct sack_vfs_os_volume *vol, CTEXTSTR filename, BL
 		if( path_match ) {
 			size_t l;
 			int r = _os_PathCaseCmpEx( filename, dirname, l = strlen( filename ) );
-			if( !r )
+			if( !r ) {
 				if( (dirname)[l] == '/' || (dirname)[l] == '\\' )
 					return 0;
 				else
 					return 1;
+			}
 			return r;
 		}
 		else
@@ -1871,7 +1872,7 @@ LOGICAL _os_ExpandVolume( struct sack_vfs_os_volume *vol, BLOCKINDEX fromBlock, 
 		char *tmp;
 #ifndef USE_STDIO
 
-		if( tmp =(char*)StrChr( vol->volname, '@' ) ) {
+		if( (tmp =(char*)StrChr( vol->volname, '@' ) ) ) {
 			if( tmp[1] == '@' ) {
 				strcpy( tmp, tmp + 1 );
 				goto defaultOpen;
@@ -2047,7 +2048,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 	if( !current_BAT ) return 0;
 
 	current_BAT[0] = EOFBLOCK;
-	if( (check_val == EOBBLOCK) ) {
+	if( check_val == EOBBLOCK ) {
 		if( n < (BLOCKS_PER_BAT - 1) ) {
 			current_BAT[1] = EOBBLOCK;
 			if( blockSize == 4096 )

@@ -92,9 +92,9 @@ static void PlotArbitrary( Image dest
    int cols  = 0;
 	struct {
 		struct {
-			int samepoint : 1;
-			int no_left : 1;
-			int no_right : 1;
+			unsigned int samepoint : 1;
+			unsigned int no_left : 1;
+			unsigned int no_right : 1;
 		} flags;
 		struct {
 			int32_t x, y;

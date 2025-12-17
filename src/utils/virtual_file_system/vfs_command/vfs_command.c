@@ -660,7 +660,7 @@ static void CPROC _ExtractFile( uintptr_t psv, CTEXTSTR filename, enum ScanFileP
 			size_t size = sack_fsize( in );
 			CTEXTSTR filepart;
 			if( l.verbose ) printf( " file size (%zd)\n", size );
-			if( filepart = pathrchr( filename ) ) {
+			if( ( filepart = pathrchr( filename ) ) ) {
 				TEXTSTR tmp = DupCStrLen( filename, filepart - filename );
 				MakePath( tmp );
 				Release( tmp );

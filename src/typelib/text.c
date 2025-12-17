@@ -472,7 +472,7 @@ PTEXT SegAppends(PTEXT source, ...)
 	PTEXT other;
 	va_list args;
 	va_start( args, source );
-	while( other = va_arg( args, PTEXT ) )
+	while( ( other = va_arg( args, PTEXT ) ) )
 	{
 		if( temp ) {
 			SetEnd(temp);
@@ -2167,15 +2167,9 @@ void VarTextAddDataEx( PVARTEXT pvt, CTEXTSTR block, size_t length DBG_PASS )
 // combines BuildLine with VarTextOutput (one less move, since we can just output
 // into the vartext without copying to a temporary buffer
 void VarTextAddText( PVARTEXT pvt, PTEXT pt, int bSingle ) {
-	char *buf;
 	int   TopSingle = bSingle;
 	PTEXT pStack[32];
 	int   nStack, spaces = 0;
-	//int   skipspaces = ( PRIORLINE(pt) == NULL );
-	PTEXT pOut;
-	uintptr_t ofs;
-	//DebugBreak();
-	ofs = 0;
 	nStack = 0;
 	while( pt )
 	{
@@ -2205,7 +2199,7 @@ void VarTextAddText( PVARTEXT pvt, PTEXT pt, int bSingle ) {
 			// reconstructed correctly...
 			if( pt->flags&TF_INDIRECT )
 			{
- // will be restored when we get back to top.
+				// will be restored when we get back to top.
 				bSingle = FALSE;
 				pStack[nStack++] = pt;
 				pt = GetIndirect( pt );

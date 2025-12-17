@@ -291,11 +291,11 @@ static void AVLbalancer( PTREEROOT root, PTREENODE node ) {
 		height++;
 #endif
 		doBalance = FALSE;
-		if( tmp = _z->greater )
+		if( ( tmp = _z->greater ) )
 			rightDepth = tmp->depth;
 		else
 			rightDepth = 0;
-		if( tmp = _z->lesser )
+		if( ( tmp = _z->lesser ) )
 			leftDepth = tmp->depth;
 		else
 			leftDepth = 0;
@@ -592,8 +592,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 				backtrack = backtrack->parent;
 				while( backtrack && ( no_children || backtrack != node ) ) {
 					backtrack->children--;
-					if( updating )
-						if( backtrack->lesser )
+					if( updating ) {
+						if( backtrack->lesser ) {
 							if( backtrack->greater ) {
 								int tmp1, tmp2;
 								PTREENODE z_, y_/*, x_*/;
@@ -645,12 +645,13 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 										}
 									}
 								}
-							} else
-									if( backtrack->depth != ( backtrack->lesser->depth + 1 ) )
-										backtrack->depth = backtrack->lesser->depth + 1;
-									else 
-										updating = 0;
-						else
+							} else {
+								if( backtrack->depth != ( backtrack->lesser->depth + 1 ) )
+									backtrack->depth = backtrack->lesser->depth + 1;
+								else
+									updating = 0;
+							}
+						} else {
 							if( backtrack->greater )
 									if( backtrack->depth != ( backtrack->greater->depth + 1 ) )
 										backtrack->depth = backtrack->greater->depth + 1;
@@ -661,6 +662,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 										backtrack->depth = 0;
 									else 
 										updating = 0;
+						}
+					}
 					backtrack = backtrack->parent;
 				}
 				if( least ) {
@@ -865,7 +868,7 @@ void DumpTree( PTREEROOT root
 void DumpNodeInOrder( PLINKQUEUE *queue, int (*DumpMethod)( CPOINTER user, uintptr_t key ) )
 {
 	PTREENODE node;
-	while( node = (PTREENODE)DequeLink( queue ) )
+	while( ( node = (PTREENODE)DequeLink( queue ) ) )
 	{
 #ifdef SACK_BINARYLIST_USE_PRIMITIVE_LOGGING
 	static char buf[256];

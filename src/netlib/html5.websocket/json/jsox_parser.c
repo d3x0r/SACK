@@ -1111,7 +1111,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 		return -1;
 
 	if( msg && msglen ) {
-		if( input = (PJSOX_PARSE_BUFFER)PeekQueue( state->inBuffers[0] ) ) {
+		if( ( input = (PJSOX_PARSE_BUFFER)PeekQueue( state->inBuffers[0] ) ) ) {
 			size_t used = input->pos - input->buf;
 			size_t unused = input->size - used;
 			if( input->tempBuf || ( unused < 6 ) ) {
@@ -1390,7 +1390,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->word = JSOX_WORD_POS_RESET;
 					}
 
-					if( ( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) ) {
+					if( state->parse_context == JSOX_CONTEXT_OBJECT_FIELD ) {
 
 						if( state->current_class ) {
 							if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_FIELD ) {
@@ -1945,7 +1945,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->parse_context == JSOX_CONTEXT_UNKNOWN )
 							state->completed = TRUE;
 						break;					
-					} else if( (state->word == JSOX_WORD_POS_RESET) ) {
+					} else if( state->word == JSOX_WORD_POS_RESET ) {
 						break;
 					} else if( state->word == JSOX_WORD_POS_FIELD ) {
 						if( state->val.string ) {
@@ -2342,7 +2342,7 @@ const char *jsox_get_parse_buffer( struct jsox_parse_state *pState, const char *
 	int idx;
 	PJSOX_PARSE_BUFFER buffer;
 	for( idx = 0; ; idx-- )
-		while( buffer = (PJSOX_PARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ) ) {
+		while( ( buffer = (PJSOX_PARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ) ) ) {
 			if( !buffer ) break;
 			if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
 				return buffer->buf;
@@ -2395,7 +2395,7 @@ static PTHREAD dispose_thread;
 static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
 	PDATALIST msg_data;
 	while( 1 ) {
-		while( msg_data = (PDATALIST)DequeLink( &dispose_queue ) ) {
+		while( ( msg_data = (PDATALIST)DequeLink( &dispose_queue ) ) ) {
 			/*
 			INDEX listIndex = GetMemberIndex( PDATALIST, &jxpsd.dataLists, (POINTER)msg_data );
 			if( listIndex != INVALID_INDEX ) {
@@ -2432,13 +2432,13 @@ void jsox_dispose_message( PDATALIST *msg_data ) {
 void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 	if( state ) {
 		PJSOX_PARSE_BUFFER buffer;
-		while( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
+		while( ( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 			Deallocate( const char *, buffer->buf );
 			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 		}
-		while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+		while( ( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
-		while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+		while( ( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 		}
@@ -2509,7 +2509,7 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 	EnterCriticalSec( &jxpsd.cs_states );
 	_jsox_dispose_message( state->elements );
 	
-	while( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
+	while( ( buffer = (PJSOX_PARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 		Deallocate( const char *, buffer->buf );
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	}
@@ -2523,10 +2523,10 @@ void jsox_parse_dispose_state( struct jsox_parse_state **ppState ) {
 		DeleteFromSet( PLIST, jxpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+	while( ( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	state->val.string = NULL; 
-	while( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+	while( ( buffer = (PJSOX_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( JSOX_PARSE_BUFFER, state->parseBuffers, buffer );
 	}

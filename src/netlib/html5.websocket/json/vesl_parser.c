@@ -1095,13 +1095,13 @@ void _vesl_dispose_message( PDATALIST *msg_data )
 void vesl_parse_clear_state( struct vesl_parse_state* state ) {
 	if( state ) {
 		PVESL_PARSE_BUFFER buffer;
-		while( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
+		while( ( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 		}
-		while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+		while( ( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
-		while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+		while( ( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 		}
@@ -1146,7 +1146,7 @@ void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 	PVESL_PARSE_BUFFER buffer;
 	_vesl_dispose_message( state->elements );
 	//DeleteDataList( &state->elements );
-	while( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) {
+	while( ( buffer = (PVESL_PARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 		Deallocate( const char *, buffer->buf );
 		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 	}
@@ -1159,9 +1159,9 @@ void vesl_parse_dispose_state( struct vesl_parse_state **ppState ) {
 		DeleteFromSet( PLIST, vpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+	while( ( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
-	while( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+	while( ( buffer = (PVESL_PARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( VESL_PARSE_BUFFER, vpsd.parseBuffers, buffer );
 	}

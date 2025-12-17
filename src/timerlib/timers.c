@@ -539,7 +539,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	{
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+		while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
@@ -595,7 +595,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 	{
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+		while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
@@ -644,7 +644,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 	{
 		uint64_t oldval;
 		// don't need locks if init didn't finish, there's now way to have threads in loader lock.
-		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+		while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
@@ -1113,7 +1113,7 @@ static void  UnmakeThread( void )
 	struct my_thread_info* _MyThreadInfo = GetThreadTLS();
 #endif
 	uint64_t oldval;
-	while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, MyThreadInfo.nThread ) ) { //-V595
+	while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, MyThreadInfo.nThread ) ) ) { //-V595
 		//globalTimerData.lock_thread_create = oldval;
 		Relinquish();
 	}
@@ -1434,7 +1434,7 @@ PTHREAD  ThreadToEx( uintptr_t (CPROC*proc)(PTHREAD), uintptr_t param DBG_PASS )
 	{
 		uint64_t oldval;
 		// unlink from globalTimerData.threads list.
-		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+		while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}
@@ -1513,7 +1513,7 @@ PTHREAD  ThreadToSimpleEx( uintptr_t (CPROC*proc)(POINTER), POINTER param DBG_PA
 	{
 		uint64_t oldval;
 		// unlink from globalTimerData.threads list.
-		while( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) {
+		while( ( oldval = LockedExchange64( &globalTimerData.lock_thread_create, 1 ) ) ) {
 			//globalTimerData.lock_thread_create = oldval;
 			Relinquish();
 		}

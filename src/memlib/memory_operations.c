@@ -449,7 +449,7 @@ size_t StrBytesWu8( wchar_t const* s ) {
 	TEXTRUNE r;
 	if( !s )
 		return 0;
-	for( l = 0; r = GetUtfCharW( &s ); s++ ) {
+	for( l = 0; ( r = GetUtfCharW( &s ) ); s++ ) {
 		l += ConvertToUTF8( ch, r );
 	}
 	return l + 1;

@@ -152,7 +152,6 @@ ExtendSet:
 		{
 			uintptr_t base = ( (uintptr_t)set->bUsed ) + ofs;
 			// quick skip for 32 bit blocks of used members...
-			n = 0;
 			for( n = 0; n < maxcnt && ((maxcnt-n) >= 32) && AllUsed( set,n ); n+=32 );
 			if( n == maxcnt )
 			{
@@ -274,8 +273,6 @@ POINTER GetSetMemberEx( GENERICSET **pSet, INDEX nMember, int setsize, int units
 	int bUsed;
 	if( nMember == INVALID_INDEX )
 		return NULL;
-	//if( nMember > 1000 )
-	//	DebugBreak();
 	result = GetSetMemberExx( pSet, nMember, setsize, unitsize, maxcnt, &bUsed DBG_RELAY );
 	if( !bUsed )
 		SetUsed( *pSet, nMember );

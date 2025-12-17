@@ -570,7 +570,7 @@ void reloadDirectoryEntry( struct sack_vfs_os_volume* vol, struct memoryTimeline
 	// could fill leadin....
 	decoded_dirent->leadin[0] = 0;
 	decoded_dirent->leadinDepth = 0;
-	while( c = (char*)PopData( &pdsChars ) )
+	while( (c = (char*)PopData( &pdsChars )) )
 		decoded_dirent->filename[n++] = c[0];
 	DeleteDataStack( &pdsChars );
 
@@ -644,7 +644,7 @@ static void deleteTimelineIndex( struct sack_vfs_os_volume* vol, BLOCKINDEX inde
 		//ValidateTimelineTree( vol DBG_SRC );
 #endif
 		//lprintf( "Delete done... %d", index );
-	} while( index = next );
+	} while( ( index = next ) );
 #ifdef DEBUG_DELETE_LAST
 	checkRoot( vol );
 #endif

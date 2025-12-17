@@ -1083,7 +1083,7 @@ void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
-		if( odbc->flags.bAutoTransact = bEnable )
+		if( ( odbc->flags.bAutoTransact = bEnable ) )
 			odbc->flags.bThreadProtect = 1;
 }
 
@@ -1445,8 +1445,8 @@ int OpenSQLConnectionEx( PODBC odbc DBG_PASS )
 #ifdef LOG_EVERYTHING
 			lprintf( "get hdbc" );
 #endif
-			if( rc = SQLAllocConnect( odbc->env,
-									  &odbc->hdbc ) )
+			if( ( rc = SQLAllocConnect( odbc->env,
+									  &odbc->hdbc ) ) )
 			{
 				lprintf( "Fatal error, Could not allocate SQL resource." );
 				SQLFreeEnv( odbc->env );

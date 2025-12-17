@@ -1523,13 +1523,14 @@ static int verify_cb( int preverify_ok, X509_STORE_CTX *ctx) {
 		err = X509_V_ERR_CERT_CHAIN_TOO_LONG;
 		X509_STORE_CTX_set_error(ctx, err);
 	}
-	if( !mydata->always_continue )
+	if( !mydata->always_continue ) {
 		if (!preverify_ok ) {
 			lprintf("verify error:num=%d:%s:depth=%d:%s", err,
 				   X509_verify_cert_error_string(err), depth, buf);
 		} else if (mydata->verbose_mode) {
 			lprintf("depth=%d:%s", depth, buf);
 		}
+	}
 	/*
 	 * At this point, err contains the last verification error. We can use
 	 * it for something special
@@ -2076,7 +2077,7 @@ void loadSystemCerts( SSL_CTX* ctx,X509_STORE *store )
 		return;
 	}
 
-	while (pContext = CertEnumCertificatesInStore(hStore, pContext))
+	while ((pContext = CertEnumCertificatesInStore(hStore, pContext)))
 	{
 		//uncomment the line below if you want to see the certificates as pop ups
 		//CryptUIDlgViewContext(CERT_STORE_CERTIFICATE_CONTEXT, pContext,   NULL, NULL, 0, NULL);

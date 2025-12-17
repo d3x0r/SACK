@@ -1707,7 +1707,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 			tmpname = ExpandPathVariable( filename );
 			filename = tmpname;
 		}
-		if( !StrChr( opts, 'n' ) && ( filename[0] == '@' ) || ( filename[0] == '*' ) || ( filename[0] == '~' ) ) {
+		if( (!StrChr( opts, 'n' ) && ( filename[0] == '@' )) || ( filename[0] == '*' ) || ( filename[0] == '~' ) ) {
 			tmpname = ExpandPathEx( filename, NULL );
 			filename = tmpname;
 		}
@@ -1903,7 +1903,7 @@ FILE* sack_fsopenEx( INDEX group
 		LeaveCriticalSec( &( *winfile_local ).cs_files );
 	}
 	if( mount && mount->fsi ) {
-		if( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) || !StrChr( opts, 'w' ) ) {
+		if( ( StrChr( opts, 'r' ) && !StrChr( opts, '+' ) ) || !StrChr( opts, 'w' ) ) {
 			struct file_system_mounted_interface* test_mount = mount;
 			while( !handle && test_mount && test_mount->fsi ) {
 				file->mount = test_mount;
@@ -3017,7 +3017,7 @@ LOGICAL CPROC sack_filesys_rename( uintptr_t psvInstance, const char* original_n
 static void link_mount( struct file_system_mounted_interface* mount ) {
 	struct file_system_mounted_interface* root = FileSysThreadInfo.mounted_file_systems;
 	if( !root || ( root->priority >= mount->priority ) ) {
-		if( mount->nextLayer = FileSysThreadInfo.mounted_file_systems )
+		if( ( mount->nextLayer = FileSysThreadInfo.mounted_file_systems ) )
 			root->meLayer = &mount->nextLayer;
 		mount->meLayer = &FileSysThreadInfo.mounted_file_systems;
 

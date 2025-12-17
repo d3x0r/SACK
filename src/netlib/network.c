@@ -1166,7 +1166,7 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 		if( !readWrite && !inWakeOnUnlock ) // is write and not read
 		{
 			PTHREAD wakeOnUnlock;
-			if( wakeOnUnlock = lpClient->wakeOnUnlock ){
+			if( ( wakeOnUnlock = lpClient->wakeOnUnlock ) ){
 #ifdef LOG_PENDING_WRITES		
 				_lprintf(DBG_RELAY)( "Wake on Unlock was set");
 #endif				

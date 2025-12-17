@@ -1499,7 +1499,7 @@ Image IMGVER(GetTintedImage)( Image child_image, CDATA color )
 void IMGVER(TransferSubImages)( Image pImageTo, Image pImageFrom )
 {
 	Image tmp;
-	while( tmp = pImageFrom->pChild )
+	while( ( tmp = pImageFrom->pChild ) )
 	{
 		// moving a child allows it to keep all of it's children too?
 		// I think this is broken in that case; Orphan removes from the family entirely?

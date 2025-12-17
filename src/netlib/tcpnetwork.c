@@ -931,13 +931,13 @@ PCLIENT CPPOpenTCPClientExEx(CTEXTSTR lpName,uint16_t wPort,
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
 	if( lpName ) {
-		if(lpsaDest = CreateSockAddressV2(lpName,wPort
+		if(( lpsaDest = CreateSockAddressV2(lpName,wPort
 		                                 , (flags&OPEN_TCP_FLAG_PREFER_V6)
 		                                   ? NETWORK_ADDRESS_FLAG_PREFER_V6
 		                                   : (flags&OPEN_TCP_FLAG_PREFER_V4)
 		                                   ? NETWORK_ADDRESS_FLAG_PREFER_V4 
 		                                   : NETWORK_ADDRESS_FLAG_PREFER_NONE
-		   ) ) {
+		   ) )) {
 			pClient = CPPOpenTCPClientAddrExxx( lpsaDest
 			                                  , pReadComplete
 			                                  , psvRead
@@ -976,13 +976,13 @@ PCLIENT OpenTCPClientExxx(CTEXTSTR lpName,uint16_t wPort,
 	SOCKADDR *lpsaDest;
 	pClient = NULL;
 	if( lpName ) {
-		if(lpsaDest = CreateSockAddressV2(lpName,wPort
+		if(( lpsaDest = CreateSockAddressV2(lpName,wPort
 		                                 , (flags&OPEN_TCP_FLAG_PREFER_V6)
 		                                   ? NETWORK_ADDRESS_FLAG_PREFER_V6
 		                                   : (flags&OPEN_TCP_FLAG_PREFER_V4)
 		                                   ? NETWORK_ADDRESS_FLAG_PREFER_V4 
 		                                   : NETWORK_ADDRESS_FLAG_PREFER_NONE
-		   ) ) {
+		   ) )) {
 			pClient = OpenTCPClientAddrExxx( lpsaDest
 			                               , pReadComplete
 			                               , CloseCallback

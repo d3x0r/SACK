@@ -1261,13 +1261,13 @@ PDATALIST json_parse_get_data( struct json_parse_state *state ) {
 void json_parse_clear_state( struct json_parse_state *state ) {
 	if( state ) {
 		PPARSE_BUFFER buffer;
-		while( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) {
+		while( ( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 			Deallocate( const char *, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
-		while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+		while( ( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-		while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+		while( ( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 			Deallocate( const char*, buffer->buf );
 			DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 		}
@@ -1324,10 +1324,10 @@ const char *json_get_parse_buffer( struct json_parse_state *pState, const char *
 	INDEX idx;
 	PPARSE_BUFFER buffer;
 	//lprintf( "Getting buffer from %p", pState );
-	for( idx = 0; buffer = (PPARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ); idx++ )
+	for( idx = 0; ( buffer = (PPARSE_BUFFER)PeekLinkEx( pState->outBuffers, idx ) ); idx++ )
 		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
 			return buffer->buf;
-	for( idx = 0; buffer = (PPARSE_BUFFER)PeekQueueEx( *pState->outQueue, (int)idx ); idx++ )
+	for( idx = 0; ( buffer = (PPARSE_BUFFER)PeekQueueEx( *pState->outQueue, (int)idx ) ); idx++ )
 		if( ((uintptr_t)buf) >= ((uintptr_t)buffer->buf) && ((uintptr_t)buf) < ((uintptr_t)buffer->pos) )
 			return buffer->buf;
 	LIST_FORALL( pState->outValBuffers[0], idx, PPARSE_BUFFER, buffer ) {
@@ -1344,7 +1344,7 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	PPARSE_BUFFER buffer;
 	_json_dispose_message( state->elements );
 	//DeleteDataList( &state->elements );
-	while( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) {
+	while( ( buffer = (PPARSE_BUFFER)PopLink( state->outBuffers ) ) ) {
 		Deallocate( const char *, buffer->buf );
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}
@@ -1360,9 +1360,9 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 		DeleteFromSet( PLIST, jpsd.listSet, state->outValBuffers );
 		//DeleteList( &state->outValBuffers );
 	}
-	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) )
+	while( ( buffer = (PPARSE_BUFFER)DequeLinkNL( state->inBuffers ) ) )
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
-	while( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) {
+	while( ( buffer = (PPARSE_BUFFER)DequeLinkNL( state->outQueue ) ) ) {
 		Deallocate( const char*, buffer->buf );
 		DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, buffer );
 	}

@@ -120,11 +120,12 @@ static int MaskStrCmp( struct sack_vfs_volume *vol, CTEXTSTR filename, FPI name_
 		if( path_match ) {
 			size_t l;
 			int r = PathCaseCmpEx( filename, (CTEXTSTR)(((uint8_t*)vol->disk) + name_offset), l = strlen( filename ) );
-			if( !r )
+			if( !r ) {
 				if( ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '/' || ((const char *)(((uint8_t*)vol->disk) + name_offset))[l] == '\\' )
 					return 0;
 				else
 					return 1;
+			}
 			return r;
 		}
 		else
@@ -303,7 +304,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 					vol->lastBatBlock = (BLOCKINDEX)((sector*BLOCKS_PER_BAT) + m);
 					break;
 				}
-				if( block )
+				if( block ) {
 					if( !TESTFLAG( usedSectors, blockIndex ) ) {
 						if( block == EOFBLOCK )
 							SETFLAG( usedSectors, blockIndex );
@@ -385,6 +386,7 @@ static LOGICAL ValidateBAT( struct sack_vfs_volume *vol ) {
 					}
 					else {
 						// block was already found in a previous file chain.
+					}
 					}
 				if( block == EOFBLOCK ) continue;
 				if( block >= last_block ) return FALSE;
@@ -756,7 +758,7 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 
 	current_BAT[0] = EOFBLOCK ^ blockKey[0];
 	LoGB( "Write to BAT: EOF at %d  %d", (int)n, result );
-	if( (check_val == EOBBLOCK) ) {
+	if( check_val == EOBBLOCK ) {
 		if( n < (BLOCKS_PER_BAT - 1) ) {
 			current_BAT[1] = EOBBLOCK ^ blockKey[1];
 			LoGB( "Write to BAT: EOB at %d  %d", (int)n+1, result + 1 );

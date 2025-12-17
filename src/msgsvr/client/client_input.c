@@ -48,7 +48,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 #endif
 			//lprintf( "^^^" );
 			//lprintf( "Got a receive..." );
-			if( ( MessageLen == (-((int32_t)sizeof(MSGIDTYPE))) ) ) // retry
+			if( MessageLen == (-((int32_t)sizeof(MSGIDTYPE))) ) // retry
 			{
 				lprintf( "Recieved -4 message (no data?!) no message, should have been -1, ENOMSG" );
 				MessageIn->hdr.msgid = RU_ALIVE;

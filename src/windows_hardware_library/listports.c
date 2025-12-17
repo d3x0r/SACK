@@ -137,7 +137,7 @@ static LOGICAL WinNT40ListPorts( ListPortsCallback lpCallback, uintptr_t psv )
 	TEXTSTR lpValueName = NULL;
 	TEXTSTR lpPortName = NULL;
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ,&hKey ) )
+	if( ( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ,&hKey ) ) )
 	{
 		/* it is really strange that this key does not exist, but could happen in theory */
 		if( dwError == ERROR_FILE_NOT_FOUND ) dwError = 0;
@@ -366,7 +366,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 	TEXTSTR lpDevName= NULL;
 	TEXTSTR lpDevNum = NULL;
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) )
+	if( ( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) ) )
 	{
 		goto end;
 	}
@@ -379,7 +379,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 			hkLevel1 = NULL;
 		}
 
-		if( dwError = ListPorts_OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) )
+		if( ( dwError = ListPorts_OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) ) )
 		{
 			if( dwError == ERROR_NO_MORE_ITEMS )
 			{
@@ -399,7 +399,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 				hkLevel2 = NULL;
 			}
 
-			if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevName ) )
+			if( ( dwError = ListPorts_OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevName ) ) )
 			{
 				if( dwError == ERROR_NO_MORE_ITEMS )
 				{
@@ -422,7 +422,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 					hkLevel3 = NULL;
 				}
 
-				if( dwError = ListPorts_OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpDevNum ) )
+				if( ( dwError = ListPorts_OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpDevNum ) ) )
 				{
 					if( dwError == ERROR_NO_MORE_ITEMS )
 					{
@@ -486,7 +486,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 					if( dwError == ERROR_FILE_NOT_FOUND )
 					{ 
 						/* boy that was strange, we better skip this device */
-						dwError = 0;
+						//dwError = 0;
 						continue;
 					}
 				
@@ -501,7 +501,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListPortsCallback lpCallback, 
 
 				/* now go for "FRIENDLYNAME" */
 
-				if( dwError = ListPorts_QueryStringValue( hkLevel3, "FRIENDLYNAME", &lpFriendlyName ) )
+				if( ( dwError = ListPorts_QueryStringValue( hkLevel3, "FRIENDLYNAME", &lpFriendlyName ) ) )
 				{
 					if( dwError == ERROR_FILE_NOT_FOUND )
 					{

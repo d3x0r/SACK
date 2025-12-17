@@ -51,7 +51,7 @@ add_custom_command(TARGET
                    COMMENT
                      "Adding custom manifest containing MSVCRT80 dependency..." 
                   )
-endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
+endif( ( WIN32 AND CMAKE_COMPILER_IS_GNUCC ) OR ( WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" ))
 
 
 endif()

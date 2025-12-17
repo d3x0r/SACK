@@ -1143,7 +1143,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 #endif
 		if( AddHttpData( state, buffer, size ) ) {
 			enum ProcessHttpResult r;
-			if( r = ProcessHttp( state, NULL, 0 ) ) // this shouldn't cause any auto send?
+			if( ( r = ProcessHttp( state, NULL, 0 ) ) ) // this shouldn't cause any auto send?
 			{
 				//lprintf( "this is where we should close and not end...%d %d %d",r, state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {

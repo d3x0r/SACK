@@ -124,7 +124,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 	{
 		if( !websock )
 		{
-			if( websock = wsc_local.opening_client )
+			if( ( websock = wsc_local.opening_client ) )
 			{
 				//SetTCPNoDelay( pc, TRUE );
 				SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );

@@ -692,7 +692,7 @@ static void PlotArbitrary( Image dest
 					}
 				}
 			} // if left.cury == final y
-			if( (left.cury == points[left.idx].left.y) )
+			if( left.cury == points[left.idx].left.y )
 			{
 				//DebugBreak();
 				if( points[left.idx+1].flags.no_left || ( left.idx == 2 ) )
@@ -825,7 +825,7 @@ static void PlotArbitrary( Image dest
 				}
 			} // if right.cury == destination point.
 
-			if( (right.cury == points[right.idx].right.y) )
+			if( right.cury == points[right.idx].right.y )
 			{
 				//DebugBreak();
 				if( points[right.idx+1].flags.no_right || ( right.idx == 2 ) )

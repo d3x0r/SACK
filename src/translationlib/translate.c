@@ -73,7 +73,7 @@ static CTEXTSTR SaveString( PSTRINGSPACE *root, uint32_t index, CTEXTSTR text )
 		space = New( STRINGSPACE );
 		space->nextname = 0;
 		//lprintf( "Adding new namespace %p", space );
-		if( space->next = root[0] )
+		if( ( space->next = root[0] ) )
 			root[0]->me = &space->next;
 		space->me = root;
 		root[0] = space;

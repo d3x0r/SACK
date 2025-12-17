@@ -115,7 +115,7 @@ struct url_data * SACK_URLParse( const char *url )
 	_state = -1;
 	state = PARSE_STATE_COLLECT_PROTOCOL;
 	MemSet( data, 0, sizeof( struct url_data ) );
-	while( ch = GetUtfChar(&url) )
+	while( ( ch = GetUtfChar(&url) ) )
 	{
 		int use_char;
 		use_char = 0;

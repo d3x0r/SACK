@@ -278,11 +278,12 @@ static void HandleEvent( PCLIENT pClient )
 						if( (pClient->dwFlags & ( CF_ACTIVE | CF_CONNECTED )) ==
 							( CF_ACTIVE | CF_CONNECTED ) )
 						{
-							if( pClient->read.ReadComplete )
+							if( pClient->read.ReadComplete ) {
 								if( pClient->dwFlags & CF_CPPREAD )
 									pClient->read.CPPReadComplete( pClient->psvRead, NULL, 0 );
 								else
 									pClient->read.ReadComplete( pClient, NULL, 0 );
+							}
 						}
 						if( pClient->pWaiting )
 							WakeThread( pClient->pWaiting );
@@ -633,7 +634,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 		}
 		{
 			PCLIENT pc;
-			while( pc = (PCLIENT)DequeLink( &globalNetworkData.client_schedule ) )
+			while( ( pc = (PCLIENT)DequeLink( &globalNetworkData.client_schedule ) ) )
 			{
 				// use this for "added to schedule".  Closing removes from schedule.
 				if( !pc->flags.bAddedToEvents )

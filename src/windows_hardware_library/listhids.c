@@ -252,7 +252,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 	TEXTSTR lpHid = NULL;
 	TEXTSTR lpDevKey = NULL;
 
-	if( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) )
+	if( ( dwError = RegOpenKeyEx( HKEY_LOCAL_MACHINE, lpEnumPath, 0, KEY_ENUMERATE_SUB_KEYS, &hkEnum ) ) )
 	{
 		goto end;
 	}
@@ -265,7 +265,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 			hkLevel1 = NULL;
 		}
 
-		if( dwError = OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) )
+		if( ( dwError = OpenSubKeyByIndex( hkEnum, dwIndex1, KEY_ENUMERATE_SUB_KEYS, &hkLevel1, &lpTechnology ) ) )
 		{
 			if( dwError == ERROR_NO_MORE_ITEMS )
 			{
@@ -285,7 +285,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 				hkLevel2 = NULL;
 			}
 
-			if( dwError = OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevKey ) )
+			if( ( dwError = OpenSubKeyByIndex( hkLevel1, dwIndex2, KEY_ENUMERATE_SUB_KEYS, &hkLevel2, &lpDevKey ) ) )
 			{
 				if( dwError == ERROR_NO_MORE_ITEMS )
 				{
@@ -307,7 +307,7 @@ static LOGICAL ScanEnumTree( CTEXTSTR lpEnumPath, ListHidsCallback lpCallback, u
 					hkLevel3 = NULL;
 				}
 				
-				if( dwError = OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpClass ) )
+				if((  dwError = OpenSubKeyByIndex( hkLevel2, dwIndex3, KEY_READ, &hkLevel3, &lpClass ) ))
 				{
 					if( dwError == ERROR_NO_MORE_ITEMS )
 					{

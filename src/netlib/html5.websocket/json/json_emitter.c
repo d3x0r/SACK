@@ -1204,7 +1204,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 			{
 				uintptr_t psv;
 #ifdef __64__
-				if( psv = *(int64_t*)(((uintptr_t)msg)+member->offset) )
+				if( ( psv = *(int64_t*)(((uintptr_t)msg)+member->offset) ) )
 				{
 					if( n )
 						vtprintf( context->pvt, "," );
@@ -1214,7 +1214,7 @@ TEXTSTR json_build_message( struct json_context_object *object
 						json_add_uint_64_value( context, member->name, psv );
 				}
 #else
-				if( psv = *(int32_t*)(((uintptr_t)msg)+member->offset) )
+				if( ( psv = *(int32_t*)(((uintptr_t)msg)+member->offset) ) )
 				{
 					if( n )
 						vtprintf( context->pvt, "," );
