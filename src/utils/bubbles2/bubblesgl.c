@@ -171,12 +171,7 @@ void MoveBubbles( void )
                   DebugBreak();
                //DebugBreak();
 					SetLink( &bubble->near_bubbles, idx2, 0 );
-					if( bubble->near_bubbles->Lock )
-                  DebugBreak();
 					SetLink( &b2->near_bubbles, unlink_idx, 0 );
-					if( b2->near_bubbles->Lock )
-                  DebugBreak();
-
 					AddLink( &b3->near_bubbles, bubble );
                AddLink( &bubble->near_bubbles, b3 );
 				}
@@ -206,9 +201,6 @@ void DrawBubbles( PBUBBLE bubble, Image image, int x, int y, CDATA c )
    //BlotScaledImageSizedToAlpha( image, l.cover, x, y, 150, 150, ALPHA_TRANSPARENT );
    //BlotImageAlpha( image, l.cover, x+0, y+0, ALPHA_TRANSPARENT );
 	//BlotImageAlphaShaded( image, l.shaded, x+0, y+0, ALPHA_TRANSPARENT, c );
-
-	_try
-	{
 
 	{
 		float x_size, y_size, y_size2;
@@ -268,14 +260,6 @@ void DrawBubbles( PBUBBLE bubble, Image image, int x, int y, CDATA c )
          glEnd();
 		}
 	}
-
-   		}
-		_except( EXCEPTION_EXECUTE_HANDLER )
-		{
-            DebugBreak();
-			lprintf( "Caught exception in video output window" );
-			;
-		}
 
 }
 
@@ -376,7 +360,7 @@ void GenTexture( unsigned int *gl, Image img )
 
 }
 
-void CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
+int CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
 {
 	Image image = GetDisplayImage( renderer );
 
@@ -412,6 +396,7 @@ void CPROC UpdateImage( uintptr_t psv, PRENDERER renderer )
    //UpdateDisplay( l.render );
    //lprintf( "...4" );
 	}
+	return 1;
 }
 
 void CPROC Ticker( uintptr_t psv )
@@ -420,7 +405,7 @@ void CPROC Ticker( uintptr_t psv )
    Redraw( l.render );
 }
 
-int main( int argc, char **argv )
+SaneWinMain( argc, argv )
 {
 	int bubbles;
 	int x, y, w, h;
@@ -454,13 +439,13 @@ int main( int argc, char **argv )
 											  // |DISPLAY_ATTRIBUTE_LAYERED
 											  , l.w, l.h, x, y );
 
-		EnableOpenGL( l.render );
+		//EnableOpenGL( l.render );
 
-		SetActiveGLDisplay( l.render );
+	//	SetActiveGLDisplay( l.render );
       GenTexture( &l.gl_shadow, l.shadow );
       GenTexture( &l.gl_cover, l.cover );
 		GenTexture( &l.gl_shaded, l.shaded );
-		SetActiveGLDisplay( NULL );
+		//SetActiveGLDisplay( NULL );
 
 
 		SetRedrawHandler( l.render, UpdateImage, 0 );
@@ -496,4 +481,4 @@ int main( int argc, char **argv )
 	}
    return 0;
 }
-
+EndSaneWinMain()
