@@ -68,7 +68,7 @@ PRELOAD( Started )
 				l.MsgBase = NULL;
 				return;
 			}
-			else if( result != ((MSG_WHOAMI)|SERVER_SUCCESS ) )
+			else if( result != (((int)MSG_WHOAMI)| (int)SERVER_SUCCESS ) )
 			{
 				lprintf( "Server responce was in error... disable support" );
 				UnloadService( SUMMONER_NAME );
@@ -109,13 +109,13 @@ PRELOAD( Started )
 	if( l.MsgBase )
 	{
 		lprintf( "Sending IM_READY to summoner...\n" );
-		result = ((MSG_IM_READY) | SERVER_SUCCESS);
+		result = (((int)MSG_IM_READY) | (int)SERVER_SUCCESS);
 		if( TransactServerMessage( l.MsgBase, MSG_IM_READY, l.my_name, (uint32_t)strlen( l.my_name ) + 1
 										 , NULL /*&result*/, NULL, 0 )
 		  )
 		{
 			lprintf( "should be wait on true false: %d", result );
-			if( result == ((MSG_IM_READY) | SERVER_SUCCESS) ) //-V547
+			if( result == (((int)MSG_IM_READY) | (int)SERVER_SUCCESS) ) //-V547
 			{
 			}
 			else
