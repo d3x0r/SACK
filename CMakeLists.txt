@@ -1104,6 +1104,7 @@ add_library( bag.externals ${CORE_LINKMODE}
 
 target_link_libraries( bag.externals ${SSH_LIBS} )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
+                  DEPENDS Libssh2_External
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
                   LINK_FLAGS "${extra_link_flags}"
@@ -1121,6 +1122,7 @@ add_library( bag.externals.static STATIC
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
 SET_TARGET_PROPERTIES(bag.externals.static PROPERTIES
+                  DEPENDS Libssh2_External
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
                   LINK_FLAGS "${extra_link_flags}"
