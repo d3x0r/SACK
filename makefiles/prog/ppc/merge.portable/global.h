@@ -123,7 +123,11 @@ typedef struct global_tag {
 #ifdef __cplusplus
 thread_local
 #else
+#ifdef WIN32
+__declspec( thread )
+#else
 _Thread_local
+#endif
 #endif
 
 #ifndef CPP_MAIN_SOURCE
