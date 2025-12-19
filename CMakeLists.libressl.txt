@@ -1,0 +1,48 @@
+
+
+
+set( LIBRESSL_VERSION 4.1.0 )
+
+
+OPTION( NEED_LIBRESSL "Build internal libressl library" ON )
+
+if( NEED_LIBRESSL )
+    include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
+	#LINK_DIRECTORIES( ${CMAKE_INSTALL_PREFIX}/${CMAKE_BUILD_TYPE}_out/core/lib )
+	if( WIN32 ) 
+	  set( EXTENSION .lib )
+	  else( WIN32 )
+	  set( EXTENSION .a )
+	  endif( WIN32 )
+     set( SSL_LIBS ${CMAKE_INSTALL_PREFIX}/lib/ssl${EXTENSION} ${CMAKE_INSTALL_PREFIX}/lib/tls${EXTENSION} ${CMAKE_INSTALL_PREFIX}/lib/crypto${EXTENSION} )
+
+
+
+string( REPLACE ";" " " K12_SOURCES_ARG "${K12_SOURCES}" )
+string( REPLACE ";" " " K12_INCLUDE_ARG "${K12_INCLUDES}" )
+string( REPLACE ";" " " PLATFORM_LIBRARIES_ARG "${HOST_PLATFORM_LIBRARIES}" )
+string( REPLACE ";" " " PLATFORM_DEFINES_ARG "${HOST_PLATFORM_DEFINES}" )
+string( REPLACE ";" "," PLATFORM_CMAKE_DEFINES_ARG "${HOST_PLATFORM_CMAKE_DEFINES}" )
+
+   if( __LINUX__ )
+      set( MOREOPTS "-DOPENSSLDIR=\"${CMAKE_INSTALL_PREFIX}/etc/ssl\"" )
+   endif( __LINUX__ )
+
+	ExternalProject_Add( Libressl_External
+		BUILD_ALWAYS ON
+		SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/contrib/libressl/${LIBRESSL_VERSION}
+		BINARY_DIR lssl
+		INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+			-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+			${MOREOPTS}
+			-DLIBRESSL_SKIP_INSTALL=ON
+			-DLIBRESSL_APPS=OFF
+			-DLIBRESSL_TESTS=OFF
+	)
+
+else( NEED_LIBRESSL )
+
+   set( SSL_LIBS ssl tls crypto )
+
+endif( NEED_LIBRESSL )

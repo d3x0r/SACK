@@ -41,7 +41,7 @@ endif()
 
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
   # volatile type return and parameters were deprecated due to poor understanding of usage; this should be rectified eventually.
-  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
+#  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-volatile" )
 endif( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
 
 
@@ -95,11 +95,14 @@ include_directories(  ${SACK_BASE}/include )
 set( CMAKE_MODULE_PATH ${SACK_SOURCE_DIR}/makefiles/cmake )
 
 
-set( LIBRESSL_VERSION 4.1.0 )
+
 
 
 include( DefaultInstall )
 include( ExternalProject )
+
+include( ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.libressl.txt )
+include( ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.libssh2.txt )
 
 
 if( NOT CMAKE_CONFIGURATION_TYPES )
@@ -355,9 +358,6 @@ OPTION( NEED_PNG "Build internal png lib (with suitable exports to link against)
 OPTION( NEED_FREETYPE "Build internal freetype lib (with suitable exports to link against)" ${NEED_FREETYPE} )
 OPTION( NEED_ZLIB "Build internal zlib lib (with suitable exports to link against)" ${NEED_ZLIB} )
 OPTION( NEED_EXPAT "Build internal Expat library (older version)" ON )
-OPTION( NEED_LIBRESSL "Build internal libressl library" ON )
-OPTION( INCLUDE_LIBSSH2 "Include libssh2 interfaces" ON )
-OPTION( NEED_LIBSSH2 "Build internal libssh2 library" ON )
 OPTION( __WINDOWS_ARM_CE__ "Build for windows CE 5.0 ARM" 0 )
 OPTION( USE_ASSEMBLY "Use Assembly files as available.  NASM required for this." OFF )
 OPTION( USE_HARDWARE_INFO "Include Hardware information utilities" ON )
@@ -384,28 +384,6 @@ if( NOT __NO_INSTALL__ )
     #file(CHMOD "${CMAKE_INSTALL_PREFIX}/var/Freedom Collective" PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_WRITE GROUP_READ WORLD_EXECUTE WORLD_WRITE WORLD_READ )
   endif( ${CMAKE_INSTALL_PREFIX} EQUAL "/usr" )
 endif( NOT __NO_INSTALL__ )
-
-
-
-if( NEED_LIBRESSL )
-   if( NOT DEFINED LIBRESSL_SKIP_INSTALL )
-		set( LIBRESSL_SKIP_INSTALL ON )
-   endif( NOT DEFINED LIBRESSL_SKIP_INSTALL )
-	set( LIBRESSL_APPS OFF )
-	set( LIBRESSL_TESTS OFF )
-   if( __LINUX__ )
-      set( OPENSSLDIR "${CMAKE_INSTALL_PREFIX}/etc/ssl" )
-   endif( __LINUX__ )
-	set( CMAKE_INSTALL_INCLUDEDIR include/${CMAKE_PROJECT_NAME} )
-	add_subdirectory( src/contrib/libressl/${LIBRESSL_VERSION} )
-        include_directories( src/contrib/libressl/${LIBRESSL_VERSION}/include )
-        set( SSL_LIBS ssl tls crypto )
-
-else( NEED_LIBRESSL )
-
-   set( SSL_LIBS ssl tls crypto )
-
-endif( NEED_LIBRESSL )
 
 
 
@@ -477,7 +455,7 @@ if( NOT NEED_PNG )
 endif( NOT NEED_PNG )
 
 if( WIN32 )
-	set( WIN_CRYPT_LIBS crypt32 )
+	set( WIN_CRYPT_LIBS crypt32 Bcrypt )
 endif( WIN32 )
 
 
@@ -784,32 +762,7 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINES} )
 if( INCLUDE_LIBSSH2 )
   SET( MORE_NETWORK_SOURCES ${MORE_NETWORK_SOURCES} ${SACK_BASE}/src/netlib/ssh_layer.c ${SACK_BASE}/src/netlib/ssh_layer.h )
   set_source_files_properties( ${MORE_NETWORK_SOURCES} PROPERTIES INCLUDE_DIRECTORIES ${SACK_BASE}/src/contrib/libssh2/include )
-  if( NEED_LIBSSH2 )
-    SET( LIBSSH2_EXPORT_SYMBOLS ON )
-    SET( LIBSSH2_BUILD_OBJECT_LIBRARY ON )
-    SET( LIBSSH2_SKIP_INSTALL ON )
-    set( LIBSSH2_BUILD_SHARED_LIBS OFF )
-    set( LIBSSH2_BUILD_STATIC_LIBS ON )
-    set( LIBSSH2_BUILD_EXAMPLES OFF )
-    set( LIBSSH2_BUILD_TESTING OFF )
-    set( LIBSSH2_BUILD_DOCS OFF )
-
-    add_subdirectory( src/contrib/libssh2 )
-    set( SSH_LIBS libssh2 )
-    set_target_properties( libssh2 PROPERTIES FOLDER "Externals")
-  else( NEED_LIBSSH2 )
-    set( SSH_LIBS ssh2 )
-  endif( NEED_LIBSSH2 )
 endif( INCLUDE_LIBSSH2 )
-
-
-if( OFF )
-	set( BORINGSSL_SKIP_TESTS ON )
-	set( OPENSSL_NO_ASM ON )
-	add_subdirectory( src/contrib/boringssl/boringssl )
-        include_directories( src/contrib/boringssl/boringssl/include )
-        set( SSL_LIBS ssl tls crypto )
-endif( OFF )
 
 
 
@@ -875,9 +828,7 @@ SET_PROPERTY(SOURCE ${IMAGE_SOURCES}
 SET( VECTLIB_PLUSPLUS_SOURCES ${CMAKE_BINARY_DIR}/src/vectlib/vectlib_double.cpp
 	${CMAKE_BINARY_DIR}/src/vectlib/vectlib_float.cpp )
 
-
 set( ExtraDefinitions "${ExtraDefinitions};SACKCOMM_SOURCE" )
-
 
 
 if( USING_OLD_MINGW )
