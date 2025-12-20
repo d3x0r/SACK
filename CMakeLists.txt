@@ -983,6 +983,7 @@ add_library( bag ${CORE_LINKMODE}
 target_link_libraries( bag gsm-1.0-pl13 deadstart )
 	#target_link_libraries( bag MatrixSSL mssl_core )
 	target_link_libraries( bag ${SSL_LIBS} )
+	add_dependencies( bag Libressl_External )
 
 # RPATH shouldn't matter for MSVC anyway so..
 SET_TARGET_PROPERTIES(bag PROPERTIES
@@ -1041,6 +1042,7 @@ SET_TARGET_PROPERTIES(${BAG_PLUSPLUS} PROPERTIES
                   COMPILE_DEFINITIONS "${ExtraDefinitions};TARGET_LABEL=bag_plusplus;TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${BAG_PLUSPLUS}${CMAKE_SHARED_LIBRARY_SUFFIX}\";${ExtraRenderFlags}"
                   LINK_FLAGS "${extra_link_flags}"
 )
+add_dependencies( ${BAG_PLUSPLUS} Libressl_External )
 
 endif( NOT __NO_CPLUSPLUS )
 
@@ -1103,8 +1105,8 @@ add_library( bag.externals ${CORE_LINKMODE}
 )
 
 target_link_libraries( bag.externals ${SSH_LIBS} )
+add_dependencies( bag.externals Libssh2_External )
 SET_TARGET_PROPERTIES(bag.externals PROPERTIES
-                  DEPENDS Libssh2_External
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
                   COMPILE_DEFINITIONS "${ExternalExtraDefinitions}"
                   LINK_FLAGS "${extra_link_flags}"
@@ -1121,6 +1123,7 @@ add_library( bag.externals.static STATIC
     ${BAG_EXTERNAL_SQLITE_SOURCES}
     ${BAG_EXTERNAL_MORE_SOURCES}
 )
+add_dependencies( bag.externals.static Libssh2_External )
 SET_TARGET_PROPERTIES(bag.externals.static PROPERTIES
                   DEPENDS Libssh2_External
                   COMPILE_FLAGS  "-DTARGET_LABEL=bag_externals -DBAG_EXTERNALS -DPNG_INTERNAL -D__PNG_LIBRARY_SOURCE__ ${ExtraFlags}"
