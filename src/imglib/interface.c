@@ -154,7 +154,8 @@ static IMAGE_INTERFACE RealImageInterface = {
 									 , MakeSlicedImageComplex
 									 , UnmakeSlicedImage
 												 , BlotSlicedImageEx
-                                     , SetSavePortion
+														  , SetSavePortion
+                                            , FlipImageEx
 };
 
 #undef GetImageInterface

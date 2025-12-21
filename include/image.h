@@ -1943,6 +1943,8 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 	IMAGE_PROC_PTR( void, BlotSlicedImageEx )( Image dest, SlicedImage source, int32_t x, int32_t y, uint32_t width, uint32_t height, int alpha, enum BlotOperation op, ... );
 	IMAGE_PROC_PTR( void, SetSavePortion )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) );
 
+   IMAGE_PROC_PTR( void, FlipImageEx )( Image pif DBG_PASS );
+
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 
 
@@ -2096,6 +2098,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 #define IsImageTargetFinal                   PROC_ALIAS( IsImageTargetFinal )
 #define ReuseImage                      if((USE_IMAGE_INTERFACE)->_ReuseImage) PROC_ALIAS( ReuseImage )
+#define FlipImageEx                        (((USE_IMAGE_INTERFACE)->_FlipImageEx)?PROC_ALIAS(FlipImageEx ):0)
 #define ResetImageBuffers                      if((USE_IMAGE_INTERFACE)->_ResetImageBuffers) PROC_ALIAS( ResetImageBuffers )
 #define PngImageFile                    PROC_ALIAS( PngImageFile )
 #define JpgImageFile                    PROC_ALIAS( JpgImageFile )
