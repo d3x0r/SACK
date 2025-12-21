@@ -106,6 +106,12 @@ TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinkCount   ( PLIST pList );
 
 TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinksUsed( PLIST *pList );
 
+/* pack items in the list, moving items from the end into any empty spots
+ that are found.
+
+   return the count of items in the list.
+*/
+TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        PackLinks( PLIST pList );
 
 /* Uses FindLink on the list for the value to delete, and then
    sets the index of the found link to NULL.

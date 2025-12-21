@@ -216,6 +216,42 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
+			INDEX PackLinks( PLIST pList )
+			{
+				INDEX to = 0;
+				INDEX from = pList->Cnt-1;
+				INDEX last = pList->Cnt-1;
+				if (!pList)
+					return 0; // no list has no items.
+
+				while (LockedExchange( list_local_lock, 1 ))
+					Relinquish();
+				do {
+					for( ; to < from; to++ ) {
+						if( !pList->pNode[to] ) { // found empty spot at 'to'
+							if( to > last ) last = to;
+							break;
+						}
+					}
+					if( to < pList->Cnt ) {
+						for( ; from > to; from-- ) {
+							POINTER p = pList->pNode[from];
+							if( p ) {
+								if( from > last ) last = from;
+								pList->pNode[to] = p;
+								pList->pNode[from] = NULL;
+								from--;
+								break;
+							}
+						}
+					}
+				} while( from > to );
+				list_local_lock[0] = 0;
+				return last;
+			}
+
+			//--------------------------------------------------------------------------
+
 			POINTER  GetLink( PLIST* pList, INDEX idx )
 			{
 				// must lock the list so that it's not expanded out from under us...
