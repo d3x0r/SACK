@@ -1535,6 +1535,28 @@ IMAGE_PROC void IMAGE_API IMGVER(RotateImageAbout)( Image pImage, int edge_flag,
 
 IMAGE_PROC void IMAGE_API IMGVER(MarkImageDirty)( Image pImage );
 
+/* This function flips an image top to bottom. This if for
+   building windows compatible images. Internally images are
+   kept in platform-native direction. If an image is created
+   from another source, this might be a method to flip the image
+   top-to-bottom if required.
+   
+   
+   Parameters
+   pImage :                           Image to flip.
+   <link sack::DBG_PASS, DBG_PASS> :  _nt_
+   
+   Note
+   There has been a warning around flip image for a while, it
+   does its job right now (reversing jpeg images on windows),
+   but not necessarily suited for the masses.                    */
+IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
+/* <combine sack::image::FlipImageEx@Image pif>
+   
+   \ \                                          */
+#define FlipImage(pif) FlipImageEx( pif DBG_SRC )
+
+
 
 /* Defines the function interface for an image module. */
 _INTERFACE_NAMESPACE
@@ -2098,7 +2120,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 #define DumpFontFile                   PROC_ALIAS( DumpFontFile )
 #define IsImageTargetFinal                   PROC_ALIAS( IsImageTargetFinal )
 #define ReuseImage                      if((USE_IMAGE_INTERFACE)->_ReuseImage) PROC_ALIAS( ReuseImage )
-#define FlipImageEx                        (((USE_IMAGE_INTERFACE)->_FlipImageEx)?PROC_ALIAS(FlipImageEx ):0)
+#define FlipImageEx                        (((USE_IMAGE_INTERFACE)->_FlipImageEx )?PROC_ALIAS(FlipImageEx ):0)
 #define ResetImageBuffers                      if((USE_IMAGE_INTERFACE)->_ResetImageBuffers) PROC_ALIAS( ResetImageBuffers )
 #define PngImageFile                    PROC_ALIAS( PngImageFile )
 #define JpgImageFile                    PROC_ALIAS( JpgImageFile )
@@ -2307,26 +2329,6 @@ _INTERFACE_NAMESPACE_END
    \ \                                                         */
 #define MakeSpriteImageFile(file) MakeSpriteImageFileEx( image DBG_SRC )
 
-/* This function flips an image top to bottom. This if for
-   building windows compatible images. Internally images are
-   kept in platform-native direction. If an image is created
-   from another source, this might be a method to flip the image
-   top-to-bottom if required.
-   
-   
-   Parameters
-   pImage :                           Image to flip.
-   <link sack::DBG_PASS, DBG_PASS> :  _nt_
-   
-   Note
-   There has been a warning around flip image for a while, it
-   does its job right now (reversing jpeg images on windows),
-   but not necessarily suited for the masses.                    */
-IMAGE_PROC  void IMAGE_API IMGVER(FlipImageEx )( Image pif DBG_PASS );
-/* <combine sack::image::FlipImageEx@Image pif>
-   
-   \ \                                          */
-#define FlipImage(pif) FlipImageEx( pif DBG_SRC )
 
 /* <combine sack::image::LoadImageFileEx@CTEXTSTR name>
    
