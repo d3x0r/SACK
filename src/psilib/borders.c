@@ -1276,7 +1276,7 @@ void UpdateSurface( PSI_CONTROL pc )
 
 PSI_PROC( void, SetCommonBorderEx )( PSI_CONTROL pc, uint32_t BorderType DBG_PASS )
 {
-	_lprintf( DBG_RELAY)( "Setting border for %s to %08x(%08x,%08x) %08x %08x", pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
+	//_lprintf( DBG_RELAY)( "Setting border for %s to %08x(%08x,%08x) %08x %08x", pc->pTypeName, pc, pc->parent, pc->device, pc->BorderType, BorderType );
 	if( pc->BorderType != BorderType )
 	{
 		pc->BorderType = BorderType;
