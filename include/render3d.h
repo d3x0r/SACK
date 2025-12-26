@@ -31,21 +31,21 @@
    } sack_render_shader;
    #endif
 
-   #ifdef _PUREGL_DRIVER
-#define sack_render_context struct PureGLContext
-#define sack_render_pipeline struct PureGLPipeline
-#define sack_render_shader struct PureGLShader
-   #endif
+#ifdef _PUREGL_DRIVER
+#  define sack_render_context struct PureGLContext
+#  define sack_render_pipeline struct PureGLPipeline
+#  define sack_render_shader struct PureGLShader
+#endif
 
-   #ifndef sack_render_context
-#define sack_render_context int
-#define sack_render_pipeline int
-#define sack_render_shader int
-   #endif
-
+#ifndef sack_render_context
+#  define sack_render_context int
+#  define sack_render_pipeline int
+#  define sack_render_shader int
+#else
 sack_render_context;
 sack_render_pipeline;
 sack_render_shader;
+#endif
 
 typedef sack_render_context  *RenderContext;
 typedef sack_render_pipeline *RenderPipeline;
