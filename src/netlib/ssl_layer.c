@@ -950,6 +950,11 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
 	pcNew->dwFlags &= ~CF_CONNECT_ISSUED;
 	ses->ssl = SSL_new( pcServer->ssl_session->ctx );
+	if( !ses->ssl ) {
+		lprintf( "Failed to allcoate a new ssl session" );
+		DebugBreak();
+		return;
+	}
 	{
 		static uint32_t tick;
 		tick++;
@@ -1096,7 +1101,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 					while( ofs < len ) {
 						int plen = buf[2 + ofs];
 						char const* p = (char const*)buf + 3 + ofs;
-						AddLink( &ssl_Accept->ssl_session->protocols, SegCreateFromCharLen( p, plen ) );
+						AddLink( &ssl_Accept->protocols, SegCreateFromCharLen( p, plen ) );
 						ofs += plen + 1;
 					}
 				}
@@ -1116,7 +1121,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 								INDEX idx;
 								struct ssl_hostContext* hostctx;
 								unsigned char const* host = buf + 5;
-								ssl_Accept->ssl_session->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
+								ssl_Accept->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
 								//lprintf( "Have hostchange: %.*s", strlen, host );
 								LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 									char* checkName;
