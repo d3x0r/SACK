@@ -42,6 +42,7 @@ struct ssh_session {
 	LIBSSH2_SESSION *session;
 	uintptr_t psv;
 
+   CRITICALSECTION csLock;
 	struct pending_state pending;
 	CTEXTSTR user;
 	size_t user_len;
