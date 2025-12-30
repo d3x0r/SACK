@@ -14,7 +14,7 @@ namespace ssh {
 
 static struct local_ssh_layer_data {
 	PLIST connecting;
-   CRITICALSECTION csLock;
+	CRITICALSECTION csLock;
 } local_ssh_layer_data;
 
 static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay );
@@ -561,6 +561,7 @@ static void connectCallback( PCLIENT pc, int error ){
 
 static void closeCallback( PCLIENT pc ) {
 	struct ssh_session* session = (struct ssh_session*)GetNetworkLong( pc, 0 );
+	DeleteCriticalSec( &session->csLock );
 	libssh2_session_free( session->session );
 	ReleaseEx( session DBG_SRC );
 }
@@ -578,7 +579,7 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	struct ssh_session * session = NewArray( struct ssh_session, 1);
 	MemSet( session, 0, sizeof( struct ssh_session ) );
 	session->buffers = NULL;
-   InitializeCriticalSection( &session->csLock );
+	InitializeCriticalSection( &session->csLock );
 
 	session->pdqStates = CreateDataQueue( sizeof( struct pending_state ) );
 	session->psv = psv;
