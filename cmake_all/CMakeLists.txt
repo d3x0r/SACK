@@ -76,13 +76,13 @@ DEFINE_DEFAULT( DIRECTX_SDK "" )
 DEFINE_DEFAULT( __CLR__ 0 )
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  if( CMAKE_BINARY_DIR MATCHES ${CMAKE_BUILD_TYPE}_solution\$ )
+  if( CMAKE_BINARY_DIR MATCHES $<CONFIG>_solution\$ )
   SET(CMAKE_INSTALL_PREFIX
-    ${CMAKE_BINARY_DIR}/../${CMAKE_BUILD_TYPE}_out CACHE PATH "Install default 'out' in this directory." FORCE
+    ${CMAKE_BINARY_DIR}/../$<CONFIG>_out CACHE PATH "Install default 'out' in this directory." FORCE
     )
     else()
   SET(CMAKE_INSTALL_PREFIX
-    ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}_out CACHE PATH "Install default 'out' in this directory." FORCE
+    ${CMAKE_BINARY_DIR}/$<CONFIG>_out CACHE PATH "Install default 'out' in this directory." FORCE
     )
   endif( CMAKE_BINARY_DIR MATCHES ${CMAKE_BUILD_TYPE}_solution\$ )
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
