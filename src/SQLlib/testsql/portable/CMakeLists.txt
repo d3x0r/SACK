@@ -57,7 +57,7 @@ set( SNPRINTF_SOURCES    ${SOURCES_ROOT}/src/../${SNPRINTF_SOURCES} )
 endif(SNPRINTF_SOURCES)
 
 
-SET( SQLITE_VERSION 3.45.0-TableAlias  )
+SET( SQLITE_VERSION 3.52.0-TableAlias  )
 SET( SQLITE_SOURCES ${BAG_SQLITE_INTERFACE} ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION}/sqlite3.c )
 include_directories( ${SOURCES_ROOT}/src/contrib/sqlite/${SQLITE_VERSION} )
 
