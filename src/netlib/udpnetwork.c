@@ -436,7 +436,8 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
 	              );
 	if( nSent < 0 )
 	{
-		Log1( "SendUDP: Error (%d)", WSAGetLastError() );
+		DWORD dwError = WSAGetLastError();
+		Log1( "SendUDP: Error (%d)", dwError );
 		DumpAddr( "SendTo Socket", (sa) );
 		return FALSE;
 	}
