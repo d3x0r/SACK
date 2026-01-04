@@ -224,7 +224,8 @@ void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 				GetAddressParts( pc->saSource, NULL, &port );
 				SetAddressPort( broadcastAddr, port );
 				if( bind( pc->SocketBroadcast, broadcastAddr, SOCKADDR_LENGTH( broadcastAddr ) ) ) {
-					lprintf( "Failed to rebind to broadcast address when enabling... %d", errno );
+               int error = errno;
+					lprintf( "Failed to rebind to broadcast address when enabling... %d", error );
 				}
 				if( setsockopt( pc->SocketBroadcast, SOL_SOCKET
 				              , SO_BROADCAST, (char*)&bEnable, sizeof( bEnable ) ) )
@@ -436,7 +437,11 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
 	              );
 	if( nSent < 0 )
 	{
+#ifdef WIN32
 		DWORD dwError = WSAGetLastError();
+#else
+		int dwError = errno;
+#endif
 		Log1( "SendUDP: Error (%d)", dwError );
 		DumpAddr( "SendTo Socket", (sa) );
 		return FALSE;
