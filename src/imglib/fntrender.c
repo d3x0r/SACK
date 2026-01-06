@@ -1465,6 +1465,31 @@ void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, I
 		;
 	else
 		EnterCriticalSec( &fg.cs );
+	if( idx == '\t' ) {
+		if( !font->character['W'] )
+			IMGVER( InternalRenderFontCharacter )( renderer, font, 'W' );
+		PCHARACTER colSize = font->character[ 'W' ];
+		if( colSize ) {
+			FT_Int width = colSize->width * 8;
+			PCHARACTER character = NewPlus( CHARACTER, +0 );
+
+			character->width                  = width;
+			character->ascent                 = renderer->font->baseline;
+			character->descent                = renderer->font->baseline;
+			character->offset                 = 0;
+			character->size                   = 0;
+			character->junk                   = 0;
+			character->render_flags           = FONT_FLAG_TAB;
+			character->cell                   = NULL;
+			character->next_in_line           = NULL;
+			character->x1 = character->x2 = character->y1 = character->y2 = 0;
+			renderer->font->character[ '\t' ] = character;
+			LeaveCriticalSec( &fg.cs );
+			return;
+		} else {
+			lprintf( "Failed to render 'W' for tab size!" );
+		}
+	}
 	if( !renderer->font->character[idx] )
 	{
 		FT_Face face = renderer->face;

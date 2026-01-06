@@ -803,6 +803,10 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		// but we should still assume that black is transparent...
 		size = pchar->size;
 		width = pchar->width;
+		if( pchar->render_flags & FONT_FLAG_TAB ) {
+			x = StepX( x, (( x/pchar->width)+1)*pchar->width, 0 );
+			y = StepY( y, 0,  (( y / pchar->width ) + 1 ) * pchar->width );
+		}
 		if( ( pchar->render_flags & 3 ) == FONT_FLAG_MONO )
 		{
 			CharPlotAlphax = CharPlotAlpha1;
@@ -1680,10 +1684,15 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 				if( !(*height) )
 					(*height) = UseFont->height;
 			}
+			if( character == '\t' ) {
+				*width = ( ( *width / ( chars[ character ]->width ) ) + 1 ) * ( chars[ character ]->width );
+			} else {
+				if( ( character < UseFont->characters ) && chars[ character ] )
+					*width += chars[ character ]->width;
+			}
+
 			int lastLine = UseFont->baseline - ( chars[character] ?chars[character]->descent:0);
 			if( SUS_GT( lastLine, int, height[0], uint32_t ) ) height[0] = lastLine;
-			if( ( character < UseFont->characters ) && chars[character] )
-				*width += chars[character]->width;
 		}
 	}
 	else
@@ -1739,7 +1748,9 @@ uint32_t PutMenuStringFontEx( ImageFile *pImage, int32_t x, int32_t y, int32_t h
 			{
 				InternalRenderFontCharacter(  NULL, UseFont, ch );
 			}
-			if( chars[ch] )
+			if( ch == '\t' ) {
+				*width = ( ( *width / ( chars[ ch ]->width ) ) + 1 ) * ( chars[ ch ]->width );
+			} else if( chars[ch] )
 			{
 				*width += chars[ch]->width;
 				if( SUS_GT( (UseFont->baseline - chars[ch]->descent ),int32_t,maxheight,uint32_t) )
