@@ -50,7 +50,7 @@ struct task_info_tag {
 	HANDLE hReadOut, hWriteOut;
 	HANDLE hReadErr, hWriteErr;
 	HANDLE hReadIn, hWriteIn;
-	STARTUPINFO si;
+	STARTUPINFOEX si;
 	PROCESS_INFORMATION pi;
    DWORD exitcode;
 	HWND taskWindow;
