@@ -484,13 +484,16 @@ static void CPROC _PatchFile( uintptr_t psv,  CTEXTSTR filename, enum ScanFilePr
 
 static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 {
+	if (l.verbose) printf("Store File : %s as %s\n", filemask, asPath ? asPath : "(no asPath)");
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
-		static char buffer[1024];
+		char buffer[1024];
+		if( l.verbose ) printf( "Found %s path... %p\n", filemask, fileList );
 		LOGICAL escape = FALSE;
 		if( fileList ) {
 			while( fgets( buffer, 1024, fileList ) ) {
 				int start, end = (int)StrLen(buffer);
+				if (l.verbose) printf("Processing line: %s\n", buffer);
 				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
 				buffer[end] = 0;
 				int out = start = end = 0;
@@ -511,10 +514,12 @@ static void StoreFile( CTEXTSTR filemask, CTEXTSTR asPath, LOGICAL replace )
 						buffer[out++] = buffer[end++];
 					}
 					buffer[out] = 0;
+					if( l.verbose ) printf( "Storing subfile? %s %s\n", buffer+start, asPath );
 					StoreFile( buffer + start, asPath, replace );
 					out = start = end + 1; while( buffer[start] == ' ' ) start++;
 				}
 			}
+			if (l.verbose) printf("Finished processing list %s\n", filemask);
 			fclose( fileList );
 		}
 		return;
