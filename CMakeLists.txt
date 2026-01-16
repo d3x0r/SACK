@@ -159,10 +159,10 @@ endif( __LINUX__ AND __64__ )
 
 
 if( NOT __LINUX__  )
-set(WIN32_VERSION "0x0603" CACHE STRING
+set(WIN32_VERSION "0x0A00" CACHE STRING
       "Set minimum windows build version")
   set_property(CACHE WIN32_VERSION PROPERTY STRINGS
-               "0x603" "0x0601" "0x501" "0x0500" "0x0400")
+               "0x0A00" "0x603" "0x0601" "0x501" "0x0500" "0x0400")
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__  )
 
@@ -345,7 +345,7 @@ if( HOST_UNIX )
 else( HOST_UNIX )
 	OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
 endif( HOST_UNIX )
-OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 0 )
+OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 1 )
 OPTION( USE_SQLITE "Use SQLITE (also links static internal)" 1 )
 OPTION( USE_SQLITE_EXTERNAL "Use SQLITE (build as external module, included when off)" 0 )
 OPTION( EXTREME_CODE_DEBUG "Enable extreme warning levels (mingw)" 0 )
