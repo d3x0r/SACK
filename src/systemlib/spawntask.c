@@ -1,3 +1,5 @@
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+
 #define NO_UNICODE_C
 #define TASK_INFO_DEFINED
 #include <stdhdrs.h>
@@ -11,6 +13,7 @@
 
 #include <timers.h>
 #include <filesys.h>
+#include <render.h> /* GetKeyText */
 #ifdef _WIN32
 #include <WinCon.h>
 #endif
@@ -723,24 +726,18 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 
 			if( flags & LPP_OPTION_INTERACTIVE ) {
 				COORD size  = { 80, 300 };
-				HPCON hPty = INVALID_HANDLE_VALUE;
 				if( createPseudoConsole )
-					createPseudoConsole( size, task->hReadIn, task->hWriteOut, 0, &hPty );
+					createPseudoConsole( size, task->hReadIn, task->hWriteOut, 0, &task->hPty );
 				//_WIN32_WINNT_WIN10_RS5 NTDDI_WIN10_RS5
 				size_t bytesRequired;
 				InitializeProcThreadAttributeList( NULL, 1, 0, &bytesRequired );
 				// Allocate memory to represent the list
 				launch_flags |= EXTENDED_STARTUPINFO_PRESENT;
-				//task->si.StartupInfo.dwFlags &= ~( STARTF_USESTDHANDLES );
-				// task->si.StartupInfo.dwFlags &= ~( STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW );
-				task->si.StartupInfo.hStdOutput = 0; 
-				task->si.StartupInfo.hStdError = 0;
-				task->si.StartupInfo.hStdInput = 0;
 				task->si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc( GetProcessHeap(), 0, bytesRequired );
 				if( task->si.lpAttributeList ) {
 					InitializeProcThreadAttributeList( task->si.lpAttributeList, 1, 0, &bytesRequired );
-					if( !UpdateProcThreadAttribute( task->si.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, hPty,
-					                                sizeof( hPty ), NULL, NULL ) ) {
+					if( !UpdateProcThreadAttribute( task->si.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+					                                task->hPty, sizeof( task->hPty ), NULL, NULL ) ) {
 						DWORD dwErr = GetLastError();
 						lprintf( "Error setting attributes on starup info:%d", dwErr );
 					}
@@ -1331,6 +1328,64 @@ size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 		//lprintf( "Task has ended, write  aborted." );
 	}
 	return written;
+}
+
+HRESULT SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, int height ) {
+#ifdef _WIN32
+	HRESULT WINAPI (*resizePseudoConsole)( HPCON hPC, COORD size )
+		 = ( HRESULT WINAPI (*)( HPCON hPC, COORD size ))LoadFunction( "kernel32.dll", "ResizePseudoConsole" );
+	if( resizePseudoConsole && task->si.lpAttributeList ) {
+		COORD size;
+		size.X = (SHORT)cols;
+		size.Y = (SHORT)rows;
+		return resizePseudoConsole( task->hPty, size );
+	}
+	return E_NOTIMPL;
+#endif
+
+#ifdef __LINUX__
+	struct winsize size;
+	int pty = task->pty;
+	if( !rows )
+		rows = 24;
+	if( !cols )
+		cols = 80;
+	// lprintf( "Set PTY size: %d %d %d", pty, rows, cols);
+	size.ws_row    = rows;
+	size.ws_col    = cols;
+	size.ws_xpixel = width;
+	size.ws_ypixel = height;
+	ioctl( pty, TIOCSWINSZ, &size );
+#endif
+
+}
+
+int SendPTYKeyEvent( PTASK_INFO task, uint32_t key ) {
+	// lprintf( "key event: %08lx", key );
+	CTEXTSTR text   = GetKeyText( key );
+	/*
+	*
+	*  from
+	https://github.com/microsoft/terminal/blob/main/doc/specs/%234999%20-%20Improved%20keyboard%20handling%20in%20Conpty.md#cons-4
+	2026-01-06
+	   ^[ [ Vk ; Sc ; Uc ; Kd ; Cs ; Rc _
+
+	    Vk: the value of wVirtualKeyCode - any number. If omitted, defaults to '0'.
+
+	    Sc: the value of wVirtualScanCode - any number. If omitted, defaults to '0'.
+
+	    Uc: the decimal value of UnicodeChar - for example, NUL is "0", LF is
+	        "10", the character 'A' is "65". If omitted, defaults to '0'.
+
+	    Kd: the value of bKeyDown - either a '0' or '1'. If omitted, defaults to '0'.
+
+	    Cs: the value of dwControlKeyState - any number. If omitted, defaults to '0'.
+
+	    Rc: the value of wRepeatCount - any number. If omitted, defaults to '1'.
+	*/
+	pprintf( task, "\x1b[%d;%d;%d;%d;%d;%d_", KEY_CODE( key ), KEY_REAL_CODE( key ), text ? GetUtfChar( &text ) : 0,
+	         IsKeyPressed( key ) ? 1 : 0, ( KEY_MOD( key ) & KEY_MOD_CTRL ) ? 1 : 0, 1 );
+	return 0;
 }
 
 

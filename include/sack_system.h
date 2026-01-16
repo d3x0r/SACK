@@ -209,6 +209,19 @@ typedef void (CPROC*generic_function)(void);
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR library, CTEXTSTR function, LOGICAL bPrivate DBG_PASS);
 SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR library, CTEXTSTR function DBG_PASS);
 SYSTEM_PROC( void *, GetPrivateModuleHandle )( CTEXTSTR libname );
+/* 
+* Send win32 PTY key event to a task running with a pseudo console. (ANSI code for key event)
+* 
+*/
+SYSTEM_PROC( int, SendPTYKeyEvent )( PTASK_INFO task, uint32_t key );
+/*
+*    Set the console size for a task which is running with a pseudo console.
+ *   cols, rows are in characters
+ *   width, height are in pixels
+ */
+
+SYSTEM_PROC( HRESULT, SetProcessConsoleSize )( PTASK_INFO task, int cols, int rows, int width, int height );
+
 
 /* 
   Add a custom loaded library; attach a name to the DLL space; this should allow
