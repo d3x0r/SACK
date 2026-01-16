@@ -138,7 +138,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 			Release( data );
 		}
 		else {
-			printf("File has 0 size, not updating\n");
+			printf("File has 0 size, not updating: %s\n", name );
 		}
 		sack_fclose( file );
 		return TRUE;
