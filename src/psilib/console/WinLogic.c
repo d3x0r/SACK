@@ -2,6 +2,7 @@
 //#define DEBUG_HISTORY_RENDER
 //#define DEBUG_REGION_UPDATES
 //#define DEBUG_OUTPUT_TO_CONSOLE
+#define DEFINE_DEFAULT_IMAGE_INTERFACE
 
 #include "consolestruc.h"
 //#include "interface.h"
@@ -678,7 +679,12 @@ void PSI_WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 	//lprintf( "Don't forget we wanted to inset command for a button..." );
 	if( pdp->pCommandDisplay )
 		SetBrowserWidth( pdp->pCommandDisplay, pdp->nWidth - pdp->nXPad*2 );
-	
+	{
+		uint32_t w, h;
+		GetStringSizeFontEx( "ABCDWX", 6, &w, &h, font );
+		pdp->nColumns = ( pdp->nWidth - pdp->nXPad * 2 ) / ( w / 6 );
+		pdp->nLines   = ( pdp->nHeight - (pdp->nYPad * 2) ) / h;
+	}
 	if( pdp->flags.bHistoryShow )
 	{
 		//lprintf( "Doing history... check percent and set display/history approp." );

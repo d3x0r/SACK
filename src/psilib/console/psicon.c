@@ -253,31 +253,33 @@ int CPROC KeyEventProc( PSI_CONTROL pc, uint32_t key )
 	// opened sentience...
 	if( console )
 	{
-		const TEXTCHAR *character = GetKeyText( key );
-		DECLTEXT( stroke, "                                       " ); // single character ...
-		if( !console ) // not a valid window handle/device path
-			return 0;
-		EnterCriticalSec( &console->Lock );
-		console->lockCount++;
+		if( console->KeystrokeEvent ) {
+			return console->KeystrokeEvent( console->psvKeystrokeEvent, key );
+		} else {
+			const TEXTCHAR *character = GetKeyText( key );
+			DECLTEXT( stroke, "                                       " ); // single character ...
+			if( !console )                                                 // not a valid window handle/device path
+				return 0;
+			EnterCriticalSec( &console->Lock );
+			console->lockCount++;
 
-		// here is where we evaluate the curent keystroke....
-		if( character )
-		{
-			int n;
-			for( n = 0; character[n]; n++ )
-				stroke.data.data[n] = character[n];
-			stroke.data.size = n;
-		}
-		else
-			stroke.data.size = 0;
+			// here is where we evaluate the curent keystroke....
+			if( character ) {
+				int n;
+				for( n = 0; character[ n ]; n++ )
+					stroke.data.data[ n ] = character[ n ];
+				stroke.data.size = n;
+			} else
+				stroke.data.size = 0;
 
-		if( key & KEY_PRESSED )
-		{
-			PSI_KeyPressHandler( console, (uint8_t)(KEY_CODE(key)&0xFF), (uint8_t)KEY_MOD(key), (PTEXT)&stroke, GetCommonFont( pc ) );
-			//SmudgeCommon( console->psicon.frame );
+			if( key & KEY_PRESSED ) {
+				PSI_KeyPressHandler( console, (uint8_t)( KEY_CODE( key ) & 0xFF ), (uint8_t)KEY_MOD( key ), (PTEXT)&stroke,
+				                     GetCommonFont( pc ) );
+				// SmudgeCommon( console->psicon.frame );
+			}
+			console->lockCount--;
+			LeaveCriticalSec( &console->Lock );
 		}
-		console->lockCount--;
-		LeaveCriticalSec( &console->Lock );
 	}
 	return 1;
 }
@@ -937,6 +939,13 @@ static void OnControlFontChanged( "PSI Console" )(PSI_CONTROL pc) {
 		console->nFontHeight = GetStringSizeFont( " ", NULL, NULL, GetCommonFont( pc ) );
 	}
 	PSI_ConsoleCalculate( console, font );
+}
+
+void SetConsoleKeyHandler( PSI_CONTROL pc, int( CPROC *cb)( uintptr_t , uint32_t  )
+                            , uintptr_t psv ) {
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	console->KeystrokeEvent = cb;
+	console->psvKeystrokeEvent = psv;
 }
 
 int CPROC InitPSIConsole( PSI_CONTROL pc )

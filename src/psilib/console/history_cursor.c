@@ -260,9 +260,10 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			{
 				// 'text' is OVER pos...
 				PTEXT split;
-				if( text == pCurrentLine->pLine )
-					split = SegSplit( &pCurrentLine->pLine, ( (phc->output.nCursorX) - pos ) );
-				else
+				if( text == pCurrentLine->pLine ) {
+					split = SegSplit( &pCurrentLine->pLine, ( ( phc->output.nCursorX ) - pos ) );
+					text  = pCurrentLine->pLine;
+				}  else
 					split = SegSplit( &text, ( (phc->output.nCursorX) - pos ) );
 				if( split ) // otherwise we miscalculated something.
 				{
@@ -289,7 +290,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 		switch( segment->format.flags.format_op )
 		{
 		case FORMAT_OP_CLEAR_END_OF_LINE: // these are difficult....
-			//Log( "Clear end of line..." );
+			lprintf( "Clear end of line..." );
 			if( text == pCurrentLine->pLine )
 			{
 				pCurrentLine->pLine = NULL;
@@ -301,7 +302,7 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			len = 0;
 			break;
 		case FORMAT_OP_DELETE_CHARS:
-			Log1( "Delete %d characters", segment->format.flags.background );
+			lprintf( "Delete %d characters", segment->format.flags.background );
 			if( text ) // otherwise there's no characters to delete?  or does it mean next line?
 			{
 				PTEXT split;
@@ -421,14 +422,14 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 	{
 		if( text )
 		{
-			//Log( "Inserting new segment..." );
+			lprintf( "Inserting new segment..." );
 			SegInsert( segment, text );
 			if( text == pCurrentLine->pLine )
 				pCurrentLine->pLine = segment;
 		}
 		else
 		{
-			//Log( "Appending segment." );
+			lprintf( "Appending segment." );
 			pCurrentLine->pLine = SegAppend( pCurrentLine->pLine, segment );
 		}
 
@@ -440,22 +441,28 @@ struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc
 			// len characters from 'text' need to be removed.
 			// okay that should be fun...
 			int32_t deletelen = len;
-			//Log1( "Remove %d characters!", len );
+			lprintf( "Remove %d characters!", len );
 			while( deletelen && text )
 			{
 				int32_t thislen = (int)GetTextSize( text );
 				PTEXT next = NEXTLINE( text );
+				lprintf( "delete a segemnt... %d  %d", deletelen, thislen );
 				if( thislen <= deletelen )
 				{
 					LineRelease( SegGrab( text ) );
 					deletelen -= thislen;
+					if( text == pCurrentLine->pLine ) {
+						pCurrentLine->pLine = next;
+					}
 					text = next;
 				}
 				else // thislen > deletelen
 				{
-					if( text == pCurrentLine->pLine )
+					if( text == pCurrentLine->pLine ) {
 						SegSplit( &pCurrentLine->pLine, deletelen );
-					else
+						text = pCurrentLine->pLine;
+
+					}  else
 						SegSplit( &text, deletelen );
 				}
 			}
@@ -840,7 +847,6 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 	}
 
 	{
-		PTEXTLINE pCurrentLine = NULL;
 		//lprintf( "Flattening line..." );
 		pLine = FlattenLine( pLine );
 		ResolveLineColor( phc, pLine );
@@ -854,10 +860,6 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 				next = NEXTLINE( pLine );
 				AddLink( &phrase->words, PutSegmentOut( phc, SegGrab( pLine ) ) );
 			}
-		}
-		if( pCurrentLine ) // else no change...
-		{
-			pCurrentLine->flags.nLineLength = (int)LineLength( pCurrentLine->pLine );
 		}
 	}
 	{

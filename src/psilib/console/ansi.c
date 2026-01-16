@@ -5,8 +5,8 @@
 
 PSI_CONSOLE_NAMESPACE
 
-static int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
-	extern CONTROL_REGISTRATION ConsoleClass;
+static int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 14, 13, 15 };
+extern CONTROL_REGISTRATION ConsoleClass;
 
 
 struct mydatapath_tag {
@@ -159,9 +159,9 @@ static PTEXT CPROC AnsiEncode( PMYDATAPATH pmdp, PTEXT pBuffer )
 static PTEXT EnqueSegments( PMYDATAPATH pmdp
 						  , PTEXT pReturn
 						 , LOGICAL bReturn
-		//				  DBG_PASS
+						  DBG_PASS
 						 ) // special handling at newline...
-//#define EnqueSegments( pvt, pmdp, pRet, bRet ) EnqueSegments( pvt, pmdp, pRet, bRet DBG_SRC )
+#define EnqueSegments( pmdp, pRet, bRet ) EnqueSegments( pmdp, pRet, bRet DBG_SRC )
 {
 	PTEXT pNew;
 	PTEXT pTemp;
@@ -173,7 +173,8 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 			 || pmdp->flags.bExtended 
 		  )
 		{
-			pNew->format = pmdp->attribute;
+			_lprintf( DBG_RELAY )( "Attribute ansi parser" );
+			pNew->format                           = pmdp->attribute;
 			pmdp->attribute.flags.prior_background = 1;
 			pmdp->attribute.flags.prior_foreground = 1;
 			pmdp->attribute.position.offset.spaces = 0;
@@ -182,23 +183,24 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 		if( !pmdp->flags.bNewLine )
 		{
 			pNew->flags |= TF_NORETURN;
+			_lprintf( DBG_RELAY )( "Not a newline, clear newline on empty segment" );
 		}
 		if( pmdp->flags.bPosition )
 		{
-			//Log2( "Set abs position %d %d"
-			//	 , pNew->format.position.coords.x
-			//	 , pNew->format.position.coords.y
-			//	 );
+			_lprintf( DBG_RELAY )( "Set abs position %d %d"
+				 , pNew->format.position.coords.x
+				 , pNew->format.position.coords.y
+				 );
 			pNew->flags |= TF_FORMATABS|TF_NORETURN;
 		}
 		if( pmdp->flags.bPositionRel )
 		{
-			//Log( "Set rel position" );
+			_lprintf( DBG_RELAY )( "Set rel position" );
 			pNew->flags |= TF_FORMATREL|TF_NORETURN;
 		}
 		if( pmdp->flags.bExtended )
 			pNew->flags |= TF_FORMATEX|TF_NORETURN;
-		//Log1( DBG_FILELINEFMT "Enquing segments %s" DBG_RELAY , GetText( pNew ) );
+		_lprintf( DBG_RELAY )( "Enquing segments %s", GetText( pNew ) );
 		pmdp->flags.bPosition = 0;
 		pmdp->flags.bPositionRel = 0;
 		pmdp->flags.bExtended = 0;
@@ -224,7 +226,7 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 			pReturn = NULL;
 		}
 		//EnqueLink( &pmdp->Pending, pReturn );
-		//Log1( "Returning %p", pReturn );
+		_lprintf( DBG_RELAY )( "Returning %p", pReturn );
 		return pReturn;
 	}
 	// didn't have any data collected... see if there
@@ -233,20 +235,20 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 	pTemp = NULL;
 	
 	// have to make a NULL segment...
+	if( pmdp->flags.bExtended ) {
+		if( !pTemp )
+			pTemp = SegCreate( 0 );
+		pTemp->flags |= TF_FORMATEX | ( pmdp->flags.bNewLine ? 0 : TF_NORETURN );
+		pmdp->flags.bExtended = 0;
+		_lprintf( DBG_RELAY )( "extended set... made temp" );
+	}
 	if( pmdp->flags.bPosition )
 	{
 		if( !pTemp )
 			pTemp = SegCreate(0);
 		pTemp->flags |= TF_FORMATABS|TF_NORETURN;
 		pmdp->flags.bPosition = 0;
-	}
-	if( pmdp->flags.bExtended )
-	{
-		//	Log( "Set abs position" );
-		if( !pTemp )
-			pTemp = SegCreate(0);
-		pTemp->flags |= TF_FORMATEX|TF_NORETURN;
-		pmdp->flags.bExtended = 0;
+		_lprintf( DBG_RELAY )( "position set... made temp" );
 	}
 	if( pmdp->flags.bPositionRel )
 	{
@@ -255,18 +257,26 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 			pTemp = SegCreate(0);
 		pTemp->flags |= TF_FORMATREL|TF_NORETURN;
 		pmdp->flags.bPositionRel = 0;
+		_lprintf( DBG_RELAY )( "position relative set... made temp" );
 	}
 	if( pTemp )
 	{  // any attribute which was collected must be issued (all alone)
 		// as there was no more input to attach it to...
 		//Log1( DBG_FILELINEFMT "Enquing format only segment" DBG_RELAY , 0 );
 		pTemp->format = pmdp->attribute;
+		if( pTemp->flags & TF_FORMATABS ) {
+			lprintf( "Absolute position set: %d, %d", pTemp->format.position.coords.x, pTemp->format.position.coords.y );
+		}
+		if( pTemp->flags & TF_FORMATREL ) {
+			lprintf( "Relative position set: %d, %d", pTemp->format.position.offset.tabs,
+					 pTemp->format.position.offset.spaces );
+		}
 		// and reset the prior attributes
 		pmdp->attribute.flags.prior_background = 1;
 		pmdp->attribute.flags.prior_foreground = 1;
 		pmdp->attribute.position.offset.spaces = 0;
 		pmdp->flags.bNewLine = 0;
-		//Log1( "Enque a blank temp thing %p ", pReturn );
+		_lprintf( DBG_RELAY )( "Enque a blank temp thing %p ", pReturn );
 		EnqueLink( &pmdp->Pending, pReturn );
 		EnqueLink( &pmdp->Pending, pTemp );
 		return NULL;
@@ -280,7 +290,7 @@ static PTEXT EnqueSegments( PMYDATAPATH pmdp
 		PTEXT blank = SegCreate(0);
 		//blank->data.data[0] = ' ';
 		//blank->data.data[1] = 0;
-		Log( "enquing a blank." );
+		_lprintf( DBG_RELAY )( "enquing a blank." );
 		EnqueLink( &pmdp->Pending, blank );
 		// there will be a newline (pReturn) so don't bother clearing it.
 		//pmdp->flags.bNewLine = 0;
@@ -306,6 +316,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 		return;// (PTEXT)DequeLink( &pmdp->Pending );
 	pmdp->flags.bNewLine = !( pBuffer->flags & TF_NORETURN );
 	// also may be called with no input.
+	LogBinary( GetText( pBuffer ), GetTextSize( pBuffer ) );
 	while( pBuffer ) //may have been restrung into multiple buffers...
 	{
 		if( pBuffer->flags & TF_BINARY )
@@ -370,7 +381,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					}
 					break;
 				case 27:
-					Log( "Escape - gather prior to attach attributes to next." );
+					//Log( "Escape - gather prior to attach attributes to next." );
 					pReturn = EnqueSegments( pmdp, pReturn, FALSE );
 					pmdp->nState = 1;
 					break;
@@ -441,13 +452,14 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 						pmdp->flags.bCollectingParam = 0;
 						pmdp->nParams++;
 					}	
+					lprintf( "Final char of escape sequence: %c", ptext[ idx ] );
 					switch( ptext[idx] )
 					{
 					default:
 						Log6( "Unknown escape code : (%d) [%d;%d;%d;%d%c"
 										, pmdp->nParams
- 											, pmdp->ParamSet[0], pmdp->ParamSet[1] 
- 											, pmdp->ParamSet[2], pmdp->ParamSet[3] 
+											, pmdp->ParamSet[0], pmdp->ParamSet[1] 
+											, pmdp->ParamSet[2], pmdp->ParamSet[3] 
 										, ptext[idx]
 											);
 						break;
@@ -456,8 +468,11 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 							// enable bracketed paste mode
 							// sends "\x1b [ 200 ~" and "\x1b [ 201 ~"  around pasted text - VIM doesnt treat as commands
 							// https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
-						} else if( pmdp->ParamSet[0] == 1004 ) {
-							// enable reporting focus
+						} else if( pmdp->ParamSet[ 0 ] == 9001 ) {
+							// SetModeWin32Input
+
+						} else if( pmdp->ParamSet[ 0 ] == 1004 ) {
+							// enable reporting focus 
 							// send \x1b [ I and \x1b [ O  on focus and on lose focus.
 						} else if( pmdp->ParamSet[0] == 1049 ) {
 							// aternate screen buffer (xterm )
@@ -469,7 +484,9 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					case 'l': // disable code \x1b ? # l 
 						if( pmdp->ParamSet[0] == 2004 ) {
 							// disable bracketed paste mode
-						} else if( pmdp->ParamSet[0] == 1004 ) {
+						} else if( pmdp->ParamSet[ 0 ] == 9001 ) {
+							// no idea?
+						} else if( pmdp->ParamSet[ 0 ] == 1004 ) {
 							// disable reporting focus
 						} else if( pmdp->ParamSet[0] == 1049 ) {
 							// disable alt screen buffer
@@ -641,9 +658,10 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 						{
 							if( pmdp->ParamSet[0] == 1 )
 								pmdp->attribute.flags.format_op = FORMAT_OP_CLEAR_START_OF_LINE;
-							if( pmdp->ParamSet[0] == 2 )
+							else if( pmdp->ParamSet[0] == 2 )
 								pmdp->attribute.flags.format_op = FORMAT_OP_CLEAR_LINE;							
-
+							else
+								pmdp->attribute.flags.format_op = FORMAT_OP_CLEAR_END_OF_LINE;
 						}
 						break;
 					case 'm': // Color attribute goes here.....
@@ -658,33 +676,110 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 							//pmdp->attribute.position.y = 0;
 							for( n = 0; n < pmdp->nParams; n++ )
 							{
-								if( pmdp->ParamSet[n] == 0 )
-								{
+								if( pmdp->ParamSet[n] == 0 ) {
 									pmdp->attribute.flags.default_background = 1; // default attribute
 									pmdp->attribute.flags.default_foreground = 1; // default attribute
-								}
-								if( pmdp->ParamSet[n] == 1 )
-								{
+								   lprintf( "color attribute: default" );
+								} else if( pmdp->ParamSet[n] == 1 ) {
 									pmdp->attribute.flags.highlight = 1; // default attribute
-								}
-
-								if( pmdp->ParamSet[n] >= 30 &&
-									 pmdp->ParamSet[n] <= 37 )
-								{
+									lprintf( "highlight attribute: bright" );
+								} else if( pmdp->ParamSet[n] == 4 ) {
+									pmdp->attribute.flags.underline = 1; // default attribute
+									lprintf( "highlight attribute: underline" );
+								} else if( pmdp->ParamSet[n] == 5 ) {
+									pmdp->attribute.flags.blink = 1; // default attribute
+									lprintf( "highlight attribute: blink" );
+								} else if( pmdp->ParamSet[n] == 6 ) {
+									pmdp->attribute.flags.blinkFast = 1; // default attribute
+									lprintf( "highlight attribute: blinkfast" );
+								} else if( pmdp->ParamSet[ n ] == 7 ) {
+									pmdp->attribute.flags.reverse = 1; // default attribute
+									lprintf( "highlight attribute: reverse" );
+								} else if( pmdp->ParamSet[n] >= 30
+								         && pmdp->ParamSet[n] <= 37 ) {
 									pmdp->attribute.flags.prior_foreground = 0;
 									pmdp->attribute.flags.foreground = 
 										colormap[pmdp->ParamSet[n]-30];
-								}
-								if( pmdp->ParamSet[n] >= 40 &&
-									 pmdp->ParamSet[n] <= 47 )
-								{
+									lprintf( "Set fore color: %d", pmdp->ParamSet[ n ] - 30 );
+								} else if( pmdp->ParamSet[n] >= 90
+								         && pmdp->ParamSet[n] <= 97 ) {
+									pmdp->attribute.flags.prior_foreground = 0;
+									pmdp->attribute.flags.foreground = 
+										colormap[8+pmdp->ParamSet[n]-90];
+									lprintf( "Set bright fore color: %d", pmdp->ParamSet[ n ] - 90 );
+								} else if( pmdp->ParamSet[n] >= 38 ) {
+									if( pmdp->ParamSet[ n+1 ] == 5 ) {
+										pmdp->attribute.flags.prior_foreground = 0;
+										if( pmdp->ParamSet[n+2] < 16 )
+											pmdp->attribute.flags.foreground       = colormap[ pmdp->ParamSet[ n + 2 ] ];
+										else if( pmdp->ParamSet[n+2] < 232 ) {
+											const int r = ((pmdp->ParamSet[n + 2] - 16) / 36) % 6;
+											const int g = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
+											const int b = (pmdp->ParamSet[n + 2] - 16 ) % 6;
+											pmdp->attribute.flags.rgb_foreground = Color( r, g, b);
+										} else {
+											const int gray = 8 + (pmdp->ParamSet[n + 2] - 232) * 10;
+											pmdp->attribute.flags.rgb_foreground = Color(gray, gray, gray);
+										}
+										lprintf( "Set a fancy foreground color here: %d", pmdp->ParamSet[ n + 2 ] );
+									} 
+									else if( pmdp->ParamSet[ n + 1 ] == 2 ) {
+										lprintf( "Would set a RGB foreground color here: %d", pmdp->ParamSet[ n + 2 ],
+									            pmdp->ParamSet[ n + 3 ], pmdp->ParamSet[ n + 4 ] );
+									} else {
+										lprintf( "Bad sequence \\x1b [ 38; %d ... m", pmdp->ParamSet[ n + 2 ] );
+									}
+								} else if( pmdp->ParamSet[ n ] >= 40
+								         && pmdp->ParamSet[n] <= 47 ) {
 									pmdp->attribute.flags.prior_background = 0;
 									pmdp->attribute.flags.background = 
 										colormap[pmdp->ParamSet[n]-40];
+									lprintf( "Set back color: %d", pmdp->ParamSet[ n ] - 30 );
+								} else if( pmdp->ParamSet[n] >= 100
+								         && pmdp->ParamSet[n] <= 107 ) {
+									pmdp->attribute.flags.prior_foreground = 0;
+									pmdp->attribute.flags.foreground = 
+										colormap[8+pmdp->ParamSet[n]-100];
+									lprintf( "Set bright fore color: %d", pmdp->ParamSet[ n ] - 100 );
+								} else if( pmdp->ParamSet[n] >= 48 ) {
+									if( pmdp->ParamSet[ n+1 ] == 5 ) {
+										pmdp->attribute.flags.prior_background = 0;
+										if (pmdp->ParamSet[n + 2] < 16)
+										pmdp->attribute.flags.background       = colormap[ pmdp->ParamSet[ n + 2 ] ];
+										else if( pmdp->ParamSet[n+2] < 232 ) {
+											const int r = ((pmdp->ParamSet[n + 2] - 16) / 36) % 6;
+											const int g = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
+											const int b = (pmdp->ParamSet[n + 2] - 16 ) % 6;
+											pmdp->attribute.flags.rgb_background = Color( r, g, b);
+										} else {
+											const int gray = 8 + (pmdp->ParamSet[n + 2] - 232) * 10;
+											pmdp->attribute.flags.rgb_background = Color(gray, gray, gray);
+										}
+										lprintf( "Would set a fancy background color here: %d", pmdp->ParamSet[ n + 2 ] );
+									} 
+									else if( pmdp->ParamSet[ n + 1 ] == 2 ) {
+										lprintf( "Would set a RGB background color here: %d %d %d", pmdp->ParamSet[ n + 2 ],
+									            pmdp->ParamSet[ n + 3 ], pmdp->ParamSet[ n + 4 ] );
+									} else {
+										lprintf( "Bad sequence \\x1b [ 38; %d ... m", pmdp->ParamSet[ n + 2 ] );
+									}
+								} else {
+									lprintf( "Unhandled color attribute: %d", pmdp->ParamSet[n] );
 								}
 							}
 							pmdp->flags.bAttribute = 1;
 						}
+						break;
+					case 'X':
+						   if( pmdp->nParams == 4 ) {
+							   /* Erase characters */
+						   }
+						   else if( pmdp->nParams == 1 ) {
+							   /* Erase characters */
+						   } else {
+							   /* Erase characters */
+						   }
+
 						break;
 					}
 					// reset param/ansi code collection
@@ -723,10 +818,14 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 					PTEXT cmd = VarTextPeek( pmdp->OC );
 					if( pmdp->setTitle )
 						pmdp->setTitle( pmdp->psvTitleCallback, cmd );
-lprintf( "------- SET TITLE UPDATE -------- %p ", pmdp->console->UpdateSize);
-	if( pmdp->console->UpdateSize ) {
-		pmdp->console->UpdateSize( pmdp->console->psvUpdateSize, pmdp->console->nColumns, pmdp->console->nLines, pmdp->console->nWidth, pmdp->console->nHeight );
-	}
+					//lprintf( "------- SET TITLE UPDATE -------- %p ", pmdp->console->UpdateSize);
+					if( pmdp->console->UpdateSize ) {
+						pmdp->console->UpdateSize( pmdp->console->psvUpdateSize
+							, pmdp->console->nColumns
+							, pmdp->console->nLines
+							, pmdp->console->nWidth
+							, pmdp->console->nHeight );
+					}
 /*
 					lprintf( "Got end of command...%d %d %d:%s"
 						, pmdp->flags.ST_escape
