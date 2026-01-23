@@ -560,11 +560,13 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 {
 	void *info = NULL;
 	struct store_file_info storeOptions;
+	if( l.verbose ) printf( "patching file...%s %s\n", vfsName, filemask );
 	if( filemask[0] == '@' ) {
 		FILE* fileList = fopen( filemask + 1, "r" );
 		static char buffer[1024];
 		LOGICAL escape = FALSE;
 		if( fileList ) {
+			if( l.verbose ) printf( "processing file list...\n" );
 			while( fgets( buffer, 1024, fileList ) ) {
 				int start, end = (int)StrLen(buffer);
 				while (buffer[end - 1] == '\n' || buffer[end - 1] == '\r' || buffer[end - 1] == ' ') end--;
@@ -587,12 +589,16 @@ static int PatchFile( CTEXTSTR vfsName, CTEXTSTR filemask, uintptr_t version, CT
 						buffer[out++] = buffer[end++];
 					}
 					buffer[out] = 0;
+					if( l.verbose ) printf( "Recursing to file: %s %s\n", vfsName, buffer+start );
 					PatchFile( vfsName, buffer+start, version, key1, key2, asPath, replace );
 					out = start = end + 1; while( buffer[start] == ' ' ) start++;
 				}
 			}
 			fclose( fileList );
-		} else return 2;
+		} else {
+			printf( "Failed to open: %s\n", filemask+1 );
+			return 2;
+		}
 		return 0;
 	}
 	if (vfsName && vfsName[0] && !openSource(vfsName)) {
