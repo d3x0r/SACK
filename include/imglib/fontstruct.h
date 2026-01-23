@@ -27,6 +27,7 @@ typedef struct font_char_tag
 	int16_t ascent; // ascent can be negative also..
 	int16_t descent;
 	uint32_t render_flags;  // low 2 bits indicate render flags... overrides render flags
+
 	/* *** this bit of structure is for dyanmic rendering on surfaces *** */
 	// data is byte aligned - count of bytes is (size/8) for next line...
 	struct ImageFile_tag *cell;
@@ -59,13 +60,13 @@ typedef struct font_tag
 } FONT, *PFONT;
 
 enum FontFlags {
-	FONT_FLAG_MONO = 0,
-	FONT_FLAG_2BIT = 1,
-	FONT_FLAG_8BIT = 2,
-	FONT_FLAG_ITALIC = 0x10,
-	FONT_FLAG_BOLD   = 0x20,
-	FONT_FLAG_UPDATED = 0x40, // a character has been added to it since this was last cleared
-	FONT_FLAG_COLOR = 0x80, // font is a full color font
+	FONT_FLAG_MONO    =     0,
+	FONT_FLAG_2BIT    =     1,
+	FONT_FLAG_8BIT    =     2,
+	FONT_FLAG_ITALIC  =  0x10,
+	FONT_FLAG_BOLD    =  0x20,
+	FONT_FLAG_UPDATED =  0x40, // a character has been added to it since this was last cleared
+	FONT_FLAG_COLOR   =  0x80, // font is a full color font
 };
 
 typedef struct font_renderer_tag *PFONT_RENDERER;
