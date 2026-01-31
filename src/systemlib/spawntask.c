@@ -1330,7 +1330,7 @@ size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 	return written;
 }
 
-HRESULT SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, int height ) {
+int SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, int height ) {
 #ifdef _WIN32
 	HRESULT WINAPI (*resizePseudoConsole)( HPCON hPC, COORD size )
 		 = ( HRESULT WINAPI (*)( HPCON hPC, COORD size ))LoadFunction( "kernel32.dll", "ResizePseudoConsole" );
@@ -1338,9 +1338,9 @@ HRESULT SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, i
 		COORD size;
 		size.X = (SHORT)cols;
 		size.Y = (SHORT)rows;
-		return resizePseudoConsole( task->hPty, size );
+		return (int)resizePseudoConsole( task->hPty, size );
 	}
-	return E_NOTIMPL;
+	return (int)E_NOTIMPL;
 #endif
 
 #ifdef __LINUX__
@@ -1355,7 +1355,7 @@ HRESULT SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, i
 	size.ws_col    = cols;
 	size.ws_xpixel = width;
 	size.ws_ypixel = height;
-	ioctl( pty, TIOCSWINSZ, &size );
+	return ioctl( pty, TIOCSWINSZ, &size );
 #endif
 
 }

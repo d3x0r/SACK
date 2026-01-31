@@ -220,7 +220,7 @@ SYSTEM_PROC( int, SendPTYKeyEvent )( PTASK_INFO task, uint32_t key );
  *   width, height are in pixels
  */
 
-SYSTEM_PROC( HRESULT, SetProcessConsoleSize )( PTASK_INFO task, int cols, int rows, int width, int height );
+SYSTEM_PROC( int, SetProcessConsoleSize )( PTASK_INFO task, int cols, int rows, int width, int height );
 
 
 /* 
