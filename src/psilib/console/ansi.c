@@ -1,4 +1,5 @@
 #include <stdhdrs.h>
+#include "../global.h"
 #include <psi.h>
 
 #include "consolestruc.h"
@@ -714,9 +715,9 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 											pmdp->attribute.flags.foreground       = colormap[ pmdp->ParamSet[ n + 2 ] ];
 										else if( pmdp->ParamSet[n+2] < 232 ) {
 											const int r = ((pmdp->ParamSet[n + 2] - 16) / 36) % 6;
-											const int g = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
+											const int grn = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
 											const int b = (pmdp->ParamSet[n + 2] - 16 ) % 6;
-											pmdp->attribute.flags.rgb_foreground = Color( r, g, b);
+											pmdp->attribute.flags.rgb_foreground = Color( r, grn, b);
 										} else {
 											const int gray = 8 + (pmdp->ParamSet[n + 2] - 232) * 10;
 											pmdp->attribute.flags.rgb_foreground = Color(gray, gray, gray);
@@ -748,9 +749,9 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 										pmdp->attribute.flags.background       = colormap[ pmdp->ParamSet[ n + 2 ] ];
 										else if( pmdp->ParamSet[n+2] < 232 ) {
 											const int r = ((pmdp->ParamSet[n + 2] - 16) / 36) % 6;
-											const int g = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
+											const int grn = ((pmdp->ParamSet[n + 2] - 16) / 6) % 6;
 											const int b = (pmdp->ParamSet[n + 2] - 16 ) % 6;
-											pmdp->attribute.flags.rgb_background = Color( r, g, b);
+											pmdp->attribute.flags.rgb_background = Color( r, grn, b);
 										} else {
 											const int gray = 8 + (pmdp->ParamSet[n + 2] - 232) * 10;
 											pmdp->attribute.flags.rgb_background = Color(gray, gray, gray);

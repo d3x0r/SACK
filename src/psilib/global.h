@@ -9,7 +9,7 @@
 #ifndef PSI_SERVICE
 #  ifndef FORCE_NO_INTERFACE
 #    ifndef USE_IMAGE_INTERFACE // some people including this may have already defined this
-#define USE_IMAGE_INTERFACE global_psi_structure.MyImageInterface
+#      define USE_IMAGE_INTERFACE global_psi_structure.MyImageInterface
 #    endif
 #  endif
 #endif
@@ -71,19 +71,7 @@ typedef struct psi_global_tag
 	} flags;
 	PLIST borders; 
 	PFrameBorder DefaultBorder;
-#if 0
-	CDATA *defaultcolors;
-	int32_t BorderWidth;
-	int32_t BorderHeight;
-	struct psi_global_border_info {
-		BIT_FIELD bAnchorTop : 2; // 0 = none, 1=left, 2=center, 3=right
-		BIT_FIELD bAnchorBottom : 2; // 0 = none, 1=left, 2=center, 3=right
-		BIT_FIELD bAnchorLeft : 2; // 0 = none, 1=top, 2=center, 3=bottom
-		BIT_FIELD bAnchorRight : 2; // 0 = none, 1=top, 2=center, 3=bottom
-	} Border;
-	Image BorderImage;
-	Image BorderSegment[9]; // really 8, but symetry is kept
-#endif
+
 	Image FrameCaptionImage;
 	Image FrameCaptionFocusedImage;
 	Image StopButton;

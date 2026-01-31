@@ -2,8 +2,8 @@
 //#define DEBUG_HISTORY_RENDER
 //#define DEBUG_REGION_UPDATES
 //#define DEBUG_OUTPUT_TO_CONSOLE
-#define DEFINE_DEFAULT_IMAGE_INTERFACE
 
+#include "../global.h"
 #include "consolestruc.h"
 //#include "interface.h"
 #include "history.h"
