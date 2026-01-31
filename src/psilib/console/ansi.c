@@ -5,7 +5,7 @@
 
 PSI_CONSOLE_NAMESPACE
 
-static int colormap[8] = { 0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 14, 13, 15 };
+static int colormap[16] = { 0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 14, 13, 15 };
 extern CONTROL_REGISTRATION ConsoleClass;
 
 
