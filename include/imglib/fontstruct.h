@@ -69,6 +69,10 @@ enum FontFlags {
 	FONT_FLAG_COLOR   =  0x80, // font is a full color font
 };
 
+enum FontFlags {
+	FONT_CHAR_FLAG_TAB =     1, // this character behaves differently
+};
+
 typedef struct font_renderer_tag *PFONT_RENDERER;
 
 void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, INDEX idx );

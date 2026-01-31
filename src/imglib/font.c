@@ -803,7 +803,7 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		// but we should still assume that black is transparent...
 		size = pchar->size;
 		width = pchar->width;
-		if( pchar->render_flags & FONT_FLAG_TAB ) {
+		if( pchar->render_flags & FONT_CHAR_FLAG_TAB ) {
 			x = StepX( x, (( x/pchar->width)+1)*pchar->width, 0 );
 			y = StepY( y, 0,  (( y / pchar->width ) + 1 ) * pchar->width );
 		}
