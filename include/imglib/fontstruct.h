@@ -69,7 +69,7 @@ enum FontFlags {
 	FONT_FLAG_COLOR   =  0x80, // font is a full color font
 };
 
-enum FontFlags {
+enum FontCharFlags {
 	FONT_CHAR_FLAG_TAB =     1, // this character behaves differently
 };
 
