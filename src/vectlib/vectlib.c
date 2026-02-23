@@ -2001,6 +2001,10 @@ RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 	return t;
 }
 
+static RCOORD acos2( RCOORD x) {
+	RCOORD tmp = floor((x + 1) / 2.0);
+	return acos(x - tmp * 2.0) - tmp * M_PI;
+}
 
 void EXTERNAL_NAME(basis_lq)( PVECTOR4 v4, PMatrix basis ) {
 	// tr(M)=2cos(theta)+1 .
