@@ -3842,7 +3842,8 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 									if( strcmp( (const char *)state, "01004" ) == 0 ){
 										useCollector = TRUE;
 										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
-										VarTextAddData( pvtDataCollector, byResult, ResultLen );
+										VarTextAddData( pvtDataCollector, byResult, colsize );
+										rc = SQL_RESULT_WITH_INFO;
 									}else {
 										break;
 									}
@@ -3855,6 +3856,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 							}
 							else {
 								if( pvtDataCollector && useCollector ){
+									VarTextAddData(pvtDataCollector, byResult, ResultLen);
 									PTEXT data = VarTextPeek( pvtDataCollector );
 									val->stringLen = GetTextSize( data );
 									val->string = NewArray( char, val->stringLen );
