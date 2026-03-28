@@ -723,7 +723,9 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				task->si.StartupInfo.wShowWindow = SW_HIDE;
 			else
 				task->si.StartupInfo.wShowWindow = SW_SHOW;
-
+#ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
+#   define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE 0x20016
+#endif
 			if( flags & LPP_OPTION_INTERACTIVE ) {
 				COORD size  = { 80, 300 };
 				if( createPseudoConsole )

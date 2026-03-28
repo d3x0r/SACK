@@ -3843,7 +3843,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 										useCollector = TRUE;
 										if( !pvtDataCollector ) pvtDataCollector = VarTextCreate();
 										VarTextAddData( pvtDataCollector, byResult, colsize );
-										rc = SQL_RESULT_WITH_INFO;
+										rc = SQL_SUCCESS_WITH_INFO;
 									}else {
 										break;
 									}
