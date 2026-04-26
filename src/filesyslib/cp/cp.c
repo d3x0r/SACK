@@ -59,7 +59,7 @@ int MyCopyFile2( char *src, char *dest, int unused )
 void CPROC DoCopy( uintptr_t skip, char *src, int flags )
 {
 	char tmp[256];
-	sprintf( tmp, "%s/%s", g.dest, src + skip );
+	snprintf( tmp, 256, "%s/%s", g.dest, src + skip );
 	//printf( "Copy %s to %s", src, tmp );
 	if( flags & SFF_DIRECTORY )
 	{
@@ -201,11 +201,11 @@ int main( int argc, char **argv )
 					if( mask )
 					{
 						mask++;
-						sprintf( tmp, "%s/%s", g.dest, mask );
+						snprintf( tmp, sizeof( tmp ), "%s/%s", g.dest, mask );
 					}
 					else
 					{
-						sprintf( tmp, "%s/%s", g.dest, src );
+						snprintf( tmp, sizeof( tmp ), "%s/%s", g.dest, src );
 					}
 					if( g.flags.directories )
 					{

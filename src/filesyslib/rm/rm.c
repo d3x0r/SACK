@@ -91,7 +91,7 @@ int main( int argc, char **argv )
       	char tmp[256];
       	char *path;
 
-      	sprintf( tmp, argv[n] );
+      	snprintf( tmp, sizeof( tmp ), "%s", argv[n] );
       	mask = pathrchr( tmp );
 			if( mask )
 			{
