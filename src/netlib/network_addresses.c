@@ -311,7 +311,7 @@ static void setupInterfaces() {
 			{
 				//LogBinary( (const uint8_t*)IFR, sizeof( *IFR));
 				struct ifreq ifr;
-				strcpy( ifr.ifr_name, IFR->ifr_name );
+				StrCpyEx( ifr.ifr_name, IFR->ifr_name, sizeof( ifr.ifr_name ) );
 				if (ioctl(sock_handle, SIOCGIFINDEX, &ifr) == 0) {
 					mac_data.ifIndexes[i] = ifr.ifr_ifindex;	
 				}else {

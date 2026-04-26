@@ -96,7 +96,7 @@ PMONITOR CreateMonitor( int fdMon, char *directory )
     PMONITOR monitor = (PMONITOR)Allocate( sizeof( MONITOR ) );
     MemSet( monitor, 0, sizeof( MONITOR ) );
     monitor->fdMon = fdMon;
-	 strcpy( monitor->directory, directory );
+	StrCpyEx( monitor->directory, directory, sizeof( monitor->directory ) );
     monitor->flags.bLogFilesFound  = 0;
     monitor->flags.bIntelligentUpdates = 1;
  //   strcpy( monitor->mask, mask );

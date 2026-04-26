@@ -220,7 +220,8 @@ static void ssl_handlePendingControlwrites( PCLIENT pc ) {
 		}
 		read  = BIO_read( pc->ssl_session->wbio, pc->ssl_session->obuffer, (int)pending );
 		if( read < 0 ) {
-			ERR_print_errors_cb( logerr, (void*)__LINE__ );
+			const int line = __line__;
+			ERR_print_errors_cb( logerr, (void*)&line );
 			lprintf( "failed to read pending control data...SSL will fail without it." );
 		} else {
 #ifdef DEBUG_SSL_IO

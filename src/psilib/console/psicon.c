@@ -5,7 +5,7 @@
 //#define NO_LOGGING
 #include <stdhdrs.h>
 #include <sqlgetoption.h>
-#include <stdio.h> // sprintf ?
+#include <stdio.h> // snprintf ?
 #include <string.h> // strchr
 #include <logging.h>
 

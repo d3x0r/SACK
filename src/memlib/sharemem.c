@@ -2960,7 +2960,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 					pNew->dwSize += next->dwSize + CHUNK_SIZE;
 					next = (PCHUNK)( pNew->byData + pNew->dwSize );
-					if( (uint32_t)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
+					if( (uintptr_t)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
 					{
 						next->pPrior = pNew;
 					}

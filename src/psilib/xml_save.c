@@ -64,7 +64,7 @@ void WriteCommonData( PSI_CONTROL pc )
 		}
 
 		// Let's not write the number of this ID anymore...
-		//sprintf( buf, "%d", pc->nID );
+		//snprintf( buf, sizeof(buf), "%d", pc->nID );
 		//genxAddAttribute( l.current_context->aID, (constUtf8)buf );
 		if( pc->pIDName )
 		{

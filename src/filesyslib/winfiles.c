@@ -2112,17 +2112,20 @@ size_t  sack_fread( POINTER buffer, size_t size, int count, FILE* file_file )
 size_t  sack_fwrite( CPOINTER buffer, size_t size, int count, FILE* file_file )
 {
 	struct file* file;
+	if( count <= 0 || size > (SIZE_MAX - 3) / (size_t)count )
+	    return 0; // overflow
+
 	file = FindFileByFILE( file_file );
 	if( file && file->mount && file->mount->fsi ) {
 		size_t result;
 		if( file->mount->fsi->copy_write_buffer && file->mount->fsi->copy_write_buffer() ) {
-			POINTER dupbuf = malloc( size * count + 3 );
+			POINTER dupbuf = Allocate( size * count + 3 );
 #ifdef _MSC_VER
 #  pragma warning( disable: 6387 )
 #endif
 			memcpy( dupbuf, buffer, size * count );
 			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
-			free( dupbuf );
+			Release( dupbuf );
 		}
 		else
 			result = file->mount->fsi->_write( file_file, (const char*)buffer, size * count );

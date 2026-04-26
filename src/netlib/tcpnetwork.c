@@ -255,7 +255,7 @@ static void openSocket( PCLIENT pClient, SOCKADDR *pFromAddr, SOCKADDR *pAddr, L
 	if( pAddr->sa_family==AF_UNIX ) {
 		// delete the old socket file if it exists
 		if( pFromAddr == pAddr ) // this would only be true for listeners(?)
-			unlink( (char*)(((uint16_t*)pAddr)+1));
+			unlink( ((struct sockaddr_un*)pAddr)->sun_path );  /* I don't have a proper socket definition, this assumes packed AF_UNIX sockaddr*/
 	}
 #endif
 	//	pListen->Socket = socket( *(uint16_t*)pAddr, SOCK_STREAM, 0 );

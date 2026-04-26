@@ -1878,8 +1878,8 @@ struct entry entries[] =
 {
     { "countryName", "US" },
     { "stateOrProvinceName", "FL" },
-    { "localityName", "Fernandina Beach" },
-    { "organizationName", "d3x0r.org" },
+    { "localityName", "Here" },
+    { "organizationName", "none specified" },
     { "organizationalUnitName", "Development" },
     { "commonName", "Internal Project" },
 };
@@ -2002,12 +2002,12 @@ struct internalCert * MakeRequest( void )
 			TEXTCHAR org[48];
 			TEXTCHAR country[8];
 #ifndef __NO_OPTIONS__
-			SACK_GetProfileString( "TLS", "Default CA Common Name", "d3x0r.org", commonName, 48 );
-			SACK_GetProfileString( "TLS", "Default CA Org", "Freedom Collective", org, 48 );
+			SACK_GetProfileString( "TLS", "Default CA Common Name", "NotSpecified", commonName, 48 );
+			SACK_GetProfileString( "TLS", "Default CA Org", "NotSpecified", org, 48 );
 			SACK_GetProfileString( "TLS", "Default CA Country", "US", country, 8 );
 #else
-			strcpy( commonName, "d3x0r.org" );
-			strcpy( org, "Freedom Collective" );
+			strcpy( commonName, "NotSpecified" );
+			strcpy( org, "NotSpecified" );
 			strcpy( country, "US" );
 #endif
 			name = X509_get_subject_name( x509 );

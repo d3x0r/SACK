@@ -61,7 +61,7 @@ static PTEXT GetTime( PCLOCK_CONTROL clock, int bNewline ) /*FOLD00*/
 		clock->time_data.ms = st.wMilliseconds;
 
 	/*
-	 n = sprintf( pTime->data.data, "%s, %s %d, %d, %02d:%02d:%02d",
+	 n = snprintf( pTime->data.data, 80, "%s, %s %d, %d, %02d:%02d:%02d",
 	 Days[st.wDayOfWeek], Months[st.wMonth],
 	 st.wDay, st.wYear
 	 , st.wHour, st.wMinute, st.wSecond );
