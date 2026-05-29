@@ -2119,13 +2119,13 @@ size_t  sack_fwrite( CPOINTER buffer, size_t size, int count, FILE* file_file )
 	if( file && file->mount && file->mount->fsi ) {
 		size_t result;
 		if( file->mount->fsi->copy_write_buffer && file->mount->fsi->copy_write_buffer() ) {
-			POINTER dupbuf = Allocate( size * count + 3 );
+			POINTER dupbuf = NewArray( char, size * count + 3 );
 #ifdef _MSC_VER
 #  pragma warning( disable: 6387 )
 #endif
 			memcpy( dupbuf, buffer, size * count );
 			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
-			Release( dupbuf );
+			Deallocate( dupbuf );
 		}
 		else
 			result = file->mount->fsi->_write( file_file, (const char*)buffer, size * count );

@@ -322,7 +322,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 		pData = (PMFD)(*pInfo);
 		if( !pData )
 		{
-			*pInfo = Allocate( sizeof( MFD ) );
+			*pInfo = NewArray( MFD, 1 );
 			pData = (PMFD)(*pInfo);
 			if( !( pData->scanning_mount = mount ) )
 			{
@@ -340,7 +340,7 @@ struct find_cursor *GetScanFileCursor( void *pInfo ) {
 			{
 				Deallocate( PMFD, pData );
 				if( tmp_base )
-					Release( tmp_base );
+					Deallocate( TEXTSTR, tmp_base );
 				return 0;
 			}
 			if( pData->scanning_mount->fsi && pData->scanning_mount->fsi->find_create_cursor )
