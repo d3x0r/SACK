@@ -852,11 +852,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			oldpath = getenv( "LD_LIBRARY_PATH" );
 			if( oldpath )
 			{
-				const uint32 l = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path));
-				newpath = NewArray( char, l );
-				snprintf( newpath, l, "%s:%s", (*init_l).library_path
+				const uint32 n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path));
+				newpath = NewArray( char, n );
+				snprintf( newpath, n, "%s:%s", (*init_l).library_path
 						 , oldpath );
-				setenv( "LD_LIBRARY_PATH", newpath, 1 );
+				setenv( "LD_LIBRARY_PATH", newpath, n );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
@@ -866,11 +866,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			oldpath = getenv( "PATH" );
 			if( oldpath )
 			{
-				const uint32_t l = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path));
-				newpath = NewArray( char, l );
-				snprintf( newpath, l, "%s:%s", (*init_l).load_path
+				const uint32_t n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path));
+				newpath = NewArray( char, n );
+				snprintf( newpath, n, "%s:%s", (*init_l).load_path
 						 , oldpath );
-				setenv( "PATH", newpath, 1 );
+				setenv( "PATH", newpath, n );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
