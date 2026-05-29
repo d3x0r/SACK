@@ -20,6 +20,7 @@
 #    undef s_addr
 #  endif
 #  include <netinet/in.h> // IPPROTO_TCP
+#  include <sys/un.h>     // Unix socket struct sockaddr_un
 //#include <linux/in.h>  // IPPROTO_TCP
 #  include <netinet/tcp.h> // TCP_NODELAY
 //#include <linux/tcp.h> // TCP_NODELAY
