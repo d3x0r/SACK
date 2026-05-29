@@ -2125,7 +2125,7 @@ size_t  sack_fwrite( CPOINTER buffer, size_t size, int count, FILE* file_file )
 #endif
 			memcpy( dupbuf, buffer, size * count );
 			result = file->mount->fsi->_write( file_file, (const char*)dupbuf, size * count );
-			Deallocate( dupbuf );
+			Deallocate( POINTER, dupbuf );
 		}
 		else
 			result = file->mount->fsi->_write( file_file, (const char*)buffer, size * count );
