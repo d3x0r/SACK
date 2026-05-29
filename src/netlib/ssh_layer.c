@@ -17,7 +17,7 @@ static struct local_ssh_layer_data {
 	CRITICALSECTION csLock;
 } local_ssh_layer_data;
 
-static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay );
+static LIBSSH2_LISTENER_CONNECT_FUNC( listener_connect_relay );
 
 #ifdef __cplusplus
 #define set_pending_state(ps,s,...) { pending_state tmp = {s,##__VA_ARGS__}; ps= tmp; }
@@ -700,7 +700,7 @@ ssh_forward_connect_cb sack_ssh_set_forward_connect( struct ssh_session* session
 	return cb;
 }
 
-static LIBSSH2_LISTERNER_CONNECT_FUNC( listener_connect_relay ) {
+static LIBSSH2_LISTENER_CONNECT_FUNC( listener_connect_relay ) {
 	struct ssh_listener* ssh_listener = (struct ssh_listener*)listener_abstract[0];
 	struct ssh_channel* ssh_channel = NewArray( struct ssh_channel, 1 );
 	MemSet( ssh_channel, 0, sizeof( *ssh_channel ) );
