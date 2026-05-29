@@ -852,7 +852,7 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			oldpath = getenv( "LD_LIBRARY_PATH" );
 			if( oldpath )
 			{
-				const uint32 n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path));
+				const uint32_t n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path));
 				newpath = NewArray( char, n );
 				snprintf( newpath, n, "%s:%s", (*init_l).library_path
 						 , oldpath );
