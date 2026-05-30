@@ -470,7 +470,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 
 void EnableExitEvent( void ) {
 	char eventName[256];
-	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetProcessId() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
 	//lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[0] ) Relinquish();
@@ -533,7 +533,7 @@ else lprintf( "Failure %d", status );
 
 void EnableExitEvent( void ) {
 	char eventName[ 256 ];
-	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetProgramId() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
 	// lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[ 0 ] )
