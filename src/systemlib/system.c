@@ -470,7 +470,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 
 void EnableExitEvent( void ) {
 	char eventName[256];
-	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetProcessId() );
 	//lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[0] ) Relinquish();
@@ -533,7 +533,7 @@ else lprintf( "Failure %d", status );
 
 void EnableExitEvent( void ) {
 	char eventName[ 256 ];
-	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetProgramId() );
 	// lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[ 0 ] )
@@ -1476,7 +1476,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		if( hWndMain ) {
 			TEXTCHAR title[256];
 			GetWindowText( hWndMain, title, 256 );
-			lprintf( "Sending WM_CLOSE to %p %s %s", hWndMain, task->name, title );
+			//lprintf( "Sending WM_CLOSE to %p %s %s", hWndMain, task->name, title );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
 		else if( !task->flags.useEventSignal ) {
