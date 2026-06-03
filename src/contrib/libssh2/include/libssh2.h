@@ -325,7 +325,7 @@ typedef struct _LIBSSH2_SK_SIG_INFO {
                 LIBSSH2_CHANNEL *channel, void **channel_abstract)
 
 #define LIBSSH2_LISTENER_CONNECT_FUNC(name) \
-    void (name)(LIBSSH2_SESSION *session, void **session_abstract, \
+    void (name)(LIBSSH2_SESSION *session, void **session_abstract,    \
                 LIBSSH2_LISTENER *listener, void **listener_abstract, \
                 LIBSSH2_CHANNEL *channel)
 
@@ -336,9 +336,7 @@ typedef struct _LIBSSH2_SK_SIG_INFO {
 #define LIBSSH2_CHANNEL_DATA_FUNC(name) \
     void (name)(LIBSSH2_SESSION *session, void **session_abstract, \
                 LIBSSH2_CHANNEL *channel, void **channel_abstract, \
-                int stream,              \
-                const uint8_t *buffer,       \
-                size_t length)
+                int stream, const unsigned char *buffer, size_t length)
 
 /* I/O callbacks */
 #define LIBSSH2_RECV_FUNC(name)                                         \
@@ -819,10 +817,10 @@ libssh2_channel_open_ex(LIBSSH2_SESSION *session, const char *channel_type,
                             LIBSSH2_CHANNEL_PACKET_DEFAULT, NULL, 0)
 
 /* Set callback function on channels */
-LIBSSH2_API libssh2_cb_generic *
-libssh2_channel_callback_set(LIBSSH2_CHANNEL *channel,
-                             int cbtype,
-                             libssh2_cb_generic *callback);
+LIBSSH2_API libssh2_cb_generic *libssh2_channel_callback_set(
+    LIBSSH2_CHANNEL *channel,
+    int cbtype,
+    libssh2_cb_generic *callback);
 
 /*
  * gets the reference to abstract user data pointer from a channel;
