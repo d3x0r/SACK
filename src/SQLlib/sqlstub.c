@@ -1812,7 +1812,7 @@ void SQLRollback( PODBC odbc )
 			SQLCommand( odbc, "ROLLBACK" );
 			odbc->flags.bAutoTransact = n;
 			if( n && odbc->auto_rollback_callback )
-				odbc->auto_rollback_callback( odbc->auto_commit_callback_psv, odbc );
+				odbc->auto_rollback_callback( odbc->auto_rollback_callback_psv, odbc );
 		}
 		if( odbc->flags.bThreadProtect )
 		{
