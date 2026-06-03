@@ -1102,6 +1102,15 @@ void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,POD
 	}
 }
 
+void SetSQLRollbackCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
+{
+	if( odbc )
+	{
+		odbc->auto_rollback_callback = callback;
+		odbc->auto_rollback_callback_psv = psv;
+	}
+}
+
 void SetSQLAutoClose( PODBC odbc, LOGICAL bEnable )
 {
 	if( odbc )
@@ -1760,6 +1769,50 @@ void SQLCommit( PODBC odbc )
 			odbc->flags.bAutoTransact = n;
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
+		}
+		if( odbc->flags.bThreadProtect )
+		{
+			odbc->nProtect--;
+			LeaveCriticalSec( &odbc->cs );
+		}
+	}
+}
+
+void SQLRollback( PODBC odbc )
+{
+	// someone might not want it now, but we already started a thread for it....
+	//if( odbc->flags.bAutoTransact )
+	{
+		if( odbc->flags.bThreadProtect )
+		{
+			EnterCriticalSec( &odbc->cs );
+			odbc->nProtect++;
+		}
+		// we will own the odbc here, so the timer will either block, or
+		// have completed, releasing this.
+
+		// maybe we don't have a pending commit.... (wouldn't if the timer hit just before we ran)
+		if( odbc->last_command_tick ) // otherwise we won't need a commit
+		{
+			int n = odbc->flags.bAutoTransact;
+			odbc->last_command_tick = 0;
+			if( odbc->auto_commit_thread ) // either this is clear, called from thread, or called from user, and the thread needs to end.
+			{
+				uint32_t start = timeGetTime();
+				WakeThread( odbc->auto_commit_thread );
+				while( odbc->auto_commit_thread && ((start + 500) > timeGetTime()) ) {
+					WakeableSleep( 1 );
+				}
+				if( ((start + 500) < timeGetTime()) )
+					lprintf( "Auto commit thread stalled in rollback." );
+			}
+			// need to end the thread here too....
+			odbc->flags.bAutoTransact = 0;
+			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
+			SQLCommand( odbc, "ROLLBACK" );
+			odbc->flags.bAutoTransact = n;
+			if( n && odbc->auto_rollback_callback )
+				odbc->auto_rollback_callback( odbc->auto_commit_callback_psv, odbc );
 		}
 		if( odbc->flags.bThreadProtect )
 		{

@@ -1514,7 +1514,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		{
 			char eventName[256];
 			HANDLE hEvent;
-			snprintf( eventName, 256, "Global\\%s:exit", task->name );
+			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
 			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
 			//lprintf( "Signal process event: %s", eventName );
 			if( hEvent != NULL ) {
@@ -1641,6 +1641,13 @@ SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv )
 {
 	if( task )
 		task->psvEnd = psv;
+}
+
+//--------------------------------------------------------------------------
+
+uint32_t GetTaskProcessId( PTASK_INFO task ) {
+	if( task ) return task->pi.dwProcessId;
+	return 0;
 }
 
 //--------------------------------------------------------------------------

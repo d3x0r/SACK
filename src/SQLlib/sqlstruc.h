@@ -161,6 +161,8 @@ struct odbc_handle_tag{
 	struct odbc_queue *queue;
 	void (CPROC*auto_commit_callback)(uintptr_t,PODBC);
 	uintptr_t auto_commit_callback_psv;
+	void (CPROC*auto_rollback_callback)(uintptr_t,PODBC);
+	uintptr_t auto_rollback_callback_psv;
 	void (CPROC*pCorruptionHandler)(uintptr_t psv, PODBC odbc);
 	uintptr_t psvCorruptionHandler;
 	void (*onOpen)( uintptr_t psv, PODBC odbc );

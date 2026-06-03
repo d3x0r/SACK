@@ -398,6 +398,7 @@ struct process_tree_pair {
 */
 SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
 
+SYSTEM_PROC( uint32_t, GetTaskProcessId )( PTASK_INFO task );
 
 #endif
 
@@ -408,6 +409,7 @@ SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
   be done.
 */
 SYSTEM_PROC( int, GetTaskPTY )( PTASK_INFO task );
+
 #endif
 
 
