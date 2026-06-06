@@ -41,7 +41,11 @@ SACK_SYSTEM_NAMESPACE
 
 typedef struct task_info_tag TASK_INFO;
 
-
+#ifndef _HRESULT_DEFINED
+#define _HRESULT_DEFINED
+typedef long HRESULT;
+#define WINAPI 
+#endif
 
 //--------------------------------------------------------------------------
 
@@ -566,9 +570,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	if( program && program[0] )
 	{
 #ifdef WIN32
-		HRESULT WINAPI (*createPseudoConsole)( _In_ COORD size, _In_ HANDLE hInput, _In_ HANDLE hOutput, _In_ DWORD dwFlags, _Out_ HPCON *phPC )
-		     = ( HRESULT WINAPI (*)( _In_ COORD size, _In_ HANDLE hInput, _In_ HANDLE hOutput, _In_ DWORD dwFlags,
-		                              _Out_ HPCON *phPC ))LoadFunction( "kernel32.dll", "CreatePseudoConsole" );
+		HRESULT (WINAPI *createPseudoConsole)(COORD size, HANDLE hInput, HANDLE hOutput, DWORD dwFlags, HPCON * phPC)
+		     = ( HRESULT (WINAPI*)( COORD size, HANDLE hInput, HANDLE hOutput, DWORD dwFlags,
+		                             HPCON *phPC ))
+			LoadFunction( "kernel32.dll", "CreatePseudoConsole" );
 
 		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
 		                 | ( ( flags & LPP_OPTION_DETACH ) ? DETACHED_PROCESS : 0 )
@@ -1334,8 +1339,8 @@ size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 
 int SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, int height ) {
 #ifdef _WIN32
-	HRESULT WINAPI (*resizePseudoConsole)( HPCON hPC, COORD size )
-		 = ( HRESULT WINAPI (*)( HPCON hPC, COORD size ))LoadFunction( "kernel32.dll", "ResizePseudoConsole" );
+	HRESULT (WINAPI *resizePseudoConsole)( HPCON hPC, COORD size )
+		 = ( HRESULT (WINAPI*)( HPCON hPC, COORD size ))LoadFunction( "kernel32.dll", "ResizePseudoConsole" );
 	if( resizePseudoConsole && task->si.lpAttributeList ) {
 		COORD size;
 		size.X = (SHORT)cols;
