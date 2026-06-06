@@ -2113,22 +2113,23 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 	PARAM( args, CTEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
 	TEXTCHAR buf[256];
-	if( key[0] === '?' ) {
+	if( key[0] == '?' ) {
 #ifdef _WIN32
 		if( StrCaseCmp( key+1, "windows") == 0 ) {
-         return psv;
+			return psv;
 		}
 #endif
 #ifdef __LINUX__
 		if( StrCaseCmp( key+1, "linux") == 0 ) {
-         return psv;
+			return psv;
 		}
 		if( StrCaseCmp( key+1, "posix") == 0 ) {
-         return psv;
+			return psv;
 		}
 #endif
 		l.flags.bFindEndif++;
 		l.flags.bFindElse = 1;
+		return psv;
 	}
 	SACK_GetProfileStringEx( GetProgramName(), key, "", buf, sizeof( buf ), TRUE );
 	if( l.flags.bTraceInterfaceLoading )
