@@ -2129,6 +2129,7 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 #endif
 		l.flags.bFindEndif++;
 		l.flags.bFindElse = 1;
+		return psv;
 	}
 	SACK_GetProfileStringEx( GetProgramName(), key, "", buf, sizeof( buf ), TRUE );
 	if( l.flags.bTraceInterfaceLoading )
