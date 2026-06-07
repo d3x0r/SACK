@@ -480,6 +480,11 @@ enum DisplayAttributes {
   DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS = 0x0800,
   // when created, set topmost as soon as possible
   DISPLAY_ATTRIBUTE_TOPMOST = 0x1000,
+  // do not redirect this display to an offscreen surface, draw directly to the screen.  
+  // This is a performance optimization for displays that are not expected to be composited with other displays, 
+  // and are expected to be fully opaque.  This is not compatible with DISPLAY_ATTRIBUTE_LAYERED (??PANEL_ATTRIBUTE_ALPHA??) or 
+  // (??PANEL_ATTRIBUTE_HOLEY??), and may cause visual artifacts if used with those attributes.
+  DISPLAY_ATTRIBUTE_NO_REDIRECT = 0x2000, 
 };
 
 

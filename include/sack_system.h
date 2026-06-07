@@ -307,6 +307,7 @@ SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t )
 */
 SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t );
 
+SYSTEM_PROC( uint32_t, GetTaskProcessId )( PTASK_INFO task );
 
 #if _WIN32 
 /*
@@ -397,8 +398,6 @@ struct process_tree_pair {
 
 */
 SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
-
-SYSTEM_PROC( uint32_t, GetTaskProcessId )( PTASK_INFO task );
 
 #endif
 

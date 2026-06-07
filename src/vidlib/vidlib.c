@@ -3579,13 +3579,17 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #endif
 		result = CreateWindowEx( 0
 #ifndef NO_TRANSPARENCY
-										| (hVideo->flags.bLayeredWindow?WS_EX_LAYERED:0)
+										| (hVideo->flags.bNoRedirect ? WS_EX_NOREDIRECTIONBITMAP 
+										                             : ((hVideo->flags.bLayeredWindow ? WS_EX_LAYERED 
+										                                                              : 0)))
 #endif
 #ifndef NO_MOUSE_TRANSPARENCY
 										| (hVideo->flags.bNoMouse?WS_EX_TRANSPARENT:0)
 #endif
+
 										| (hVideo->flags.bChildWindow?WS_EX_TOOLWINDOW:0)
 										| (hVideo->flags.bTopmost?WS_EX_TOPMOST:0)
+										
 										// | WS_EX_NOPARENTNOTIFY
 #ifdef UNICODE
 									  , (LPWSTR)l.aClass
@@ -3601,6 +3605,10 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 									  , NULL	  // Menu
 									  , hMe
 									  , (void *) hVideo);
+
+		//COLORREF chromaKey = RGB(255, 0, 255);
+		//SetLayeredWindowAttributes(result, chromaKey, 0, LWA_COLORKEY);
+
 		if( !result )
 			lprintf( "Failed to create window %d", GetLastError() );
 	}
@@ -4742,6 +4750,8 @@ RENDER_PROC (PVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 	else
 #endif
 		hNextVideo->flags.bLayeredWindow = 0;
+	hNextVideo->flags.bNoRedirect = (attr & DISPLAY_ATTRIBUTE_NO_REDIRECT) ? TRUE : FALSE;
+
 	hNextVideo->flags.bNoAutoFocus = (attr & DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS)?TRUE:FALSE;
 	hNextVideo->flags.bChildWindow = (attr & DISPLAY_ATTRIBUTE_CHILD)?TRUE:FALSE;
 	hNextVideo->flags.bTopmost = (attr & DISPLAY_ATTRIBUTE_TOPMOST)?TRUE:FALSE;
