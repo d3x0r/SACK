@@ -93,6 +93,7 @@ static int stop;
 #define WM_USER_HIDE_WINDOW  WM_USER+515
 #define WM_USER_SHUTDOWN	  WM_USER+516
 #define WM_USER_MOUSE_CHANGE	  WM_USER+517
+#define WM_USER_MOUSE_CAPTURE   WM_USER+518
 
 IMAGE_NAMESPACE
 
@@ -3272,6 +3273,22 @@ WM_DROPFILES
 		// thanx for the invite though.
 		//lprintf( "Erase background, and we just say NO" );
 		Return TRUE;
+	case WM_USER_MOUSE_CAPTURE:
+		if (wParam) {
+			SetForegroundWindow(hWnd);
+			SetActiveWindow(hWnd);
+			if (!(SetCapture(hWnd))) {
+				DWORD dwErr = GetLastError();
+				lprintf("capture : %d", dwErr);
+			}
+			else
+				lprintf("Captured OK.");
+		}
+		else {
+			ReleaseCapture();
+		}
+
+		Return TRUE;
 	case WM_USER_MOUSE_CHANGE:
 		{
 			hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
@@ -3605,7 +3622,7 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 									  , NULL	  // Menu
 									  , hMe
 									  , (void *) hVideo);
-
+		hVideo->flags.bLayeredWindow = (hVideo->flags.bNoRedirect || hVideo->flags.bLayeredWindow) ? 1 : 0;
 		//COLORREF chromaKey = RGB(255, 0, 255);
 		//SetLayeredWindowAttributes(result, chromaKey, 0, LWA_COLORKEY);
 
@@ -3974,7 +3991,7 @@ static void HandleMessage (MSG Msg)
 										  hVidCreate->pWindowPos.y,
 										  hVidCreate->pWindowPos.cx,
 										  hVidCreate->pWindowPos.cy);
-	}
+		}
 	else if (!Msg.hwnd && (Msg.message == (WM_USER_DESTROY_WINDOW)))
 	{
 		HandleDestroyMessage( (PVIDEO) Msg.lParam );
@@ -5704,17 +5721,18 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 		{
 			l.hCaptured = hVideo;
 			hVideo->flags.bCaptured = 1;
-			SetCapture (hVideo->hWndOutput);
+			PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 1, 0);
 		}
 		else
 		{
 			if( l.hCaptured != hVideo )
 			{
-				lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
+				//lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
 				l.hCaptured = hVideo;
 				hVideo->flags.bCaptured = 1;
-				SetCapture (hVideo->hWndOutput);
+				PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 1, 0);
 			}
+			//else lprintf("Should already have the capture...");
 		}
 	}
 	else
@@ -5723,6 +5741,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 		{
 			//lprintf( "No more capture." );
 			//ReleaseCapture ();
+			PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 0, 0);
 			hVideo->flags.bCaptured = 0;
 			l.hCapturedPrior = NULL;
 			l.hCaptured = NULL;
