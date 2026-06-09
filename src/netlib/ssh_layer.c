@@ -480,7 +480,7 @@ static void _readCallback( struct ssh_session* cs, POINTER buffer, size_t length
 				}
 				break;
 			case SSH_STATE_RESET:
-				rc = libssh2_read( cs->session );
+				rc = libssh2_session_read( cs->session );
 				break;
 			}
 			if( rc == LIBSSH2_ERROR_EAGAIN ) break;
