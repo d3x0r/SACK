@@ -76,6 +76,7 @@ struct ssh_channel {
 	ssh_channel_data_cb channel_data;
 	ssh_channel_eof_cb channel_eof;
 	ssh_channel_close_cb channel_close;
+	ssh_channel_request_cb channel_request;
 	ssh_pty_cb pty_open;
 	ssh_shell_cb shell_open;
 	ssh_exec_cb exec_done;
@@ -264,4 +265,3 @@ constexpr uint32_t const_bswap( uint32_t v ) noexcept {
 #  define HTOHL2 NTOHL2_3
 #  define HTONL HTONL1_3
 #endif
-
