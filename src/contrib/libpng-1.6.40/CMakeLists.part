@@ -11,7 +11,8 @@ if( __64__ AND __ARM__ )
 set( PNG_SOURCE ${PNG_SOURCE}
 	${PBASEDIR}/arm/arm_init.c
 	${PBASEDIR}/arm/filter_neon.S
-	${PBASEDIR}/arm/filter_neon_intrinsics.c )
+	${PBASEDIR}/arm/filter_neon_intrinsics.c 
+	${PBASEDIR}/arm/palette_neon_intrinsics.c )
 endif( __64__ AND __ARM__ )
           
 Set( ExternalExtraDefinitions ${ExternalExtraDefinitions};__PNG_LIBRARY_SOURCE__ )
