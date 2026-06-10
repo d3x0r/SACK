@@ -150,11 +150,11 @@ if(NOT DEFINED CMAKE_UNITY_BUILD_BATCH_SIZE)
   set(CMAKE_UNITY_BUILD_BATCH_SIZE 0)
 endif()
 
-option(BUILD_STATIC_LIBS "Build static libraries" ON)
-add_feature_info("Static library" BUILD_STATIC_LIBS "creating libssh2 static library")
+option(LIBSSH2_BUILD_STATIC_LIBS "Build static libraries" ON)
+add_feature_info("Static library" LIBSSH2_BUILD_STATIC_LIBS "creating libssh2 static library")
 
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-add_feature_info("Shared library" BUILD_SHARED_LIBS "creating libssh2 shared library (.so/.dll)")
+option(LIBSSH2_BUILD_SHARED_LIBS "Build shared libraries" ON)
+add_feature_info("Shared library" LIBSSH2_BUILD_SHARED_LIBS "creating libssh2 shared library (.so/.dll)")
 
 # Parse version
 
@@ -172,14 +172,26 @@ if(NOT LIBSSH2_VERSION OR
   message(FATAL_ERROR "Unable to parse version from ${PROJECT_SOURCE_DIR}/include/libssh2.h")
 endif()
 
+option(LIBSSH2_BUILD_EXAMPLES "Build libssh2 examples" ON)
+option(LIBSSH2_BUILD_TESTING "Build libssh2 test suite" ON)
+option(LIBSSH2_BUILD_DOCS "Build libssh2 test suite" ON)
+option(LIBSSH2_BUILD_STATIC_LIBS "Build libssh2 static libraries(default if not set)" ${LIBSSH2_BUILD_STATIC_LIBS})
+option(LIBSSH2_BUILD_SHARED_LIBS "Build libssh2 shared libraries" ${LIBSSH2_BUILD_SHARED_LIBS})
+option(LIBSSH2_BUILD_OBJECT_LIBRARY "Build static library as an object library instead of static library" OFF)
+
+option(CRYPTO_NO_OPENSSL "OpenSSL Should not be used, even if somewhat auto found" ON )
+
+
 option(LIBSSH2_DISABLE_INSTALL "Disable installation targets" OFF)
-if(NOT LIBSSH2_DISABLE_INSTALL)
+if(NOT LIBSSH2_DISABLE_INSTALL OR NOT LIBSSH2_SKIP_INSTALL )
   include(GNUInstallDirs)
+  if( LIBSSH2_BUILD_DOCS)
   install(
     FILES
       COPYING NEWS README RELEASE-NOTES
       docs/AUTHORS docs/BINDINGS.md docs/HACKING.md
     DESTINATION ${CMAKE_INSTALL_DOCDIR})
+  endif()
 endif()
 
 include(PickyWarnings)
@@ -201,17 +213,17 @@ else()
   endif()
 endif()
 
-if(BUILD_TESTING AND NOT BUILD_STATIC_LIBS)
+if(LIBSSH2_BUILD_TESTING AND NOT LIBSSH2_BUILD_STATIC_LIBS)
   # Build static for tests only, but do not install it.
-  set(BUILD_STATIC_FOR_TESTS ON)
+  set(LIBSSH2_BUILD_STATIC_FOR_TESTS ON)
 endif()
 
 option(BUILD_EXAMPLES "Build libssh2 examples" ON)
 option(BUILD_TESTING "Build libssh2 test suite" ON)
 option(BUILD_OSSFUZZ "Build libssh2 OSS-Fuzz" OFF)
 
-if((NOT BUILD_STATIC_LIBS AND NOT BUILD_SHARED_LIBS) OR BUILD_OSSFUZZ)
-  set(BUILD_STATIC_LIBS ON)
+if((NOT LIBSSH2_BUILD_STATIC_LIBS AND NOT LIBSSH2_BUILD_SHARED_LIBS) OR BUILD_OSSFUZZ)
+  set(LIBSSH2_BUILD_STATIC_LIBS ON)
 endif()
 
 set(LIB_NAME "libssh2")
@@ -219,7 +231,7 @@ set(LIB_STATIC "${LIB_NAME}_static")
 set(LIB_SHARED "${LIB_NAME}_shared")
 
 # lib flavour selected for example and test programs.
-if(BUILD_SHARED_LIBS)
+if(LIBSSH2_BUILD_SHARED_LIBS)
   set(LIB_SELECTED ${LIB_SHARED})
 else()
   set(LIB_SELECTED ${LIB_STATIC})
@@ -521,6 +533,16 @@ if(CRYPTO_BACKEND STREQUAL "WinCNG" OR NOT CRYPTO_BACKEND)
   endif()
 endif()
 
+# default fallback
+if( NOT CRYPTO_BACKEND )
+    set(CRYPTO_BACKEND "LibreSSL")
+    set(CRYPTO_BACKEND_DEFINE "LIBSSH2_OPENSSL")
+    set(CRYPTO_BACKEND_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libressl/4.1.0/include)
+	include_directories( ${CRYPTO_BACKEND_INCLUDE_DIR} )
+	INCLUDE_DIRECTORIES( "${CMAKE_CURRENT_SOURCE_DIR}/../zlib-1.3" )
+    list(APPEND LIBRARIES ssl crypto tls )
+endif()
+
 # Global functions
 
 # Convert GNU Make assignments into CMake ones.
@@ -560,7 +582,7 @@ if(LINT)
     COMMAND "${PERL_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/checksrc-all.pl"
     DEPENDS "${PROJECT_SOURCE_DIR}/scripts/checksrc-all.pl" "${PROJECT_SOURCE_DIR}/scripts/checksrc.pl"
   )
-  if(BUILD_STATIC_LIBS)
+  if(LIBSSH2_BUILD_STATIC_LIBS)
     add_dependencies(${LIB_STATIC} lint)
   else()
     add_dependencies(${LIB_SHARED} lint)
