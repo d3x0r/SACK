@@ -42,11 +42,11 @@ name: 'AppVeyor Docker Bridge'
       ssh_privkey:
         required: true
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
-
 permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DO_NOT_TRACK: '1'

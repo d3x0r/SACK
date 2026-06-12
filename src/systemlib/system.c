@@ -1646,7 +1646,13 @@ SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv )
 //--------------------------------------------------------------------------
 
 uint32_t GetTaskProcessId( PTASK_INFO task ) {
-	if( task ) return task->pi.dwProcessId;
+	if( task ) return
+#ifdef _WIN32
+		task->pi.dwProcessId;
+#else
+		task->pid;
+#endif
+
 	return 0;
 }
 

@@ -1091,12 +1091,10 @@ void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,POD
 {
 	if( odbc )
 	{
-		if( callback ) {
-			odbc->flags.bAutoTransact = 1;
-			odbc->flags.bThreadProtect = 1;
-		} 
+		if( callback )
+			SetSQLAutoTransact( odbc, 1 );
 		else
-			odbc->flags.bAutoTransact = 0;
+			SetSQLAutoTransact( odbc, 0 );
 		odbc->auto_commit_callback = callback;
 		odbc->auto_commit_callback_psv = psv;
 	}
@@ -1736,6 +1734,10 @@ int OpenSQLConnection( PODBC odbc )
 
 void SQLCommit( PODBC odbc )
 {
+	if( !odbc )
+		odbc = g.odbc;
+	if( !odbc )
+		return;
 	// someone might not want it now, but we already started a thread for it....
 	//if( odbc->flags.bAutoTransact )
 	{
@@ -1780,6 +1782,10 @@ void SQLCommit( PODBC odbc )
 
 void SQLRollback( PODBC odbc )
 {
+	if( !odbc )
+		odbc = g.odbc;
+	if( !odbc )
+		return;
 	// someone might not want it now, but we already started a thread for it....
 	//if( odbc->flags.bAutoTransact )
 	{
@@ -1811,7 +1817,7 @@ void SQLRollback( PODBC odbc )
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, "ROLLBACK" );
 			odbc->flags.bAutoTransact = n;
-			if( n && odbc->auto_rollback_callback )
+			if( odbc->auto_rollback_callback )
 				odbc->auto_rollback_callback( odbc->auto_rollback_callback_psv, odbc );
 		}
 		if( odbc->flags.bThreadProtect )
@@ -2815,19 +2821,33 @@ void ReleaseODBC( PODBC odbc )
 void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 {
 	uint32_t tick = (uint32_t)timeGetTime64();
+	if( !odbc )
+		return;
 	ReleaseODBC( odbc );
-	odbc->flags.bClosed = 1;
 	odbc->flags.bAutoCheckpoint = 0;
-	odbc->last_command_tick = 0;
 	while( ( ((uint32_t)timeGetTime64() - tick) < 100 ) && odbc->auto_checkpoint_thread ) {
 		WakeThread( odbc->auto_checkpoint_thread );
 		Relinquish();
 	}
-	if( odbc->auto_commit_thread )
+	if( odbc->last_command_tick && odbc->auto_commit_thread )
 	{
+		// Auto-transact batches short bursts and is expected to flush as a
+		// commit; only user-started transactions fall through to rollback.
 		SQLCommit( odbc );
-		WakeThread( odbc->auto_commit_thread );
 	}
+	else if( odbc->last_command_tick )
+	{
+		// Closing a connection with an open transaction rolls it back; do it
+		// explicitly so the rollback callback observes the same outcome.
+		SQLRollback( odbc );
+	}
+	else if( odbc->auto_commit_thread )
+	{
+		if( odbc->auto_commit_thread )
+			WakeThread( odbc->auto_commit_thread );
+	}
+	odbc->last_command_tick = 0;
+	odbc->flags.bClosed = 1;
 				
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 	if( odbc->flags.bSQLite_native )
@@ -6085,4 +6105,3 @@ void SetSQLCorruptionHandler( PODBC odbc, void (CPROC*f)(uintptr_t psv,PODBC odb
 }
 
 SQL_NAMESPACE_END
-
