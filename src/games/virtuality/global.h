@@ -13,8 +13,13 @@
 #if defined( USE_GLES2 ) || defined( __ANDROID__ )
 #include <GLES2/gl2.h>
 #else
-#include <GL/gl.h>
-#include <GL/glu.h>
+#  ifdef __MAC__
+#    include <opengl/gl.h>
+#    include <opengl/glu.h>
+#  else
+#    include <GL/gl.h>
+#    include <GL/glu.h>
+#  endif
 #endif
 #include <timers.h>
 

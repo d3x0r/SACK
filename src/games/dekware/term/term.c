@@ -1030,7 +1030,7 @@ static int HandleCommand("Network", "whois", "Perform whois query on listed name
 	PVARTEXT pvt = VarTextCreate();
 	if( InitNetwork( ps ) )
 	{
-#ifndef __ANDROID__
+#if !defined( __ANDROID__) && !defined( __MAC__ )
 		while( ( temp = GetParam( ps, &parameters ) ) )
 		{
 			DoWhois( GetText( temp ), NULL, pvt );
@@ -1059,6 +1059,8 @@ static int HandleCommand("Network", "whois", "Perform whois query on listed name
 			//EnqueLink( &ps->Command->Output, pOutput );
 		}
 		VarTextDestroy( &pvt );
+#else
+		lprintf( "Platform unsupported - whois" );
 #endif
 	}
 	return 0;
@@ -1073,7 +1075,7 @@ static int HandleCommand("Network", "ping", "Ping a network address...")( PSENTI
 		PTEXT line;
 			temp = GetParam( ps, &parameters );
 		line = BuildLine( temp );
-#ifndef __ANDROID__
+#if !defined(__ANDROID__) &&!defined(__MAC__)
 		DoPing( GetText( line ), 0, 2500, 1, pvt, FALSE, NULL );
 		LineRelease( line );
 		temp = VarTextGet( pvt );
@@ -1097,6 +1099,8 @@ static int HandleCommand("Network", "ping", "Ping a network address...")( PSENTI
 				EnqueLink( &ps->Command->Output, partial );
 			}
 		}
+#else
+		lprintf( "Platform unsupported - ping" );
 #endif
 		LineRelease( temp );
 	}
@@ -1111,8 +1115,10 @@ static int HandleCommand("Network", "trace", "Route trace a network address...")
 	if( InitNetwork(ps) )
 	{
 		temp = GetParam( ps, &parameters );
-#ifndef __ANDROID__
+#if !defined( __ANDROID__)&&!defined(__MAC__)
 		DoPing( GetText( temp ), 32, 2500, 1, pvt, FALSE, NULL );
+#else
+		lprintf( "Trace ping not support on platform.");
 #endif
 		temp = VarTextGet( pvt );
 		{

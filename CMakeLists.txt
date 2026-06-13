@@ -617,9 +617,12 @@ if( ${__LINUX__} )
 	if( NOT ${APPLE} AND NOT ${__ANDROID__} )
 	       set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} rt m pthread dl )
         endif( NOT ${APPLE} AND NOT ${__ANDROID__} )
-	if( NOT ${__NO_ODBC__} )
+	# On Apple the ODBC library is added (as a full keg path) by the dedicated
+	# block below; adding a bare 'odbc' here too caused a duplicate link and -
+	# since unixODBC is keg-only - an unresolved '-lodbc' in deployed products.
+	if( NOT ${__NO_ODBC__} AND NOT ${APPLE} )
 		set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} odbc )
-	endif( NOT ${__NO_ODBC__} )
+	endif( NOT ${__NO_ODBC__} AND NOT ${APPLE} )
 endif( ${__LINUX__} )
 
 
@@ -670,6 +673,16 @@ if( NOT ${__NO_ODBC__} OR USE_SQLITE )
    set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -DUSE_ODBC )
    if( ${WIN32} )
       SET( ODBC_LIBRARY odbc32 )
+   elseif( ${APPLE} )
+      # unixODBC is keg-only on macOS, so record the full dylib path rather than
+      # a bare 'odbc'.  This resolves both for this build and for the deployed
+      # platform-libraries config (which downstream products link against and
+      # which has no -L into the Homebrew keg).
+      if( UNIXODBC_PREFIX )
+         SET( ODBC_LIBRARY ${UNIXODBC_PREFIX}/lib/libodbc.dylib )
+      else()
+         SET( ODBC_LIBRARY odbc )
+      endif()
    else()
      SET( ODBC_LIBRARY odbc )
       if( NOT NEED_UUID AND NOT ${APPLE} )
@@ -1291,6 +1304,12 @@ if( NOT __NO_GUI__ )
 else( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
+
+# macOS native window/framebuffer driver.  Built independently of __NO_GUI__
+# (which is forced ON for Apple) so the Cocoa render backend is available.
+if( APPLE )
+   add_subdirectory( src/vidlib/cocoa )
+endif( APPLE )
 
 endif( EMSCRIPTEN )
 

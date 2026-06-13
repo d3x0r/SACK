@@ -834,6 +834,16 @@ Double quote	"""	222
 #    define KEY_PAD_7        0x59
 #    define KEY_PAD_8        0x5B
 #    define KEY_PAD_9        0x5C
+#    define KEY_KP9 KEY_PAD_9
+#    define KEY_KP8 KEY_PAD_8
+#    define KEY_KP7 KEY_PAD_7
+#    define KEY_KP6 KEY_PAD_6
+#    define KEY_KP5 KEY_PAD_5
+#    define KEY_KP4 KEY_PAD_4
+#    define KEY_KP3 KEY_PAD_3
+#    define KEY_KP2 KEY_PAD_2
+#    define KEY_KP1 KEY_PAD_1
+#    define KEY_KP0 KEY_PAD_0
 #    define KEY_PAD_DOT      0x41  // kVK_ANSI_KeypadDecimal
 #    define KEY_PAD_DELETE   KEY_PAD_DOT
 #    define KEY_PAD_PLUS     0x45  // kVK_ANSI_KeypadPlus

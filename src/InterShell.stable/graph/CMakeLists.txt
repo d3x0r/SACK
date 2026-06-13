@@ -1,3 +1,4 @@
+if( NOT __MAC__ )
 
 set( PROJECT network_graph.isp )
 
@@ -27,3 +28,6 @@ install_plugin( ${PROJECT} plugins )
 
 add_subdirectory( frames )
 
+else()
+message( "Network Line Graph (PING) is disabled on mac.")
+endif()
