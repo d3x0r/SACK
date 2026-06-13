@@ -130,7 +130,7 @@ add_subdirectory( intershell_plugin )
 #add_subdirectory( video )
 
 # extend to get brains and 3D objects again...
-if( NOT __ANDROID__ AND NOT MINGW )
+if( NOT __ANDROID__ AND NOT MINGW AND NOT __MAC__ )
 add_subdirectory( ../automaton automaton)
 include_directories( ../automaton/brain )
 include_directories( ../automaton/board )

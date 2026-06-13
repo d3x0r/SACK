@@ -2113,24 +2113,6 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 	PARAM( args, CTEXTSTR, key );
 	PARAM( args, CTEXTSTR, value );
 	TEXTCHAR buf[256];
-	if( key[0] == '?' ) {
-#ifdef _WIN32
-		if( StrCaseCmp( key+1, "windows") == 0 ) {
-			return psv;
-		}
-#endif
-#ifdef __LINUX__
-		if( StrCaseCmp( key+1, "linux") == 0 ) {
-			return psv;
-		}
-		if( StrCaseCmp( key+1, "posix") == 0 ) {
-			return psv;
-		}
-#endif
-		l.flags.bFindEndif++;
-		l.flags.bFindElse = 1;
-		return psv;
-	}
 	SACK_GetProfileStringEx( GetProgramName(), key, "", buf, sizeof( buf ), TRUE );
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( " is [%s] == [%s]  buf = [%s]", key, value, buf );
@@ -2147,6 +2129,37 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 	if( l.flags.bTraceInterfaceLoading )
 		lprintf( "seek(findendif, findelse) = %d %d", l.flags.bFindEndif, l.flags.bFindElse );
 #endif
+	return psv;
+}
+static uintptr_t CPROC TestOptionBool( uintptr_t psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, key );
+	if( l.flags.bTraceInterfaceLoading )
+		lprintf( "found bool test %s...", key );
+
+	if( StrCaseCmp( key, "windows") == 0 ) {
+#   ifdef _WIN32
+		return psv;
+#   endif
+	}
+	else if( StrCaseCmp( key, "linux") == 0 ) {
+#   ifdef __LINUX__
+		return psv;
+#   endif
+	}
+	else if( StrCaseCmp( key, "posix") == 0 ) {
+#   ifdef __LINUX__
+		return psv;
+#   endif
+	} else if( StrCaseCmp( key, "apple" ) == 0 ) {
+#   ifdef __MAC__
+		return psv;
+#   endif
+	} else {
+		lprintf( "Warning: Unknown boolean option: %s", key );
+	}
+	l.flags.bFindEndif++;
+	l.flags.bFindElse = 1;
 	return psv;
 }
 static uintptr_t CPROC EndTestOption( uintptr_t psv, arg_list args )
@@ -2228,6 +2241,7 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, "set option %m=%m", SetOptionSet );
 		AddConfigurationMethod( pch, "start directory \"%m\"", SetDefaultDirectory );
 		AddConfigurationMethod( pch, "include \"%m\"", IncludeAdditional );
+		AddConfigurationMethod( pch, "if ?%w", TestOptionBool );
 		AddConfigurationMethod( pch, "if %m==%m", TestOption );
 		AddConfigurationMethod( pch, "endif", EndTestOption );
 		AddConfigurationMethod( pch, "else", ElseTestOption );
@@ -2258,7 +2272,12 @@ void ReadConfiguration( void )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
 				if( !success )
-					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
+					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );				
+				else
+					l.flags.bInterfacesLoaded = 1;
+
+
+				DestroyConfigurationHandler( pch );
 				return;
 			}
 			if( !success )
@@ -2415,7 +2434,7 @@ POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 	if( !result )
 	{
 		// don't force the issue too much
-		if( l.flags.bReadConfiguration )
+		if( !l.flags.bReadConfiguration )
 			result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
 	}
 	return result;
