@@ -739,7 +739,7 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 	}
 #else
 #  ifdef USE_PIPE_SEMS
-	if( thread->semaphore != -1 )
+	//if( thread->semaphore != -1 )
 	{
 #    ifdef DEBUG_PIPE_USAGE
 		_lprintf(DBG_RELAY)( "(wakethread)wil write pipe... %p", thread );

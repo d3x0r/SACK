@@ -32,7 +32,7 @@ typedef struct keyboard_tag KEYBOARD;
 typedef struct keyboard_tag *PKEYBOARD;
 struct keyboard_tag
 {
-#define NUM_KEYS 256
+#define NUM_KEYS 259
    /* one byte index... more than sufficient
 
       if character in array is '1' key is down, '2' key is up. */
@@ -704,6 +704,184 @@ Double quote	"""	222
 #    define KEY_X   AKEYCODE_X
 #    define KEY_Y   AKEYCODE_Y
 #    define KEY_Z   AKEYCODE_Z
+
+#  elif defined( __MAC__ )
+
+// macOS / Cocoa virtual key codes (the kVK_* values from Carbon HIToolbox
+// Events.h).  These are hardware-independent "virtual" codes as returned by
+// [NSEvent keyCode]; the cocoa vidlib backend passes them straight through to
+// DispatchKeyEvent, so the KEY_* names below must equal those codes.  They are
+// hard-coded (rather than including <Carbon/...>) because the values are ABI
+// stable and we don't want a framework dependency in this public header.  Keys
+// with no macOS equivalent get out-of-range (>=0x100) sentinels so they never
+// match a real event.
+
+// letters
+#    define KEY_A 0x00
+#    define KEY_B 0x0B
+#    define KEY_C 0x08
+#    define KEY_D 0x02
+#    define KEY_E 0x0E
+#    define KEY_F 0x03
+#    define KEY_G 0x05
+#    define KEY_H 0x04
+#    define KEY_I 0x22
+#    define KEY_J 0x26
+#    define KEY_K 0x28
+#    define KEY_L 0x25
+#    define KEY_M 0x2E
+#    define KEY_N 0x2D
+#    define KEY_O 0x1F
+#    define KEY_P 0x23
+#    define KEY_Q 0x0C
+#    define KEY_R 0x0F
+#    define KEY_S 0x01
+#    define KEY_T 0x11
+#    define KEY_U 0x20
+#    define KEY_V 0x09
+#    define KEY_W 0x0D
+#    define KEY_X 0x07
+#    define KEY_Y 0x10
+#    define KEY_Z 0x06
+
+// number row
+#    define KEY_0 0x1D
+#    define KEY_1 0x12
+#    define KEY_2 0x13
+#    define KEY_3 0x14
+#    define KEY_4 0x15
+#    define KEY_5 0x17
+#    define KEY_6 0x16
+#    define KEY_7 0x1A
+#    define KEY_8 0x1C
+#    define KEY_9 0x19
+
+// punctuation
+#    define KEY_MINUS         0x1B  // kVK_ANSI_Minus
+#    define KEY_DASH          KEY_MINUS
+#    define KEY_EQUAL         0x18  // kVK_ANSI_Equal
+#    define KEY_PLUS          KEY_EQUAL
+#    define KEY_LEFT_BRACKET  0x21  // kVK_ANSI_LeftBracket
+#    define KEY_RIGHT_BRACKET 0x1E  // kVK_ANSI_RightBracket
+#    define KEY_BACKSLASH     0x2A  // kVK_ANSI_Backslash
+#    define KEY_SEMICOLON     0x29  // kVK_ANSI_Semicolon
+#    define KEY_QUOTE         0x27  // kVK_ANSI_Quote
+#    define KEY_COMMA         0x2B  // kVK_ANSI_Comma
+#    define KEY_PERIOD        0x2F  // kVK_ANSI_Period
+#    define KEY_LESS          KEY_COMMA
+#    define KEY_SLASH         0x2C  // kVK_ANSI_Slash
+#    define KEY_DIV           KEY_SLASH
+#    define KEY_MULT          KEY_PAD_MULT
+#    define KEY_ACCENT        0x32  // kVK_ANSI_Grave
+
+// control / whitespace
+#    define KEY_TAB           0x30  // kVK_Tab
+#    define KEY_SPACE         0x31  // kVK_Space
+#    define KEY_ENTER         0x24  // kVK_Return
+#    define KEY_NORMAL_ENTER  KEY_ENTER
+#    define KEY_BACKSPACE     0x33  // kVK_Delete (the backspace key)
+#    define KEY_DEL           KEY_BACKSPACE
+#    define KEY_ESCAPE        0x35  // kVK_Escape
+#    define KEY_ESC           KEY_ESCAPE
+
+// modifiers
+#    define KEY_SHIFT          0x38  // kVK_Shift
+#    define KEY_LEFT_SHIFT     0x38
+#    define KEY_RIGHT_SHIFT    0x3C  // kVK_RightShift
+#    define KEY_CTRL           0x3B  // kVK_Control
+#    define KEY_CONTROL        0x3B
+#    define KEY_LEFT_CONTROL   0x3B
+#    define KEY_RIGHT_CONTROL  0x3E  // kVK_RightControl
+#    define KEY_ALT            0x3A  // kVK_Option
+#    define KEY_LEFT_ALT       0x3A
+#    define KEY_RIGHT_ALT      0x3D  // kVK_RightOption
+#    define KEY_CAPS_LOCK      0x39  // kVK_CapsLock
+
+// dedicated navigation cluster
+#    define KEY_UP            0x7E  // kVK_UpArrow
+#    define KEY_DOWN          0x7D  // kVK_DownArrow
+#    define KEY_LEFT          0x7B  // kVK_LeftArrow
+#    define KEY_RIGHT         0x7C  // kVK_RightArrow
+#    define KEY_HOME          0x73  // kVK_Home
+#    define KEY_END           0x77  // kVK_End
+#    define KEY_PGUP          0x74  // kVK_PageUp
+#    define KEY_PAGE_UP       KEY_PGUP
+#    define KEY_PGDN          0x79  // kVK_PageDown
+#    define KEY_PAGE_DOWN     KEY_PGDN
+#    define KEY_INSERT        0x72  // kVK_Help (Insert position)
+#    define KEY_DELETE        0x75  // kVK_ForwardDelete
+
+// "grey"/extended keys: the dedicated nav keys (macOS has a single set)
+#    define KEY_GREY_UP      KEY_UP
+#    define KEY_GREY_DOWN    KEY_DOWN
+#    define KEY_GREY_LEFT    KEY_LEFT
+#    define KEY_GREY_RIGHT   KEY_RIGHT
+#    define KEY_GREY_HOME    KEY_HOME
+#    define KEY_GREY_END     KEY_END
+#    define KEY_GREY_PGUP    KEY_PGUP
+#    define KEY_GREY_PGDN    KEY_PGDN
+#    define KEY_GREY_INSERT  KEY_INSERT
+#    define KEY_GREY_DELETE  KEY_DELETE
+
+// numeric keypad
+#    define KEY_PAD_0        0x52  // kVK_ANSI_Keypad0
+#    define KEY_PAD_1        0x53
+#    define KEY_PAD_2        0x54
+#    define KEY_PAD_3        0x55
+#    define KEY_PAD_4        0x56
+#    define KEY_PAD_5        0x57
+#    define KEY_PAD_6        0x58
+#    define KEY_PAD_7        0x59
+#    define KEY_PAD_8        0x5B
+#    define KEY_PAD_9        0x5C
+#    define KEY_PAD_DOT      0x41  // kVK_ANSI_KeypadDecimal
+#    define KEY_PAD_DELETE   KEY_PAD_DOT
+#    define KEY_PAD_PLUS     0x45  // kVK_ANSI_KeypadPlus
+#    define KEY_PAD_MINUS    0x4E  // kVK_ANSI_KeypadMinus
+#    define KEY_PAD_MULT     0x43  // kVK_ANSI_KeypadMultiply
+#    define KEY_PAD_DIV      0x4B  // kVK_ANSI_KeypadDivide
+#    define KEY_PAD_ENTER    0x4C  // kVK_ANSI_KeypadEnter
+// the macOS keypad has no distinct numlock-off nav function, so the on-pad
+// navigation aliases map to the corresponding keypad digit keys.
+#    define KEY_PAD_HOME     KEY_PAD_7
+#    define KEY_PAD_END      KEY_PAD_1
+#    define KEY_PAD_UP       KEY_PAD_8
+#    define KEY_PAD_DOWN     KEY_PAD_2
+#    define KEY_PAD_LEFT     KEY_PAD_4
+#    define KEY_PAD_RIGHT    KEY_PAD_6
+#    define KEY_PAD_PGUP     KEY_PAD_9
+#    define KEY_PAD_PGDN     KEY_PAD_3
+#    define KEY_PAD_INSERT   KEY_PAD_0
+#    define KEY_PAD_CENTER   KEY_PAD_5
+
+// "grey" numpad operators alias the keypad operators
+#    define KEY_GREY_DIV     KEY_PAD_DIV
+#    define KEY_GREY_MULT    KEY_PAD_MULT
+#    define KEY_GREY_MINUS   KEY_PAD_MINUS
+#    define KEY_GREY_PLUS    KEY_PAD_PLUS
+#    define KEY_GREY_CENTER  KEY_PAD_CENTER
+
+// function keys
+#    define KEY_F1  0x7A
+#    define KEY_F2  0x78
+#    define KEY_F3  0x63
+#    define KEY_F4  0x76
+#    define KEY_F5  0x60
+#    define KEY_F6  0x61
+#    define KEY_F7  0x62
+#    define KEY_F8  0x64
+#    define KEY_F9  0x65
+#    define KEY_F10 0x6D
+#    define KEY_F11 0x67
+#    define KEY_F12 0x6F
+
+// keys with no macOS equivalent - out-of-range sentinels (never match)
+#    define KEY_NUM_LOCK     0x47  // kVK_ANSI_KeypadClear (closest analogue)
+#    define KEY_SCROLL_LOCK  0x100
+#    define KEY_STOP         0x101
+#    define KEY_CENTER       0x102
+#    define KEY_WINDOW_1     0x103
+#    define KEY_WINDOW_2     0x104
 
 #  elif defined( __LINUX__ ) && !defined( __MAC__ ) && !defined( __ANDROID__ ) && !defined( USE_WIN32_KEY_DEFINES )
 

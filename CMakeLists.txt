@@ -581,6 +581,21 @@ IF( ${APPLE} )
    SET( __NO_GUI__ ON )
    SET( ${PLATFORM_DEFINES} -D__MAC__ )
    set( ${PLATFORM_CMAKE_DEFINES} ${${PLATFORM_CMAKE_DEFINES}} "__MAC__ ON" )
+   # FSEvents (filesyslib/filemon/applefiles.c) needs CoreServices
+   find_library( CORESERVICES_LIBRARY CoreServices )
+   set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${CORESERVICES_LIBRARY} )
+   # unixODBC is installed via Homebrew and is not on the default search path
+   # on macOS (unlike /usr/include on linux), so add its prefix for <sql.h>/-lodbc.
+   if( NOT ${__NO_ODBC__} )
+      execute_process( COMMAND brew --prefix unixodbc
+                       OUTPUT_VARIABLE UNIXODBC_PREFIX
+                       OUTPUT_STRIP_TRAILING_WHITESPACE
+                       ERROR_QUIET )
+      if( UNIXODBC_PREFIX )
+         include_directories( ${UNIXODBC_PREFIX}/include )
+         link_directories( ${UNIXODBC_PREFIX}/lib )
+      endif( UNIXODBC_PREFIX )
+   endif( NOT ${__NO_ODBC__} )
 ENDIF( ${APPLE} )
 
 if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
@@ -1064,6 +1079,14 @@ if( __ARM__ )
       endif( NOT __NO_CPLUSPLUS )
     else( WIN32 )
       my_target_link_libraries( bag ${PLATFORM_LIBRARIES} )
+      # bag++ was omitted here, so on ARM (e.g. Apple Silicon macOS) the C++
+      # library linked against none of the platform libs (ODBC) nor
+      # bag.externals (libssh2), leaving _SQL*/_libssh2_* undefined.  Mirror the
+      # android/non-ARM branches and link them in.
+      if( NOT __NO_CPLUSPLUS )
+        my_target_link_libraries( ${BAG_PLUSPLUS} ${PLATFORM_LIBRARIES} )
+        my_target_link_libraries( ${BAG_PLUSPLUS} bag.externals )
+      endif( NOT __NO_CPLUSPLUS )
     endif( WIN32 )
   else( NOT __ANDROID__ )
      my_target_link_libraries( bag ${PLATFORM_LIBRARIES} )

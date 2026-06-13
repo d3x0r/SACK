@@ -5,6 +5,47 @@
 #set( project ffmpeg_interface )
 
 ADD_DEFINITIONS( -DFFMPEG_INTERFACE_SOURCE )
+
+# OpenAL is loaded at runtime via dlopen.  The headers are vendored
+# (openal-soft-1.15.1/include below), so nothing is needed to compile, but on
+# macOS Homebrew's openal-soft is keg-only and not on the default dlopen search
+# path - resolve its full dylib path so the runtime can find it.
+if( APPLE )
+  execute_process( COMMAND brew --prefix openal-soft
+                   OUTPUT_VARIABLE OPENAL_SOFT_PREFIX
+                   OUTPUT_STRIP_TRAILING_WHITESPACE
+                   ERROR_QUIET )
+  if( OPENAL_SOFT_PREFIX AND EXISTS "${OPENAL_SOFT_PREFIX}/lib/libopenal.dylib" )
+    ADD_DEFINITIONS( -DLIB_OPENAL_PATH="${OPENAL_SOFT_PREFIX}/lib/libopenal.dylib" )
+  endif()
+
+  # ffmpeg is also dlopen'd at runtime and lives off the default search path on
+  # Homebrew.  The vendored headers are ffmpeg 7.x, so prefer the matching
+  # keg-only ffmpeg@7; fall back to mainline ffmpeg (may be a newer major - ABI
+  # mismatch risk) if @7 is not installed.
+  execute_process( COMMAND brew --prefix ffmpeg@7
+                   OUTPUT_VARIABLE FFMPEG_PREFIX
+                   OUTPUT_STRIP_TRAILING_WHITESPACE
+                   ERROR_QUIET )
+  if( NOT FFMPEG_PREFIX OR NOT EXISTS "${FFMPEG_PREFIX}/lib/libavformat.dylib" )
+    execute_process( COMMAND brew --prefix ffmpeg
+                     OUTPUT_VARIABLE FFMPEG_PREFIX
+                     OUTPUT_STRIP_TRAILING_WHITESPACE
+                     ERROR_QUIET )
+  endif()
+  if( FFMPEG_PREFIX AND EXISTS "${FFMPEG_PREFIX}/lib/libavformat.dylib" )
+    message( STATUS "ffmpeg (runtime dlopen) resolved to: ${FFMPEG_PREFIX}/lib" )
+    ADD_DEFINITIONS(
+      -DLIB_AVFORMAT_PATH="${FFMPEG_PREFIX}/lib/libavformat.dylib"
+      -DLIB_AVCODEC_PATH="${FFMPEG_PREFIX}/lib/libavcodec.dylib"
+      -DLIB_AVDEVICE_PATH="${FFMPEG_PREFIX}/lib/libavdevice.dylib"
+      -DLIB_AVUTIL_PATH="${FFMPEG_PREFIX}/lib/libavutil.dylib"
+      -DLIB_SWSCALE_PATH="${FFMPEG_PREFIX}/lib/libswscale.dylib"
+      -DLIB_SWRESAMPLE_PATH="${FFMPEG_PREFIX}/lib/libswresample.dylib"
+    )
+  endif()
+endif( APPLE )
+
 set( FFMPEG_SOURCES_ROOT ${SOURCES_ROOT}src/streamlib/ffmpeg/ )
 set( FFMPEG_SOURCES ${FFMPEG_SOURCES_ROOT}ffmpeg_interface.c )
 set( FFMPEG_CPP_SOURCES ${CMAKE_BINARY_DIR}/src/streamlib/ffmpeg/ffmpeg_interface.cpp )
