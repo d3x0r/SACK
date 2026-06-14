@@ -170,7 +170,7 @@ static void SqlStubInitLibrary( void );
 
 
 #ifndef __STATIC_GLOBALS__
-PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY )
+PRIORITY_PRELOAD( InitGlobalData, SQL_PRELOAD_PRIORITY - 3 )
 {
 	// is null initialized.
 	SimpleRegisterAndCreateGlobal( global_sqlstub_data );
