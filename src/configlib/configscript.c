@@ -1608,7 +1608,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 		Release( pce->data[0].singleword.pWord );
 		pce->data[0].singleword.pWord = NULL;
 	}
-	LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ) {
+	LIST_FORALL( pce->data[0].singleword.pEnds, idx, struct config_element_tag *, pEnd ) {
 		pEnd->flags.matched = FALSE;
 	}
 	while( *start )
@@ -1626,7 +1626,7 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				break;
 			}
 
-			LIST_FORALL( pce->data[0].multiword.pEnds, idx, struct config_element_tag *, pEnd ){
+			LIST_FORALL( pce->data[0].singleword.pEnds, idx, struct config_element_tag *, pEnd ){
 				PTEXT _start = *start;
 				if( ( matched = IsAnyVar( pEnd, start ) ) != 0 )
 				{
@@ -1660,11 +1660,28 @@ int IsSingleWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 	}
 	if( (!*start) )
 	{
+		// End of line.  The per-token terminator scan above only runs while
+		// input remains, so a single word that *ends* the line never selected
+		// its end-of-line (CONFIG_NOTHING) terminator - meaning pce->next was
+		// left at this element's own (empty) next test and the registered
+		// procedure (attached to the terminator's next) was never reached.
+		// Resolve the CONFIG_NOTHING end here so pce->next advances correctly.
+		if( pWords && !default_EOL )
+		{
+			LIST_FORALL( pce->data[0].singleword.pEnds, idx, struct config_element_tag *, pEnd ){
+				if( pEnd->type == CONFIG_NOTHING ){
+					pce->data[0].singleword.pWhichEnd = pEnd;
+					pce->next = pEnd->next;
+					default_EOL = pce;
+					break;
+				}
+			}
+		}
 		if( !matched && !default_EOL )
 		{
 			LineRelease( pWords );
 			pWords = NULL;
-			// multiword ended - end of line, and no match on the next tag...
+			// single word ended - end of line, and no terminator/match...
 			return FALSE;
 		}
 		else if( g.flags.bLogTrace )
@@ -2204,7 +2221,8 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 					// keep this_word to reset the word for the variable check vs constant check
 					this_word = word = this_check->word;
 					if( !word ) {
-						//lprintf( "Could have just matched to end of line and all is well..." );
+						if( g.flags.bLogTrace )
+							lprintf( "Could have just matched to end of line and all is well..." );
 						processed = TRUE;
 						DoProcedure( &pch->psvUser, Check, line );
 					} else {
@@ -2277,6 +2295,8 @@ void ProcessConfigurationLine( PCONFIG_HANDLER pch, PTEXT line )
 												tmp_check.word = word;
 												tmp_check.Check = pce->next;
 												AddDataItem( &pch->possible_checks, &tmp_check );
+												if( g.flags.bLogTrace )
+													lprintf( "Added path as a possible check" );
 											}
 					        					word = this_word;
 										}
@@ -3039,11 +3059,17 @@ PCONFIG_ELEMENT _AddConfigurationEx( PCONFIG_HANDLER pch, CTEXTSTR format, USER_
 		pceNew->type = CONFIG_NOTHING;
 		pceNew->Check = NULL;
 		pceNew->word_element = pcePrior;
-		AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
-		if( flags.also_store_as_end )
+		// Add to the list matching the word kind: single words terminate via
+		// singleword.pEnds, multi words via multiword.pEnds.  (These alias in
+		// the union today, but the matcher reads them by their own name, so keep
+		// build and match consistent rather than relying on the overlap.)
+		if( flags.also_store_as_end ) {
+			AddLink( &pcePrior->data[0].singleword.pEnds, pceNew );
 			pceNew->flags.singleword_terminator = 1;
-		else
+		} else {
+			AddLink( &pcePrior->data[0].multiword.pEnds, pceNew );
 			pceNew->flags.multiword_terminator = 1;
+		}
 		pceNew->prior = pcePrior;
 		pct = pceNew->next = pceNew->built_next = NewConfigTest( pch );
 		if( g.flags.bLogTraceBuild )

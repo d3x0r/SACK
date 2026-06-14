@@ -96,6 +96,9 @@ typedef struct monitor_tag
 #else
 	int fdMon;
 #endif
+#ifdef __MAC__
+	void *fsStream; // FSEventStreamRef for this monitored directory
+#endif
 	PLIST monitors; // other monitors being tracked if SUBCURSE was used
 	PMONITOR parent_monitor; // if this is in the list, it also references its root
 

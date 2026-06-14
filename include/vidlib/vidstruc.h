@@ -24,8 +24,8 @@
 #  else
 #      if defined( __MAC__ )
 //#        include <glx.h>
-#        include <gl.h>
-#        include <glu.h>
+#        include <opengl/gl.h>
+#        include <opengl/glu.h>
 #      else
 #        include <GL/glx.h>
 #        define INCLUDE_STD_GL

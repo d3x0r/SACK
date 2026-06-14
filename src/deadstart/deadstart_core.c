@@ -363,7 +363,16 @@ void InvokeDeadstart( void )
 			sigemptyset(&sact.sa_mask);
 			//sigaddset( &sact.sa_mask, SIGINT );
 			sact.sa_flags = SA_SIGINFO | SA_NODEFER;
+			// NOTE: __MAC__ and __LINUX__ are both defined on macOS, so the
+			// restorer must be excluded specifically for the Apple/BSD case.
+#if defined( __MAC__ )
+			// BSD/macOS `struct sigaction` has no sa_restorer member; the
+			// handler pointers live in the __sigaction_u union and the field
+			// is already zeroed by the MemSet above.
+#else
+			// glibc/Linux: clear the (obsolete) restorer trampoline pointer.
 			sact.sa_restorer = NULL;
+#endif
 			// this means I have to generate a terminate myself....
 			//sigaction(SIGINT, &sact, &l.prior_sigint);
 			//fprintf( stderr, "Registered sigint handler...\n");

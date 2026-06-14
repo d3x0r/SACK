@@ -588,7 +588,7 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		struct kevent64_s ev;
 		this_thread.kevents = CreateDataList( sizeof( ev ) );
 #        ifdef USE_PIPE_SEMS
-		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, NULL, NULL );
+		EV_SET64( &ev, GetThreadSleeper( thread ), EVFILT_READ, EV_ADD, 0, 0, (uint64_t)1, 0, 0 );
 #        endif
 		kevent64( this_thread.kqueue, &ev, 1, 0, 0, 0, 0 );
 #      else

@@ -4,7 +4,7 @@
 #if defined( __LINUX__ )
 
 #if !defined( __ANDROID__ )
-#include <pty.h>
+//#include <pty.h>
 #else
 #include <termios.h>
 #endif
