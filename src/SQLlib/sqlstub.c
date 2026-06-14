@@ -1066,6 +1066,8 @@ void SetSQLLoggingDisable( PODBC odbc, LOGICAL bDisable )
 
 void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 {
+	if( !odbc )
+		odbc = g.odbc;
 	if( odbc )
 	{
 		EnterCriticalSec( &g.Init );
@@ -1082,13 +1084,22 @@ void SetSQLThreadProtect( PODBC odbc, LOGICAL bEnable )
 
 void SetSQLAutoTransact( PODBC odbc, LOGICAL bEnable )
 {
+	if( !odbc )
+		odbc = g.odbc;
 	if( odbc )
-		if( ( odbc->flags.bAutoTransact = bEnable ) )
-			odbc->flags.bThreadProtect = 1;
+	{
+		odbc->flags.bAutoTransact = bEnable;
+		if( !bEnable )
+			odbc->flags.bRestoreAutoTransact = 0;
+		if( bEnable )
+			SetSQLThreadProtect( odbc, 1 );
+	}
 }
 
 void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
 {
+	if( !odbc )
+		odbc = g.odbc;
 	if( odbc )
 	{
 		if( callback )
@@ -1102,6 +1113,8 @@ void SetSQLAutoTransactCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,POD
 
 void SetSQLRollbackCallback( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv )
 {
+	if( !odbc )
+		odbc = g.odbc;
 	if( odbc )
 	{
 		odbc->auto_rollback_callback = callback;
@@ -1732,6 +1745,22 @@ int OpenSQLConnection( PODBC odbc )
 }
 //----------------------------------------------------------------------
 
+static void StopAutoCommitThread( PODBC odbc, CTEXTSTR stalled_message )
+{
+	if( odbc->auto_commit_thread ) // either this is clear, called from thread, or called from user, and the thread needs to end.
+	{
+		uint32_t start = timeGetTime();
+		WakeThread( odbc->auto_commit_thread );
+		while( odbc->auto_commit_thread && ((start + 500) > timeGetTime()) ) {
+			Relinquish();
+		}
+		if( ((start + 500) < timeGetTime()) )
+			lprintf( "%s", stalled_message );
+	}
+}
+
+//----------------------------------------------------------------------
+
 void SQLCommit( PODBC odbc )
 {
 	if( !odbc )
@@ -1753,22 +1782,16 @@ void SQLCommit( PODBC odbc )
 		if( odbc->last_command_tick ) // otherwise we won't need a commit
 		{
 			int n = odbc->flags.bAutoTransact;
+			int restore_auto = !odbc->flags.bStartedAutoTransaction && odbc->flags.bRestoreAutoTransact;
 			odbc->last_command_tick = 0;
-			if( odbc->auto_commit_thread ) // either this is clear, called from thread, or called from user, and the thread needs to end.
-			{
-				uint32_t start = timeGetTime();
-				WakeThread( odbc->auto_commit_thread );
-				while( odbc->auto_commit_thread && ((start + 500) > timeGetTime()) ) {
-					WakeableSleep( 1 );
-				}
-				if( ((start + 500) < timeGetTime()) )
-					lprintf( "Auto commit thread stalled." );
-			}
+			StopAutoCommitThread( odbc, "Auto commit thread stalled." );
 			// need to end the thread here too....
 			odbc->flags.bAutoTransact = 0;
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, "COMMIT" );
-			odbc->flags.bAutoTransact = n;
+			odbc->flags.bAutoTransact = restore_auto || n;
+			odbc->flags.bRestoreAutoTransact = 0;
+			odbc->flags.bStartedAutoTransaction = 0;
 			if( odbc->auto_commit_callback )
 				odbc->auto_commit_callback( odbc->auto_commit_callback_psv, odbc );
 		}
@@ -1801,22 +1824,16 @@ void SQLRollback( PODBC odbc )
 		if( odbc->last_command_tick ) // otherwise we won't need a commit
 		{
 			int n = odbc->flags.bAutoTransact;
+			int restore_auto = !odbc->flags.bStartedAutoTransaction && odbc->flags.bRestoreAutoTransact;
 			odbc->last_command_tick = 0;
-			if( odbc->auto_commit_thread ) // either this is clear, called from thread, or called from user, and the thread needs to end.
-			{
-				uint32_t start = timeGetTime();
-				WakeThread( odbc->auto_commit_thread );
-				while( odbc->auto_commit_thread && ((start + 500) > timeGetTime()) ) {
-					WakeableSleep( 1 );
-				}
-				if( ((start + 500) < timeGetTime()) )
-					lprintf( "Auto commit thread stalled in rollback." );
-			}
+			StopAutoCommitThread( odbc, "Auto commit thread stalled in rollback." );
 			// need to end the thread here too....
 			odbc->flags.bAutoTransact = 0;
 			// the commit command itself will cause SQLCommit to be called - so we turn off autotransact and would create a transaction thread etc...
 			SQLCommand( odbc, "ROLLBACK" );
-			odbc->flags.bAutoTransact = n;
+			odbc->flags.bAutoTransact = restore_auto || n;
+			odbc->flags.bRestoreAutoTransact = 0;
+			odbc->flags.bStartedAutoTransaction = 0;
 			if( odbc->auto_rollback_callback )
 				odbc->auto_rollback_callback( odbc->auto_rollback_callback_psv, odbc );
 		}
@@ -1974,6 +1991,20 @@ static void BeginTransactEx( PODBC odbc, int force )
 		odbc = g.odbc;
 	if( !odbc )
 		return;
+	if( force && odbc->last_command_tick )
+	{
+		if( odbc->flags.bStartedAutoTransaction ) {
+			lprintf( "SQLBeginTransact requested while auto transaction is pending; committing auto transaction first." );
+			SQLCommit( odbc );
+		}
+		else
+		{
+			lprintf( "SQLBeginTransact requested while explicit transaction is already pending." );
+			return;
+		}
+	}
+	if( force )
+		StopAutoCommitThread( odbc, "Auto commit thread stalled before explicit transaction." );
 	if( odbc->flags.bAutoTransact || force )
 	{
 		uint32_t newtick = timeGetTime();
@@ -1989,11 +2020,18 @@ static void BeginTransactEx( PODBC odbc, int force )
 		{
 			int prior;
 			odbc->last_command_tick = newtick;
+			odbc->flags.bStartedAutoTransaction = !force;
 			if( !force && !odbc->auto_commit_thread )
 			{
 				odbc->auto_commit_thread = ThreadTo( CommitThread, (uintptr_t)odbc );
 			}
 			prior = odbc->flags.bAutoTransact;
+			if( force )
+				odbc->flags.bRestoreAutoTransact = 0;
+			if( force && prior ) {
+				lprintf( "SQLBeginTransact suspending AutoTransact until commit or rollback." );
+				odbc->flags.bRestoreAutoTransact = 1;
+			}
 			odbc->flags.bAutoTransact = 0;
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
 			if( odbc->flags.bSQLite_native )
@@ -2010,10 +2048,15 @@ static void BeginTransactEx( PODBC odbc, int force )
 			{
 				SQLCommand( odbc, "START TRANSACTION" );
 			}
-			odbc->flags.bAutoTransact = prior;
+			if( !force )
+				odbc->flags.bAutoTransact = prior;
 		}
 		else // update the tick.
+		{
+			if( !force && !odbc->flags.bStartedAutoTransaction )
+				lprintf( "AutoTransact command observed while explicit transaction is pending." );
 			odbc->last_command_tick = newtick;
+		}
 		//lprintf( "%p gets %lu", odbc, odbc->last_command_tick );
 	}
 	//else
@@ -2829,7 +2872,7 @@ void CloseDatabaseEx( PODBC odbc, LOGICAL ReleaseConnection )
 		WakeThread( odbc->auto_checkpoint_thread );
 		Relinquish();
 	}
-	if( odbc->last_command_tick && odbc->auto_commit_thread )
+	if( odbc->last_command_tick && odbc->flags.bStartedAutoTransaction )
 	{
 		// Auto-transact batches short bursts and is expected to flush as a
 		// commit; only user-started transactions fall through to rollback.
