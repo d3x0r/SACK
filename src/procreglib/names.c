@@ -2430,12 +2430,12 @@ POINTER GetInterfaceEx( CTEXTSTR pServiceName, LOGICAL ReadConfig )
 
 POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 {
-	POINTER result = GetInterfaceExx( pServiceName, FALSE DBG_RELAY );
+	POINTER result = GetInterface_v4( pServiceName, FALSE, TRUE DBG_RELAY );
 	if( !result )
 	{
 		// don't force the issue too much
-		if( !l.flags.bReadConfiguration )
-			result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
+		//if( !l.flags.bReadConfiguration )
+		//	result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
 	}
 	return result;
 }
