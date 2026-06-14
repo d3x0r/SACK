@@ -120,7 +120,7 @@ void ResetDirectory( void )
 	SetCurrentDirectory( savedir );
 }
 
-void CPROC AddSoundName( uintptr_t psv, CTEXTSTR name, int flags )
+void CPROC AddSoundName( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFlags flags )
 {
 	AddLink( (PLIST*)psv, name );
 }
