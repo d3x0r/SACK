@@ -9,7 +9,7 @@
 #include <libssh2.h>
 
 #ifdef _WIN32
-#define write(f, b, c)  write((f), (b), (unsigned int)(c))
+#define write(f, b, c)  write(f, b, (unsigned int)(c))
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     sin.sin_family = AF_INET;
     sin.sin_port = htons(22);
     sin.sin_addr.s_addr = hostaddr;
-    if(connect(sock, (struct sockaddr*)(&sin), sizeof(struct sockaddr_in))) {
+    if(connect(sock, (struct sockaddr *)(&sin), sizeof(struct sockaddr_in))) {
         fprintf(stderr, "failed to connect.\n");
         goto shutdown;
     }
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
         goto shutdown;
     }
 
-    /* ... start it up. This will trade welcome banners, exchange keys,
+    /* ... start it up. This trades welcome banners, exchange keys,
      * and setup crypto, compression, and MAC layers
      */
     rc = libssh2_session_handshake(session, sock);
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     /* At this point we have not yet authenticated.  The first thing to do
      * is check the hostkey's fingerprint against our known hosts Your app
      * may have it hard coded, may go to a file, may present it to the
-     * user, that's your call
+     * user, that is your call
      */
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
     fprintf(stderr, "Fingerprint: ");

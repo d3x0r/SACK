@@ -132,8 +132,9 @@ CORECON_PROC( int, CountDisplayedLines) ( PHISTORY_BROWSER phbr );
 
 void SetHistoryBackingFile( PHISTORY_REGION phr, FILE *file );
 
+struct PSI_console_word *PutSegmentOut( PHISTORY_LINE_CURSOR phc, PTEXT segment );
 
-//void SetHistoryBrowserOwnPageBreak( PHISTORY_BROWSER phbr );
+     //void SetHistoryBrowserOwnPageBreak( PHISTORY_BROWSER phbr );
 //void SetHistoryBrowserNoPageBreak( PHISTORY_BROWSER phbr );
 PSI_CONSOLE_NAMESPACE_END
 

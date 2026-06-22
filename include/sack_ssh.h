@@ -158,6 +158,13 @@ typedef void( *ssh_channel_close_cb )( uintptr_t psv );
 NETWORK_PROC( ssh_channel_close_cb, sack_ssh_set_channel_close )( struct ssh_channel* channel, ssh_channel_close_cb );
 
 /*
+* set a callback for when a channel request is accepted
+* returns the previous callback
+*/
+typedef void( *ssh_channel_request_cb )( uintptr_t psv, CTEXTSTR request, size_t request_len );
+NETWORK_PROC( ssh_channel_request_cb, sack_ssh_set_channel_request )( struct ssh_channel* channel, ssh_channel_request_cb );
+
+/*
 * set a callback for when a sftp session is opened
 */
 typedef uintptr_t( *ssh_sftp_open_cb )( uintptr_t psv, struct ssh_sftp* channel );

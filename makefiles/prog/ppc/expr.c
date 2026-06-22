@@ -541,14 +541,6 @@ void LogExpression( POPNODE root )
 		{
 			fprintf( stderr, "(%s = %lld)", fullopname[root->op],root->data.i );
 		}
-#ifdef __LINUX__
-		if( root->right )
-			if( root->right->left != root )
-#  if !defined( __ARM__ )
-				asm( "int $3\n" )
-#  endif
-				;
-#endif
 		root = root->right;
 	}
 	level--;

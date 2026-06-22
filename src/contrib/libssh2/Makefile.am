@@ -20,7 +20,7 @@ DISTCLEANFILES =
 
 VMSFILES = vms/libssh2_make_example.dcl vms/libssh2_make_help.dcl \
   vms/libssh2_make_kit.dcl vms/libssh2_make_lib.dcl vms/man2help.c \
-  vms/readme.vms vms/libssh2_config.h
+  vms/readme.vms vms/libssh2_config.h vms/.checksrc
 
 WIN32FILES = src/libssh2.rc
 
@@ -37,9 +37,22 @@ OS400FILES = os400/README400 os400/initscript.sh os400/make.sh \
   os400/libssh2rpg/libssh2_sftp.rpgle \
   os400/rpg-examples/SFTPXMPLE
 
-EXTRA_DIST = $(WIN32FILES) get_ver.awk \
-  maketgz RELEASE-NOTES libssh2.pc.in $(VMSFILES) config.rpath \
-  CMakeLists.txt cmake git2news.pl libssh2-style.el README.md $(OS400FILES)
+SCRIPTSFILES = \
+  scripts/badwords \
+  scripts/badwords-all \
+  scripts/badwords.txt \
+  scripts/cd2nroff \
+  scripts/checksrc-all.pl \
+  scripts/checksrc.pl \
+  scripts/cmakelint.sh \
+  scripts/git2news.pl \
+  scripts/maketgz \
+  scripts/spacecheck.pl \
+  scripts/spellcheck.sh \
+  scripts/codespell-ignore.words
+
+EXTRA_DIST = $(WIN32FILES) RELEASE-NOTES libssh2.pc.in $(VMSFILES) \
+  CMakeLists.txt cmake libssh2-style.el README.md $(OS400FILES) $(SCRIPTSFILES)
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -81,4 +94,4 @@ gen-coverage:
 coverage: init-coverage build-coverage gen-coverage
 
 checksrc:
-	ci/checksrc.sh
+	scripts/checksrc-all.pl

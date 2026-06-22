@@ -1,3 +1,5 @@
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+
 #define NO_UNICODE_C
 #define TASK_INFO_DEFINED
 #include <stdhdrs.h>
@@ -11,6 +13,10 @@
 
 #include <timers.h>
 #include <filesys.h>
+#include <render.h> /* GetKeyText */
+#ifdef _WIN32
+#include <WinCon.h>
+#endif
 
 #ifdef __LINUX__
 #include <poll.h>
@@ -19,7 +25,16 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <pty.h>
+#  ifdef __MAC__
+     // macOS/BSD has no <pty.h>; forkpty/openpty are declared in <util.h>
+     // (and link from libSystem, so no -lutil is required).  <pty.h> also
+     // pulled in ioctl()/TIOCSWINSZ/struct winsize transitively on linux,
+     // so include <sys/ioctl.h> explicitly here.
+#    include <util.h>
+#    include <sys/ioctl.h>
+#  else
+#    include <pty.h>
+#  endif
 extern char **environ;
 #endif
 
@@ -35,7 +50,11 @@ SACK_SYSTEM_NAMESPACE
 
 typedef struct task_info_tag TASK_INFO;
 
-
+#ifndef _HRESULT_DEFINED
+#define _HRESULT_DEFINED
+typedef long HRESULT;
+#define WINAPI 
+#endif
 
 //--------------------------------------------------------------------------
 
@@ -457,7 +476,7 @@ static BOOL _CreateProcess(
 	DWORD dwCreationFlags,
 	LPVOID lpEnvironment,
 	LPCSTR lpCurrentDirectory,
-	LPSTARTUPINFOA lpStartupInfo,
+	LPSTARTUPINFOEXA lpStartupInfo,
 	LPPROCESS_INFORMATION lpProcessInformation
 ) {
 	wchar_t* wAppName = lpApplicationName?CharWConvert( lpApplicationName ):NULL;
@@ -465,17 +484,18 @@ static BOOL _CreateProcess(
 	wchar_t* wWorkDir = lpCurrentDirectory ? CharWConvert( lpCurrentDirectory ) : NULL;
 	wchar_t* envBlock = lpEnvironment?ConvertEnvironment((char*)lpEnvironment):NULL;
 	DWORD dwLastError;
-	STARTUPINFOW si;
-	si.cb = sizeof( si );
-	convertStartupInfo( lpStartupInfo, &si );
+	STARTUPINFOEXW si;
+	si.StartupInfo.cb = sizeof( si );
+	convertStartupInfo( &lpStartupInfo->StartupInfo, &si.StartupInfo );
+	si.lpAttributeList = lpStartupInfo->lpAttributeList;
 
 	BOOL status = CreateProcessW( wAppName, wCmdLine
 		, lpProcessAttributes, lpThreadAttributes
 		, bInheritHandles, dwCreationFlags
-		, lpEnvironment, wWorkDir, &si, lpProcessInformation );
+		, lpEnvironment, wWorkDir, &si.StartupInfo, lpProcessInformation );
 	dwLastError = GetLastError();
-	if( si.lpDesktop ) Deallocate( LPWSTR, si.lpDesktop );
-	if( si.lpTitle ) Deallocate( LPWSTR, si.lpTitle );
+	if( si.StartupInfo.lpDesktop ) Deallocate( LPWSTR, si.StartupInfo.lpDesktop );
+	if( si.StartupInfo.lpTitle ) Deallocate( LPWSTR, si.StartupInfo.lpTitle );
 	if( wAppName ) Deallocate( wchar_t*, wAppName );
 	if( wCmdLine ) Deallocate( wchar_t*, wCmdLine );
 	if( wWorkDir ) Deallocate( wchar_t*, wWorkDir );
@@ -559,6 +579,11 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 	if( program && program[0] )
 	{
 #ifdef WIN32
+		HRESULT (WINAPI *createPseudoConsole)(COORD size, HANDLE hInput, HANDLE hOutput, DWORD dwFlags, HPCON * phPC)
+		     = ( HRESULT (WINAPI*)( COORD size, HANDLE hInput, HANDLE hOutput, DWORD dwFlags,
+		                             HPCON *phPC ))
+			LoadFunction( "kernel32.dll", "CreatePseudoConsole" );
+
 		int launch_flags = ( ( flags & LPP_OPTION_NEW_CONSOLE ) ? CREATE_NEW_CONSOLE : 0 )
 		                 | ( ( flags & LPP_OPTION_DETACH ) ? DETACHED_PROCESS : 0 )
 		                 | ( ( flags & LPP_OPTION_NEW_GROUP ) ? CREATE_NEW_PROCESS_GROUP : 0 )
@@ -671,8 +696,8 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		vtprintf( pvt, "cmd.exe /c %s", GetText( cmdline ) );
 		final_cmdline = VarTextGet( pvt );
 		VarTextDestroy( &pvt );
-		MemSet( &task->si, 0, sizeof( STARTUPINFO ) );
-		task->si.cb = sizeof( STARTUPINFO );
+		MemSet( &task->si, 0, sizeof( STARTUPINFOEX ) );
+		task->si.StartupInfo.cb = sizeof( STARTUPINFOEX );
 
 #ifdef _DEBUG
 		//xlprintf(LOG_NOISE)( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]", needs_quotes?"yes":"no", expanded_working_path, expanded_path, GetText( final_cmdline ) );
@@ -699,28 +724,50 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
 
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
-			task->si.hStdInput = task->hReadIn;
+			task->si.StartupInfo.hStdInput = task->hReadIn;
 			if( OutputHandler2 )
-				task->si.hStdError = task->hWriteErr;
+				task->si.StartupInfo.hStdError = task->hWriteErr;
 			if( OutputHandler )
-				task->si.hStdOutput = task->hWriteOut;
+				task->si.StartupInfo.hStdOutput = task->hWriteOut;
 			if( OutputHandler && !OutputHandler2 ) {
-				task->si.hStdError = task->hWriteOut; // if this is not set, then stderr gets inherited.
+				task->si.StartupInfo.hStdError = task->hWriteOut; // if this is not set, then stderr gets inherited.
 			}
-			task->si.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+			task->si.StartupInfo.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
-				task->si.wShowWindow = SW_HIDE;
+				task->si.StartupInfo.wShowWindow = SW_HIDE;
 			else
-				task->si.wShowWindow = SW_SHOW;
+				task->si.StartupInfo.wShowWindow = SW_SHOW;
+#ifndef PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE
+#   define PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE 0x20016
+#endif
+			if( flags & LPP_OPTION_INTERACTIVE ) {
+				COORD size  = { 80, 300 };
+				if( createPseudoConsole )
+					createPseudoConsole( size, task->hReadIn, task->hWriteOut, 0, &task->hPty );
+				//_WIN32_WINNT_WIN10_RS5 NTDDI_WIN10_RS5
+				size_t bytesRequired;
+				InitializeProcThreadAttributeList( NULL, 1, 0, &bytesRequired );
+				// Allocate memory to represent the list
+				launch_flags |= EXTENDED_STARTUPINFO_PRESENT;
+				task->si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc( GetProcessHeap(), 0, bytesRequired );
+				if( task->si.lpAttributeList ) {
+					InitializeProcThreadAttributeList( task->si.lpAttributeList, 1, 0, &bytesRequired );
+					if( !UpdateProcThreadAttribute( task->si.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+					                                task->hPty, sizeof( task->hPty ), NULL, NULL ) ) {
+						DWORD dwErr = GetLastError();
+						lprintf( "Error setting attributes on starup info:%d", dwErr );
+					}
+				}
+			}
 		}
 		else
 		{
 			//lprintf( "Not setting IO handles." );
-			task->si.dwFlags |= STARTF_USESHOWWINDOW;
+			task->si.StartupInfo.dwFlags |= STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
-				task->si.wShowWindow = SW_HIDE;
+				task->si.StartupInfo.wShowWindow = SW_HIDE;
 			else
-				task->si.wShowWindow = SW_SHOW;
+				task->si.StartupInfo.wShowWindow = SW_SHOW;
 		}
 
 		{
@@ -733,7 +780,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 												 , launch_flags | CREATE_NEW_PROCESS_GROUP
 												 , NULL
 												 , expanded_working_path
-												 , &task->si
+												 , &task->si.StartupInfo
 												 , &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( CreateProcessAsUser( hExplorer, program
 												, GetText( cmdline )
@@ -741,7 +788,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
-												, &task->si
+												, &task->si.StartupInfo
 												, &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( CreateProcessAsUser( hExplorer, program
 												, NULL // GetText( cmdline )
@@ -749,7 +796,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
-												, &task->si
+												, &task->si.StartupInfo
 												, &task->pi ) || FixHandles(task) || DumpError() ) ||
 					( CreateProcessAsUser( hExplorer, "cmd.exe"
 												, GetText( final_cmdline )
@@ -757,7 +804,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 												, launch_flags | CREATE_NEW_PROCESS_GROUP
 												, NULL
 												, expanded_working_path
-												, &task->si
+												, &task->si.StartupInfo
 												, &task->pi ) || FixHandles(task) || DumpError() )
 				  )
 				{
@@ -767,7 +814,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 			}
 			else
 			{
-				//lprintf( "Using launch flags; %s %08x", task->name, launch_flags );
+				//lprintf( "Using launch flags; %s %08x  %d", task->name, launch_flags, !!(flags&LPP_OPTION_INTERACTIVE) );
 				if( ( (!task->flags.runas_root) && ( _CreateProcess( program
 										, GetText( cmdline )
 										, NULL, NULL, TRUE
@@ -1259,7 +1306,7 @@ int vpprintf( PTASK_INFO task, CTEXTSTR format, va_list args )
 	return written;
 }
 
-//----------------------- Utility to send to launched task's stdin ----------------------------
+//----------------------- Utility to send to launched task's stdin -----d-----------------------
 
 size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 {
@@ -1297,6 +1344,64 @@ size_t task_send( PTASK_INFO task, const uint8_t*buffer, size_t buflen )
 		//lprintf( "Task has ended, write  aborted." );
 	}
 	return written;
+}
+
+int SetProcessConsoleSize( PTASK_INFO task, int cols, int rows, int width, int height ) {
+#ifdef _WIN32
+	HRESULT (WINAPI *resizePseudoConsole)( HPCON hPC, COORD size )
+		 = ( HRESULT (WINAPI*)( HPCON hPC, COORD size ))LoadFunction( "kernel32.dll", "ResizePseudoConsole" );
+	if( resizePseudoConsole && task->si.lpAttributeList ) {
+		COORD size;
+		size.X = (SHORT)cols;
+		size.Y = (SHORT)rows;
+		return (int)resizePseudoConsole( task->hPty, size );
+	}
+	return (int)E_NOTIMPL;
+#endif
+
+#ifdef __LINUX__
+	struct winsize size;
+	int pty = task->pty;
+	if( !rows )
+		rows = 24;
+	if( !cols )
+		cols = 80;
+	// lprintf( "Set PTY size: %d %d %d", pty, rows, cols);
+	size.ws_row    = rows;
+	size.ws_col    = cols;
+	size.ws_xpixel = width;
+	size.ws_ypixel = height;
+	return ioctl( pty, TIOCSWINSZ, &size );
+#endif
+
+}
+
+int SendPTYKeyEvent( PTASK_INFO task, uint32_t key ) {
+	// lprintf( "key event: %08lx", key );
+	CTEXTSTR text   = GetKeyText( key );
+	/*
+	*
+	*  from
+	https://github.com/microsoft/terminal/blob/main/doc/specs/%234999%20-%20Improved%20keyboard%20handling%20in%20Conpty.md#cons-4
+	2026-01-06
+	   ^[ [ Vk ; Sc ; Uc ; Kd ; Cs ; Rc _
+
+	    Vk: the value of wVirtualKeyCode - any number. If omitted, defaults to '0'.
+
+	    Sc: the value of wVirtualScanCode - any number. If omitted, defaults to '0'.
+
+	    Uc: the decimal value of UnicodeChar - for example, NUL is "0", LF is
+	        "10", the character 'A' is "65". If omitted, defaults to '0'.
+
+	    Kd: the value of bKeyDown - either a '0' or '1'. If omitted, defaults to '0'.
+
+	    Cs: the value of dwControlKeyState - any number. If omitted, defaults to '0'.
+
+	    Rc: the value of wRepeatCount - any number. If omitted, defaults to '1'.
+	*/
+	pprintf( task, "\x1b[%d;%d;%d;%d;%d;%d_", KEY_CODE( key ), KEY_REAL_CODE( key ), text ? GetUtfChar( &text ) : 0,
+	         IsKeyPressed( key ) ? 1 : 0, ( KEY_MOD( key ) & KEY_MOD_CTRL ) ? 1 : 0, 1 );
+	return 0;
 }
 
 

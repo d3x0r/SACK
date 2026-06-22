@@ -50,10 +50,11 @@ struct task_info_tag {
 	HANDLE hReadOut, hWriteOut;
 	HANDLE hReadErr, hWriteErr;
 	HANDLE hReadIn, hWriteIn;
-	STARTUPINFO si;
+	STARTUPINFOEX si;
 	PROCESS_INFORMATION pi;
-   DWORD exitcode;
+	DWORD exitcode;
 	HWND taskWindow;
+	HPCON hPty; // windows pty handle
 #elif defined( __LINUX__ )
    int hReadOut, hWriteOut;
    int hReadErr, hWriteErr;

@@ -1509,7 +1509,8 @@ typedef struct format_info_tag
 		BIT_FIELD background : 4;
       /* a bit indicating the text should blink if supported */
 		BIT_FIELD blink : 1;
-      /* a bit indicating the foreground and background color should be reversed */
+		BIT_FIELD blinkFast : 1;
+		/* a bit indicating the foreground and background color should be reversed */
 		BIT_FIELD reverse : 1;
 		// usually highly is bolder, perhaps it's
       // a highlighter effect and changes the background
@@ -1552,6 +1553,8 @@ typedef struct format_info_tag
       /* format op indicates one of the enum FORMAT_OPS applies to this segment */
 		BIT_FIELD format_op : 7;
 
+		BIT_FIELD rgb_foreground : 24;
+		BIT_FIELD rgb_background : 24;
 	} flags;
 	// if x,y are valid segment will have TF_POSFORMAT set...
 	union {

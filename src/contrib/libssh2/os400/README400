@@ -1,4 +1,3 @@
-
 Implementation notes:
 
   This is a true OS/400 implementation, not a PASE implementation (for PASE,
@@ -21,20 +20,17 @@ transcoding procedures may be used.
 Crypto API is provided by the IBM QC3 API library. It supports RSA and EC,
 but not DSA.
 
-
   Standard compilation environment does support neither autotools nor make;
-in fact, very few common utilities are available. As a consequence, the
+in fact, few common utilities are available. As a consequence, the
 libssh2_config.h has been coded manually and the compilation scripts are
 a set of shell scripts stored in subdirectory os400.
 
   The test environment is currently not supported on OS/400.
 
-
-
 Compiling on OS/400:
 
   These instructions target people who knows about OS/400, compiling, IFS and
-archive extraction. Do not ask questions about these subjects if you're not
+archive extraction. Do not ask questions about these subjects if you are not
 familiar with.
 
 _ As a prerequisite, QADRT development environment >= 20211112 must be
@@ -60,16 +56,16 @@ _ Copy any file in the current directory to makelog (i.e.:
 _ Enter the command "sh make.sh > makelog 2>&1'
 _ Examine the makelog file to check for compilation errors.
 
-  Without configuration parameters override, this will produce the following
+  Without configuration parameters override, this produces the following
 OS/400 objects:
-_ Library LIBSSH2. All other objects will be stored in this library.
+_ Library LIBSSH2. All other objects are stored in this library.
 _ Modules for all libssh2 units.
 _ Binding directory LIBSSH2_A, to be used at calling program link time for
   statically binding the modules (specify BNDSRVPGM(QADRTTS) when creating a
   program using LIBSSH2_A. Also give access to the zlib BNDDIR/SRVPGM if
   libssh2 is compiled with zlib).
 _ Service program LIBSSH2.<soname>, where <soname> is extracted from the
-  src/Makefile.am VERSION variable. To be used at calling program run-time
+  src/Makefile.am VERSION variable. To be used at calling program runtime
   when this program has dynamically bound libssh2 at link time.
 _ Binding directory LIBSSH2. To be used to dynamically bind libssh2 when
   linking a calling program.
@@ -81,8 +77,6 @@ _ Source file LIBSSH2RPG. It contains all the ILE/RPG /INCLUDE members
   needed to compile an ILE/RPG program calling libssh2 procedures.
 _ LIBSSH2, SSH2_PKEY, SSH2_SFTP members in file LIBSSH2RPG. These are
   ILE/RPG translations of the corresponding C header files.
-
-
 
 Special programming consideration:
 
@@ -97,8 +91,6 @@ _ The EBCDIC CCSID used by QADRT is 37 by default, NOT THE JOB'S CCSID. If
   object path before executing the program.
 _ Do not use original source include files unless you know what you are doing.
   Use the installed members instead (in /QSYS.LIB/LIBSSH2.LIB/H.FILE).
-
-
 
 String transcoding support:
 
@@ -140,7 +132,7 @@ where:
     string       is the string to convert.
     inlen        is the source string length in bytes: set to -1 if
                  null-terminated.
-    outlen       if not NULL, is the address of a variable that will receive
+    outlen       if not NULL, is the address of a variable that receives
                  the transcoded string length upon return.
 
   libssh2_from_ccsid() transcodes the string from the given CCSID to libssh2
@@ -156,8 +148,6 @@ receives the effective byte length of the (cached) translated string, or -1
 in case of error.
 
   Please take care to never mix different sessions into the same cache.
-
-
 
 ILE/RPG support:
 

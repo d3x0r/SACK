@@ -19,10 +19,6 @@ PHISTORYBLOCK DestroyRawHistoryBlock( PHISTORYBLOCK pHistory )
 	PHISTORYBLOCK next;
 	for( i = 0; i < pHistory->nLinesUsed; i++ )
 	{
-		if( pHistory->pLines[i].pLine == (PTEXT)0xFeeefeee )
-		{
-			lprintf( "a deleted line is in history %d", i );
-		}
 		LineRelease( pHistory->pLines[i].pLine );
 	}
 	if( ( next = ( (*pHistory->me) = pHistory->next ) ) )
@@ -1076,7 +1072,7 @@ int HistoryStat( PDATAPATH pdp, PSENTIENT ps, PTEXT parameters )
       EnqueLink( &ps->Command->Output, &msg );
       return 0;
    }
-	SetTextSize( stat, snprintf( GetText( stat ), 256*sizeof(TEXTCHAR), "History Length: %ld"
+	SetTextSize( stat, snprintf( GetText( stat ), 256*sizeof(TEXTCHAR), "History Length: %llu"
 									  , GetHistoryLength( pmdp->pHistory ) ) );
 	EnqueLink( &ps->Command->Output, stat );
    return 1;

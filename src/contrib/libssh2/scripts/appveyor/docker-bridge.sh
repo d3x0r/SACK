@@ -7,6 +7,7 @@ set -eu
 netsh interface portproxy add v4tov4 listenport=3389 listenaddress="$1" connectport=22 connectaddress=127.0.0.1
 netsh interface portproxy show all
 
+# ssh-keygen -b 2048 -t rsa -f auth -q -N '' && mkdir .ssh && mv auth.pub .ssh/authorized_keys
 ssh-keygen -t ed25519 -f auth -q -N '' && mkdir .ssh && mv auth.pub .ssh/authorized_keys
 ssh-keygen -A
 "$(command -v sshd)" &
@@ -24,4 +25,4 @@ curl \
   -F ssh_forward="127.0.0.1:${OPENSSH_SERVER_PORT} 127.0.0.1:${OPENSSH_SERVER_PORT},127.0.0.1:2375 /var/run/docker.sock" \
   -F ssh_hostkey="$(paste -d , /etc/ssh/ssh_host_*_key.pub)" \
   -F ssh_privkey="$(paste -sd , auth)" \
-  -s 'https://stuff.marc-hoersken.de/libssh2/dispatch.php'
+  --silent --show-error --fail 'https://stuff.marc-hoersken.de/libssh2/dispatch.php'

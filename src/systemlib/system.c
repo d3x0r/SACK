@@ -470,7 +470,7 @@ static uintptr_t KillEventThread( PTHREAD thread ) {
 
 void EnableExitEvent( void ) {
 	char eventName[256];
-	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
 	//lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[0] ) Relinquish();
@@ -533,7 +533,7 @@ else lprintf( "Failure %d", status );
 
 void EnableExitEvent( void ) {
 	char eventName[ 256 ];
-	snprintf( eventName, 256, "Global\\%s:exit", GetProgramName() );
+	snprintf( eventName, 256, "Global\\%s(%d):exit", GetProgramName(), GetCurrentProcessId() );
 	// lprintf( "Starting exit event thread... %s", eventName );
 	ThreadTo( KillEventThread, (uintptr_t)eventName );
 	while( eventName[ 0 ] )
@@ -852,10 +852,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			oldpath = getenv( "LD_LIBRARY_PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path)) );
-				sprintf( newpath, "%s:%s", (*init_l).library_path
+				const uint32_t n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).library_path));
+				newpath = NewArray( char, n );
+				snprintf( newpath, n, "%s:%s", (*init_l).library_path
 						 , oldpath );
-				setenv( "LD_LIBRARY_PATH", newpath, 1 );
+				setenv( "LD_LIBRARY_PATH", newpath, n );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
@@ -865,10 +866,11 @@ static void CPROC SetupSystemServices( POINTER mem, uintptr_t size )
 			oldpath = getenv( "PATH" );
 			if( oldpath )
 			{
-				newpath = NewArray( char, (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path)) );
-				sprintf( newpath, "%s:%s", (*init_l).load_path
+				const uint32_t n = (uint32_t)((oldpath?StrLen( oldpath ):0) + 2 + StrLen((*init_l).load_path));
+				newpath = NewArray( char, n );
+				snprintf( newpath, n, "%s:%s", (*init_l).load_path
 						 , oldpath );
-				setenv( "PATH", newpath, 1 );
+				setenv( "PATH", newpath, n );
 				ReleaseEx( newpath DBG_SRC );
 			}
 		}
@@ -1474,7 +1476,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		if( hWndMain ) {
 			TEXTCHAR title[256];
 			GetWindowText( hWndMain, title, 256 );
-			lprintf( "Sending WM_CLOSE to %p %s %s", hWndMain, task->name, title );
+			//lprintf( "Sending WM_CLOSE to %p %s %s", hWndMain, task->name, title );
 			SendMessage( hWndMain, WM_CLOSE, 0, 0 );
 		}
 		else if( !task->flags.useEventSignal ) {
@@ -1512,7 +1514,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 		{
 			char eventName[256];
 			HANDLE hEvent;
-			snprintf( eventName, 256, "Global\\%s:exit", task->name );
+			snprintf( eventName, 256, "Global\\%s(%d):exit", task->name, task->pi.dwProcessId );
 			hEvent = OpenEvent( EVENT_MODIFY_STATE, FALSE, eventName );
 			//lprintf( "Signal process event: %s", eventName );
 			if( hEvent != NULL ) {
@@ -1639,6 +1641,19 @@ SYSTEM_PROC( void, SetProgramUserData )( PTASK_INFO task, uintptr_t psv )
 {
 	if( task )
 		task->psvEnd = psv;
+}
+
+//--------------------------------------------------------------------------
+
+uint32_t GetTaskProcessId( PTASK_INFO task ) {
+	if( task ) return
+#ifdef _WIN32
+		task->pi.dwProcessId;
+#else
+		task->pid;
+#endif
+
+	return 0;
 }
 
 //--------------------------------------------------------------------------

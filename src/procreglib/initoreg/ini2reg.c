@@ -72,7 +72,7 @@ void CPROC ParseINI( uintptr_t psv, char *name, int flags )
                      p++;
 						}
 					}
-               sprintf( classname, "INI/%s/%s", filename, section );
+               snprintf( classname, sizeof( classname ), "INI/%s/%s", filename, section );
                RegisterValue( classname, line, val );
 				}
 			}

@@ -171,7 +171,7 @@ static int DecodeControlInfo( POINTER rawinfo, uint32_t size, PSI_CONTROL pFrame
 		  , info->rect.width, info->rect.height );
 	 {
 		 char procclass[64];
-       sprintf( procclass, PSI_ROOT_REGISTRY "/control/%d", info->nType );
+       snprintf( procclass, sizeof( procclass ), PSI_ROOT_REGISTRY "/control/%d", info->nType );
 		 ControlInit = GetRegisteredProcedure( procclass, int, Init, (uintptr_t,PSI_CONTROL,uint32_t) );
 		 pc = RestoreControl( pFrame, info->rect.x, info->rect.y
 							  , info->rect.width, info->rect.height

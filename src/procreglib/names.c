@@ -2131,6 +2131,37 @@ static uintptr_t CPROC TestOption( uintptr_t psv, arg_list args )
 #endif
 	return psv;
 }
+static uintptr_t CPROC TestOptionBool( uintptr_t psv, arg_list args )
+{
+	PARAM( args, CTEXTSTR, key );
+	if( l.flags.bTraceInterfaceLoading )
+		lprintf( "found bool test %s...", key );
+
+	if( StrCaseCmp( key, "windows") == 0 ) {
+#   ifdef _WIN32
+		return psv;
+#   endif
+	}
+	else if( StrCaseCmp( key, "linux") == 0 ) {
+#   ifdef __LINUX__
+		return psv;
+#   endif
+	}
+	else if( StrCaseCmp( key, "posix") == 0 ) {
+#   ifdef __LINUX__
+		return psv;
+#   endif
+	} else if( StrCaseCmp( key, "apple" ) == 0 ) {
+#   ifdef __MAC__
+		return psv;
+#   endif
+	} else {
+		lprintf( "Warning: Unknown boolean option: %s", key );
+	}
+	l.flags.bFindEndif++;
+	l.flags.bFindElse = 1;
+	return psv;
+}
 static uintptr_t CPROC EndTestOption( uintptr_t psv, arg_list args )
 {
 	if( l.flags.bTraceInterfaceLoading )
@@ -2210,6 +2241,7 @@ void ReadConfiguration( void )
 		AddConfigurationMethod( pch, "set option %m=%m", SetOptionSet );
 		AddConfigurationMethod( pch, "start directory \"%m\"", SetDefaultDirectory );
 		AddConfigurationMethod( pch, "include \"%m\"", IncludeAdditional );
+		AddConfigurationMethod( pch, "if ?%w", TestOptionBool );
 		AddConfigurationMethod( pch, "if %m==%m", TestOption );
 		AddConfigurationMethod( pch, "endif", EndTestOption );
 		AddConfigurationMethod( pch, "else", ElseTestOption );
@@ -2240,7 +2272,12 @@ void ReadConfiguration( void )
 			{
 				success = ProcessConfigurationFile( pch, l.config_filename, 0 );
 				if( !success )
-					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );
+					lprintf( "Failed to open custom interface configuration file:%s", l.config_filename );				
+				else
+					l.flags.bInterfacesLoaded = 1;
+
+
+				DestroyConfigurationHandler( pch );
 				return;
 			}
 			if( !success )
@@ -2393,12 +2430,12 @@ POINTER GetInterfaceEx( CTEXTSTR pServiceName, LOGICAL ReadConfig )
 
 POINTER GetInterfaceDbg( CTEXTSTR pServiceName DBG_PASS )
 {
-	POINTER result = GetInterfaceExx( pServiceName, FALSE DBG_RELAY );
+	POINTER result = GetInterface_v4( pServiceName, FALSE, TRUE DBG_RELAY );
 	if( !result )
 	{
 		// don't force the issue too much
-		if( l.flags.bReadConfiguration )
-			result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
+		//if( !l.flags.bReadConfiguration )
+		//	result = GetInterfaceExx( pServiceName, TRUE DBG_RELAY );
 	}
 	return result;
 }

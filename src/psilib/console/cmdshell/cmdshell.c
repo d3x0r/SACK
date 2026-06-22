@@ -1,5 +1,8 @@
+#define DEFINE_DEFAULT_RENDER_INTERFACE
+
 #include <psi.h>
 #include <psi/console.h>
+#include <render.h>
 
 #ifdef __LINUX__
 //#include <termios.h>
@@ -29,7 +32,12 @@ void CPROC WindowInput( uintptr_t psv, PTEXT text )
 	// collapse text to a single segment.
 	PTEXT out = BuildLine( text );
 	//LogBinary( GetText( out ), GetTextSize( out ) );
-	pprintf( (PTASK_INFO)psv, "%s\n", GetText( out ) );
+	// if LPP_OPTION_INTERACTIVE
+	//    pprintf( (PTASK_INFO)psv, "%s\r", GetText( out ) );
+	// else 
+	//    pprintf( (PTASK_INFO)psv, "%s\n", GetText( out ) );
+
+	// but really, this should hook to the console key input handler.
 	LineRelease( out );
    // for a command prompt, do not echo result.
 }
@@ -37,33 +45,24 @@ void CPROC WindowInput( uintptr_t psv, PTEXT text )
 void setTitle( uintptr_t psv, PTEXT text){
 	PSI_CONTROL pc = (PSI_CONTROL)psv;
 	SetControlText( pc, GetText( text ));
-
 }
 
-#ifdef __LINUX__
-void updateSize( uintptr_t psv, int cols, int rows, int width, int height){
-	PTASK_INFO task = (PTASK_INFO)psv;
-	struct winsize size;
-	int pty = GetTaskPTY( task );
-	if( !rows ) rows = 24;
-	if( !cols ) cols = 80;
-	//lprintf( "Set PTY size: %d %d %d", pty, rows, cols);
-	size.ws_row = rows;
-	size.ws_col = cols;
-	size.ws_xpixel = width;
-	size.ws_ypixel = height;
-	ioctl(pty, TIOCSWINSZ, &size );
+static int generateEvent( uintptr_t pc, uint32_t key ) { 
+	SendPTYKeyEvent( (PTASK_INFO)pc, key );
+	return 0;
 }
-#endif
+
 SaneWinMain( argc, argv )
 {
 	{
 		PTASK_INFO task;
 		PSI_CONTROL pc;
 		pc = MakeNamedCaptionedControl( NULL, "PSI Console", 0, 0, 640, 480, INVALID_INDEX, "Command Prompt" );
+		SetAllocateLogging( TRUE );
 		PSIConsoleSetLocalEcho( pc, FALSE );
 		DisplayFrame( pc );
-		//SetSystemLog( SYSLOG_FILE, stdout );
+		SetSystemLoggingLevel( 2000 );
+		SetSystemLog( SYSLOG_AUTO_FILE, 0 );
 		//task = LaunchPeerProgram( argc>1?argv[1]:"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", ".", NULL, OutputHandle, TaskEnded, (uintptr_t)pc );
 		task = LaunchPeerProgram_v2( argc>1?argv[1]
 #ifdef WIN32
@@ -80,16 +79,19 @@ SaneWinMain( argc, argv )
 		                        , TaskEnded, (uintptr_t)pc
 		                        , NULL
                                   DBG_SRC
-											);
+				);
 		if( task )
 		{
-#ifdef __LINUX__
-			PSI_Console_SetSizeCallback( pc, updateSize, (uintptr_t)task );
-#endif		
+			int cols, rows;
+			SetConsoleKeyHandler( pc, generateEvent, (uintptr_t)task );
+			PSI_Console_GetConsoleSize( pc, &cols, &rows, NULL, NULL );
+			SetProcessConsoleSize( task, cols, rows, 0, 0 );
+			// process console size has a PTASK_INFO instead of uintptr_t; otherwise this is compatible
+			PSI_Console_SetSizeCallback( pc, (void(*)(uintptr_t,int,int,int,int))SetProcessConsoleSize, (uintptr_t)task );
+			SetControlUserData( pc, (uintptr_t)task );
 			PSIConsoleInputEvent( pc, WindowInput, (uintptr_t)task );
 			//PSI_Console_SetWriteCallback( PSI_CONTROL pc, void (*)(uintptr_t, PTEXT), uintptr_t );
 			PSI_Console_SetTitleCallback( pc, setTitle, (uintptr_t) pc );
-
 
 			pThread = MakeThread();
 			while( !done )

@@ -209,6 +209,19 @@ typedef void (CPROC*generic_function)(void);
 SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR library, CTEXTSTR function, LOGICAL bPrivate DBG_PASS);
 SYSTEM_PROC( generic_function, LoadFunctionEx )( CTEXTSTR library, CTEXTSTR function DBG_PASS);
 SYSTEM_PROC( void *, GetPrivateModuleHandle )( CTEXTSTR libname );
+/* 
+* Send win32 PTY key event to a task running with a pseudo console. (ANSI code for key event)
+* 
+*/
+SYSTEM_PROC( int, SendPTYKeyEvent )( PTASK_INFO task, uint32_t key );
+/*
+*    Set the console size for a task which is running with a pseudo console.
+ *   cols, rows are in characters
+ *   width, height are in pixels
+ */
+
+SYSTEM_PROC( int, SetProcessConsoleSize )( PTASK_INFO task, int cols, int rows, int width, int height );
+
 
 /* 
   Add a custom loaded library; attach a name to the DLL space; this should allow
@@ -294,6 +307,7 @@ SYSTEM_PROC( void, AddKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t )
 */
 SYSTEM_PROC( void, RemoveKillSignalCallback )( int( *cb )( uintptr_t ), uintptr_t );
 
+SYSTEM_PROC( uint32_t, GetTaskProcessId )( PTASK_INFO task );
 
 #if _WIN32 
 /*
@@ -385,7 +399,6 @@ struct process_tree_pair {
 */
 SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
 
-
 #endif
 
 #ifdef __LINUX__
@@ -395,6 +408,7 @@ SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
   be done.
 */
 SYSTEM_PROC( int, GetTaskPTY )( PTASK_INFO task );
+
 #endif
 
 

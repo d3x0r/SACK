@@ -27,7 +27,7 @@ PSI_Console_Phrase PSIConsoleOutput( PSI_CONTROL pc, PTEXT lines )
 	// ansi filter?
 	// conditions for getting text lines which have format elements
 	// break lines?
-
+	LogBinary( GetText( lines ), GetTextSize( lines ) );
 	if( !eol )
 		eol = SegCreateFromText( "\n" );
 	if( console )
@@ -299,6 +299,18 @@ void PSI_Console_SetSizeCallback( PSI_CONTROL pc, void (*update)(uintptr_t, int 
 	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
 	console->UpdateSize = update;
 	console->psvUpdateSize = psv;
+}
+
+void PSI_Console_GetConsoleSize( PSI_CONTROL pc, int *cols, int *rows, int *width, int *height ) {
+	ValidatedControlData( PCONSOLE_INFO, ConsoleClass.TypeID, console, pc );
+	if( width )
+		*width = console->nWidth;
+	if( height )
+		*height = console->nHeight;
+	if( cols )
+		*cols = console->nColumns;
+	if( rows )
+		*rows = console->nLines;
 }
 
 PSI_CONSOLE_NAMESPACE_END

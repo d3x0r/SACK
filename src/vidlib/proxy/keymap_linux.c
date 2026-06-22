@@ -53,7 +53,7 @@ typedef struct LinuxKeymapKeyDefine {
 
 #if defined( __LINUX__ )
 
-PSIKEYDEFINE LinuxKeyDefs[256] =
+PSIKEYDEFINE LinuxKeyDefs[NUM_KEYS] =
                      { [KEY_DEL]={"back","backspace",0,KEYDATA("\b","\b") }
                       , [KEY_TAB]={"tab",0,0,KEYDATA("\t","\t") }
                       , [KEY_ENTER]={"return", "Enter",0,KEYDATA8("\n") }

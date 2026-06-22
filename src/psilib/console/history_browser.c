@@ -87,7 +87,7 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 	//_xlprintf( 0 DBG_RELAY )("Getting some history line: %d", line );
 	if( !region->pHistory.next )
 		return NULL;
-	if( ( line > 0 ) && start )
+	if( ( line > 0 ) && start && ( line <= start->nLinesUsed ) )
 	{
 		return start->pLines + (line-1);
 	}
@@ -121,29 +121,22 @@ PTEXTLINE GetSomeHistoryLineEx( PHISTORY_REGION region
 			// still have lines to go back to get to the desired line,
 			// but it is past the beginning page-break... uhmm actually...
 			//
-			if( pBlock->nLinesUsed && pBlock->pLines[0].pLine )
-				if( ( pBlock->pLines[0].pLine->flags & TF_FORMATEX ) &&
-					( pBlock->pLines[0].pLine->format.flags.format_op == FORMAT_OP_PAGE_BREAK ) )
-				{
+			if( pBlock->nLinesUsed && pBlock->pLines[ 0 ].pLine ) {
+				if( ( pBlock->pLines[ 0 ].pLine->flags & TF_FORMATEX )
+				    && ( pBlock->pLines[ 0 ].pLine->format.flags.format_op == FORMAT_OP_PAGE_BREAK ) ) {
 					DebugBreak();
 					// can't go backwards past a page-break.
 					return NULL;
 				}
-			if( ( pBlock = pBlock->prior ) && *(pBlock->me) )
-			{
-				//lprintf( "Adjusting line as we step backward..." );
 				line += pBlock->nLinesUsed;
 			}
+			// it's IN this block.
+			if( line > 0 )
+				break;
+			pBlock = pBlock->prior;
 		}
 		if( line > 0 )
-		{
-			if( line < MAX_HISTORY_LINES )
-			{
-				//lprintf( "Setting used lines in history block..." );
-				//pBlock->nLinesUsed = line;
-			}
 			return pBlock->pLines + (line - 1);
-		}
 	}
 	return NULL;
 }
@@ -200,11 +193,21 @@ PTEXT EnumHistoryLineEx( PHISTORY_BROWSER phbr
 	//lprintf("Getting line: %d ", line );
 	//DumpRegion( phlc->region DBG_RELAY );
 	// uhmm... yeah.
-	ptl = GetSomeHistoryLine( phbr->region
-									, phbr->pBlock
-									, (phbr->pBlock?phbr->nLine:0) + line );
-	//DumpRegion( phlc->region DBG_RELAY );
-
+	if( !phbr->pBlock ) {
+		AlignHistory( phbr, 0, NULL );
+	}
+	do {
+		ptl = GetSomeHistoryLine( phbr->region, phbr->pBlock, ( phbr->pBlock ? phbr->nLine : 0 ) + line );
+		// DumpRegion( phlc->region DBG_RELAY );
+		if( !ptl ) {
+			PHISTORY_LINE_CURSOR phc = (PHISTORY_LINE_CURSOR)GetLink( &phbr->region->pCursors, 0 );
+			if( phc ) {
+				PutSegmentOut( phc, SegCreateFromText( "" ) );
+				phc->output.nCursorY++;
+			} else
+				break;
+		}
+	} while( !ptl );
 	if( ptl )
 	{
 		(*offset)++;
@@ -429,7 +432,8 @@ int CountLinesSpannedEx( PHISTORY_BROWSER phbr, PTEXT countseg, SFTFont font, LO
 				{
 					while( countseg->Prior && !GetTextSize( countseg->Prior ) )
 					{
-						nLines--;
+						if( !countseg->format.flags.format_op )
+							nLines--;
 						countseg = PRIORLINE( countseg );
 					}
 #ifdef DEBUG_OUTPUT
@@ -635,11 +639,17 @@ int AlignHistory( PHISTORY_BROWSER phbr, int32_t nOffset, SFTFont font )
 	}
 
 	// fixup alignment beyond the current block...
-	while( (int64_t)phbr->nLine > phbr->pBlock->nLinesUsed
-			&& phbr->pBlock->next )
+	while( (int64_t)phbr->nLine > phbr->pBlock->nLinesUsed )
 	{
-		phbr->nLine -= phbr->pBlock->nLinesUsed;
-		phbr->pBlock = phbr->pBlock->next;
+		if( phbr->pBlock->next ) {
+			phbr->nLine -= phbr->pBlock->nLinesUsed;
+			phbr->pBlock = phbr->pBlock->next;
+		} else {
+			if( phbr->pBlock->nLinesUsed ) {
+				phbr->nLine = phbr->pBlock->nLinesUsed - 1;
+			} else
+				phbr->nLine = 0;
+		}
 	}
 	if( phbr->nLine > phbr->pBlock->nLinesUsed )
 	{
@@ -1069,15 +1079,20 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 									}
 									nShown += nShow;
 									nChar += nShow;
-									if( GetRuneAtIndex( pLastSetLine->start, pLastSetLine->nFirstSegOfs, nShow-1 ) == '\n' )
+									if( pLastSetLine 
+										&& GetRuneAtIndex( pLastSetLine->start
+									                     , pLastSetLine->nFirstSegOfs
+									                     , nShow - 1 ) == '\n' )
 										trim_char = 1;
 									else
 										trim_char = 0;
 									// wrapped on a space - word break in segment
 									// or had a newline at the end which causes a wrap...
 									// log the line and get a new one.
-									pLastSetLine->nPixelEnd = col_offset;
-									pLastSetLine->nToShow = nShow - trim_char;
+									if( pLastSetLine ) {
+										pLastSetLine->nPixelEnd = col_offset;
+										pLastSetLine->nToShow   = nShow - trim_char;
+									}
 #ifdef DEBUG_OUTPUT
 									lprintf( "2Fixing up last line set for number of chars to show. start:%d  show:%d  pe:%d", pLastSetLine->nLineStart, pLastSetLine->nToShow, pLastSetLine->nPixelEnd );
 #endif
@@ -1136,13 +1151,14 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					}
 					nChar = 0;
 					nLinesShown+=nLines;
-
-					pLastSetLine->nToShow = nShown;
-					pLastSetLine->nLineEnd = pLastSetLine->nLineStart + ( nShown );
-					pLastSetLine->nPixelEnd = col_offset;
+					if( pLastSetLine ) {
+						pLastSetLine->nToShow = nShown;
+						pLastSetLine->nLineEnd = pLastSetLine->nLineStart + ( nShown );
+						pLastSetLine->nPixelEnd = col_offset;
 #ifdef DEBUG_OUTPUT
-					lprintf( "Fixing up last line set for number of chars to show. %d  show:%d  pe:%d", nChar, pLastSetLine->nToShow, pLastSetLine->nPixelEnd );
+						lprintf( "Fixing up last line set for number of chars to show. %d  show:%d  pe:%d", nChar, pLastSetLine->nToShow, pLastSetLine->nPixelEnd );
 #endif
+					}
 				}
 				else
 				{

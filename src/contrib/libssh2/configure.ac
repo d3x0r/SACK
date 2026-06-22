@@ -1,9 +1,9 @@
-# Copyright (C) The libssh2 project and its contributors.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-#
+dnl Copyright (C) The libssh2 project and its contributors.
+dnl
+dnl SPDX-License-Identifier: BSD-3-Clause
+dnl
 
-# AC_PREREQ(2.59)
+dnl AC_PREREQ(2.59)
 AC_INIT([libssh2],[-],[libssh2-devel@lists.haxx.se])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src])
@@ -13,8 +13,8 @@ AM_MAINTAINER_MODE
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl SED is needed by some of the tools
-AC_PATH_PROG( SED, sed, sed-was-not-found-by-configure,
-              $PATH:/usr/bin:/usr/local/bin)
+AC_PATH_PROG(SED, sed, sed-was-not-found-by-configure,
+             $PATH:/usr/bin:/usr/local/bin)
 AC_SUBST(SED)
 
 if test "x$SED" = "xsed-was-not-found-by-configure"; then
@@ -29,32 +29,32 @@ AC_MSG_RESULT($LIBSSH2_VERSION)
 
 AC_SUBST(LIBSSH2_VERSION)
 
-# Check for the OS.
-# Daniel's note: this should not be necessary and we need to work to
-# get this removed.
+dnl Check for the OS.
+dnl Daniel's note: this should not be necessary and we need to work to
+dnl get this removed.
 AC_CANONICAL_HOST
 case "$host" in
-    *-mingw*)
+  *-mingw*)
     LIBS="$LIBS -lws2_32"
     ;;
-    *darwin*)
+  *darwin*)
     ;;
-    *hpux*)
+  *hpux*)
     ;;
-    *osf*)
+  *osf*)
     CFLAGS="$CFLAGS -D_POSIX_PII_SOCKET"
     ;;
-    *)
+  *)
     ;;
 esac
 
 dnl Our configure and build reentrant settings
 CURL_CONFIGURE_REENTRANT
 
-# Some systems (Solaris?) have socket() in -lsocket.
+dnl Some systems (Solaris?) have socket() in -lsocket.
 AC_SEARCH_LIBS(socket, socket)
 
-# Solaris has inet_addr() in -lnsl.
+dnl Solaris has inet_addr() in -lnsl.
 AC_SEARCH_LIBS(inet_addr, nsl)
 
 AC_SUBST(LIBS)
@@ -65,13 +65,13 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PATH_PROGS(SSHD, [sshd], [],
-     [$PATH$PATH_SEPARATOR/usr/libexec$PATH_SEPARATOR]dnl
-     [/usr/sbin$PATH_SEPARATOR/usr/etc$PATH_SEPARATOR/etc])
+  [$PATH$PATH_SEPARATOR/usr/libexec$PATH_SEPARATOR]dnl
+  [/usr/sbin$PATH_SEPARATOR/usr/etc$PATH_SEPARATOR/etc])
 AM_CONDITIONAL(SSHD, test -n "$SSHD")
 m4_ifdef([LT_INIT],
-[dnl
+[
 LT_INIT([win32-dll])
-],[dnl
+],[
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 ])
@@ -82,7 +82,7 @@ LT_LANG([Windows Resource])
 dnl check for windows.h
 case $host in
   *-*-msys | *-*-cygwin* | *-*-cegcc*)
-    # These are POSIX-like systems using BSD-like sockets API.
+    dnl These are POSIX-like systems using BSD-like sockets API.
     ;;
   *)
     AC_CHECK_HEADERS([windows.h], [have_windows_h=yes], [have_windows_h=no])
@@ -119,7 +119,7 @@ AS_HELP_STRING([--disable-docs],[Disable documentation]),
     BUILD_DOCS=1
 )
 if test -z "$PERL" -a "x$BUILD_DOCS" != "x0"; then
-  AC_MSG_WARN([perl was not found. Will not build documentation.])
+  AC_MSG_WARN([perl was not found. Cannot build documentation.])
   BUILD_DOCS=0
 fi
 
@@ -132,22 +132,20 @@ found_crypto=none
 found_crypto_str=""
 crypto_errors=""
 
-m4_set_add([crypto_backends], [openssl])
-m4_set_add([crypto_backends], [libgcrypt])
-m4_set_add([crypto_backends], [mbedtls])
-m4_set_add([crypto_backends], [wincng])
-m4_set_add([crypto_backends], [wolfssl])
-
 AC_ARG_WITH([crypto],
-  AS_HELP_STRING([--with-crypto=auto|]m4_set_contents([crypto_backends], [|]),
+  AS_HELP_STRING([--with-crypto=auto|openssl|libgcrypt|mbedtls|wincng|wolfssl],
     [Select crypto backend (default: auto)]),
   use_crypto=$withval,
   use_crypto=auto
 )
 
 case "${use_crypto}" in
-  auto|m4_set_contents([crypto_backends], [|]))
-    m4_set_map([crypto_backends], [LIBSSH2_CHECK_CRYPTO])
+  auto|openssl|libgcrypt|mbedtls|wincng|wolfssl)
+    LIBSSH2_CHECK_CRYPTO([openssl])
+    LIBSSH2_CHECK_CRYPTO([libgcrypt])
+    LIBSSH2_CHECK_CRYPTO([mbedtls])
+    LIBSSH2_CHECK_CRYPTO([wincng])
+    LIBSSH2_CHECK_CRYPTO([wolfssl])
     ;;
   yes|"")
     crypto_errors="No crypto backend specified."
@@ -161,13 +159,13 @@ if test "$found_crypto" = "none"; then
   crypto_errors="${crypto_errors}
 Specify --with-crypto=\$backend and/or the necessary library search prefix.
 
-Known crypto backends: auto, m4_set_contents([crypto_backends], [, ])"
+Known crypto backends: auto, openssl, libgcrypt, mbedtls, wincng, wolfssl"
   AS_MESSAGE([ERROR: ${crypto_errors}])
 else
   test "$found_crypto_str" = "" && found_crypto_str="$found_crypto"
 fi
 
-# ECDSA support with WinCNG
+dnl ECDSA support with WinCNG
 AC_ARG_ENABLE(ecdsa-wincng,
   AS_HELP_STRING([--enable-ecdsa-wincng],
     WinCNG ECDSA support (requires Windows 10 or later)),
@@ -178,7 +176,7 @@ else
   wincng_ecdsa=no
 fi
 
-# libz
+dnl libz
 
 AC_ARG_WITH([libz],
   AS_HELP_STRING([--with-libz],[Use libz for compression]),
@@ -189,7 +187,7 @@ found_libz=no
 libz_errors=""
 
 if test "$use_libz" != no; then
-  AC_LIB_HAVE_LINKFLAGS([z], [], [#include <zlib.h>])
+  LIBSSH2_HAVE_LINKFLAGS([z], [], [#include <zlib.h>])
   if test "$ac_cv_libz" != yes; then
     if test "$use_libz" = auto; then
       AC_MSG_NOTICE([Cannot find libz, disabling compression])
@@ -201,16 +199,20 @@ Try --with-libz-prefix=PATH if you know that you have it."
     fi
   else
     AC_DEFINE(LIBSSH2_HAVE_ZLIB, 1, [Compile in zlib support])
-    LIBSSH2_PC_REQUIRES_PRIVATE="$LIBSSH2_PC_REQUIRES_PRIVATE${LIBSSH2_PC_REQUIRES_PRIVATE:+,}zlib"
+    case $host in
+      dnl Android does not provide zlib.pc
+      *-*-android*) ;;
+      *) LIBSSH2_PC_REQUIRES_PRIVATE="$LIBSSH2_PC_REQUIRES_PRIVATE${LIBSSH2_PC_REQUIRES_PRIVATE:+,}zlib";;
+    esac
     found_libz="yes"
   fi
 fi
 
 AC_SUBST(LIBSSH2_PC_REQUIRES_PRIVATE)
 
-#
-# Optional Settings
-#
+dnl
+dnl Optional Settings
+dnl
 AC_ARG_ENABLE(clear-memory,
   AS_HELP_STRING([--disable-clear-memory],[Disable clearing of memory before being freed]),
   [CLEAR_MEMORY=$enableval])
@@ -234,10 +236,11 @@ AS_HELP_STRING([--enable-debug],[Enable pedantic and debug options])
 AS_HELP_STRING([--disable-debug],[Disable debug options]),
 [ case "$enable_debug" in
   no)
-       AC_MSG_RESULT(no)
-       CPPFLAGS="$CPPFLAGS -DNDEBUG"
-       ;;
-  *)   AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(no)
+    CPPFLAGS="$CPPFLAGS -DNDEBUG"
+    ;;
+  *)
+    AC_MSG_RESULT(yes)
     enable_debug=yes
     CPPFLAGS="$CPPFLAGS -DLIBSSH2DEBUG"
     CFLAGS="$CFLAGS -g"
@@ -245,11 +248,10 @@ AS_HELP_STRING([--disable-debug],[Disable debug options]),
     dnl set compiler "debug" options to become more picky, and remove
     dnl optimize options from CFLAGS
     CURL_CC_DEBUG_OPTS
-       ;;
-  esac
- ],
-       enable_debug=no
-       AC_MSG_RESULT(no)
+    ;;
+  esac ],
+    enable_debug=no
+    AC_MSG_RESULT(no)
 )
 
 AC_SUBST(LIBSSH2_CFLAG_EXTRAS)
@@ -265,92 +267,91 @@ AS_HELP_STRING([--enable-hidden-symbols],[Hide internal symbols in library])
 AS_HELP_STRING([--disable-hidden-symbols],[Leave all symbols with default visibility in library (default)]),
 [ case "$enableval" in
   no)
-       AC_MSG_RESULT(no)
-       ;;
+    AC_MSG_RESULT(no)
+    ;;
   *)
-       AC_MSG_CHECKING([whether $CC supports it])
-       if test "$GCC" = yes ; then
-         if $CC --help --verbose 2>&1 | grep fvisibility= > /dev/null ; then
-           AC_MSG_RESULT(yes)
-           AC_DEFINE(LIBSSH2_API, [__attribute__ ((visibility ("default")))], [to make a symbol visible])
-           CFLAGS="$CFLAGS -fvisibility=hidden"
-         else
-            AC_MSG_RESULT(no)
-          fi
-
-       else
-         dnl Test for SunPro cc
-         if $CC 2>&1 | grep flags >/dev/null && $CC -flags | grep xldscope= >/dev/null ; then
-           AC_MSG_RESULT(yes)
-           AC_DEFINE(LIBSSH2_API, [__global], [to make a symbol visible])
-           CFLAGS="$CFLAGS -xldscope=hidden"
-         else
-           AC_MSG_RESULT(no)
-         fi
+    AC_MSG_CHECKING([whether $CC supports it])
+    if test "$GCC" = yes; then
+      if $CC --help --verbose 2>&1 | grep fvisibility= > /dev/null; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE(LIBSSH2_API, [__attribute__ ((visibility ("default")))], [to make a symbol visible])
+        CFLAGS="$CFLAGS -fvisibility=hidden"
+      else
+         AC_MSG_RESULT(no)
        fi
-       ;;
+    else
+      dnl Test for SunPro cc
+      if $CC 2>&1 | grep flags >/dev/null && $CC -flags | grep xldscope= >/dev/null; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE(LIBSSH2_API, [__global], [to make a symbol visible])
+        CFLAGS="$CFLAGS -xldscope=hidden"
+      else
+        AC_MSG_RESULT(no)
+      fi
+    fi
+    ;;
   esac ],
-       AC_MSG_RESULT(no)
+    AC_MSG_RESULT(no)
 )
 
 dnl Build without deprecated APIs?
 AC_ARG_ENABLE([deprecated],
   [AS_HELP_STRING([--disable-deprecated], [Build without deprecated APIs @<:@default=no@:>@])],
-  [case "$enableval" in
-    *)
-      with_deprecated="no"
-      CPPFLAGS="$CPPFLAGS -DLIBSSH2_NO_DEPRECATED"
-      ;;
-  esac],
-  [with_deprecated="yes"])
+[ case "$enableval" in
+  *)
+    with_deprecated="no"
+    CPPFLAGS="$CPPFLAGS -DLIBSSH2_NO_DEPRECATED"
+    ;;
+  esac ],
+    [with_deprecated="yes"]
+)
 
-# Run Docker tests?
+dnl Run Docker tests?
 AC_ARG_ENABLE([docker-tests],
   [AS_HELP_STRING([--disable-docker-tests],
     [Do not run tests requiring Docker])],
   [run_docker_tests=no], [run_docker_tests=yes])
 AM_CONDITIONAL([RUN_DOCKER_TESTS], [test "x$run_docker_tests" != "xno"])
 
-# Run sshd tests?
+dnl Run sshd tests?
 AC_ARG_ENABLE([sshd-tests],
   [AS_HELP_STRING([--disable-sshd-tests],
     [Do not run tests requiring sshd])],
   [run_sshd_tests=no], [run_sshd_tests=yes])
 AM_CONDITIONAL([RUN_SSHD_TESTS], [test "x$run_sshd_tests" != "xno"])
 
-# Build example applications?
+dnl Build example applications?
 AC_MSG_CHECKING([whether to build example applications])
 AC_ARG_ENABLE([examples-build],
 AS_HELP_STRING([--enable-examples-build], [Build example applications (this is the default)])
 AS_HELP_STRING([--disable-examples-build], [Do not build example applications]),
-[case "$enableval" in
+[ case "$enableval" in
   no | false)
     build_examples='no'
     ;;
   *)
     build_examples='yes'
     ;;
-esac], [build_examples='yes'])
+  esac ],
+    [build_examples='yes']
+)
 AC_MSG_RESULT($build_examples)
 AM_CONDITIONAL([BUILD_EXAMPLES], [test "x$build_examples" != "xno"])
 
-
-# Build OSS fuzzing targets?
+dnl Build OSS fuzzing targets?
 AC_ARG_ENABLE([ossfuzzers],
   [AS_HELP_STRING([--enable-ossfuzzers],
     [Whether to generate the fuzzers for OSS-Fuzz])],
   [have_ossfuzzers=yes], [have_ossfuzzers=no])
 AM_CONDITIONAL([USE_OSSFUZZERS], [test "x$have_ossfuzzers" = "xyes"])
 
-
-# Set the correct flags for the given fuzzing engine.
+dnl Set the correct flags for the given fuzzing engine.
 AC_SUBST([LIB_FUZZING_ENGINE])
 AM_CONDITIONAL([USE_OSSFUZZ_FLAG], [test "x$LIB_FUZZING_ENGINE" = "x-fsanitize=fuzzer"])
 AM_CONDITIONAL([USE_OSSFUZZ_STATIC], [test -f "$LIB_FUZZING_ENGINE"])
 
-
-# Checks for header files.
-AC_CHECK_HEADERS([errno.h fcntl.h stdio.h unistd.h sys/uio.h])
+dnl Checks for header files.
+AC_CHECK_HEADERS([unistd.h sys/uio.h])
 AC_CHECK_HEADERS([sys/select.h sys/socket.h sys/ioctl.h sys/time.h])
 AC_CHECK_HEADERS([arpa/inet.h netinet/in.h])
 AC_CHECK_HEADERS([sys/un.h])
@@ -379,14 +380,14 @@ dnl Check for select() into ws2_32 for Msys/Mingw
 if test "$ac_cv_func_select" != "yes"; then
   AC_MSG_CHECKING([for select in ws2_32])
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#ifdef HAVE_WINDOWS_H
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <winsock2.h>
-#endif
+    #ifdef HAVE_WINDOWS_H
+    #ifndef WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
+    #endif
+    #include <winsock2.h>
+    #endif
     ]], [[
-      select(0,(fd_set *)NULL,(fd_set *)NULL,(fd_set *)NULL,(struct timeval *)NULL);
+      select(0, (fd_set *)NULL, (fd_set *)NULL, (fd_set *)NULL, (struct timeval *)NULL);
     ]])],[
       AC_MSG_RESULT([yes])
       HAVE_SELECT="1"
@@ -399,11 +400,12 @@ fi
 
 AC_FUNC_ALLOCA
 
-# Checks for typedefs, structures, and compiler characteristics.
+dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_C_INLINE
 
 CURL_CHECK_NONBLOCKING_SOCKET
+
+CURL_CONVERT_INCLUDE_TO_ISYSTEM
 
 missing_required_deps=0
 
@@ -426,9 +428,9 @@ AM_CONDITIONAL([HAVE_WINDRES],
 
 AM_CONDITIONAL([HAVE_LIB_STATIC], [test "x$enable_static" != "xno"])
 
-# Configure parameters
+dnl Configure parameters
 
-# Append crypto lib
+dnl Append crypto lib
 if   test "$found_crypto" = "openssl"; then
   LIBS="${LIBS} ${LTLIBSSL}"
 elif test "$found_crypto" = "wolfssl"; then
@@ -457,13 +459,15 @@ fi
 AC_SUBST(LIBSSH2_PC_REQUIRES)
 AC_SUBST(LIBSSH2_PC_LIBS)
 
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 tests/Makefile
-                 tests/ossfuzz/Makefile
-                 example/Makefile
-                 docs/Makefile
-                 libssh2.pc])
+AC_CONFIG_FILES([
+  Makefile
+  src/Makefile
+  tests/Makefile
+  tests/ossfuzz/Makefile
+  example/Makefile
+  docs/Makefile
+  libssh2.pc
+])
 AC_OUTPUT
 
 AC_MSG_NOTICE([summary of build options:

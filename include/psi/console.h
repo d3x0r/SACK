@@ -99,6 +99,17 @@ PSI_CONSOLE_PROC( void, PSI_Console_SetTitleCallback )( PSI_CONTROL pc, void (*)
 // this sets rows, cols, width, height; width and height are in pixel units
 // rows and cols are approximate cell counts - who uses a monospace font?
 PSI_CONSOLE_PROC( void, PSI_Console_SetSizeCallback )( PSI_CONTROL pc, void (*update)(uintptr_t, int width, int height, int cols, int rows ), uintptr_t psv);
+/* 
+   get the current console size in rows, cols, width, height
+ */
+PSI_CONSOLE_PROC( void, PSI_Console_GetConsoleSize )( PSI_CONTROL pc, int *cols, int *rows, int *width, int *height );
+
+/*
+* set a handler for key events in the console.
+* the handler recieves the key event code, and bypasses internal processing
+*/ 
+PSI_CONSOLE_PROC( void, SetConsoleKeyHandler )( PSI_CONTROL pc, int( CPROC *cb )( uintptr_t, uint32_t ),
+                                                 uintptr_t psv );
 
 
 PSI_CONSOLE_NAMESPACE_END;

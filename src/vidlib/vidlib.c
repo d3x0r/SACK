@@ -93,6 +93,7 @@ static int stop;
 #define WM_USER_HIDE_WINDOW  WM_USER+515
 #define WM_USER_SHUTDOWN	  WM_USER+516
 #define WM_USER_MOUSE_CHANGE	  WM_USER+517
+#define WM_USER_MOUSE_CAPTURE   WM_USER+518
 
 IMAGE_NAMESPACE
 
@@ -3272,6 +3273,22 @@ WM_DROPFILES
 		// thanx for the invite though.
 		//lprintf( "Erase background, and we just say NO" );
 		Return TRUE;
+	case WM_USER_MOUSE_CAPTURE:
+		if (wParam) {
+			SetForegroundWindow(hWnd);
+			SetActiveWindow(hWnd);
+			if (!(SetCapture(hWnd))) {
+				DWORD dwErr = GetLastError();
+				lprintf("capture : %d", dwErr);
+			}
+			else
+				lprintf("Captured OK.");
+		}
+		else {
+			ReleaseCapture();
+		}
+
+		Return TRUE;
 	case WM_USER_MOUSE_CHANGE:
 		{
 			hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
@@ -3579,13 +3596,17 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 #endif
 		result = CreateWindowEx( 0
 #ifndef NO_TRANSPARENCY
-										| (hVideo->flags.bLayeredWindow?WS_EX_LAYERED:0)
+										| (hVideo->flags.bNoRedirect ? WS_EX_NOREDIRECTIONBITMAP 
+										                             : ((hVideo->flags.bLayeredWindow ? WS_EX_LAYERED 
+										                                                              : 0)))
 #endif
 #ifndef NO_MOUSE_TRANSPARENCY
 										| (hVideo->flags.bNoMouse?WS_EX_TRANSPARENT:0)
 #endif
+
 										| (hVideo->flags.bChildWindow?WS_EX_TOOLWINDOW:0)
 										| (hVideo->flags.bTopmost?WS_EX_TOPMOST:0)
+										
 										// | WS_EX_NOPARENTNOTIFY
 #ifdef UNICODE
 									  , (LPWSTR)l.aClass
@@ -3601,6 +3622,10 @@ RENDER_PROC (BOOL, CreateWindowStuffSizedAt) (PVIDEO hVideo, int x, int y,
 									  , NULL	  // Menu
 									  , hMe
 									  , (void *) hVideo);
+		hVideo->flags.bLayeredWindow = (hVideo->flags.bNoRedirect || hVideo->flags.bLayeredWindow) ? 1 : 0;
+		//COLORREF chromaKey = RGB(255, 0, 255);
+		//SetLayeredWindowAttributes(result, chromaKey, 0, LWA_COLORKEY);
+
 		if( !result )
 			lprintf( "Failed to create window %d", GetLastError() );
 	}
@@ -3966,7 +3991,7 @@ static void HandleMessage (MSG Msg)
 										  hVidCreate->pWindowPos.y,
 										  hVidCreate->pWindowPos.cx,
 										  hVidCreate->pWindowPos.cy);
-	}
+		}
 	else if (!Msg.hwnd && (Msg.message == (WM_USER_DESTROY_WINDOW)))
 	{
 		HandleDestroyMessage( (PVIDEO) Msg.lParam );
@@ -4742,6 +4767,8 @@ RENDER_PROC (PVIDEO, OpenDisplaySizedAt) (uint32_t attr, uint32_t wx, uint32_t w
 	else
 #endif
 		hNextVideo->flags.bLayeredWindow = 0;
+	hNextVideo->flags.bNoRedirect = (attr & DISPLAY_ATTRIBUTE_NO_REDIRECT) ? TRUE : FALSE;
+
 	hNextVideo->flags.bNoAutoFocus = (attr & DISPLAY_ATTRIBUTE_NO_AUTO_FOCUS)?TRUE:FALSE;
 	hNextVideo->flags.bChildWindow = (attr & DISPLAY_ATTRIBUTE_CHILD)?TRUE:FALSE;
 	hNextVideo->flags.bTopmost = (attr & DISPLAY_ATTRIBUTE_TOPMOST)?TRUE:FALSE;
@@ -5694,17 +5721,18 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 		{
 			l.hCaptured = hVideo;
 			hVideo->flags.bCaptured = 1;
-			SetCapture (hVideo->hWndOutput);
+			PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 1, 0);
 		}
 		else
 		{
 			if( l.hCaptured != hVideo )
 			{
-				lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
+				//lprintf( "Another window now wants to capture the mouse... the prior window will ahve the capture stolen." );
 				l.hCaptured = hVideo;
 				hVideo->flags.bCaptured = 1;
-				SetCapture (hVideo->hWndOutput);
+				PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 1, 0);
 			}
+			//else lprintf("Should already have the capture...");
 		}
 	}
 	else
@@ -5713,6 +5741,7 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 		{
 			//lprintf( "No more capture." );
 			//ReleaseCapture ();
+			PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 0, 0);
 			hVideo->flags.bCaptured = 0;
 			l.hCapturedPrior = NULL;
 			l.hCaptured = NULL;

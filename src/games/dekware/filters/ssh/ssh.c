@@ -81,6 +81,7 @@ static void ssh_pty_opened( uintptr_t psv, LOGICAL success ){
 static uintptr_t channel_open_cb( uintptr_t psv, struct ssh_channel* channel ){
 	PMYDATAPATH pdp = (PMYDATAPATH)psv;
 	sack_ssh_channel_request_pty( pdp->channel, "vt-100", ssh_pty_opened );
+	return (uintptr_t)pdp;
 }
 
 static PDATAPATH CPROC Open( PDATAPATH *pChannel, PSENTIENT ps, PTEXT parameters )

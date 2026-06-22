@@ -893,7 +893,6 @@ int NextFileChange( uintptr_t psv
 			{
 				msg[0] = *(uint32_t*)"FILE";
 				snprintf( pDir->pcc->LastFile, sizeof( pDir->pcc->LastFile ), "%s/%s", pDir->pDirectory->path, filepath );
-				//strcpy( pDir->pcc->LastFile, filepath );
 			}
 			msg[1] = (uint32_t)size;
 			//lprintf( "file time is %lld %lld %lld", *(uint64_t*)&timestamp_create, *(uint64_t*)&timestamp_modify, *(uint64_t*)&timestamp_access );
@@ -1720,7 +1719,7 @@ static PDIRECTORY GetDirectory( PACCOUNT account, INDEX expected_index, CTEXTSTR
 				PDIRECTORY RemakePath;
 				RemakePath = (PDIRECTORY)Allocate( strlen( path ) + 1 + sizeof( DIRECTORY ) );
 				MemCpy( RemakePath, NewPath, sizeof( DIRECTORY ) );
-				strcpy( RemakePath->path, path );
+				StrCpyEx( RemakePath->path, path, sizeof(RemakePath->path) );
 				RemakePath->mask = pathrchr( RemakePath->path );
 				SetLink( &account->Directories, expected_index, RemakePath );
 				Release( NewPath );
@@ -1738,7 +1737,7 @@ static PDIRECTORY GetDirectory( PACCOUNT account, INDEX expected_index, CTEXTSTR
 		//NewPath->flags.bIncoming = 0;
 		//NewPath->name = 0;
 		if( path )
-			strcpy( NewPath->path, path );
+			StrCpyEx( NewPath->path, path, sizeof(NewPath->path) );
 		else
 			NewPath->path[0] = 0;
 		NewPath->mask = pathrchr( NewPath->path );
@@ -1973,7 +1972,7 @@ PACCOUNT CreateAccount( CTEXTSTR name, LOGICAL client )
 	account = New( ACCOUNT );
 	MemSet( account, 0, sizeof( ACCOUNT ) );
 	InitializeCriticalSec( &account->cs );
-	strcpy( account->unique_name, name );
+	StrCpyEx( account->unique_name, name, sizeof( account->unique_name ) );
 	account->flags.client = client;
 #ifndef VERIFY_MANIFEST
 	//if( !client )

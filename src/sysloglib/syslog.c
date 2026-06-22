@@ -1647,11 +1647,12 @@ void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
 
 void  SetSystemLog ( enum syslog_types type, const void *data )
 {
-	if( (*syslog_local).file && ( logtype != SYSLOG_FILE ) )
+	if( (*syslog_local).file )
 	{
 		FILE *close_file = (*syslog_local).file;
 		(*syslog_local).file = NULL;  // reset this first, in case logging closing.
-      if( !( close_file == stderr || close_file == stdout ) )
+		// don't close file handles that came in from outside....
+		if( !( close_file == stderr || close_file == stdout ) && ( logtype == SYSLOG_AUTO_FILE ) )
 			sack_fclose( close_file );
 	}
 	if( type == SYSLOG_FILE )

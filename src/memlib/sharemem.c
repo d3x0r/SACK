@@ -301,6 +301,8 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #ifndef __PRI64_PREFIX
 #  ifdef _MSC_VER
 #    define __PRI64_PREFIX "ll"
+#  else
+#    define __PRI64_PREFIX "ll"
 #  endif
 #endif
 
@@ -2960,7 +2962,7 @@ void  DebugDumpHeapMemEx ( PMEM pHeap, LOGICAL bVerbose )
 
 					pNew->dwSize += next->dwSize + CHUNK_SIZE;
 					next = (PCHUNK)( pNew->byData + pNew->dwSize );
-					if( (uint32_t)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
+					if( (uintptr_t)(((char *)next) - ((char *)pMem)) < pMem->dwSize )
 					{
 						next->pPrior = pNew;
 					}

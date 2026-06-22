@@ -17,13 +17,12 @@ libssh2_poll - poll for activity on a socket, channel or listener
 ~~~c
 #include <libssh2.h>
 
-int
-libssh2_poll(LIBSSH2_POLLFD *fds, unsigned int nfds, long timeout);
+int libssh2_poll(LIBSSH2_POLLFD *fds, unsigned int nfds, long timeout);
 ~~~
 
 # DESCRIPTION
 
-This function is deprecated. Do note use. We encourage users to instead use
+This function is deprecated. Do not use. We encourage users to instead use
 the *poll(3)* or *select(3)* functions to check for socket activity or
 when specific sockets are ready to get received from or send to.
 
@@ -32,6 +31,10 @@ three types. The calling semantics for this function generally match
 *poll(2)* however the structure of fds is somewhat more complex in order
 to accommodate the disparate datatypes, POLLFD constants have been namespaced
 to avoid platform discrepancies, and revents has additional values defined.
+
+# AVAILABILITY
+
+Marked as deprecated since 1.2.0
 
 # RETURN VALUE
 

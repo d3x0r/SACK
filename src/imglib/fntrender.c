@@ -1479,7 +1479,7 @@ void IMGVER(InternalRenderFontCharacter)( PFONT_RENDERER renderer, PFONT font, I
 			character->offset                 = 0;
 			character->size                   = 0;
 			character->junk                   = 0;
-			character->render_flags           = FONT_FLAG_TAB;
+			character->render_flags           = FONT_CHAR_FLAG_TAB;
 			character->cell                   = NULL;
 			character->next_in_line           = NULL;
 			character->x1 = character->x2 = character->y1 = character->y2 = 0;

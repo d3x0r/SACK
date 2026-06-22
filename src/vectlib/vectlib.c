@@ -13,7 +13,12 @@
 //----------------------------------------------------------------
 
 
+// x86 SIMD intrinsics header - only valid on x86/x64.  Nothing in this file
+// actually uses the intrinsics yet, so simply skip it on other architectures
+// (e.g. arm64/Apple Silicon) where <immintrin.h> is a hard #error.
+#if defined( __x86_64__ ) || defined( __i386__ ) || defined( _M_X64 ) || defined( _M_IX86 )
 #include <immintrin.h>
+#endif
 // double...
 // __m256d
 // single...
@@ -1936,8 +1941,8 @@ RCOORD EXTERNAL_NAME(IntersectLineWithPlane)( PCVECTOR Slope, PCVECTOR Origin,  
 
 	// intersect a line with a plane.
 
-//   v € w = (1/2)(|v + w|2 - |v|2 - |w|2) 
-//  (v € w)/(|v| |w|) = cos ß     
+//   v ï¿½ w = (1/2)(|v + w|2 - |v|2 - |w|2) 
+//  (v ï¿½ w)/(|v| |w|) = cos ï¿½     
 
 	//cosPhi = CosAngle( Slope, n );
 
@@ -2001,6 +2006,10 @@ RCOORD EXTERNAL_NAME( PointToPlaneT )( PCVECTOR n, PCVECTOR o, PCVECTOR p ) {
 	return t;
 }
 
+static RCOORD acos2( RCOORD x) {
+	RCOORD tmp = floor((x + 1) / 2.0);
+	return acos(x - tmp * 2.0) - tmp * M_PI;
+}
 
 void EXTERNAL_NAME(basis_lq)( PVECTOR4 v4, PMatrix basis ) {
 	// tr(M)=2cos(theta)+1 .
@@ -2211,7 +2220,7 @@ VECTOR_METHOD( void, lq_apply, ( PVECTOR out, PCVECTOR4 r, PCVECTOR v ) ) {
 }
 VECTOR_METHOD( PVECTOR4, lq_applyRotation, ( PVECTOR4 out, PCVECTOR4 r, PCVECTOR4 a ) ) {
 
-	// RCOORD oct         = oct || floor( r[3]¸ ( M_PI * 2 ) );
+	// RCOORD oct         = oct || floor( r[3]ï¿½ ( M_PI * 2 ) );
 	// A dot B   = cos( angle A->B )
 	// cos( C/2 )
 	//  cos(angle between the two rotation axii)

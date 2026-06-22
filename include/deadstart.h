@@ -494,7 +494,16 @@ struct rt_init // structure placed in XI/YI segment
 #endif
 #endif
 
-} __attribute__((packed));
+}
+#ifdef __MAC__
+// ld64 on arm64 warns that the packed (alignment 1) atoms placed in the
+// deadstart section may produce unaligned pointers.  The struct is already
+// sized to a multiple of 8 (see the padding notes above), so advertise 8-byte
+// alignment to silence the warning without changing the packed layout/size.
+__attribute__((packed, aligned(8)));
+#else
+__attribute__((packed));
+#endif
 
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 #  if defined( __GNUC__ ) && defined( __64__)
@@ -615,7 +624,16 @@ struct rt_init // structure placed in XI/YI segment
     // to 32 bytes...
 	 struct rt_init *junk2[3];
 #endif
-} __attribute__((packed));
+}
+#ifdef __MAC__
+// ld64 on arm64 warns that the packed (alignment 1) atoms placed in the
+// deadstart section may produce unaligned pointers.  The struct is already
+// sized to a multiple of 8 (see the padding notes above), so advertise 8-byte
+// alignment to silence the warning without changing the packed layout/size.
+__attribute__((packed, aligned(8)));
+#else
+__attribute__((packed));
+#endif
 
 #define JUNKINIT(name) ,&pastejunk(name,_ctor_label)
 

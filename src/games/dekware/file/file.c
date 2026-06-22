@@ -747,7 +747,7 @@ int CPROC CreateFileMonitor( PSENTIENT ps, PENTITY pe, PTEXT parameters )
 	PTEXT pFile = GetParam( ps, &parameters );
 	if( pFile )
 	{
-#ifndef __ANDROID__
+#if !defined( __ANDROID__ ) && !defined(__MAC__)
 		PMONITOR pMonitor;
 		if( ( pMonitor = MonitorFiles( GetText( pFile ), 100 ) ) )
 		{

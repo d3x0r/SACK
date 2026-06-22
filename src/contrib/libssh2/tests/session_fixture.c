@@ -75,7 +75,7 @@ static int connect_to_server(void)
 static char const *skip_crypt[] = {
 #ifdef LIBSSH2_MBEDTLS
     /* Due to a bug with mbedTLS support, these crypt methods fail.
-       Until that bug is fixed, don't run them there to avoid this
+       Until that bug is fixed, do not run them there to avoid this
        known issue causing red tests.
        See: https://github.com/libssh2/libssh2/issues/793
      */
@@ -242,7 +242,6 @@ void stop_session_fixture(void)
     stop_openssh_fixture();
 }
 
-
 /* Return a static string that contains a file path relative to the srcdir
  * variable, if found.
  */
@@ -265,7 +264,7 @@ char *srcdir_path(const char *file)
                 snprintf(filepath[curpath], (size_t)len + 1, "%s/%s", p, file);
             }
             else {
-               return NULL;
+                return NULL;
             }
         }
         else {
@@ -275,7 +274,7 @@ char *srcdir_path(const char *file)
                 snprintf(filepath[curpath], (size_t)len + 1, "%s", file);
             }
             else {
-               return NULL;
+                return NULL;
             }
         }
         return filepath[curpath++];
@@ -310,7 +309,7 @@ static void kbd_callback(const char *name, int name_len,
     }
 
     if(num_prompts == 1) {
-        responses[0].text = strdup(kbd_password);
+        responses[0].text = libssh2_strdup(kbd_password);
         responses[0].length = (unsigned int)strlen(kbd_password);
     }
 }

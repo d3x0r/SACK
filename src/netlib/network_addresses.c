@@ -43,14 +43,18 @@
 #include <ctype.h>
 #include <signal.h>
 #include <pthread.h>
+#  ifndef __MAC__
 #include <asm/types.h>
-#  ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#  endif
+#    endif
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
-#  ifdef __cplusplus
+// keep the extern "C" close inside __ifndef __MAC__ - the netlink headers it
+// wraps are not included on macOS, so the matching brace must be skipped too.
+#    ifdef __cplusplus
 }
+#    endif
 #  endif
 #endif
 
@@ -83,6 +87,14 @@ extern "C" {
 #ifdef __MAC__
 #include <sys/event.h>
 #include <sys/time.h>
+// BSD routing-socket interfaces used to read the ARP/NDP neighbour cache
+// (the macOS equivalent of linux netlink RTM_GETNEIGH).
+#include <sys/sysctl.h>
+#include <net/route.h>
+#include <net/if_dl.h>
+#include <net/if_types.h>
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
 #else
 #include <sys/epoll.h>
 #endif
@@ -294,6 +306,43 @@ static void LogMacAddress( struct addressNode *newAddress ){
 static void setupInterfaces() {
 	struct ifconf ifc;
 	if( mac_data.ifbuf[0] ) return; // already did this work.
+#ifdef __MAC__
+		// BSD SIOCGIFCONF returns variable-length records and provides neither
+		// SIOCGIFINDEX nor SIOCGIFHWADDR, so build the interface name/index/
+		// hardware-address table from getifaddrs() AF_LINK entries instead -
+		// sockaddr_dl carries both the interface index and the link address.
+		{
+			struct ifaddrs *link_ifa;
+			struct ifaddrs *cur;
+			const int maxif = (int)( sizeof( mac_data.ifbuf ) / sizeof( struct ifreq ) );
+			struct ifreq *IFR = (struct ifreq*)mac_data.ifbuf;
+			int count = 0;
+			getifaddrs( &link_ifa );
+			for( cur = link_ifa; cur && count < maxif; cur = cur->ifa_next )
+				if( cur->ifa_addr && cur->ifa_addr->sa_family == AF_LINK )
+					count++;
+			mac_data.interfaceCount = count;
+			mac_data.ifIndexes = NewArray( int, count );
+			mac_data.hwaddrs = NewArray( hwaddr_bytes, count );
+			{
+				int i = 0;
+				for( cur = link_ifa; cur && i < count; cur = cur->ifa_next ) {
+					struct sockaddr_dl *sdl;
+					if( !cur->ifa_addr || cur->ifa_addr->sa_family != AF_LINK )
+						continue;
+					sdl = (struct sockaddr_dl*)cur->ifa_addr;
+					StrCpyEx( IFR[i].ifr_name, cur->ifa_name, sizeof( IFR[i].ifr_name ) );
+					mac_data.ifIndexes[i] = sdl->sdl_index ? (int)sdl->sdl_index
+					                                       : (int)if_nametoindex( cur->ifa_name );
+					memset( mac_data.hwaddrs[i], 0, 6 );
+					if( sdl->sdl_alen == 6 )
+						memcpy( mac_data.hwaddrs[i], LLADDR( sdl ), 6 );
+					i++;
+				}
+			}
+			freeifaddrs( link_ifa );
+		}
+#else
 		ifc.ifc_len = sizeof( mac_data.ifbuf );
 		ifc.ifc_buf = mac_data.ifbuf;
 		int sock_handle = socket( AF_INET6, SOCK_STREAM, 0);//pc->Socket;
@@ -306,14 +355,14 @@ static void setupInterfaces() {
 			mac_data.interfaceCount = len;
 			mac_data.ifIndexes = NewArray( int, len );
 			mac_data.hwaddrs = NewArray( hwaddr_bytes, len );
-			
+
 			for( i = 0; i < len; i++, IFR++ )
 			{
 				//LogBinary( (const uint8_t*)IFR, sizeof( *IFR));
 				struct ifreq ifr;
-				strcpy( ifr.ifr_name, IFR->ifr_name );
+				StrCpyEx( ifr.ifr_name, IFR->ifr_name, sizeof( ifr.ifr_name ) );
 				if (ioctl(sock_handle, SIOCGIFINDEX, &ifr) == 0) {
-					mac_data.ifIndexes[i] = ifr.ifr_ifindex;	
+					mac_data.ifIndexes[i] = ifr.ifr_ifindex;
 				}else {
 					lprintf( "ioctl SIOCGIFINDEX error? %d", errno);
 				}
@@ -335,13 +384,15 @@ static void setupInterfaces() {
 			}
 		}
 		close( sock_handle );
+#endif
 		{
 			struct ifaddrs *ifa;
 			struct ifaddrs *current_ifa;
 			getifaddrs( &ifa);
 			int addressCount = 0;
 			for( current_ifa = ifa; current_ifa; current_ifa = current_ifa->ifa_next ) {
-				if( current_ifa->ifa_addr->sa_family != AF_INET 
+				if( !current_ifa->ifa_addr ) continue; // some interfaces (e.g. utun on macOS) have no address.
+				if( current_ifa->ifa_addr->sa_family != AF_INET
 				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
 				addressCount++;
 			}
@@ -354,7 +405,8 @@ static void setupInterfaces() {
 			addressCount = 0;
 			for( current_ifa = ifa; current_ifa; current_ifa = current_ifa->ifa_next ) {
 				//if( current_ifa->ifa_addr->sa_family == AF_PACKET ) continue; // don't care about packet addresses.
-				if( current_ifa->ifa_addr->sa_family != AF_INET 
+				if( !current_ifa->ifa_addr ) continue; // some interfaces (e.g. utun on macOS) have no address.
+				if( current_ifa->ifa_addr->sa_family != AF_INET
 				   && current_ifa->ifa_addr->sa_family != AF_INET6 ) continue; // don't care about non IP addresses.
 
 				struct addressNode newAddress;// = (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
@@ -448,6 +500,10 @@ static void setupInterfaces() {
 
 
 
+#ifndef __MAC__
+// The neighbour cache is streamed over a netlink socket on linux; macOS reads
+// it synchronously via sysctl (see ReadNeighborTable below), so none of this
+// background-thread machinery is built there.
 PTHREAD macThread;
 int macThreadEnd =0;
 PLIST macWaiters;
@@ -716,8 +772,90 @@ static uintptr_t MacThread( PTHREAD thread ) {
 	return 0;
 
 }
+#endif // !__MAC__
 
-#endif
+#ifdef __MAC__
+// macOS/BSD equivalent of the linux netlink neighbour dump: read the kernel
+// ARP (AF_INET) / NDP (AF_INET6) caches with sysctl(NET_RT_FLAGS) and pull the
+// link-layer address out of the sockaddr_dl gateway of each entry.  This is the
+// same data `arp -a` / `ndp -a` report.
+#define NEIGHBOR_ROUNDUP(a) ((a) > 0 ? ( 1 + ( ( (a) - 1 ) | ( sizeof( uint32_t ) - 1 ) ) ) : sizeof( uint32_t ))
+
+static void ReadNeighborFamily( int family ) {
+	int mib[6] = { CTL_NET, PF_ROUTE, 0, family, NET_RT_FLAGS, RTF_LLINFO };
+	size_t needed = 0;
+	char *buf, *next, *lim;
+
+	if( sysctl( mib, 6, NULL, &needed, NULL, 0 ) < 0 || !needed )
+		return;
+	buf = NewArray( char, needed );
+	if( sysctl( mib, 6, buf, &needed, NULL, 0 ) < 0 ) {
+		Deallocate( char*, buf );
+		return;
+	}
+	lim = buf + needed;
+	for( next = buf; next < lim; next += ((struct rt_msghdr*)next)->rtm_msglen ) {
+		struct rt_msghdr *rtm = (struct rt_msghdr*)next;
+		struct sockaddr *sa = (struct sockaddr*)( rtm + 1 );                              // RTA_DST
+		struct sockaddr_dl *sdl = (struct sockaddr_dl*)( (char*)sa + NEIGHBOR_ROUNDUP( sa->sa_len ) ); // RTA_GATEWAY
+		uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
+		SOCKADDR *key;
+		struct addressNode *node;
+		int i;
+
+		if( rtm->rtm_msglen == 0 )
+			break; // guard against a malformed record causing an infinite loop
+		if( sdl->sdl_family != AF_LINK || sdl->sdl_alen != 6 )
+			continue; // incomplete entry - link-layer address not (yet) resolved
+
+		// build a tree key in the same layout setupInterfaces()/compareAddress use.
+		memset( addrbuf, 0, sizeof( addrbuf ) );
+		((uintptr_t*)addrbuf)[0] = 3;
+		((uintptr_t*)addrbuf)[1] = 0;
+		key = (SOCKADDR*)( addrbuf + sizeof( uintptr_t ) * 2 );
+		key->sa_family = (uint16_t)family;
+		key->sa_data[0] = 0;
+		key->sa_data[1] = 0;
+		// Read the address bytes straight out of sa_data (offset 2 = IPv4 addr,
+		// offset 6 = IPv6 addr) to match the rest of this file and avoid the
+		// Windows-compat s_addr/s6_addr32 member macros.
+		if( family == AF_INET ) {
+			((uint32_t*)(key->sa_data+2))[0] = ((uint32_t*)(sa->sa_data+2))[0];
+			SET_SOCKADDR_LENGTH( key, IN_SOCKADDR_LENGTH );
+		} else {
+			((uint64_t*)(key->sa_data+6))[0] = ((uint64_t*)(sa->sa_data+6))[0];
+			((uint64_t*)(key->sa_data+6))[1] = ((uint64_t*)(sa->sa_data+6))[1];
+			SET_SOCKADDR_LENGTH( key, IN6_SOCKADDR_LENGTH );
+		}
+
+		if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)key ) )
+			continue; // already cached
+
+		node = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );
+		node->remote = DuplicateAddress( key );
+		memcpy( node->remoteHw, LLADDR( sdl ), 6 );
+		memset( node->localHw, 0, 6 );
+		for( i = 0; i < mac_data.interfaceCount; i++ )
+			if( mac_data.ifIndexes[i] == (int)sdl->sdl_index ) {
+				memcpy( node->localHw, mac_data.hwaddrs[i], 6 );
+				break;
+			}
+		if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)node, (uintptr_t)node->remote ) ) {
+			ReleaseAddress( node->remote );
+			DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, node );
+		}
+	}
+	Deallocate( char*, buf );
+}
+
+static void ReadNeighborTable( void ) {
+	setupInterfaces(); // needed for the ifindex -> local hardware address mapping
+	ReadNeighborFamily( AF_INET );
+	ReadNeighborFamily( AF_INET6 );
+}
+#endif // __MAC__
+
+#endif // __LINUX__
 
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
@@ -731,12 +869,12 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	saDup->sa_data[0] = 0;
 	saDup->sa_data[1] = 0;
 
-#ifdef __LINUX__
+#if defined( __LINUX__ ) && !defined( __MAC__ )
 retry:
 	macTableUpdated = FALSE;
 #endif
 
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP	
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 	DumpAddr( "Find address in tree", saDup );
 #endif	
 	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
@@ -769,7 +907,7 @@ retry:
 		return TRUE;
 	}
 	setupInterfaces();
-#ifdef __LINUX__
+#if defined( __LINUX__ ) && !defined( __MAC__ )
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 #endif
 	int addr;
@@ -834,7 +972,32 @@ retry:
 		return TRUE;
 	}
 
-#ifdef __LINUX__
+#if defined( __MAC__ )
+	// Refresh the BSD ARP/NDP neighbour cache into the shared tree, then look up
+	// the requested peer.  The kernel holds an entry once the address has been
+	// resolved (which it is for any active connection) - the same precondition
+	// the linux netlink dump and Windows ResolveIpNetEntry2 rely on.
+	ReadNeighborTable();
+	{
+		struct addressNode *found = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
+		if( found ) {
+			MemCpy( bufLocal, found->localHw, 6 );
+			(*bufLocalLen) = 6;
+			MemCpy( bufRemote, found->remoteHw, 6 );
+			(*bufRemoteLen) = 6;
+			DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+			ReleaseAddress( saDup );
+			return TRUE;
+		}
+	}
+	// Not in the neighbour cache yet (unresolved); report none and let the
+	// caller retry later once traffic has populated the cache.
+	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+	ReleaseAddress( saDup );
+	memset( bufRemote, 0, 6 );
+	(*bufRemoteLen) = 6;
+	return FALSE;
+#elif defined( __LINUX__ )
 	AddLink( &macWaiters, MakeThread() );
 	uint64_t waitTime = timeGetTime64() + 500;
 	while( !macTableUpdated && !threadFailed ) {
@@ -1041,11 +1204,16 @@ SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS )
 		if( memcmp( &((struct sockaddr_in6 *)pAddr)->sin6_addr, "\0\0\0\0\0\0\0\0\0\0\xff\xff", 12 ) == 0 ) {
 			// convert to ipv4
 			((SOCKADDR_IN*)dup)->sin_family = AF_INET;
-#ifdef __LINUX__			
+#if defined( __MAC__ )
+			// __LINUX__ is also defined on macOS, whose struct in6_addr has no
+			// s6_addr32 member; read the mapped IPv4 (last 4 bytes) via the
+			// portable s6_addr byte array instead.
+			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((uint32_t*)(((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_addr))[3];
+#elif defined( __LINUX__ )
 			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_addr32[3];
 #else
 			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[6] | ( ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[7] << 16);
-#endif			
+#endif
 			((SOCKADDR_IN*)dup)->sin_port = ((SOCKADDR_IN*)pAddr)->sin_port;
 			SOCKADDR_NAME( dup ) = strdup( GetAddrName( pAddr ) );
 			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );

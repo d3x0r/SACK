@@ -26,7 +26,11 @@ set( CMAKE_INSTALL_MESSAGE "LAZY" )
 set(CMAKE_SKIP_INSTALL_RPATH OFF )
 SET(CMAKE_SKIP_BUILD_RPATH  OFF)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
-SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
+if( __MAC__ )
+  SET(CMAKE_INSTALL_RPATH "@loader_path:@loader_path/../lib")
+else()
+  SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
+endif()
 
 if( NOT TARGET_INSTALL_PREFIX )
   SET(TARGET_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE STRING  "Used to compile as installation path" )
@@ -129,6 +133,15 @@ SET( __MAC__ ${APPLE} CACHE BOOL "is Apple Mac" )
 if( APPLE )
 ADD_DEFINITIONS( -D__MAC__ -D__LINUX__ )
 endif( APPLE )
+#message( "REPORTED ${CMAKE_C_COMPILER_ARCHITECTURE_ID} ")
+set( ARM_DEFAULT OFF )
+if(CMAKE_C_COMPILER_ARCHITECTURE_ID MATCHES "ARM64|aarch64|arm64")
+    message(STATUS "Detected ARM 64-bit (ARM64/AArch64) target")
+    set(ARM_DEFAULT ON)
+elseif(CMAKE_C_COMPILER_ARCHITECTURE_ID MATCHES "ARM")
+    message(STATUS "Detected ARM 32-bit target")
+    set(ARM_DEFAULT ON)
+endif()
 
 if( TOOLCHAIN STREQUAL "QNX" )
 	DEFINE_DEFAULT( __QNX__ ON )
@@ -137,7 +150,7 @@ else( TOOLCHAIN STREQUAL "QNX" )
 	DEFINE_DEFAULT( __QNX__ OFF )
 endif( TOOLCHAIN STREQUAL "QNX" )
 SET( __QNX__ ${__QNX__} CACHE BOOL "Enable Linux specific features" )
-DEFINE_DEFAULT( __ARM__ OFF )
+DEFINE_DEFAULT( __ARM__ ${ARM_DEFAULT} )
 SET( __ARM__ ${__ARM__} CACHE BOOL "Enable ARM specific features" )
 if( CMAKE_HOST_SYSTEM_NAME STREQUAL "Android" )
 	DEFINE_DEFAULT( __ANDROID__ ON )
@@ -159,10 +172,10 @@ endif( __LINUX__ AND __64__ )
 
 
 if( NOT __LINUX__  )
-set(WIN32_VERSION "0x0603" CACHE STRING
+set(WIN32_VERSION "0x0A00" CACHE STRING
       "Set minimum windows build version")
   set_property(CACHE WIN32_VERSION PROPERTY STRINGS
-               "0x603" "0x0601" "0x501" "0x0500" "0x0400")
+               "0x0A00" "0x603" "0x0601" "0x501" "0x0500" "0x0400")
 add_definitions( -D_WIN32_WINNT=${WIN32_VERSION} -DWINVER=${WIN32_VERSION})
 endif( NOT __LINUX__  )
 
@@ -345,7 +358,7 @@ if( HOST_UNIX )
 else( HOST_UNIX )
 	OPTION( USING_OLD_MINGW "MinGW Has NO UpdateLayeredWindow" ${MINGW} )
 endif( HOST_UNIX )
-OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 0 )
+OPTION( USE_SACK_CUSTOM_MEMORY_ALLOCATION "Enable alternative memory allocator; affects locks on queues" 1 )
 OPTION( USE_SQLITE "Use SQLITE (also links static internal)" 1 )
 OPTION( USE_SQLITE_EXTERNAL "Use SQLITE (build as external module, included when off)" 0 )
 OPTION( EXTREME_CODE_DEBUG "Enable extreme warning levels (mingw)" 0 )
@@ -572,6 +585,21 @@ IF( ${APPLE} )
    SET( __NO_GUI__ ON )
    SET( ${PLATFORM_DEFINES} -D__MAC__ )
    set( ${PLATFORM_CMAKE_DEFINES} ${${PLATFORM_CMAKE_DEFINES}} "__MAC__ ON" )
+   # FSEvents (filesyslib/filemon/applefiles.c) needs CoreServices
+   find_library( CORESERVICES_LIBRARY CoreServices )
+   set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} ${CORESERVICES_LIBRARY} )
+   # unixODBC is installed via Homebrew and is not on the default search path
+   # on macOS (unlike /usr/include on linux), so add its prefix for <sql.h>/-lodbc.
+   if( NOT ${__NO_ODBC__} )
+      execute_process( COMMAND brew --prefix unixodbc
+                       OUTPUT_VARIABLE UNIXODBC_PREFIX
+                       OUTPUT_STRIP_TRAILING_WHITESPACE
+                       ERROR_QUIET )
+      if( UNIXODBC_PREFIX )
+         include_directories( ${UNIXODBC_PREFIX}/include )
+         link_directories( ${UNIXODBC_PREFIX}/lib )
+      endif( UNIXODBC_PREFIX )
+   endif( NOT ${__NO_ODBC__} )
 ENDIF( ${APPLE} )
 
 if( __COMPILER_GNU AND NOT CMAKE_COMPILER_IS_GNUCC )
@@ -593,9 +621,12 @@ if( ${__LINUX__} )
 	if( NOT ${APPLE} AND NOT ${__ANDROID__} )
 	       set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} rt m pthread dl )
         endif( NOT ${APPLE} AND NOT ${__ANDROID__} )
-	if( NOT ${__NO_ODBC__} )
+	# On Apple the ODBC library is added (as a full keg path) by the dedicated
+	# block below; adding a bare 'odbc' here too caused a duplicate link and -
+	# since unixODBC is keg-only - an unresolved '-lodbc' in deployed products.
+	if( NOT ${__NO_ODBC__} AND NOT ${APPLE} )
 		set( ${PLATFORM_LIBRARIES} ${${PLATFORM_LIBRARIES}} odbc )
-	endif( NOT ${__NO_ODBC__} )
+	endif( NOT ${__NO_ODBC__} AND NOT ${APPLE} )
 endif( ${__LINUX__} )
 
 
@@ -646,6 +677,16 @@ if( NOT ${__NO_ODBC__} OR USE_SQLITE )
    set( ${PLATFORM_DEFINES} ${${PLATFORM_DEFINES}} -DUSE_ODBC )
    if( ${WIN32} )
       SET( ODBC_LIBRARY odbc32 )
+   elseif( ${APPLE} )
+      # unixODBC is keg-only on macOS, so record the full dylib path rather than
+      # a bare 'odbc'.  This resolves both for this build and for the deployed
+      # platform-libraries config (which downstream products link against and
+      # which has no -L into the Homebrew keg).
+      if( UNIXODBC_PREFIX )
+         SET( ODBC_LIBRARY ${UNIXODBC_PREFIX}/lib/libodbc.dylib )
+      else()
+         SET( ODBC_LIBRARY odbc )
+      endif()
    else()
      SET( ODBC_LIBRARY odbc )
       if( NOT NEED_UUID AND NOT ${APPLE} )
@@ -1055,6 +1096,14 @@ if( __ARM__ )
       endif( NOT __NO_CPLUSPLUS )
     else( WIN32 )
       my_target_link_libraries( bag ${PLATFORM_LIBRARIES} )
+      # bag++ was omitted here, so on ARM (e.g. Apple Silicon macOS) the C++
+      # library linked against none of the platform libs (ODBC) nor
+      # bag.externals (libssh2), leaving _SQL*/_libssh2_* undefined.  Mirror the
+      # android/non-ARM branches and link them in.
+      if( NOT __NO_CPLUSPLUS )
+        my_target_link_libraries( ${BAG_PLUSPLUS} ${PLATFORM_LIBRARIES} )
+        my_target_link_libraries( ${BAG_PLUSPLUS} bag.externals )
+      endif( NOT __NO_CPLUSPLUS )
     endif( WIN32 )
   else( NOT __ANDROID__ )
      my_target_link_libraries( bag ${PLATFORM_LIBRARIES} )
@@ -1259,6 +1308,12 @@ if( NOT __NO_GUI__ )
 else( NOT __NO_GUI__ )
      add_subdirectory( src/vidlib/proxy )
 endif( NOT __NO_GUI__ )
+
+# macOS native window/framebuffer driver.  Built independently of __NO_GUI__
+# (which is forced ON for Apple) so the Cocoa render backend is available.
+if( APPLE )
+   add_subdirectory( src/vidlib/cocoa )
+endif( APPLE )
 
 endif( EMSCRIPTEN )
 
@@ -1646,10 +1701,17 @@ SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY COMPILE_FLAGS "${COMMON_EM_FL
 SET_PROPERTY(TARGET bag.psi APPEND_STRING PROPERTY LINK_FLAGS "${COMMON_EM_FLAGS} -s SIDE_MODULE=1" )
 endif( EMSCRIPTEN )
 
+if( __MAC__ )
+SET_TARGET_PROPERTIES(  bag bag.externals bag++ 
+  PROPERTIES
+    INSTALL_RPATH "@loader_path"
+)
+else()
 SET_TARGET_PROPERTIES(  bag bag.externals bag++ 
   PROPERTIES
     INSTALL_RPATH "\$ORIGIN"
 )
+endif()
 
 
 # get the libraries..

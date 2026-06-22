@@ -142,6 +142,8 @@ struct odbc_handle_tag{
 		BIT_FIELD bFailEnvOnDbcFail : 1;
 		// generate begintransaction and commit automatically.
 		BIT_FIELD bAutoTransact : 1;
+		BIT_FIELD bStartedAutoTransaction : 1;
+		BIT_FIELD bRestoreAutoTransact : 1;
 		volatile BIT_FIELD bThreadProtect : 1; // use enter/leave critical section on this connector (auto transact protector)
 		BIT_FIELD bAutoClose : 1; // don't leave the connection open 100%; open when required and close when idle
 		BIT_FIELD bAutoCheckpoint : 1; // sqlite; alternative to closing; generate wal_checkpoints automatically on idle.
@@ -161,6 +163,8 @@ struct odbc_handle_tag{
 	struct odbc_queue *queue;
 	void (CPROC*auto_commit_callback)(uintptr_t,PODBC);
 	uintptr_t auto_commit_callback_psv;
+	void (CPROC*auto_rollback_callback)(uintptr_t,PODBC);
+	uintptr_t auto_rollback_callback_psv;
 	void (CPROC*pCorruptionHandler)(uintptr_t psv, PODBC odbc);
 	uintptr_t psvCorruptionHandler;
 	void (*onOpen)( uintptr_t psv, PODBC odbc );

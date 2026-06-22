@@ -37,7 +37,7 @@ int main( void )
 
 		if( strncmp( p, "Module Name: '", 14 ) == 0 )
 		{
-         char *end;
+         	char *end;
 			p+=14;
 			end = p;
 			while( end[0] != '\'' )
@@ -48,13 +48,13 @@ int main( void )
 				for( n = 0; n < nModules; n++ )
 				{
 					if( stricmp( modules[n], p ) == 0 )
-                  break;
+						break;
 				}
 				if( n == nModules )
 				{
 					printf( "Module: %s(%d)\n", p, nModules );
-					strcpy( modules[nModules], p );
-               nModules++;
+					snprintf( modules[nModules], sizeof( modules[0] ), "%s", p );
+					nModules++;
 				}
 
 			}
@@ -182,7 +182,7 @@ int main( void )
 		{
 			char tmp[64];
 			char *dot;
-         sprintf( tmp, refs[n].name );
+			snprintf( tmp, 64, "%s", refs[n].name );
 			dot = tmp;
 			while( dot[0] && dot[0] != '.' ) dot++;
 			if( dot[0] )

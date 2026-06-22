@@ -2,8 +2,8 @@
  *
  * Sample showing how to do SFTP transfers in a non-blocking manner.
  *
- * It will first download a given source file, store it locally and then
- * upload the file again to a given destination file.
+ * It first downloads a given source file, stores it locally and then
+ * uploads the file again to a given destination file.
  *
  * Using the SFTP server running on 127.0.0.1
  *
@@ -15,11 +15,14 @@
 #include <libssh2_sftp.h>
 
 #ifdef _WIN32
-#define write(f, b, c)  write((f), (b), (unsigned int)(c))
+#define write(f, b, c)  write(f, b, (unsigned int)(c))
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -28,7 +31,7 @@
 #include <netinet/in.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#include <sys/time.h>  /* for timeval */
 #endif
 
 #include <stdio.h>
@@ -39,7 +42,7 @@ static const char *username = "username";
 static const char *password = "password";
 static const char *sftppath = "/tmp/TEST"; /* source path */
 static const char *dest = "/tmp/TEST2";    /* destination path */
-static const char *storage = "/tmp/sftp-storage"; /* local file name to store
+static const char *storage = "/tmp/sftp-storage"; /* local filename to store
                                                      the downloaded file in */
 
 static int waitsocket(libssh2_socket_t socket_fd, LIBSSH2_SESSION *session)
@@ -136,7 +139,7 @@ int main(int argc, char *argv[])
     sin.sin_family = AF_INET;
     sin.sin_port = htons(22);
     sin.sin_addr.s_addr = htonl(0x7F000001);
-    if(connect(sock, (struct sockaddr*)(&sin), sizeof(struct sockaddr_in))) {
+    if(connect(sock, (struct sockaddr *)(&sin), sizeof(struct sockaddr_in))) {
         fprintf(stderr, "failed to connect.\n");
         goto shutdown;
     }
@@ -148,7 +151,7 @@ int main(int argc, char *argv[])
         goto shutdown;
     }
 
-    /* ... start it up. This will trade welcome banners, exchange keys,
+    /* ... start it up. This trades welcome banners, exchange keys,
      * and setup crypto, compression, and MAC layers
      */
     rc = libssh2_session_handshake(session, sock);
@@ -162,7 +165,7 @@ int main(int argc, char *argv[])
     /* At this point we have not yet authenticated.  The first thing to do
      * is check the hostkey's fingerprint against our known hosts Your app
      * may have it hard coded, may go to a file, may present it to the
-     * user, that's your call
+     * user, that is your call
      */
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
     fprintf(stderr, "Fingerprint: ");
@@ -180,7 +183,8 @@ int main(int argc, char *argv[])
     if(auth_pw) {
         /* We could authenticate via password */
         while((rc = libssh2_userauth_password(session, username, password)) ==
-              LIBSSH2_ERROR_EAGAIN);
+              LIBSSH2_ERROR_EAGAIN)
+            ;
         if(rc) {
             fprintf(stderr, "Authentication by password failed.\n");
             goto shutdown;
@@ -188,11 +192,11 @@ int main(int argc, char *argv[])
     }
     else {
         /* Or by public key */
-        while((rc =
-              libssh2_userauth_publickey_fromfile(session, username,
-                                                  pubkey, privkey,
-                                                  password)) ==
-              LIBSSH2_ERROR_EAGAIN);
+        while((rc = libssh2_userauth_publickey_fromfile(session, username,
+                                                        pubkey, privkey,
+                                                        password)) ==
+              LIBSSH2_ERROR_EAGAIN)
+            ;
         if(rc) {
             fprintf(stderr, "Authentication by public key failed.\n");
             goto shutdown;
@@ -220,7 +224,7 @@ int main(int argc, char *argv[])
                                         LIBSSH2_FXF_READ, 0);
         if(!sftp_handle) {
             if(libssh2_session_last_errno(session) != LIBSSH2_ERROR_EAGAIN) {
-                fprintf(stderr, "Unable to open file with SFTP: %ld\n",
+                fprintf(stderr, "Unable to open file with SFTP: %lu\n",
                         libssh2_sftp_last_error(sftp_session));
                 goto shutdown;
             }
@@ -237,8 +241,7 @@ int main(int argc, char *argv[])
         do {
             /* read in a loop until we block */
             nread = libssh2_sftp_read(sftp_handle, mem, sizeof(mem));
-            fprintf(stderr, "libssh2_sftp_read returned %ld\n",
-                    (long)nread);
+            fprintf(stderr, "libssh2_sftp_read returned %ld\n", (long)nread);
 
             if(nread > 0) {
                 /* write to stderr */
@@ -283,12 +286,12 @@ int main(int argc, char *argv[])
 
     tempstorage = fopen(storage, "rb");
     if(!tempstorage) {
-        /* weird, we cannot read the file we just wrote to... */
+        /* weird, we cannot read the file we wrote to... */
         fprintf(stderr, "Cannot open %s for reading\n", storage);
         goto shutdown;
     }
 
-    /* we're done downloading, now reverse the process and upload the
+    /* we are done downloading, now reverse the process and upload the
        temporarily stored data to the destination path */
     sftp_handle = libssh2_sftp_open(sftp_session, dest,
                                     LIBSSH2_FXF_WRITE |
@@ -311,8 +314,7 @@ int main(int argc, char *argv[])
 
             do {
                 /* write data in a loop until we block */
-                nwritten = libssh2_sftp_write(sftp_handle, ptr,
-                                              nread);
+                nwritten = libssh2_sftp_write(sftp_handle, ptr, nread);
                 if(nwritten < 0)
                     break;
                 ptr += nwritten;
@@ -351,8 +353,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "SFTP upload done.\n");
     }
     else {
-        fprintf(stderr, "SFTP failed to open destination path: %s\n",
-                dest);
+        fprintf(stderr, "SFTP failed to open destination path: %s\n", dest);
     }
 
     libssh2_sftp_shutdown(sftp_session);

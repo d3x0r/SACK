@@ -24,8 +24,8 @@
 #  else
 #      if defined( __MAC__ )
 //#        include <glx.h>
-#        include <gl.h>
-#        include <glu.h>
+#        include <opengl/gl.h>
+#        include <opengl/glu.h>
 #      else
 #        include <GL/glx.h>
 #        define INCLUDE_STD_GL
@@ -335,6 +335,7 @@ typedef struct HVIDEO_tag
 		BIT_FIELD bRendering : 1; // while rendering, set this; prevents destroy-while-draw
 		BIT_FIELD bFullScreen : 1; // trigger full screen, don't resize internal surface.
 		BIT_FIELD bNotFullScreen : 1; // temporary override for internal mouse handling
+		BIT_FIELD bNoRedirect : 1; // on linux, don't use a redirect window (composite manager messes with this); windows uses this for Direct rendered windows.
 #if defined( __3D__ )
 		BIT_FIELD bAnchorWorld : 1;  // anchored to world, vs anchored to local/camera
 		BIT_FIELD bAnchorLocal : 1;  // anchared to camera

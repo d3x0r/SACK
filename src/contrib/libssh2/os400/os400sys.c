@@ -62,9 +62,8 @@
 #include <arpa/inet.h>
 
 #ifdef LIBSSH2_HAVE_ZLIB
-# include <zlib.h>
+#include <zlib.h>
 #endif
-
 
 /**
 ***     QADRT OS/400 ASCII runtime defines only the most used procedures, but
@@ -75,10 +74,8 @@
 
 #pragma convert(37)                             /* Restore EBCDIC. */
 
-
-static int
-convert_sockaddr(struct sockaddr_storage *dstaddr,
-                 const struct sockaddr *srcaddr, int srclen)
+static int convert_sockaddr(struct sockaddr_storage *dstaddr,
+                            const struct sockaddr *srcaddr, int srclen)
 {
     const struct sockaddr_un *srcu;
     struct sockaddr_un *dstu;
@@ -87,23 +84,25 @@ convert_sockaddr(struct sockaddr_storage *dstaddr,
 
     /* Convert a socket address into job CCSID, if needed. */
 
-    if(!srcaddr || srclen < offsetof(struct sockaddr, sa_family) +
-       sizeof(srcaddr->sa_family) || srclen > sizeof(*dstaddr)) {
+    if(!srcaddr ||
+       srclen <
+           offsetof(struct sockaddr, sa_family) + sizeof(srcaddr->sa_family) ||
+       srclen > sizeof(*dstaddr)) {
         errno = EINVAL;
         return -1;
     }
 
-    memcpy((char *) dstaddr, (char *) srcaddr, srclen);
+    memcpy((char *)dstaddr, (char *)srcaddr, srclen);
 
     switch(srcaddr->sa_family) {
 
     case AF_UNIX:
-        srcu = (const struct sockaddr_un *) srcaddr;
-        dstu = (struct sockaddr_un *) dstaddr;
+        srcu = (const struct sockaddr_un *)srcaddr;
+        dstu = (struct sockaddr_un *)dstaddr;
         dstsize = sizeof(*dstaddr) - offsetof(struct sockaddr_un, sun_path);
         srclen -= offsetof(struct sockaddr_un, sun_path);
-        i = QadrtConvertA2E(dstu->sun_path, srcu->sun_path,
-                            dstsize - 1, srclen);
+        i = QadrtConvertA2E(dstu->sun_path, srcu->sun_path, dstsize - 1,
+                            srclen);
         dstu->sun_path[i] = '\0';
         i += offsetof(struct sockaddr_un, sun_path);
         srclen = i;
@@ -112,9 +111,7 @@ convert_sockaddr(struct sockaddr_storage *dstaddr,
     return srclen;
 }
 
-
-int
-_libssh2_os400_connect(int sd, struct sockaddr *destaddr, int addrlen)
+int _libssh2_os400_connect(int sd, struct sockaddr *destaddr, int addrlen)
 {
     int i;
     struct sockaddr_storage laddr;
@@ -124,14 +121,12 @@ _libssh2_os400_connect(int sd, struct sockaddr *destaddr, int addrlen)
     if(i < 0)
         return -1;
 
-    return connect(sd, (struct sockaddr *) &laddr, i);
+    return connect(sd, (struct sockaddr *)&laddr, i);
 }
 
-
 #ifdef LIBSSH2_HAVE_ZLIB
-int
-_libssh2_os400_inflateInit_(z_streamp strm,
-                            const char *version, int stream_size)
+int _libssh2_os400_inflateInit_(z_streamp strm, const char *version,
+                                int stream_size)
 {
     char *ebcversion;
     int i;
@@ -147,9 +142,8 @@ _libssh2_os400_inflateInit_(z_streamp strm,
     return inflateInit_(strm, ebcversion, stream_size);
 }
 
-int
-_libssh2_os400_deflateInit_(z_streamp strm, int level,
-                            const char *version, int stream_size)
+int _libssh2_os400_deflateInit_(z_streamp strm, int level, const char *version,
+                                int stream_size)
 {
     char *ebcversion;
     int i;
@@ -164,5 +158,4 @@ _libssh2_os400_deflateInit_(z_streamp strm, int level,
     ebcversion[i] = '\0';
     return deflateInit_(strm, level, ebcversion, stream_size);
 }
-
 #endif

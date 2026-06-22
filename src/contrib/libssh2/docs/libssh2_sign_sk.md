@@ -18,13 +18,12 @@ libssh2_sign_sk - Create a signature from a FIDO2 authenticator.
 ~~~c
 #include <libssh2.h>
 
-int
-libssh2_sign_sk(LIBSSH2_SESSION *session,
-                unsigned char **sig,
-                size_t *sig_len,
-                const unsigned char *data,
-                size_t data_len,
-                void **abstract);
+int libssh2_sign_sk(LIBSSH2_SESSION *session,
+                    unsigned char **sig,
+                    size_t *sig_len,
+                    const unsigned char *data,
+                    size_t data_len,
+                    void **abstract);
 
 typedef struct _LIBSSH2_PRIVKEY_SK {
     int algorithm;
@@ -32,7 +31,7 @@ typedef struct _LIBSSH2_PRIVKEY_SK {
     const char *application;
     const unsigned char *key_handle;
     size_t handle_len;
-    LIBSSH2_USERAUTH_SK_SIGN_FUNC((*sign_callback));
+    LIBSSH2_USERAUTH_SK_SIGN_FUNC(*sign_callback);
     void **orig_abstract;
 } LIBSSH2_PRIVKEY_SK;
 ~~~
@@ -96,3 +95,7 @@ pass in the PIN, or a function pointer to retrieve the PIN.
 # RETURN VALUE
 
 Return 0 on success or negative on failure.
+
+# AVAILABILITY
+
+Added in libssh2 1.11.0

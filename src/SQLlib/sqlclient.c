@@ -539,21 +539,21 @@ int DoSQLInsert( char *table, ... )
 		char *vars;
 		int nValLen = 2;
 		int nValOfs;
-      int quote;
+		int quote;
 		char *vals;
 		int first;
-      int second_half;
+		int second_half;
 		char *varname;
 		char *varval;
 		va_list args;
 
-      first = 1;
+		first = 1;
 		va_start( args, table );
 		for( varname = va_arg( args, char * );
 			  varname;
 			  varname = va_arg( args, char * ) )
 		{
-         quote = va_arg( args, int );
+			quote = va_arg( args, int );
 			varval = va_arg( args, char * );
 			if( first )
 			{
@@ -571,11 +571,12 @@ int DoSQLInsert( char *table, ... )
 			if( quote )
             nValLen+=2;
 		}
-		command = Allocate( 12 + strlen( table ) + nVarLen + 8 + nValLen );
+		const int clen = 12 + strlen( table ) + nVarLen + 8 + nValLen
+		command = Allocate( clen );
       //Log2( "Command = %p (%d)", command, 12 + strlen( table ) + nVarLen + 7 + nValLen );
-		nCmdLen = sprintf( command, "Insert into %s", table );
+		nCmdLen = snprintf( command, clen, "Insert into %s", table );
 		second_half = nValOfs = nCmdLen + nVarLen;
-		nValOfs += sprintf( command+nValOfs, " values" );
+		nValOfs += snprintf( command+nValOfs, clen-nValOfs, " values" );
 		//Log2( "Command is now: %s %s", command, command+second_half );
 		first = 1;
 		va_start( args, table );
@@ -583,10 +584,10 @@ int DoSQLInsert( char *table, ... )
 			  varname;
 			  varname = va_arg( args, char * ) )
 		{
-         quote = va_arg( args, int );
+			quote = va_arg( args, int );
 			varval = va_arg( args, char *);
-			nCmdLen += sprintf( command + nCmdLen, "%s%s", first?"(":",", varname );
-			nValOfs += sprintf( command + nValOfs, "%s%s%s%s"
+			nCmdLen += snprintf( command + nCmdLen, clen-nCmdLen, "%s%s", first?"(":",", varname );
+			nValOfs += snprintf( command + nValOfs, clen-nValOfs, "%s%s%s%s"
 									, first?"(":","
 									, quote?"\'":""
 									, varval
@@ -595,9 +596,9 @@ int DoSQLInsert( char *table, ... )
 			//Log2( "Command is now: %s %s", command, command+second_half );
 			first = 0;
 		}
-      command[nCmdLen] = ')';
-      command[nValOfs] = ')';
-      command[nValOfs+1] = 0;
+		command[nCmdLen] = ')';
+		command[nValOfs] = ')';
+		command[nValOfs+1] = 0;
 		//Log1( "Command is now: %s", command );
 
 		if( GenerateCommand( command, WM_SQL_COMMAND ) )

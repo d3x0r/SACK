@@ -54,18 +54,20 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>  /* for atoi() */
 #include <stdarg.h>
 #include <ctype.h>
 
-#if defined(_WIN32) && defined(_WIN64)
-#define LIBSSH2_SOCKET_MASK "%lld"
+#ifdef _WIN64
+#define LIBSSH2_SOCKET_MASK "%llu"
+#elif defined(_WIN32)
+#define LIBSSH2_SOCKET_MASK "%u"
 #else
 #define LIBSSH2_SOCKET_MASK "%d"
 #endif
 
 #ifdef LIBSSH2_WINDOWS_UWP
-#define popen(x, y) (NULL)
+#define popen(x, y) NULL
 #define pclose(x) (-1)
 #elif defined(_WIN32)
 #define popen _popen
@@ -80,7 +82,7 @@ int openssh_fixture_have_docker(void)
 }
 
 static int run_command_varg(char **output, const char *command, va_list args)
-    LIBSSH2_PRINTF(2, 0);
+    SSH2_PRINTF(2, 0);
 
 static int run_command_varg(char **output, const char *command, va_list args)
 {
@@ -97,7 +99,14 @@ static int run_command_varg(char **output, const char *command, va_list args)
     }
 
     /* Format the command string */
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
     ret = vsnprintf(command_buf, sizeof(command_buf), command, args);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     if(ret < 0 || ret >= BUFSIZ) {
         fprintf(stderr, "Unable to format command (%s)\n", command);
         return -1;
@@ -124,7 +133,7 @@ static int run_command_varg(char **output, const char *command, va_list args)
     buf[0] = 0;
     buf_len = 0;
     while(buf_len < (sizeof(buf) - 1) &&
-        fgets(&buf[buf_len], (int)(sizeof(buf) - buf_len), pipe)) {
+          fgets(&buf[buf_len], (int)(sizeof(buf) - buf_len), pipe)) {
         buf_len = strlen(buf);
     }
 
@@ -142,13 +151,13 @@ static int run_command_varg(char **output, const char *command, va_list args)
             buf[end - 1] = '\0';
         }
 
-        *output = strdup(buf);
+        *output = libssh2_strdup(buf);
     }
     return ret;
 }
 
 static int run_command(char **output, const char *command, ...)
-    LIBSSH2_PRINTF(2, 3);
+    SSH2_PRINTF(2, 3);
 
 static int run_command(char **output, const char *command, ...)
 {
@@ -212,7 +221,7 @@ static int start_openssh_server(char **container_id_out)
                            "libssh2/openssh_server");
     }
     else {
-        *container_id_out = strdup("");
+        *container_id_out = libssh2_strdup("");
         return 0;
     }
 }
@@ -237,24 +246,22 @@ static int is_running_inside_a_container(void)
 #ifdef _WIN32
     return 0;
 #else
-    const char *cgroup_filename = "/proc/self/cgroup";
+    static const char *cgroup_filename = "/proc/self/cgroup";
     FILE *f;
-    char *line = NULL;
-    size_t len = 0;
+    char line[1024];
     int found = 0;
     f = fopen(cgroup_filename, "r");
     if(!f) {
-        /* Don't go further, we are not in a container */
+        /* Do not go further, we are not in a container */
         return 0;
     }
-    while(getline(&line, &len, f) != -1) {
+    while(fgets(line, sizeof(line), f)) {
         if(strstr(line, "docker")) {
             found = 1;
             break;
         }
     }
     fclose(f);
-    free(line);
     return found;
 #endif
 }
@@ -262,7 +269,7 @@ static int is_running_inside_a_container(void)
 static void portable_sleep(unsigned int seconds)
 {
 #ifdef _WIN32
-    Sleep(seconds);
+    Sleep(seconds * 1000);
 #else
     sleep(seconds);
 #endif
@@ -277,7 +284,7 @@ static int ip_address_from_container(char *container_id, char **ip_address_out)
            https://github.com/docker/machine/issues/2612), so we retry a few
            times with exponential backoff if it fails */
         int attempt_no = 0;
-        unsigned int wait_time = 500;
+        unsigned int wait_time = 1;
         for(;;) {
             int ret = run_command(ip_address_out, "docker-machine ip %s",
                                   active_docker_machine);
@@ -320,7 +327,7 @@ static int ip_address_from_container(char *container_id, char **ip_address_out)
 static int port_from_container(char *container_id, char **port_out)
 {
     if(is_running_inside_a_container()) {
-        *port_out = strdup("22");
+        *port_out = libssh2_strdup("22");
         return 0;
     }
     else {
@@ -329,6 +336,18 @@ static int port_from_container(char *container_id, char **port_out)
                            "\"{{ index (index (index .NetworkSettings.Ports "
                            "\\\"22/tcp\\\") 0) \\\"HostPort\\\" }}\" %s",
                            container_id);
+    }
+}
+
+static void close_socket_to_container(libssh2_socket_t sock)
+{
+    if(sock != LIBSSH2_INVALID_SOCKET) {
+        shutdown(sock, 2 /* SHUT_RDWR */);
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
     }
 }
 
@@ -364,20 +383,20 @@ static libssh2_socket_t open_socket_to_container(char *container_id)
         if(!env) {
             env = "127.0.0.1";
         }
-        ip_address = strdup(env);
+        ip_address = libssh2_strdup(env);
         env = openssh_server_port();
         if(!env) {
             env = "4711";
         }
-        port_string = strdup(env);
+        port_string = libssh2_strdup(env);
     }
 
     /* 0.0.0.0 is returned by Docker for Windows, because the container
-       is reachable from anywhere. But we cannot connect to 0.0.0.0,
+       is reachable from anywhere. We cannot connect to 0.0.0.0,
        instead we assume localhost and try to connect to 127.0.0.1. */
     if(ip_address && strcmp(ip_address, "0.0.0.0") == 0) {
         free(ip_address);
-        ip_address = strdup("127.0.0.1");
+        ip_address = libssh2_strdup("127.0.0.1");
     }
 
     hostaddr = inet_addr(ip_address);
@@ -394,16 +413,16 @@ static libssh2_socket_t open_socket_to_container(char *container_id)
     }
 
     sin.sin_family = AF_INET;
-    sin.sin_port = htons((unsigned short)strtol(port_string, NULL, 0));
+    sin.sin_port = htons((unsigned short)atoi(port_string));
     sin.sin_addr.s_addr = hostaddr;
 
     for(counter = 0; counter < 3; ++counter) {
-        if(connect(sock, (struct sockaddr*)(&sin),
+        if(connect(sock, (struct sockaddr *)(&sin),
                    sizeof(struct sockaddr_in))) {
             fprintf(stderr,
-                    "Connection to %s:%s attempt #%d failed: retrying...\n",
+                    "Connection to %s:%s attempt #%u failed: retrying...\n",
                     ip_address, port_string, counter);
-            portable_sleep(1 + 2*counter);
+            portable_sleep(1 + 2 * counter);
         }
         else {
             ret = sock;
@@ -411,6 +430,7 @@ static libssh2_socket_t open_socket_to_container(char *container_id)
         }
     }
     if(ret == LIBSSH2_INVALID_SOCKET) {
+        close_socket_to_container(sock);
         fprintf(stderr, "Failed to connect to %s:%s\n",
                 ip_address, port_string);
         goto cleanup;
@@ -421,18 +441,6 @@ cleanup:
     free(port_string);
 
     return ret;
-}
-
-static void close_socket_to_container(libssh2_socket_t sock)
-{
-    if(sock != LIBSSH2_INVALID_SOCKET) {
-        shutdown(sock, 2 /* SHUT_RDWR */);
-#ifdef _WIN32
-        closesocket(sock);
-#else
-        close(sock);
-#endif
-    }
 }
 
 static char *running_container_id = NULL;
@@ -486,4 +494,22 @@ libssh2_socket_t open_socket_to_openssh_server(void)
 void close_socket_to_openssh_server(libssh2_socket_t sock)
 {
     close_socket_to_container(sock);
+}
+
+char *libssh2_strdup(const char *str)
+{
+    size_t len;
+    char *newstr;
+
+    if(!str)
+        return (char *)NULL;
+
+    len = strlen(str) + 1;
+
+    newstr = malloc(len);
+    if(!newstr)
+        return (char *)NULL;
+
+    memcpy(newstr, str, len);
+    return newstr;
 }

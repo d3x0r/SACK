@@ -359,7 +359,7 @@ void GetMyInterface( void )
 {
 	if( !g.MyImageInterface )
 	{
-		g.MyImageInterface = (PIMAGE_INTERFACE)GetInterface( "image" );
+		g.MyImageInterface = (PIMAGE_INTERFACE)GetInterface_v4( "image", TRUE, FALSE DBG_SRC );
 		if( !g.MyImageInterface )
 			g.MyImageInterface = (PIMAGE_INTERFACE)GetInterface( "real_image" );
 		if( !g.MyImageInterface )
@@ -383,7 +383,7 @@ void GetMyInterface( void )
 	}
 	if( !g.MyDisplayInterface )
 	{
-		g.MyDisplayInterface = (PRENDER_INTERFACE)GetInterface( "render" );
+		g.MyDisplayInterface = (PRENDER_INTERFACE)GetInterface_v4( "render", TRUE, FALSE DBG_SRC );
 		if( !g.MyImageInterface )
 			g.MyDisplayInterface = (PRENDER_INTERFACE)GetInterface( "video" );
 		if( !g.MyDisplayInterface )

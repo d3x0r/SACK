@@ -6,7 +6,7 @@
  */
 
 #include "libssh2_setup.h"
-#include <libssh2.h>
+#include "libssh2.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -34,7 +34,7 @@ static const char *password = "password";
 static void portable_sleep(unsigned int seconds)
 {
 #ifdef _WIN32
-    Sleep(seconds);
+    Sleep(seconds * 1000);
 #else
     sleep(seconds);
 #endif
@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     uint32_t hostaddr;
     libssh2_socket_t sock;
     int i, auth_pw = 0;
+    int connected = 0;
     struct sockaddr_in sin;
     const char *fingerprint;
     char *userauthlist;
@@ -66,11 +67,11 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    #ifdef _WIN32
-    #define LIBSSH2_FALLBACK_USER_ENV "USERNAME"
-    #else
-    #define LIBSSH2_FALLBACK_USER_ENV "LOGNAME"
-    #endif
+#ifdef _WIN32
+#define LIBSSH2_FALLBACK_USER_ENV "USERNAME"
+#else
+#define LIBSSH2_FALLBACK_USER_ENV "LOGNAME"
+#endif
 
     if(getenv("USER"))
         username = getenv("USER");
@@ -108,24 +109,24 @@ int main(int argc, char *argv[])
     sin.sin_addr.s_addr = hostaddr;
 
     for(counter = 0; counter < 3; ++counter) {
-        if(connect(sock, (struct sockaddr*)(&sin),
+        if(connect(sock, (struct sockaddr *)(&sin),
                    sizeof(struct sockaddr_in))) {
             fprintf(stderr,
-                    "Connection to %s:%d attempt #%d failed: retrying...\n",
+                    "Connection to %s:%d attempt #%u failed: retrying...\n",
                     hostname, port_number, counter);
-            portable_sleep(1 + 2*counter);
+            portable_sleep(1 + 2 * counter);
         }
         else {
+            connected = 1;
             break;
         }
     }
-    if(sock == LIBSSH2_INVALID_SOCKET) {
-        fprintf(stderr, "Failed to connect to %s:%d\n",
-                hostname, port_number);
+    if(!connected) {
+        fprintf(stderr, "Failed to connect to %s:%d\n", hostname, port_number);
         goto shutdown;
     }
 
-    /* Create a session instance and start it up. This will trade welcome
+    /* Create a session instance and start it up. This trades welcome
      * banners, exchange keys, and setup crypto, compression, and MAC layers
      */
     session = libssh2_session_init();
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
     /* At this point we have not yet authenticated.  The first thing to do
      * is check the hostkey's fingerprint against our known hosts Your app
      * may have it hard coded, may go to a file, may present it to the
-     * user, that's your call
+     * user, that is your call
      */
     fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
     fprintf(stderr, "Fingerprint: ");
@@ -221,7 +222,7 @@ int main(int argc, char *argv[])
     }
 
     /* Some environment variables may be set,
-     * It's up to the server which ones it'll allow though
+     * It is up to the server which ones it allows though
      */
     libssh2_channel_setenv(channel, "FOO", "bar");
 

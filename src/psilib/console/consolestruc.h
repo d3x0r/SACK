@@ -170,6 +170,8 @@ typedef struct myconsolestruc {
 		BIT_FIELD bHistoryShow : 1;
 		BIT_FIELD bNewLine : 1; // set if the next line is NEW else it's to be appended.
 		BIT_FIELD bBuildDataWithCarriageReturn : 1;
+
+		BIT_FIELD bGenerateWin32PTYKeys : 1;
 	} flags;
 
 	// these are working parameters during output...
@@ -254,6 +256,9 @@ typedef struct myconsolestruc {
 	void (CPROC *RenderCursor )( struct myconsolestruc *pmdp, RECT *r, int column );
 	void (CPROC *Update )( struct myconsolestruc *pmdp, RECT *upd );
 	void (*UpdateSize)( uintptr_t, int, int, int, int);
+	int( CPROC *KeystrokeEvent )( uintptr_t userData, uint32_t key );
+	uintptr_t psvKeystrokeEvent;
+
 	uintptr_t psvUpdateSize;
 	// void CPROC
 	PLIST data_processors;
