@@ -6,12 +6,12 @@
 #include <timers.h>
 //#include "links.h"
 #include "text.h"
-
+#include <stdbool.h>
 #ifndef __cplusplus
 // bool is apparently a builtin in a modern compiler?
 // it's not a define, so not sure how to switch this...
 #if __GNUC__ < 15
-typedef LOGICAL bool;
+//typedef LOGICAL bool;
 #endif
 #else
 //#define bool LOGICAL

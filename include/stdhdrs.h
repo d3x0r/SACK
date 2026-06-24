@@ -21,6 +21,15 @@
 #    define _GNU_SOURCE
 #  endif
 
+/* On macOS the BSD/Darwin extensions (e.g. the termios baud constants
+   B57600/B115200/B230400 used by the commlib serial code) are hidden when
+   _POSIX_C_SOURCE is defined - which we force below.  Enabling
+   _DARWIN_C_SOURCE keeps those extensions visible while still requesting
+   the POSIX feature set.  Must be set before any system header. */
+#  if defined( __APPLE__ ) && !defined( _DARWIN_C_SOURCE )
+#    define _DARWIN_C_SOURCE
+#  endif
+
 #ifndef STANDARD_HEADERS_INCLUDED
 /* multiple inclusion protection symbol */
 #define STANDARD_HEADERS_INCLUDED

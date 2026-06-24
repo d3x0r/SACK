@@ -192,6 +192,13 @@ struct ImageFile_tag
 	VECTOR coords[4];  // updated with SetTransformRelation, otherwise defaults to image size.
 	VkCommandBuffer* commandBuffers;
 #endif
+/* NOTE: imglib-webgpu deliberately does NOT extend this struct.  It would
+   require coordinated -D_WEBGPU_DRIVER on every TU that ever allocates an
+   ImageFile_tag (including the sack core build feeding the CPU sack.image
+   fallback the driver delegates to). The driver keeps its per-image state
+   in a side-table keyed by Image* — see sack-gui/src/gui/imglib-webgpu/
+   driver.cc. The long-standing 2d/3d driver struct-extension cross-talk
+   problem is sidestepped rather than solved here.                        */
 #ifdef __cplusplus
 #ifndef __WATCOMC__ // watcom limits protections in structs to protected and public
 private:

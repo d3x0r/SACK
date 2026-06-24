@@ -1702,10 +1702,9 @@ PSSQL_PROC( void, SetSQLAutoTransact )( PODBC odbc, LOGICAL bEnable );
 PSSQL_PROC( void, SetSQLAutoTransactCallback )( PODBC odbc, void (CPROC*callback)(uintptr_t,PODBC), uintptr_t psv );
 
 
-/* Enable using 'BEGIN TRANSACTION' and 'COMMIT' commands automatically
-   around commands. If there is a lull of 500ms (1/2 second),
-   then the commit automatically fires. SQLRollback can be called
-	to trigger this process early.
+/* Set a callback for SQLRollback completion. This does not enable
+   AutoTransact; rollback observes whichever auto or explicit
+   transaction is already pending.
    
    Parameters
    odbc :     connection to set rollback callback on

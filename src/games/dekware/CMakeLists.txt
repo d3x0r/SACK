@@ -74,17 +74,24 @@ macro( ADD_PLUGIN target group  )
 	string( REPLACE "." "_" TARGET_LABEL ${target} )
 
   if( __ANDROID__ )
-        set( MOREDEFS TARGETNAME=\"${target}\" )
+        set( MOREDEFS "TARGETNAME=\"${target}\"" )
   else( __ANDROID__ )
-        set( MOREDEFS TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}\" )
+        set( MOREDEFS "TARGETNAME=\"${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX}\"" )
   endif( __ANDROID__ )
 
-	SET_TARGET_PROPERTIES(${target} PROPERTIES
+  	SET_TARGET_PROPERTIES(${target} PROPERTIES
                   COMPILE_FLAGS  "-DTARGET_LABEL=${TARGET_LABEL} ${LibraryExtraFlags} -D__DEKWARE_PLUGIN__"
                   COMPILE_DEFINITIONS ${MOREDEFS}
-                  INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../..:$ORIGIN/../applicationCore"
-                  FOLDER plugins/${group}
+                  FOLDER plugins/${group} )
+  if( __MAC__ )
+	SET_TARGET_PROPERTIES(${target} PROPERTIES
+                    INSTALL_RPATH "@loader_path:$loader_path/../..:$loader_path/../applicationCore"
 	)
+  else()
+	SET_TARGET_PROPERTIES(${target} PROPERTIES
+                  INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../..:$ORIGIN/../applicationCore"
+	)
+  endif()
 	if( NOT __ANDROID__ )
 		SET_TARGET_PROPERTIES(${target} PROPERTIES
                   SUFFIX ""
@@ -123,7 +130,7 @@ add_subdirectory( intershell_plugin )
 #add_subdirectory( video )
 
 # extend to get brains and 3D objects again...
-if( NOT __ANDROID__ AND NOT MINGW )
+if( NOT __ANDROID__ AND NOT MINGW AND NOT __MAC__ )
 add_subdirectory( ../automaton automaton)
 include_directories( ../automaton/brain )
 include_directories( ../automaton/board )

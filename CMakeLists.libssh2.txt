@@ -31,9 +31,19 @@ if( INCLUDE_LIBSSH2 )
 			-DLIBSSH2_EXPORT_SYMBOLS=ON
 			-DLIBSSH2_BUILD_OBJECT_LIBRARY=OFF
 			-DLIBSSH2_DISABLE_INSTALL=OFF
+			# Force the bundled LibreSSL crypto backend; otherwise libssh2's
+			# find_package(OpenSSL) auto-selects a system OpenSSL (e.g. Homebrew
+			# openssl@3 on macOS) and ends up referencing OSSL_PARAM/EVP_PKEY
+			# APIs that the LibreSSL we actually link against does not provide.
+			-DCRYPTO_BACKEND=LibreSSL
 			-DLIBRESSL_INSTALL_DIR=${CMAKE_BINARY_DIR}/lssl_tmp
 			-DBUILD_SHARED_LIBS=OFF
 			-DBUILD_STATIC_LIBS=ON
+			# libssh2 selects its alias target (LIB_SELECTED) from the
+			# LIBSSH2_-prefixed options, which default ON, so without these it
+			# aliases to the (unbuilt) shared target and configure fails.
+			-DLIBSSH2_BUILD_SHARED_LIBS=OFF
+			-DLIBSSH2_BUILD_STATIC_LIBS=ON
 			-DBUILD_EXAMPLES=OFF
 			-DBUILD_TESTING=OFF
 			-DBUILD_DOCS=OFF

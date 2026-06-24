@@ -52,31 +52,28 @@ static int DoFunction(PSENTIENT  ps, PTEXT parameters, double (*f)(double) )
 			}
 		}
 	}
+	return FALSE;
 }
 
 
 static int HandleCommand( "Math", "sin", "usage: sin variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
-	DoFunction( ps, parameters, sin );
-	return FALSE;
+	return DoFunction( ps, parameters, sin );
 }
 
 static int HandleCommand( "Math", "cos", "usage: cos variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
-	DoFunction( ps, parameters, cos );
-	return FALSE;
+	return DoFunction( ps, parameters, cos );
 }
 
 static int HandleCommand( "Math", "tan", "usage: tan variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
-	DoFunction( ps, parameters, tan );
-	return FALSE;
+	return DoFunction( ps, parameters, tan );
 }
 
 static int HandleCommand( "Math", "sqrt", "usage: sqrt variable; result replaces variable" )(PSENTIENT ps,PTEXT parameters)
 {
-	DoFunction( ps, parameters, sqrt );
-	return FALSE;
+	return DoFunction( ps, parameters, sqrt );
 }
 
 #if defined( __CMAKE_VERSION__ ) && ( __CMAKE_VERSION__ < 2081003 )

@@ -109,16 +109,16 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #      ifdef __64__
 		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, 0, 0 );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		} else {
-			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc, NULL, NULL );
+			EV_SET64( &ev, pc->Socket, EVFILT_READ, EV_DELETE, 0, 0, (uintptr_t)pc, 0, 0 );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc, NULL, NULL );
+			EV_SET64( &ev, pc->Socket, EVFILT_WRITE, EV_DELETE, 0, 0, (uintptr_t)pc, 0, 0 );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		if( pc->SocketBroadcast ) {
-			EV_SET64( &ev, pc->SocketBroadcast, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, NULL, NULL );
+			EV_SET64( &ev, pc->SocketBroadcast, EVFILT_READ, EV_DELETE, 0, 0, (uint64_t)pc, 0, 0 );
 			kevent64( thread->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #      else
@@ -254,13 +254,13 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 #    ifdef __64__
 		struct kevent64_s ev;
 		if( pc->dwFlags & CF_LISTEN ) {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, 0, 0 );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 		else {
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_READ, EV_ADD, 0, 0, (uintptr_t)data, 0, 0 );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
-			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uintptr_t)data, NULL, NULL );
+			EV_SET64( &ev, broadcast?pc->SocketBroadcast:pc->Socket, EVFILT_WRITE, EV_ADD | EV_CLEAR, 0, 0, (uintptr_t)data, 0, 0 );
 			kevent64( peer->kqueue, &ev, 1, 0, 0, 0, 0 );
 		}
 #    else

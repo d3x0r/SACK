@@ -41,7 +41,18 @@
 #  ifdef WIN32
 #    define lib_openal "openal32.dll"
 #  endif
-#  if defined( __ANDROID__ ) || defined( __LINUX__ )
+#  if defined( __MAC__ )
+     // __LINUX__ is also defined on macOS, so the Mac case must come first.
+     // Homebrew's openal-soft is keg-only (macOS ships its own deprecated
+     // OpenAL.framework), so it is not on the default dlopen search path -
+     // LIB_OPENAL_PATH is the full path supplied by the ffmpeg CMakeLists
+     // (via `brew --prefix openal-soft`).
+#    ifdef LIB_OPENAL_PATH
+#      define lib_openal LIB_OPENAL_PATH
+#    else
+#      define lib_openal "libopenal.dylib"
+#    endif
+#  elif defined( __ANDROID__ ) || defined( __LINUX__ )
 #    define lib_openal "libopenal.so"
 #  endif
 
@@ -80,7 +91,45 @@
 
 #endif
 
-#if defined( __ANDROID__) || defined( __LINUX__ )
+#if defined( __MAC__ )
+// __LINUX__ is also defined on macOS, so this case must come first.  The
+// ffmpeg/swscale/swresample libraries are loaded at runtime via dlopen;
+// Homebrew installs them under /opt/homebrew (or a keg-only prefix), which is
+// not on the default dlopen search path, so the LIB_*_PATH macros (full dylib
+// paths) are supplied by the ffmpeg CMakeLists via `brew --prefix`.  Bare-name
+// fallbacks are used when not configured.
+#define lib_psi "libbag.psi.dylib"
+#  ifdef LIB_AVFORMAT_PATH
+#    define lib_format LIB_AVFORMAT_PATH
+#  else
+#    define lib_format "libavformat.dylib"
+#  endif
+#  ifdef LIB_AVCODEC_PATH
+#    define lib_codec LIB_AVCODEC_PATH
+#  else
+#    define lib_codec "libavcodec.dylib"
+#  endif
+#  ifdef LIB_AVDEVICE_PATH
+#    define lib_device LIB_AVDEVICE_PATH
+#  else
+#    define lib_device "libavdevice.dylib"
+#  endif
+#  ifdef LIB_AVUTIL_PATH
+#    define lib_util LIB_AVUTIL_PATH
+#  else
+#    define lib_util "libavutil.dylib"
+#  endif
+#  ifdef LIB_SWSCALE_PATH
+#    define lib_swscale LIB_SWSCALE_PATH
+#  else
+#    define lib_swscale "libswscale.dylib"
+#  endif
+#  ifdef LIB_SWRESAMPLE_PATH
+#    define lib_resample LIB_SWRESAMPLE_PATH
+#  else
+#    define lib_resample "libswresample.dylib"
+#  endif
+#elif defined( __ANDROID__) || defined( __LINUX__ )
 #define lib_psi "libbag.psi.so"
 #define lib_format "libavformat.so"
 #define lib_codec "libavcodec.so"

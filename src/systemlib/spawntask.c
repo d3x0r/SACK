@@ -25,7 +25,16 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <pty.h>
+#  ifdef __MAC__
+     // macOS/BSD has no <pty.h>; forkpty/openpty are declared in <util.h>
+     // (and link from libSystem, so no -lutil is required).  <pty.h> also
+     // pulled in ioctl()/TIOCSWINSZ/struct winsize transitively on linux,
+     // so include <sys/ioctl.h> explicitly here.
+#    include <util.h>
+#    include <sys/ioctl.h>
+#  else
+#    include <pty.h>
+#  endif
 extern char **environ;
 #endif
 

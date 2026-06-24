@@ -224,7 +224,7 @@ void UDPEnableBroadcast( PCLIENT pc, int bEnable )
 				GetAddressParts( pc->saSource, NULL, &port );
 				SetAddressPort( broadcastAddr, port );
 				if( bind( pc->SocketBroadcast, broadcastAddr, SOCKADDR_LENGTH( broadcastAddr ) ) ) {
-               int error = errno;
+					int error = errno;
 					lprintf( "Failed to rebind to broadcast address when enabling... %d", error );
 				}
 				if( setsockopt( pc->SocketBroadcast, SOL_SOCKET

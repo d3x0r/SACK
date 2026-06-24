@@ -219,11 +219,15 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 		// it's the same characteristics... so we should just pass same step XY
 		// oh wait - that's like for lines for sideways stuff... uhmm...should get direction and render 4 bitmaps
 		//lprintf( "Render to image this character... %p", image );
+#if 0
+		// none of the reverse interface paths have this registered
+
 		if( pImage->reverse_interface )
 			PutCharacterFontX( pImage->reverse_interface->_GetNativeImage( image ), 0, 0, 0, 0
 			                 , height
 			                 , BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );
 		else
+#endif
 			PutCharacterFontX( image, 0, 0, 0, 0
 			                 , height
 			                 , BASE_COLOR_WHITE, 0, c, UseFont, OrderPoints, StepXNormal, StepYNormal, TRUE );

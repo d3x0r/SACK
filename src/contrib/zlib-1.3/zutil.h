@@ -144,7 +144,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #      include <unix.h> /* for fdopen */
 #    else
 #      ifndef fdopen
-#        define fdopen(fd,mode) NULL /* No fdopen() */
+//#        define fdopen(fd,mode) NULL /* No fdopen() */
 #      endif
 #    endif
 #  endif
@@ -154,7 +154,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE 13
 #endif
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN__) && !defined( OS_CODE )
 #  define OS_CODE  10
 #endif
 
@@ -166,7 +166,7 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE 18
 #endif
 
-#ifdef __APPLE__
+#if defined( __APPLE__  ) && !defined( OS_CODE) 
 #  define OS_CODE 19
 #endif
 

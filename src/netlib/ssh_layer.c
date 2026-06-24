@@ -18,6 +18,12 @@ static struct local_ssh_layer_data {
 } local_ssh_layer_data;
 
 static LIBSSH2_LISTENER_CONNECT_FUNC( listener_connect_relay );
+static void CPROC ForwardSocketRead( PCLIENT pc, POINTER buffer, size_t length );
+static void CPROC ForwardSocketClose( PCLIENT pc );
+static void ForwardChannelData( uintptr_t psv, int stream, const uint8_t* data, size_t length );
+static void ForwardChannelEOF( uintptr_t psv );
+static void ForwardChannelClose( uintptr_t psv );
+static int OpenForwardDirector( struct ssh_director* director );
 
 #ifdef __cplusplus
 #define set_pending_state(ps,s,...) { pending_state tmp = {s,##__VA_ARGS__}; ps= tmp; }
@@ -275,6 +281,15 @@ static void _readCallback( struct ssh_session* cs, POINTER buffer, size_t length
 					}
 				}
 				break;
+			case SSH_STATE_FORWARD:
+				{
+					struct ssh_director* director = (struct ssh_director*)cs->pending.state_data[0];
+					if( OpenForwardDirector( director ) )
+						cs->pending.state = SSH_STATE_RESET;
+					else
+						break;
+				}
+				break;
 			case SSH_STATE_OPEN_CHANNEL:{
 					CTEXTSTR type = (CTEXTSTR)cs->pending.state_data[0];
 					CTEXTSTR message = (CTEXTSTR)cs->pending.state_data[4];
@@ -465,7 +480,7 @@ static void _readCallback( struct ssh_session* cs, POINTER buffer, size_t length
 				}
 				break;
 			case SSH_STATE_RESET:
-				rc = libssh2_read( cs->session );
+				rc = libssh2_session_read( cs->session );
 				break;
 			}
 			if( rc == LIBSSH2_ERROR_EAGAIN ) break;
@@ -752,6 +767,11 @@ static LIBSSH2_CHANNEL_DATA_FUNC( channel_data_relay ) {
 	ssh_channel->channel_data( ssh_channel->psv, stream, buffer, length );
 }
 
+static LIBSSH2_CHANNEL_REQUEST_FUNC( channel_request_relay ) {
+	struct ssh_channel* ssh_channel = (struct ssh_channel*)channel_abstract[0];
+	ssh_channel->channel_request( ssh_channel->psv, request, request_len );
+}
+
 ssh_channel_data_cb sack_ssh_set_channel_data( struct ssh_channel*channel, ssh_channel_data_cb channel_data ){
 	ssh_channel_data_cb cb = channel->channel_data;
 	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_DATA, (libssh2_cb_generic*)channel_data_relay );
@@ -770,6 +790,13 @@ ssh_channel_close_cb sack_ssh_set_channel_close( struct ssh_channel*channel, ssh
 	ssh_channel_close_cb cb = channel->channel_close;
 	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_CLOSE, (libssh2_cb_generic*)channel_close_relay );
 	channel->channel_close = channel_close;
+	return cb;
+}
+
+ssh_channel_request_cb sack_ssh_set_channel_request( struct ssh_channel*channel, ssh_channel_request_cb channel_request ){
+	ssh_channel_request_cb cb = channel->channel_request;
+	libssh2_channel_callback_set( channel->channel, LIBSSH2_CALLBACK_CHANNEL_REQUEST, (libssh2_cb_generic*)channel_request_relay );
+	channel->channel_request = channel_request;
 	return cb;
 }
 
@@ -1131,6 +1158,7 @@ static void AcceptedClient( PCLIENT pc, PCLIENT pcNew ) {
 	struct ssh_director_listener* listen = (struct ssh_director_listener*)GetNetworkLong( pc, 0 );
 
 	struct ssh_director* director = NewArray( struct ssh_director, 1 );
+	MemSet( director, 0, sizeof( struct ssh_director ) );
 	director->pc = pcNew;
 	director->director = listen;
 
@@ -1143,10 +1171,90 @@ static void AcceptedClient( PCLIENT pc, PCLIENT pcNew ) {
 	}	
 
 	set_pending_state( listen->session->pending, SSH_STATE_FORWARD, { (uintptr_t)director } );
-	libssh2_channel_direct_tcpip_ex( listen->session->session, listen->remoteAddr,
-		listen->remotePort, listen->localAddr, listen->localPort );
+	if( OpenForwardDirector( director ) )
+		listen->session->pending.state = SSH_STATE_RESET;
 	LeaveCriticalSec( &listen->session->csLock );
 
+}
+
+static void CPROC ForwardSocketRead( PCLIENT pc, POINTER buffer, size_t length ) {
+	struct ssh_director* director = (struct ssh_director*)GetNetworkLong( pc, 0 );
+	if( director && director->channel )
+		sack_ssh_channel_write( director->channel, 0, (const uint8_t*)buffer, length );
+}
+
+static void CPROC ForwardSocketClose( PCLIENT pc ) {
+	struct ssh_director* director = (struct ssh_director*)GetNetworkLong( pc, 0 );
+	if( director ) {
+		director->pc = NULL;
+		SetNetworkLong( pc, 0, 0 );
+	}
+	if( director && director->channel )
+		sack_ssh_channel_eof( director->channel );
+}
+
+static void ForwardChannelData( uintptr_t psv, int stream, const uint8_t* data, size_t length ) {
+	struct ssh_director* director = (struct ssh_director*)psv;
+	if( director && director->pc )
+		SendTCP( director->pc, data, length );
+}
+
+static void ForwardChannelEOF( uintptr_t psv ) {
+	struct ssh_director* director = (struct ssh_director*)psv;
+	if( director && director->pc ) {
+		PCLIENT pc = director->pc;
+		director->pc = NULL;
+		SetNetworkLong( pc, 0, 0 );
+		RemoveClient( pc );
+	}
+}
+
+static void ForwardChannelClose( uintptr_t psv ) {
+	ForwardChannelEOF( psv );
+}
+
+static int OpenForwardDirector( struct ssh_director* director ) {
+	int rc;
+	struct ssh_director_listener* listen = director->director;
+	LIBSSH2_CHANNEL *channel = libssh2_channel_direct_tcpip_ex( listen->session->session
+		, listen->remoteAddr, listen->remotePort
+		, listen->localAddr, listen->localPort );
+	if( !channel ) {
+		rc = libssh2_session_last_error( listen->session->session, NULL, NULL, 0 );
+		if( rc == LIBSSH2_ERROR_EAGAIN )
+			return 0;
+		if( listen->connected )
+			listen->connected( listen->session->psv, FALSE );
+		else if( listen->session->forward_connect_cb )
+			listen->session->forward_connect_cb( listen->session->psv, FALSE );
+		SetNetworkLong( director->pc, 0, 0 );
+		RemoveClient( director->pc );
+		ReleaseEx( director DBG_SRC );
+		return 1;
+	} else {
+		struct ssh_channel* ssh_channel = NewArray( struct ssh_channel, 1);
+		MemSet( ssh_channel, 0, sizeof( struct ssh_channel ) );
+		libssh2_channel_abstract( channel )[0] = (void*)ssh_channel;
+		ssh_channel->session = listen->session;
+		ssh_channel->channel = channel;
+		ssh_channel->psv = (uintptr_t)director;
+		ssh_channel->channel_data = ForwardChannelData;
+		ssh_channel->channel_eof = ForwardChannelEOF;
+		ssh_channel->channel_close = ForwardChannelClose;
+		director->session = listen->session;
+		director->channel = ssh_channel;
+		SetNetworkLong( director->pc, 0, (uintptr_t)director );
+		SetNetworkReadComplete( director->pc, ForwardSocketRead );
+		SetNetworkCloseCallback( director->pc, ForwardSocketClose );
+		sack_ssh_set_channel_data( ssh_channel, ForwardChannelData );
+		sack_ssh_set_channel_eof( ssh_channel, ForwardChannelEOF );
+		sack_ssh_set_channel_close( ssh_channel, ForwardChannelClose );
+		if( listen->connected )
+			listen->connected( listen->session->psv, TRUE );
+		else if( listen->session->forward_connect_cb )
+			listen->session->forward_connect_cb( listen->session->psv, TRUE );
+		return 1;
+	}
 }
 
 
@@ -1169,8 +1277,11 @@ PCLIENT sack_ssh_forward_connect( struct ssh_session* session
 
 	}
 	struct ssh_director_listener* director = NewArray( struct ssh_director_listener, 1 );
+	MemSet( director, 0, sizeof( struct ssh_director_listener ) );
 	SetNetworkLong( pc, 0, (uintptr_t)director );
 	director->pc = pc;
+	director->session = session;
+	director->connected = cb;
 	director->remoteAddr = StrDup( remoteAddress );
 	director->remotePort = remotePort;
 	director->localAddr = StrDup( localAddress );

@@ -664,7 +664,8 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 										updating = 0;
 						}
 					}
-					backtrack = backtrack->parent;
+					if (!backtrack->flags.bRoot) backtrack = backtrack->parent;
+					else backtrack = NULL;
 				}
 				if( least ) {
 					node->userdata = least->userdata;
