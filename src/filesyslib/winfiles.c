@@ -1715,31 +1715,34 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 		file->files = NULL;
 		file->name = StrDup( filename );
 		file->mount = mount;
-		if( ( !file->mount || !file->mount->fsi ) && !IsAbsolutePath( filename ) ) {
-			tmpname = ExpandPath( filename );
-			file->fullname = PrependBasePath( group, filegroup, tmpname );
-			Deallocate( TEXTCHAR*, tmpname );
-		}
-		else {
-			if( mount && group == 0 ) {
-				file->fullname = ExpandPath( file->name );
+		if(!StrChr(opts, 'n')) {
+			if( ( !file->mount || !file->mount->fsi ) && !IsAbsolutePath( filename ) ) {
+				tmpname = ExpandPath( filename );
+				file->fullname = PrependBasePath( group, filegroup, tmpname );
+				Deallocate( TEXTCHAR*, tmpname );
+			}
+			else {
+				if( mount && group == 0 ) {
+					file->fullname = ExpandPath( file->name );
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 //				if( ( *winfile_local ).flags.bLogOpenClose )
 //					lprintf( "full is %s", file->fullname );
 #endif
-			}
-			else {
-				TEXTSTR tmp;
-				tmp = PrependBasePathEx( group, filegroup, file->name, !mount );
-				file->fullname = ExpandPath( tmp );
+				}
+				else {
+					TEXTSTR tmp;
+					tmp = PrependBasePathEx( group, filegroup, file->name, !mount );
+					file->fullname = ExpandPath( tmp );
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 //				if( ( *winfile_local ).flags.bLogOpenClose )
 //					lprintf( "full is %s %d", file->fullname, (int)group );
 #endif
-				Deallocate( TEXTSTR, tmp );
-			}
+					Deallocate( TEXTSTR, tmp );
+				}
 			//file->fullname = file->name;
-		}
+			}
+		} else
+			file->fullname = NULL;
 		file->group = group;
 
 		if( !StrChr( opts, 'n' ) && StrChr( file->fullname, '%' ) ) {
@@ -1761,6 +1764,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				if( name[0] == '/' ) name[0] = SYSPATHCHAR[0];
 			}
 		}
+		if (file->fullname)
 		{
 			char* name;
 			for( name = file->fullname; name[0]; name++ ) {
@@ -1778,7 +1782,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 	}
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 	if( ( *winfile_local ).flags.bLogOpenClose )
-		lprintf( "Open File: [%s]", file->fullname );
+		lprintf( "Open File: [%s]", file->fullname ? file->fullname : file->name );
 #endif
 
 	if( mount && mount->fsi ) {
@@ -1789,10 +1793,10 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 					file->mount = test_mount;
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 //					if( ( *winfile_local ).flags.bLogOpenClose )
-//						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname );
+//						lprintf( "Call mount %s to check if file exists %s", test_mount->name, file->fullname ? file->fullname : file->name );
 #endif
-					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname ) ) {
-						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
+					if( test_mount->fsi->exists( test_mount->psvInstance, file->fullname?file->fullname:file->name ) ) {
+						handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname?file->fullname:file->name, opts );
 					}
 					else {
 						errno = ENOENT;
@@ -1815,9 +1819,9 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 				if( test_mount->fsi && test_mount->writeable ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 //					if( ( *winfile_local ).flags.bLogOpenClose )
-//						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname );
+//						lprintf( "Call mount %s to open file %s", test_mount->name, file->fullname ? file->fullname : file->name );
 #endif
-					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname, opts );
+					handle = (FILE*)test_mount->fsi->open( test_mount->psvInstance, file->fullname?file->fullname:file->name, opts );
 				}
 				test_mount = test_mount->nextLayer;
 			}
@@ -1827,7 +1831,7 @@ FILE* sack_fopenEx( INDEX group, CTEXTSTR filename, CTEXTSTR opts, struct file_s
 	if( !GetLinkCount( file->files ) ) {
 #if !defined( __FILESYS_NO_FILE_LOGGING__ )
 		if( ( *winfile_local ).flags.bLogOpenClose )
-			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname );
+			lprintf( "Failed to open file [%s]=[%s]", file->name, file->fullname ? file->fullname : file->name );
 #endif		
 		DeleteLink( &( *winfile_local ).files, file );
 		Deallocate( TEXTCHAR*, file->name );
