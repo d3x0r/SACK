@@ -82,7 +82,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	FILE *file;
 	size_t sz;
 	POINTER data;
-	file = sack_fopenEx( 0, name, "rb", l.rom );
+	file = sack_fopenEx( 0, name, "rbn", l.rom );
 	if( file )
 	{
 		sz = sack_fsize( file );
@@ -109,7 +109,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 				{
 					FILE *out;
 					if( l.verbose ) printf("Update: %s to %s\n", name, target);
-					out = sack_fopenEx( 0, target, l.checkOnly?"rb":"wb", sack_get_default_mount() );
+					out = sack_fopenEx( 0, target, l.checkOnly?"rbn":"wbn", sack_get_default_mount() );
 					if( out ) {
 						if( l.checkOnly ) {
 							size_t existing_size = sack_fsize( out );
@@ -153,7 +153,7 @@ static void CPROC ShowFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFl
 }
 
 static void CPROC ListFile( uintptr_t psv, CTEXTSTR file, enum ScanFileProcessFlags flags ) {
-	FILE* input = sack_fopenEx( 0, file, "r", l.rom );
+	FILE* input = sack_fopenEx( 0, file, "rn", l.rom );
 	size_t size = sack_fsize( input );
 	printf( "%10zd %s\n", size, file );
 }
