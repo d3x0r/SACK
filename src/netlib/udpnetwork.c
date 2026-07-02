@@ -519,7 +519,7 @@ int FinishUDPRead( PCLIENT pc, int broadcastEvent )
 	                    pc->saLastClient,
 	                    &Size);// get address...
 	uintptr_t name = (((uintptr_t*)pc->saLastClient) - 1)[0];
-	if( name ) free( (void*)name );
+	if( name ) ReleaseEx( (void*)name DBG_SRC );
 	(((uintptr_t*)pc->saLastClient) - 1)[0] = 0;
 	// address size in recvfrom on linux results with '256' which
 	// then results with a sockaddr that can't sendto with.

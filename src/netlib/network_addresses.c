@@ -1132,14 +1132,14 @@ const char * GetAddrName( SOCKADDR *addr )
 	if( !tmp )
 	{
 		const char *buf = GetAddrString( addr );
-		((char**)addr)[-1] = strdup( buf );
+		((char**)addr)[-1] = StrDup( buf );
 	}
 	return ((char**)addr)[-1];
 }
 
 void SetAddrName( SOCKADDR *addr, const char *name )
 {
-	((uintptr_t*)addr)[-1] = (uintptr_t)strdup( name );
+	((uintptr_t*)addr)[-1] = (uintptr_t)StrDup( name );
 }
 
 //---------------------------------------------------------------------------
@@ -1215,13 +1215,13 @@ SOCKADDR* DuplicateAddress_6to4_Ex( SOCKADDR *pAddr DBG_PASS )
 			((SOCKADDR_IN*)dup)->sin_addr.S_un.S_addr = ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[6] | ( ((struct sockaddr_in6 *)pAddr)->sin6_addr.s6_words[7] << 16);
 #endif
 			((SOCKADDR_IN*)dup)->sin_port = ((SOCKADDR_IN*)pAddr)->sin_port;
-			SOCKADDR_NAME( dup ) = strdup( GetAddrName( pAddr ) );
+			SOCKADDR_NAME( dup ) = StrDup( GetAddrName( pAddr ) );
 			SET_SOCKADDR_LENGTH( dup, IN_SOCKADDR_LENGTH );
 		}
 	}
 	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
 		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
-				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
+				= StrDup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
 	return dup;
 }
 
@@ -1239,7 +1239,7 @@ SOCKADDR* DuplicateAddressEx( SOCKADDR *pAddr DBG_PASS )
 	MemCpy( tmp2, tmp, SOCKADDR_LENGTH( pAddr ) + 2*sizeof(uintptr_t) );
 	if( ((char**)( ( (uintptr_t)pAddr ) - sizeof(char*) ))[0] )
 		( (char**)( ( (uintptr_t)dup ) - sizeof( char* ) ) )[0]
-				= strdup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
+				= StrDup( ((char**)( ( (uintptr_t)pAddr ) - sizeof( char* ) ))[0] );
 
 	//lprintf( "original:");
 	//LogBinary( (const uint8_t*)tmp, MAGIC_SOCKADDR_LENGTH + 2*sizeof(uintptr_t) );
@@ -1907,8 +1907,7 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 	// sockaddr is often skewed from what I would expect it. (contains its own length)
 	if( lpsaAddr )
 	{
-		/* strdup is used for the addr part so use free instead of release */
-		free( ((POINTER*)( ( (uintptr_t)lpsaAddr ) - sizeof(uintptr_t) ))[0] );
+		ReleaseEx( ((POINTER*)( ( (uintptr_t)lpsaAddr ) - sizeof(uintptr_t) ))[0] DBG_SRC );
 		DeleteFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
 		//Deallocate(POINTER, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
 	}
@@ -2162,7 +2161,7 @@ void LoadNetworkAddresses( void ) {
 void LoadNetworkAddresses( void ) {
 	// Declare and initialize variables
 	PIP_INTERFACE_INFO pInfo;
-	pInfo = (IP_INTERFACE_INFO *) malloc( sizeof(IP_INTERFACE_INFO) );
+	pInfo = New( IP_INTERFACE_INFO );
 	DWORD dwRetVal = 0;
 
 	PIP_ADAPTER_INFO pAdapterInfo;
@@ -2172,7 +2171,7 @@ void LoadNetworkAddresses( void ) {
 	pAdapterInfo = New(IP_ADAPTER_INFO);
 	if (pAdapterInfo == NULL) {
 		lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
-		free( pInfo );
+		ReleaseEx( pInfo DBG_SRC );
 		return;
 	}
 	// Make an initial call to GetAdaptersInfo to get
@@ -2182,7 +2181,7 @@ void LoadNetworkAddresses( void ) {
 		pAdapterInfo = (IP_ADAPTER_INFO *) NewArray(uint8_t, ulOutBufLen);
 		if (pAdapterInfo == NULL) {
 			lprintf("Error allocating memory needed to call GetAdaptersinfo\n");
-			free( pInfo );
+			ReleaseEx( pInfo DBG_SRC );
 			return;
 		}
 	}

@@ -893,6 +893,7 @@ void EndHttp( struct HttpState *pHttpState )
 		struct HttpField *field;
 		LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 		{
+			SetLink(&pHttpState->fields, idx, NULL);
 			LineRelease( field->name );
 			LineRelease( field->value );
 			Release( field );
@@ -900,6 +901,7 @@ void EndHttp( struct HttpState *pHttpState )
 		EmptyList( &pHttpState->fields );
 		LIST_FORALL( pHttpState->cgi_fields, idx, struct HttpField *, field )
 		{
+			SetLink(&pHttpState->cgi_fields, idx, NULL);
 			LineRelease( field->name );
 			LineRelease( field->value );
 			Release( field );
@@ -1127,9 +1129,11 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 		}
 		else
 #endif
-		{
+		if( state ) {
 			state->buffer = Allocate( 4096 );
 			ReadTCP( pc, state->buffer, 4096 );
+		} else {
+			lprintf( "Initial read on http with no state set?" );
 		}
 	}
 	else
@@ -1141,7 +1145,10 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 			LogBinary( (const uint8_t*) buffer, size );
 		}
 #endif
-		if( AddHttpData( state, buffer, size ) ) {
+		if( !state ) {
+			lprintf( "Http state was stolen before the read into it?" );
+			
+		} else if( AddHttpData( state, buffer, size ) ) {
 			enum ProcessHttpResult r;
 			if( ( r = ProcessHttp( state, NULL, 0 ) ) ) // this shouldn't cause any auto send?
 			{
@@ -1228,6 +1235,8 @@ static void CPROC HttpConnected( PCLIENT pc, int error ) {
 	if( connect ) {
 		SetNetworkLong( pc, 0, (uintptr_t)connect->state );
 		Release( connect );
+	} else {
+		lprintf( "Pending connect didn't have a connection; so we didn't set a http State" );
 	}
 	//lprintf( "Got connected... so connect gets released?");
 }
@@ -1289,39 +1298,17 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 
 static void httpConnected( PCLIENT pc, int error ) {
 	struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 0 );
-	if( error ) {
-		pHttpState->options->connectError = error;
-		lprintf( "This is a request, and it failed with error %d", error );
-		RemoveClient( pc );
-	}
-	else {
-		pHttpState->options->connected = TRUE;
-	}	
-	if(0)
-	{
-		INDEX idx;
-		struct pendingConnect *connect;
-		//lprintf( "Connection for http: %p", pc );
-		while( 1 ) {
-			LIST_FORALL( l.pendingConnects, idx, struct pendingConnect *, connect ) {
-				if( connect->pc == pc ) {
-					//lprintf( "Found pending connect(http): %p %d", connect, idx );
-					SetLink( &l.pendingConnects, idx, NULL );
-					break;
-				}
-			}
-			if( connect )
-				break;
-			else {
-				AddLink( &l.activeConnects, pc );
-				break;
-			}
-			Relinquish();
+	if( pHttpState ) {
+		if( error ) {
+			pHttpState->options->connectError = error;
+			lprintf( "This is a request, and it failed with error %d", error );
+			RemoveClient( pc );
 		}
-		if( connect ){
-			SetNetworkLong( pc, 0, (uintptr_t)connect->state );
-			Release( connect );
-		}
+		else {
+			pHttpState->options->connected = TRUE;
+		}	
+	} else {
+		lprintf( "Client in connected should already have a state set too...." );
 	}
 }
 

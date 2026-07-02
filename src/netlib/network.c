@@ -263,6 +263,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	uintptr_t* pbtemp;
 	PCLIENT next;
 	PCLIENT *me;
+	SOCKADDR *sa_rel;
 	CRITICALSECTION csr;
 	CRITICALSECTION csw;
 	// keep the closing flag until it's really been closed. (getfreeclient will try to nab it)
@@ -278,8 +279,12 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	csw = pc->csLockWrite;
 	DeleteListEx( &pc->psvInUse DBG_SRC );
 	// these are memset to 0 afterward... 
-	ReleaseAddress( pc->saClient );
-	ReleaseAddress( pc->saSource );
+	sa_rel = pc->saClient;
+	pc->saClient = NULL;
+	ReleaseAddress( sa_rel );
+	sa_rel = pc->saSource;
+	pc->saSource = NULL;
+	ReleaseAddress( sa_rel );
 #if _WIN32
 	if( pc->event ) {
 		if( globalNetworkData.flags.bLogNotices )

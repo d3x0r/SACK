@@ -157,7 +157,7 @@ void AcceptClient(PCLIENT pListen)
 			DumpAddr( " Failed from:", pNewClient->saClient);
 			lprintf( "getsockname errno = %d", errno );
 		}
-		if( SOCKADDR_NAME( pNewClient->saSource) ) free( SOCKADDR_NAME( pNewClient->saSource ) );
+		if( SOCKADDR_NAME( pNewClient->saSource) ) ReleaseEx( SOCKADDR_NAME( pNewClient->saSource ) DBG_SRC );
 		SOCKADDR_NAME( pNewClient->saSource ) = NULL;
 		//lprintf( "sockaddrlen: %d", nLen );
 		if( pNewClient->saSource->sa_family == AF_INET )
