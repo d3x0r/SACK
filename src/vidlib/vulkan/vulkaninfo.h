@@ -19,6 +19,7 @@
 struct SwapChainBuffer {
 	VkImage image;
 	VkImageView view;
+	VkCommandBuffer commandBuffer;
 };
 
 // this is more like 'VulkanPipeline' or 'VulkanContext'

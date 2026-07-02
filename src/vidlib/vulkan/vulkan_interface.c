@@ -75,7 +75,7 @@ void drawFrame( struct display_camera* camera ) {
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &camera->context.buffers[imageIndex];
+	submitInfo.pCommandBuffers = &camera->context.buffers[imageIndex].commandBuffer;
 
 	VkSemaphore signalSemaphores[] = { camera->context.renderFinishedSemaphore };
 	submitInfo.signalSemaphoreCount = 1;
@@ -176,7 +176,7 @@ struct QueueFamilyIndices  findQueueFamilies( VkPhysicalDevice device ) {
 	// Logic to find graphics queue family
 }
 void createCommandPool( struct VulkanContext *context ) {
-	struct QueueFamilyIndices queueFamilyIndices = findQueueFamilies( context->device );
+	struct QueueFamilyIndices queueFamilyIndices = findQueueFamilies( context->physicalDevice );
 
 	VkCommandPoolCreateInfo poolInfo = {0};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -207,7 +207,7 @@ void createCommandBuffers( struct VulkanContext* context,  VkCommandBuffer *buff
 
 }
 
-uint32_t findMemoryType( VkDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties ) {
+uint32_t findMemoryType( VkPhysicalDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties ) {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties( device, &memProperties );
 	for( uint32_t i = 0; i < memProperties.memoryTypeCount; i++ ) {
@@ -223,7 +223,7 @@ uint32_t findMemoryType( VkDevice device, uint32_t typeFilter, VkMemoryPropertyF
 }
 
 
-struct sack_vulkan_buffer *createVertexBuffer( VkDevice device, POINTER p, int cnt, size_t sz ) {
+struct sack_vulkan_buffer *createVertexBuffer(VkPhysicalDevice p_device, VkDevice device, POINTER p, int cnt, size_t sz ) {
 	VkBufferCreateInfo bufferInfo;
 	struct sack_vulkan_buffer *vulkan_buffer = New( struct sack_vulkan_buffer );
 
@@ -240,14 +240,14 @@ struct sack_vulkan_buffer *createVertexBuffer( VkDevice device, POINTER p, int c
 
 	VkMemoryRequirements memRequirements;
 	vkGetBufferMemoryRequirements( device, vulkan_buffer->buffer, &memRequirements );
-	uint32_t n = findMemoryType( device, memRequirements.memoryTypeBits
+	uint32_t n = findMemoryType( p_device, memRequirements.memoryTypeBits
 	                           , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 
 	VkMemoryAllocateInfo allocInfo;
 	allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize  = memRequirements.size;
-	allocInfo.memoryTypeIndex = findMemoryType(device,
+	allocInfo.memoryTypeIndex = findMemoryType(p_device,
 	     memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT );
 
 
@@ -1003,6 +1003,7 @@ LOGICAL swapChainCreate( struct VulkanContext *swapChain,
 
 										   // Wire them up
 			swapChain->buffers[i].image = swapChain->images[i];
+			swapChain->buffers[i].commandBuffer = commandBuffer;
 			// Transform images from the initial (undefined) layer to
 			// present layout
 			setImageLayout( commandBuffer,
