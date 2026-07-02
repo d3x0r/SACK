@@ -13,9 +13,9 @@ IMAGE_NAMESPACE
 void SetupImageCommandBuffer( Image image ) {
 	image->commandBuffers = NewArray( VkCommandBuffer, 2 );
 	if( !image->pParent )
-		createCommandBuffers( l.vkActiveSurface, image->commandBuffers, 1, TRUE );
+		createCommandBuffers( l.vkActiveSurface->device, image->commandBuffers, 1, TRUE );
 	else
-		createCommandBuffers( l.vkActiveSurface, image->commandBuffers, 1, FALSE );
+		createCommandBuffers( l.vkActiveSurface->device, image->commandBuffers, 1, FALSE );
 
 }
 

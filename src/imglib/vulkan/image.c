@@ -59,7 +59,7 @@ static uintptr_t OnInit3d( "@00 Vulkan Image Library" )( struct VulkanContext *d
                                                          PTRANSFORM camera, RCOORD *pIdentity_depty, RCOORD *aspect ) {
 	INDEX idx;
 	struct sack_vkSurfaceData *vkSurface;
-	LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, vkSurface )
+	LIST_FORALL( l.vkSurface, idx, struct sack_vkSurfaceData*, vkSurface )
 	{
 		if( (vkSurface->T_Camera == camera )
 		  && (vkSurface->identity_depth == pIdentity_depty )
@@ -134,18 +134,18 @@ static uintptr_t CPROC ReleaseTexture( POINTER p, uintptr_t psv )
    return 0;
 }
 
-static void ReleaseTextures( struct glSurfaceData *glSurface )
+static void ReleaseTextures( struct sack_vkSurfaceData *vkSurface )
 {
-   ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (uintptr_t)glSurface );
+   ForAllInSet( ImageFile, image_common_local.Images, ReleaseTexture, (uintptr_t)vkSurface );
 }
 
 static void OnClose3d( "@00 Vulkan Image Library" )( uintptr_t psvInit )
 {
-	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
+	struct sack_vkSurfaceData *vkSurface = (struct sack_vkSurfaceData*)psvInit;
 	//lprintf( "cleaning up shaders here..." );
-	CloseShaders( glSurface );
+	CloseShaders( vkSurface );
 	//lprintf( "and we release textures; so they can be recreated" );
-	ReleaseTextures( glSurface );
+	ReleaseTextures( vkSurface );
 }
 
 static void OnBeginDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit, PTRANSFORM camera )
@@ -162,8 +162,8 @@ static void OnBeginDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit, PTRA
 
 static void OnDraw3d( "@00 Vulkan Image Library" )( uintptr_t psvInit )
 {
-	struct glSurfaceData *glSurface = (struct glSurfaceData *)psvInit;
-	FlushShaders( glSurface );
+	struct sack_vkSurfaceData *vkSurface = (struct sack_vkSurfaceData *)psvInit;
+	FlushShaders( vkSurface );
 }
 
 int ReloadOpenGlTexture( Image child_image, int option )
@@ -311,7 +311,7 @@ void MarkImageUpdated( Image child_image )
 		INDEX idx;
 		struct sack_vkSurfaceData *data;
 		struct vkSurfaceImageData *current_image_data = NULL;
-		LIST_FORALL( l.vkSurface, idx, struct vkSurfaceData *, data )
+		LIST_FORALL( l.vkSurface, idx, struct sack_vkSurfaceData *, data )
 		{
 			struct vkSurfaceImageData *image_data;
 			image_data = (struct vkSurfaceImageData *)GetLink( &image->vkSurface, idx );
