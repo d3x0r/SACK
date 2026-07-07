@@ -299,6 +299,7 @@ void GatherHttpData( struct HttpState *pHttpState )
 			if( !pHttpState->flags.no_content_length ) {
 				pHttpState->content = pHttpState->partial;
 				pHttpState->content_length = GetTextSize( pHttpState->content );
+				pHttpState->partial = NULL;
 			}
 		}
 	}
