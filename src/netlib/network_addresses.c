@@ -517,6 +517,7 @@ ATEXIT( CloseMacThread ){
 
 static int rtnetlink_socket = -1;
 static int rtnetlink_seq = 0;
+static int requestProcessing = 0;
 
 static void RequestNeighborDump( void ) {
 	struct {
@@ -524,6 +525,7 @@ static void RequestNeighborDump( void ) {
 		struct ndmsg ndm;
 	} req;
 	if( rtnetlink_socket < 0 ) return;
+	if (requestProcessing) return;
 	memset( &req, 0, sizeof( req ) );
 	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
 	req.nlh.nlmsg_type = RTM_GETNEIGH;
@@ -611,6 +613,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 					switch( res->nl.nlmsg_type ) {
 						case NLMSG_DONE:
 							// end of dump; should send information here.
+							requestProcessing = FALSE;
 							break;
 						case RTM_DELNEIGH: {
 							// kernel dropped this neighbor; drop the cached entry too.
@@ -648,7 +651,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 									DumpAddr( "Neighbor deleted", sa );
 #endif
-									RemoveBinaryNode( mac_data.pbtAddresses, (POINTER)gone, (uintptr_t)sa );
+									//RemoveBinaryNode( mac_data.pbtAddresses, (POINTER)gone, (uintptr_t)sa );
 								}
 							}
 							break;
