@@ -1035,10 +1035,13 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 			//TODO if less than zero return a (high/low)portion of the  hardware address (MAC).
 		}
 	}
-	else if( nLong < globalNetworkData.nUserData )
-		return lpClient->lpUserData[nLong];
+	else if( nLong < globalNetworkData.nUserData ) {
+		if( lpClient->lpUserData )
+			return lpClient->lpUserData[nLong];
+		else lprintf( "User data wasn't set on socket... %d", nLong );
+	}
 
-	return (uintptr_t)-1;   //spv:980303
+	return (uintptr_t)-1;
 }
 
 //----------------------------------------------------------------------------
@@ -1408,6 +1411,9 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		lpClient->dwFlags |= CF_WANTCLOSE;
 	} else {
 		int n = 0;
+		if( !(lpClient->dwFlags & CF_ACTIVE )
+			|| lpClient->dwFlags & CF_CLOSED )
+			return;
 		// UDP still needs to be done this way...
 		// socket not connected; shutdown will not work.
 		//lprintf( "This will end up resetting the socket?" );
