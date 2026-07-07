@@ -515,6 +515,25 @@ ATEXIT( CloseMacThread ){
 	WakeThread( macThread );
 }
 
+static int rtnetlink_socket = -1;
+static int rtnetlink_seq = 0;
+
+static void RequestNeighborDump( void ) {
+	struct {
+		struct nlmsghdr nlh;
+		struct ndmsg ndm;
+	} req;
+	if( rtnetlink_socket < 0 ) return;
+	memset( &req, 0, sizeof( req ) );
+	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
+	req.nlh.nlmsg_type = RTM_GETNEIGH;
+	req.nlh.nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+	req.nlh.nlmsg_seq = ++rtnetlink_seq;
+	req.ndm.ndm_family = 0;
+	send( rtnetlink_socket, (struct msghdr*)&req, sizeof(req), 0 );
+}
+
+
 static uintptr_t MacThread( PTHREAD thread ) {
 
 	int stat;
@@ -550,20 +569,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 		lprintf( "Unable to bind netlink socket %s", strerror( errno ) );
 		return 0;
 	}
-	int seq;
-
-	struct {
-	struct nlmsghdr nlh;
-	struct ndmsg ndm;
-	char buf[256];
-	} req;
-	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
-	req.nlh.nlmsg_type = RTM_GETNEIGH;
-	req.nlh.nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
-	req.nlh.nlmsg_seq =  ++seq;
-	req.ndm.ndm_family = 0;
-
-	send( rtnetlink_socket, (struct msghdr*)&req, sizeof(req), 0);
+	RequestNeighborDump();
 
 	while( !macThreadEnd ) {
 		//sendmsg( rtnetlink_socket, (struct msghdr*)&req, 0);
@@ -601,13 +607,55 @@ static uintptr_t MacThread( PTHREAD thread ) {
 #endif						
 					struct rtattr *attr = (struct rtattr*)(res+1);
 					//lprintf( "message:%d", res->nl.nlmsg_type );
+
 					switch( res->nl.nlmsg_type ) {
 						case NLMSG_DONE:
 							// end of dump; should send information here.
 							break;
-						case RTM_DELNEIGH:
-							// should probably delete the entry in the tree here...
+						case RTM_DELNEIGH: {
+							// kernel dropped this neighbor; drop the cached entry too.
+							uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
+							memset( addrbuf, 0, sizeof( addrbuf ) );
+							((uintptr_t*)addrbuf)[0] = 3;
+							((uintptr_t*)addrbuf)[1] = 0;
+							SOCKADDR *sa = (SOCKADDR*)(addrbuf + sizeof(uintptr_t) * 2);
+							sa->sa_family = res->rt.ndm_family;
+							size_t attLen = res->nl.nlmsg_len - sizeof( *res );
+							size_t attOfs = priorLen + sizeof( *res );
+							LOGICAL destFound = FALSE;
+							while( attLen ) {
+								struct rtattr *attr = (struct rtattr*)(buf+attOfs);
+								if( !attr->rta_len )
+									break;
+								if( attr->rta_type == NDA_DST ) {
+									destFound = TRUE;
+									if( res->rt.ndm_family == AF_INET ) {
+										((uint32_t*)(sa->sa_data+2))[0] = ((uint32_t*)(attr+1))[0];
+										SET_SOCKADDR_LENGTH( sa, IN_SOCKADDR_LENGTH );
+									} else {
+										((uint64_t*)(sa->sa_data+6))[0] = ((uint64_t*)(attr+1))[0];
+										((uint64_t*)(sa->sa_data+6))[1] = ((uint64_t*)(attr+1))[1];
+										SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
+									}
+									break;
+								}
+								attOfs += attr->rta_len;
+								attLen -= attr->rta_len;
+							}
+							if( destFound ) {
+								struct addressNode *gone = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa );
+								if( gone ) {
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+									DumpAddr( "Neighbor deleted", sa );
+#endif
+									RemoveBinaryNode( mac_data.pbtAddresses, (POINTER)gone, (uintptr_t)sa );
+								}
+							}
 							break;
+						}
+						//case RTM_DELNEIGH:
+						//	// should probably delete the entry in the tree here...
+						//	break;
 						case RTM_NEWNEIGH:
 							//LogBinary( (uint8_t*)(res), res->nl.nlmsg_len );
 							/*
@@ -621,6 +669,8 @@ static uintptr_t MacThread( PTHREAD thread ) {
 							// state == NUD_INCOMPLETE, NUD_REACHABLE, NUD_STALE, NUD_DELAY, NUD_PROBE, NUD_FAILED, NUD_NORARP,NUD_PERMANENT
 							// flags == NTF_PROXY, NTF_ROUTER
 							// 
+							if( res->rt.ndm_state & (NUD_INCOMPLETE|NUD_FAILED) )
+								break; // no lladdr yet/ever; a later NEWNEIGH will carry it
 							{
 								uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
 
@@ -649,6 +699,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 									destFound = linkFound = FALSE;
 									do {
 										struct rtattr *attr = (struct rtattr*)(buf+attOfs);
+
 										if( !attr->rta_len )
 											break;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
@@ -670,7 +721,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 													SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
 												}
 												//LogMacAddress( &newAddress );
-												if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
+												if( existing = FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
 													duplicated = TRUE;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 													DumpAddr( "Duplicate address notification", sa );
@@ -696,9 +747,10 @@ static uintptr_t MacThread( PTHREAD thread ) {
 												memcpy( newAddress.remoteHw, (attr+1), 6 );
 												break;
 											case NDA_PROBES: {
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 												uint32_t *probes = (uint32_t*)(attr+1);
-												lprintf( "Probes: %d %d %d", probes[0], probes[1], probes[2] );
-
+												lprintf( "Probes: %d", probes[0] );
+#endif
 												break;
 											}
 											case NDA_CACHEINFO:{
@@ -717,11 +769,15 @@ static uintptr_t MacThread( PTHREAD thread ) {
 										attLen -= attr->rta_len;
 									} while( !duplicated && attLen );
 									if( !linkFound || !destFound || duplicated ) {
-//#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+										if( duplicated ) {
+											memcpy( existing->remoteHw, newAddress.remoteHw, 6 );
+											memcpy( existing->localHw,  newAddress.localHw,  6 );
+										}
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 										if( !duplicated )
 											if( !linkFound || !destFound )
 												lprintf( "Network Address was incomplete: %s %s", linkFound?"":"Link Address", destFound?"":"Destination Address" );
-//#endif											
+#endif											
 										break;
 									}
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
@@ -860,6 +916,7 @@ static void ReadNeighborTable( void ) {
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
+	struct addressNode *newAddress = NULL;
 	if( pc->dwFlags & CF_AVAILABLE ) 
 		return FALSE;
 	if( !mac_data.pbtAddresses )
@@ -868,6 +925,10 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
 	// clear Port for later... 
 	saDup->sa_data[0] = 0;
 	saDup->sa_data[1] = 0;
+
+	// default result: unresolved = zero MACs; success paths overwrite.
+	memset( bufLocal, 0, 6 );  (*bufLocalLen) = 6;
+	memset( bufRemote, 0, 6 ); (*bufRemoteLen) = 6;
 
 #if defined( __LINUX__ ) && !defined( __MAC__ )
 retry:
@@ -884,9 +945,8 @@ retry:
 	if( oldAddress )
 	{
 		MemCpy( bufLocal, oldAddress->localHw, 6 );
-		(*bufLocalLen) = 6;
 		MemCpy( bufRemote, oldAddress->remoteHw, 6 );
-		(*bufRemoteLen) = 6;
+		if( newAddress ) DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
 		ReleaseAddress( saDup );
 		return TRUE;
 	}
@@ -899,10 +959,6 @@ retry:
 	     && MemCmp( saDup->sa_data+2, "\x7f\0\0\x01", 4 ) == 0 ) )
 	{
 		// localhost
-		memset( bufLocal, 0, 6 );
-		(*bufLocalLen) = 6;
-		memset( bufRemote, 0, 6 );
-		(*bufRemoteLen) = 6;
 		ReleaseAddress( saDup );
 		return TRUE;
 	}
@@ -911,8 +967,12 @@ retry:
 	if( !macThread ) macThread = ThreadTo( MacThread, 0 );
 #endif
 	int addr;
-	struct addressNode *newAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//  (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
-	newAddress->remote = saDup;
+	if( !newAddress ) {
+		newAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//  (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+		memset( newAddress->localHw, 0, 6 );
+		memset( newAddress->remoteHw, 0, 6 );
+		newAddress->remote = saDup;
+	}
 
 	for( addr = 0; addr < mac_data.addressCount; addr++ ) {
 		if( mac_data.addresses[addr] && saDup->sa_family == mac_data.addresses[addr]->remote->sa_family ) {
@@ -938,6 +998,7 @@ retry:
 		}	
 	}
 	int local_addr;
+
 	SOCKADDR *saSource = DuplicateAddress_6to4( pc->saSource );
 	for( local_addr = 0; local_addr < mac_data.addressCount; local_addr++ ) {
 		if( mac_data.addresses[local_addr] && saDup->sa_family == mac_data.addresses[local_addr]->remote->sa_family ) {
@@ -948,8 +1009,8 @@ retry:
 					break;
 				}					
 			} else {
-				if( ((uint64_t*)(saDup->sa_data+6))[0] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[0]
-				  && ((uint64_t*)(saDup->sa_data+6))[1] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[1] ) {
+				if( ((uint64_t*)(saSource->sa_data+6))[0] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[0]
+				  && ((uint64_t*)(saSource->sa_data+6))[1] == ((uint64_t*)(mac_data.addresses[local_addr]->remote->sa_data+6))[1] ) {
 					MemCpy( bufLocal, mac_data.hwaddrs[mac_data.addr_ifIndexes[local_addr]], 6 );
 					(*bufLocalLen) = 6;	
 					break;
@@ -961,14 +1022,9 @@ retry:
 	MemCpy( newAddress->localHw, bufLocal, 6 );
 
 
-	if( addr == mac_data.addressCount ) {
-		//lprintf( "No matching address mask found... maybe just fake add this entry for the future?" );
-		memset( newAddress->remoteHw, 0, 6 );
-		(*bufRemoteLen) = 6;
+	if( addr == mac_data.addressCount || local_addr == mac_data.addressCount ) {
 		// keep this remote address for future checks...
 		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
-		memset( bufRemote, 0, 6 );
-		(*bufRemoteLen) = 6;
 		return TRUE;
 	}
 
@@ -994,23 +1050,21 @@ retry:
 	// caller retry later once traffic has populated the cache.
 	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
 	ReleaseAddress( saDup );
-	memset( bufRemote, 0, 6 );
-	(*bufRemoteLen) = 6;
 	return FALSE;
 #elif defined( __LINUX__ )
-	AddLink( &macWaiters, MakeThread() );
+	PTHREAD thread = MakeThread();
+	AddLink( &macWaiters, thread );
+	RequestNeighborDump();
 	uint64_t waitTime = timeGetTime64() + 500;
-	while( !macTableUpdated && !threadFailed ) {
+	while( !macTableUpdated && !( threadFailed || ( timeGetTime64() > waitTime ) ) ) {
 		// guess I should check to see if it is even possible to resolve with netmask...
 		WakeableSleep( 500 );
 	}
+	DeleteLink( &macWaiters, thread );
 	if( threadFailed || ( timeGetTime64() > waitTime ) ) {
 		//lprintf( "Timeout waiting for mac address" );
+		DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
 		ReleaseAddress( saDup );
-		memset( bufLocal, 0, 6 );
-		(*bufLocalLen) = 6;
-		memset( bufRemote, 0, 6 );
-		(*bufRemoteLen) = 6;
 		return TRUE;
 	}
 	goto retry;
@@ -1026,20 +1080,21 @@ retry:
 
 	row.InterfaceIndex = mac_data.ifIndexes[mac_data.addr_ifIndexes[local_addr]];
 	hr = ResolveIpNetEntry2( &row, (SOCKADDR_INET*)GetNetworkLong( pc, GNL_LOCAL_ADDRESS) );
-	lprintf( "hr=%d", hr );
+	//lprintf( "hr=%d", hr );
 	if( hr == S_OK ) {
-		MemCpy( newAddress->remoteHw, row.PhysicalAddress, row.PhysicalAddressLength );
+		int sz = (int)( row.PhysicalAddressLength<6?row.PhysicalAddressLength:6 );
+		MemCpy( newAddress->remoteHw, row.PhysicalAddress, sz );
 		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
-		MemCpy( bufRemote, row.PhysicalAddress, row.PhysicalAddressLength );
-		(*bufRemoteLen) = row.PhysicalAddressLength;
-		lprintf( "Resolve addr: %d  %d", local_addr, hr );
+		MemCpy( bufRemote, row.PhysicalAddress, sz );
+		(*bufRemoteLen) = sz;
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+		// resolved in-time...
+		lprintf( "Resolved addr (RIT): %d  %d", local_addr, hr );
+#endif
 		return TRUE;
-	} else {
-		ReleaseAddress( saDup);
-		memset( bufRemote, 0, 6 );
-		(*bufRemote) = 0;
-		return FALSE;
 	}
+	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+	ReleaseAddress( saDup);
 	return FALSE;
 #  endif
 }
