@@ -697,6 +697,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 									size_t attLen = res->nl.nlmsg_len-sizeof( *res);
 									size_t attOfs = priorLen + sizeof( *res );
 									destFound = linkFound = FALSE;
+									struct addressNode *existing;
 									do {
 										struct rtattr *attr = (struct rtattr*)(buf+attOfs);
 
@@ -721,7 +722,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 													SET_SOCKADDR_LENGTH( sa, IN6_SOCKADDR_LENGTH );
 												}
 												//LogMacAddress( &newAddress );
-												if( existing = FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
+												if( existing = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa ) ) {
 													duplicated = TRUE;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 													DumpAddr( "Duplicate address notification", sa );
