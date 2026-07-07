@@ -211,10 +211,18 @@ static PCLIENT AddAvailable( PCLIENT pClient )
 	{
 		pClient->dwFlags |= CF_AVAILABLE;
 		pClient->LastEvent = timeGetTime();
-		pClient->me = &globalNetworkData.AvailableClients;
-		if( ( pClient->next = globalNetworkData.AvailableClients ) )
-			globalNetworkData.AvailableClients->me = &pClient->next;
-		globalNetworkData.AvailableClients = pClient;
+		PCLIENT lastClient = globalNetworkData.AvailableClients;
+		while( lastClient && lastClient->next ) lastClient = lastClient->next;
+		if( lastClient ) {
+			lastClient->next = pClient;
+			pClient->me = &lastClient->next;
+			pClient->next = NULL;
+		} else {
+			pClient->me = &globalNetworkData.AvailableClients;
+			if( ( pClient->next = globalNetworkData.AvailableClients ) )
+				globalNetworkData.AvailableClients->me = &pClient->next;
+			globalNetworkData.AvailableClients = pClient;
+		}
 	}
 	return pClient;
 }
