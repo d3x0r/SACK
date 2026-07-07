@@ -806,6 +806,8 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		if( pHttpState->numeric_code == 500 )
 			return HTTP_STATE_INTERNAL_SERVER_ERROR;
 		if( pHttpState->content && ( (pHttpState->numeric_code == 201) || (pHttpState->numeric_code == 200) ) ) {
+			pHttpState->final = FALSE; // this returned the correct status for this; no new data, 
+			                           // next should be a NEW request... (or end of stream)
 			return HTTP_STATE_RESULT_CONTENT;
 		}
 		if( pHttpState->numeric_code == 100 )
@@ -1172,7 +1174,7 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 
 	// read is handled by the SSL layer instead of here.  Just trust that someone will give us data later
-	if( buffer && ( !state || ( state && !state->ssl ) ) )
+	if( buffer && state && !state->ssl )
 	{
 		ReadTCP( pc, state->buffer, 4096 );
 	}
