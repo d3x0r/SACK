@@ -517,15 +517,21 @@ ATEXIT( CloseMacThread ){
 
 static int rtnetlink_socket = -1;
 static int rtnetlink_seq = 0;
-static int requestProcessing = 0;
-
 static void RequestNeighborDump( void ) {
+	static uint64_t last_request;
+	uint64_t now = timeGetTime64();
+	// if there was a request, and it was recnt, just skip
+	if( last_request && (last_request < now) ){
+		last_request = now + 250;
+		return;
+	}
+	// update the new last_reqeust to now plus some...
+	last_request = now + 250;
 	struct {
 		struct nlmsghdr nlh;
 		struct ndmsg ndm;
 	} req;
 	if( rtnetlink_socket < 0 ) return;
-	if (requestProcessing) return;
 	memset( &req, 0, sizeof( req ) );
 	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
 	req.nlh.nlmsg_type = RTM_GETNEIGH;
@@ -584,6 +590,9 @@ static uintptr_t MacThread( PTHREAD thread ) {
 				if( errno == EAGAIN || errno == EWOULDBLOCK ) {
 					//lprintf( "No data available" );
 					Relinquish();
+				} else if( errno == ENOBUFS ) {
+					//lprintf( "No data available" );
+					// too many sends happened, they should have been throttled...
 				} else{
 					lprintf( "Error: %s", strerror( errno ) );
 					loop = 0;
@@ -613,7 +622,6 @@ static uintptr_t MacThread( PTHREAD thread ) {
 					switch( res->nl.nlmsg_type ) {
 						case NLMSG_DONE:
 							// end of dump; should send information here.
-							requestProcessing = FALSE;
 							break;
 						case RTM_DELNEIGH: {
 							// kernel dropped this neighbor; drop the cached entry too.
