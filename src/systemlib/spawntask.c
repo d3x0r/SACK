@@ -547,7 +547,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 															  , TaskOutput OutputHandler2
 															  , TaskEnd EndNotice
 															  , uintptr_t psv
-															  , PLIST list
+															  , PNVLIST list
 																DBG_PASS
 															  )
 {

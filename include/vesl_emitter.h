@@ -48,7 +48,7 @@ VESL_EMITTER_PROC( int, vesl_parse_add_data )( struct vesl_parse_state *context
 
 
 // these are common functions that work for VESL stream parsers
-VESL_EMITTER_PROC( PDATALIST, vesl_parse_get_data )( struct vesl_parse_state *context );
+VESL_EMITTER_PROC( PNVDATALIST, vesl_parse_get_data )( struct vesl_parse_state *context );
 VESL_EMITTER_PROC( void, vesl_parse_dispose_state )( struct vesl_parse_state **context );
 // when an error occurs during streaming, use this to reset the parser and continue
 // using the existing parser.

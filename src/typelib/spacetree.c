@@ -2189,7 +2189,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 	BrowseSpaceTreeEx( root, FitTableGrid, (uintptr_t)table );
 	{
 		INDEX row, col;
-		PLIST cols;
+		PNVLIST cols;
 		vtprintf( pvt_output,  "<table border=\"1\">\r\n" );
 		{
 			int n;
@@ -2201,7 +2201,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 			}
 			vtprintf( pvt_output, "</colgroup>\n" );
 		}
-		LIST_FORALL( table->row_cells, row, PLIST, cols )
+		LIST_FORALL( table->row_cells, row, PNVLIST, cols )
 		{
 			PSPACENODE node;
 			vtprintf( pvt_output, "<tr>" );
@@ -2230,7 +2230,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 	GlobTableGrid( table );
 	{
 		INDEX row, col;
-		PLIST cols;
+		PNVLIST cols;
 		int output_row = 0;
 		vtprintf( pvt_output,  "<table border=\"1\">\r\n"  );
 		{
@@ -2243,7 +2243,7 @@ void OutputHTMLSpaceTable( PSPACENODE root
 			}
 			vtprintf( pvt_output, "</colgroup>" );
 		}
-		LIST_FORALL( table->row_cells, row, PLIST, cols )
+		LIST_FORALL( table->row_cells, row, PNVLIST, cols )
 		{
 			PSPACENODE node;
 			output_row = 0;

@@ -1173,7 +1173,7 @@ PSSQL_PROC( int, SQLRecordQuery_js )( PODBC odbc
 	, CTEXTSTR query
 	, size_t queryLen
 	, PDATALIST *pdlResults
-	, PDATALIST pdlParams
+	, PNVDATALIST pdlParams
 	DBG_PASS );
 
 /* 
@@ -1209,7 +1209,7 @@ PSSQL_PROC( int, SQLRecordQuery_v4 )( PODBC odbc
                                    , CTEXTSTR **result
                                    , size_t **resultLengths
                                    , CTEXTSTR **fields 
-                                   , PDATALIST pdlParameters
+                                   , PNVDATALIST pdlParameters
                                    DBG_PASS);
 
 /* <combine sack::sql::SQLRecordQueryEx@PODBC@CTEXTSTR@int *@CTEXTSTR **@CTEXTSTR **fields>

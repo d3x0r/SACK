@@ -1186,15 +1186,16 @@ static uintptr_t CPROC ThreadWrapper( PTHREAD pThread )
 	//DeAttachThreadToLibraries( TRUE );
 	while( !pThread->flags.bReady )
 		Relinquish();
+	THREAD_ID const thread_ident = _GetMyThreadID();
 #ifdef HAS_TLS
 #  ifdef LOG_THREAD
 	lprintf( "thread will be %p %p", MyThreadInfo.pThread, &MyThreadInfo );
 	lprintf( "thread will be %p %p", pThread, &MyThreadInfo.pThread );
 #  endif
 	MyThreadInfo.pThread = pThread;
-	MyThreadInfo.nThread =
+	MyThreadInfo.nThread = thread_ident;
 #endif
-		pThread->thread_ident = _GetMyThreadID();
+	pThread->thread_ident = thread_ident;
 	//DebugBreak();
 	InitWakeup( pThread, NULL );
 	{
@@ -1258,7 +1259,9 @@ static uintptr_t CPROC SimpleThreadWrapper( PTHREAD pThread )
 		Relinquish();
 
 	MyThreadInfo.pThread = pThread;
-	MyThreadInfo.nThread = pThread->thread_ident = GetMyThreadID();
+	THREAD_ID const thread_ident = GetMyThreadID();
+	MyThreadInfo.nThread = thread_ident;
+	pThread->thread_ident = thread_ident;
 	InitWakeup( pThread, NULL );
 #ifdef LOG_THREAD
 	Log1( "Set thread ident: %016" _64fx, pThread->thread_ident );
@@ -2475,7 +2478,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-		pcs->dwLocks--;
+		pcs->dwLocks = pcs->dwLocks - 1;
 #ifdef ENABLE_CRITICALSEC_LOGGING
 		if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 			lprintf( "Remaining locks... %08" _32fx, pcs->dwLocks );

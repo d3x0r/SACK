@@ -4377,7 +4377,7 @@ int __GetSQLResult( PODBC odbc, PCOLLECT collection, int bMore )
 	return retry;
 }
 
-void ReleaseSQLRecord( PDATALIST pdlResults );
+void ReleaseSQLRecord( PNVDATALIST pdlResults );
 
 int FetchSQLRecordJS( PODBC odbc, PDATALIST *ppdlRecord ) {
 	if( ppdlRecord ) {
@@ -4527,7 +4527,7 @@ int GetSQLResult( CTEXTSTR *result )
 //-----------------------------------------------------------------------
 
 #if defined USE_ODBC
-static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
+static void __DoODBCBinding( HSTMT hstmt, PNVDATALIST pdlItems ) {
 	INDEX idx;
 	struct jsox_value_container *val;
 	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
@@ -4624,7 +4624,7 @@ static void __DoODBCBinding( HSTMT hstmt, PDATALIST pdlItems ) {
 #endif
 
 #if defined( USE_SQLITE ) || defined( USE_SQLITE_INTERFACE )
-static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
+static void __DoSQLiteBinding( sqlite3_stmt *db, PNVDATALIST pdlItems ) {
 	INDEX idx;
 	struct jsox_value_container *val;
 	DATA_FORALL( pdlItems, idx, struct jsox_value_container *, val ) {
@@ -4677,7 +4677,7 @@ static void __DoSQLiteBinding( sqlite3_stmt *db, PDATALIST pdlItems ) {
 
 //-----------------------------------------------------------------------
 
-int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PDATALIST pdlParams DBG_PASS )
+int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PNVDATALIST pdlParams DBG_PASS )
 {
 	size_t queryLen;
 	PTEXT tmp = NULL;
@@ -5066,7 +5066,7 @@ void ReleaseSQLResults( PDATALIST *ppdlResults ) {
 }
 //-----------------------------------------------------------------------
 
-void ReleaseSQLRecord( PDATALIST pdlResults ) {
+void ReleaseSQLRecord( PNVDATALIST pdlResults ) {
 	//lprintf( "Releasing SQL record properly? %p", pdlResults, pdlResults->Cnt );
 	if( pdlResults ) {
 		INDEX idx;
@@ -5092,7 +5092,7 @@ int SQLRecordQuery_js( PODBC odbc
                      , CTEXTSTR query
                      , size_t queryLen
                      , PDATALIST *pdlResults
-                     , PDATALIST pdlParams
+                     , PNVDATALIST pdlParams
                      DBG_PASS )
 {
 	PODBC use_odbc;
@@ -5188,7 +5188,7 @@ int SQLRecordQuery_v4( PODBC odbc
 	, CTEXTSTR **result
 	, size_t **resultLengths
 	, CTEXTSTR **fields
-	, PDATALIST pdlParams
+	, PNVDATALIST pdlParams
 	DBG_PASS )
 {
 	PODBC use_odbc;

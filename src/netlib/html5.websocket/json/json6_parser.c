@@ -1250,7 +1250,7 @@ int json6_parse_add_data( struct json_parse_state *state
 	return retval;
 }
 
-PDATALIST json_parse_get_data( struct json_parse_state *state ) {
+PNVDATALIST json_parse_get_data( struct json_parse_state *state ) {
 	PDATALIST *result = state->elements;
 	state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );

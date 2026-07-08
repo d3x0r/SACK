@@ -63,13 +63,13 @@ static LIBSSH2_SEND_FUNC( SendCallback ) {
 }
 
 
-static void moveBuffers( PDATALIST pdl ) {
+static void moveBuffers( PDATALIST *pdl ) {
 	struct data_buffer* buf;
 	INDEX idx;
 	struct data_buffer buf0;
 
 
-	DATA_FORALL( pdl, idx, struct data_buffer*, buf ) {
+	DATA_FORALL( (*pdl), idx, struct data_buffer*, buf ) {
 		if( !idx ) buf0 = buf[0];
 		else {
 			buf[-1] = buf[0];
@@ -100,8 +100,9 @@ static LIBSSH2_RECV_FUNC( RecvCallback ) {
 			MemCpy( buffer, buf->buffer+buf->used, filled = ((( buf->length-buf->used)< length)?(buf->length-buf->used):length) );
 			buf->used += filled;
 			if( buf->used == buf->length ) {
-				buf->used = buf->length = 0;
-				moveBuffers( cs->buffers );
+				buf->used = 0;
+				buf->length = 0;
+				moveBuffers( &cs->buffers );
 			}
 			return filled;
 		}

@@ -167,7 +167,7 @@ HTTP_EXPORT PTEXT HTTPAPI GetHttpResource( HTTPState pHttpState );
    members of the list are of type struct HttpField.
    see also: ProcessHttpFields and ProcessCGIFields
 */
-HTTP_EXPORT PLIST HTTPAPI GetHttpHeaderFields( HTTPState pHttpState );
+HTTP_EXPORT PNVLIST HTTPAPI GetHttpHeaderFields( HTTPState pHttpState );
 
 //HTTP_EXPORT int HTTPAPI GetHttpVersion( HTTPState pHttpState );
 

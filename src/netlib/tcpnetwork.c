@@ -1476,7 +1476,8 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 #ifdef LOG_WRITE_AGGREGATION
 					lprintf( "Aggregated %d bytes into single buffer %p", size, pc );
 #endif
-					pc->lpLastPending =	pc->lpFirstPending = &pc->FirstWritePending;
+					pc->lpLastPending = &pc->FirstWritePending;
+					pc->lpFirstPending = &pc->FirstWritePending;
 				}
 			}
 			if( globalNetworkData.flags.bLogSentData )
@@ -1979,7 +1980,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 		lpClient->FirstWritePending.s.bDynBuffer = FALSE;
 		lpClient->FirstWritePending.lpNext       = NULL;
 
-		lpClient->lpLastPending =
+		lpClient->lpLastPending = &lpClient->FirstWritePending;
 		lpClient->lpFirstPending = &lpClient->FirstWritePending;
 		if( lpClient->flags.bAggregateOutput) 
 		{

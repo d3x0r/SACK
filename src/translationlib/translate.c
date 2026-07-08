@@ -385,21 +385,21 @@ CTEXTSTR GetTranslationName( struct translation *translation )
 
 //---------------------------------------------------------------------------
 
-PLIST GetTranslations( void )
+PNVLIST GetTranslations( void )
 {
 	return translate_local.translations;
 }
 
 //---------------------------------------------------------------------------
 
-PLIST GetTranslationStrings( struct translation *translation )
+PNVLIST GetTranslationStrings( struct translation *translation )
 {
 	return translation->strings;
 }
 
 //---------------------------------------------------------------------------
 
-PLIST GetTranslationIndexStrings( void )
+PNVLIST GetTranslationIndexStrings( void )
 {
 	return translate_local.index_list;
 }

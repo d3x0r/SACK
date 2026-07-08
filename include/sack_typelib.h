@@ -35,7 +35,8 @@ namespace list {
 #  endif
 
 //--------------------------------------------------------
-TYPELIB_PROC  PLIST TYPELIB_CALLTYPE        CreateListEx   ( DBG_VOIDPASS );
+TYPELIB_PROC  PNVLIST TYPELIB_CALLTYPE        CreateListEx   ( DBG_VOIDPASS );
+TYPELIB_PROC  PNVLIST TYPELIB_CALLTYPE        CreateList2Ex(PLIST *ppList DBG_PASS);
 
 TYPELIB_PROC  void TYPELIB_CALLTYPE        MakeListEx   ( PLIST *pList DBG_PASS );
 
@@ -99,7 +100,7 @@ TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        FindLink       ( PLIST *pList, POINT
 	Return Value
 	   number of things in the list.
 */
-TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinkCount   ( PLIST pList );
+TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinkCount   ( PNVLIST pList );
 
 
 #define GetLinkCount(l) GetLinksUsed(&(l))
@@ -111,7 +112,7 @@ TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetLinksUsed( PLIST *pList );
 
    return the count of items in the list.
 */
-TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        PackLinks( PLIST pList );
+TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        PackLinks( PNVLIST pList );
 
 /* Uses FindLink on the list for the value to delete, and then
    sets the index of the found link to NULL.
@@ -314,7 +315,8 @@ namespace data_list {
 /* Creates a data list which hold data elements of the specified
    size.
                                                                  */
-TYPELIB_PROC  PDATALIST TYPELIB_CALLTYPE  CreateDataListEx ( uintptr_t nSize DBG_PASS );
+TYPELIB_PROC  PNVDATALIST TYPELIB_CALLTYPE  CreateDataListEx ( uintptr_t nSize DBG_PASS );
+TYPELIB_PROC  PNVDATALIST TYPELIB_CALLTYPE  CreateDataList2Ex( PDATALIST *ppdl, uintptr_t nSize DBG_PASS);
 /* <combine sack::containers::data_list::DeleteDataList>
 
    \ \                                                   */
@@ -456,7 +458,17 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE       EmptyDataList ( PDATALIST *ppdl );
 
    Returns
    Pointer to a new link stack.                               */
-TYPELIB_PROC  PLINKSTACK TYPELIB_CALLTYPE   CreateLinkStackEx( DBG_VOIDPASS );
+TYPELIB_PROC  PNVLINKSTACK TYPELIB_CALLTYPE   CreateLinkStackEx( DBG_VOIDPASS );
+
+/* Creates a new stack for links (POINTERS).
+   Parameters
+   ppls :       address of a link stack pointer
+   DBG_PASS :  Debug file and line information to use for the
+			   allocation of the stack.
+
+   Returns
+   Pointer to a new link stack.                               */
+TYPELIB_PROC  PNVLINKSTACK TYPELIB_CALLTYPE   CreateLinkStack2Ex(PLINKSTACK *ppls DBG_PASS);
 /* Creates a new stack for links (POINTERS).  Link stack has a limited number of entries.
     When the stack fills, the oldest item on the stack is removed automatically.
 	 Parameters
@@ -467,7 +479,10 @@ TYPELIB_PROC  PLINKSTACK TYPELIB_CALLTYPE   CreateLinkStackEx( DBG_VOIDPASS );
    Returns
    Pointer to a new link stack.                               */
          // creates a link stack with maximum entries - any extra entries are pushed off the bottom into NULL
-TYPELIB_PROC  PLINKSTACK TYPELIB_CALLTYPE      CreateLinkStackLimitedEx        ( int max_entries  DBG_PASS );
+TYPELIB_PROC  PNVLINKSTACK TYPELIB_CALLTYPE      CreateLinkStackLimitedEx        ( int max_entries  DBG_PASS );
+
+TYPELIB_PROC  PNVLINKSTACK TYPELIB_CALLTYPE      CreateLinkStackLimited2Ex( PLINKSTACK *ppls, int max_entries  DBG_PASS);
+
 /* <combine sack::containers::link_stack::CreateLinkStackLimitedEx@int max_entries>
 
    Macro to pass default debug file and line information.                           */
@@ -548,7 +563,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE   MakeDataStackEx( PDATASTACK *pds, size_t s
    Parameters
    size :       size of elements in the stack
    DBG_PASS :  debug file and line information.                 */
-TYPELIB_PROC  PDATASTACK TYPELIB_CALLTYPE   CreateDataStackEx( size_t size DBG_PASS );
+TYPELIB_PROC  PNVDATASTACK TYPELIB_CALLTYPE   CreateDataStackEx( size_t size DBG_PASS );
 /* Creates a data stack for data element of the specified size.
    Parameters
    size :       size of items in the stack
@@ -560,7 +575,14 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE   MakeDataStackLimitedEx( PDATASTACK *pds, s
    size :       size of items in the stack
    count :      max items in stack (oldest gets deleted)
    DBG_PASS :  debug file and line information.                 */
-TYPELIB_PROC PDATASTACK TYPELIB_CALLTYPE CreateDataStackLimitedEx( size_t size, INDEX count DBG_PASS );
+TYPELIB_PROC PNVDATASTACK TYPELIB_CALLTYPE CreateDataStackLimitedEx( size_t size, INDEX count DBG_PASS );
+/* Creates a data stack for data element of the specified size.
+   Parameters
+   ppds :       address of a data stack pointer
+   size :       size of items in the stack
+   count :      max items in stack (oldest gets deleted)
+   DBG_PASS :  debug file and line information.                 */
+TYPELIB_PROC PNVDATASTACK TYPELIB_CALLTYPE CreateDataStackLimited2Ex(PDATASTACK *ppds, size_t size, INDEX count DBG_PASS);
 /* Destroys a data stack.
    Parameters
    pds :       address of a data stack pointer. The pointer will
@@ -632,7 +654,7 @@ TYPELIB_PROC  void TYPELIB_CALLTYPE   MakeLinkQueueEx( PLINKQUEUE *into DBG_PASS
 /* Creates a <link sack::containers::PLINKQUEUE, LinkQueue>. In
    debug mode, gets passed the current source and file so it can
    blame the user for the allocation.                            */
-TYPELIB_PROC  PLINKQUEUE TYPELIB_CALLTYPE   CreateLinkQueueEx( DBG_VOIDPASS );
+TYPELIB_PROC  PNVLINKQUEUE TYPELIB_CALLTYPE   CreateLinkQueueEx( DBG_VOIDPASS );
 /* Delete a link queue. Pass the address of the pointer to the
    queue to delete, this function sets the pointer to NULL if
    the queue is actually deleted.                              */
@@ -652,15 +674,15 @@ TYPELIB_PROC POINTER  TYPELIB_CALLTYPE      DequeLinkNL      ( PLINKQUEUE *pplq 
 /* Return TRUE/FALSE if the queue is empty or not. */
 TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE      IsQueueEmpty     ( PLINKQUEUE *pplq );
 /* Gets the number of elements current in the queue. */
-TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetQueueLength   ( PLINKQUEUE plq );
+TYPELIB_PROC  INDEX TYPELIB_CALLTYPE        GetQueueLength   ( PNVLINKQUEUE plq );
 // get a PLINKQUEUE element at index
 //  If idx < 0 then count from the end of the queue, otherwise count from the start of the queue
 // start of the queue is the next element to be dequeue, end of the queue is the last element added to the queue.
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueueEx    ( PLINKQUEUE plq, int idx );
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueueEx    ( PNVLINKQUEUE plq, int idx );
 /* Can be used to look at the next element in the queue without
    removing it from the queue. PeekQueueEx allows you to specify
    an index of an item in the queue to get.                      */
-TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueue    ( PLINKQUEUE plq );
+TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueue    ( PNVLINKQUEUE plq );
 
 
 /* <combinewith sack::containers::queue::CreateLinkQueueEx@DBG_VOIDPASS>
@@ -710,7 +732,7 @@ TYPELIB_PROC  POINTER TYPELIB_CALLTYPE      PeekQueue    ( PLINKQUEUE plq );
 TYPELIB_PROC  void TYPELIB_CALLTYPE   MakeDataQueueEx( PDATAQUEUE *into, INDEX size DBG_PASS );
 /* Creates a PDATAQUEUE. Can pass DBG_FILELINE information to
    blame other code for the allocation.                       */
-TYPELIB_PROC  PDATAQUEUE TYPELIB_CALLTYPE   CreateDataQueueEx( INDEX size DBG_PASS );
+TYPELIB_PROC  PNVDATAQUEUE TYPELIB_CALLTYPE   CreateDataQueueEx( INDEX size DBG_PASS );
 /* Creates a PDATAQUEUE that has an overridden expand-by amount
    and initial amount of entries in the queue. (expecting
    something like 1000 to start and expand by 500, instead of
@@ -720,7 +742,7 @@ TYPELIB_PROC void TYPELIB_CALLTYPE MakeLargeDataQueueEx( PDATAQUEUE *pdq, INDEX 
    and initial amount of entries in the queue. (expecting
    something like 1000 to start and expand by 500, instead of
    the default 0, and expand by 1.                              */
-TYPELIB_PROC  PDATAQUEUE TYPELIB_CALLTYPE   CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_PASS );
+TYPELIB_PROC  PNVDATAQUEUE TYPELIB_CALLTYPE   CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_PASS );
 /* Destroys a data queue. */
 TYPELIB_PROC  void TYPELIB_CALLTYPE         DeleteDataQueueEx( PDATAQUEUE *pplq DBG_PASS );
 /* Add a data element into the queue. */
@@ -740,7 +762,7 @@ TYPELIB_PROC  LOGICAL TYPELIB_CALLTYPE      IsDataQueueEmpty ( PDATAQUEUE *pplq 
 /* Empty a dataqueue of all data. (Sets head=tail). */
 TYPELIB_PROC  void TYPELIB_CALLTYPE         EmptyDataQueue ( PDATAQUEUE *pplq );
 /* returns how many entries are in the queue. */
-TYPELIB_PROC  INDEX   TYPELIB_CALLTYPE      GetDataQueueLength( PDATAQUEUE pdq );
+TYPELIB_PROC  INDEX   TYPELIB_CALLTYPE      GetDataQueueLength( PNVDATAQUEUE pdq );
 /*
  * get a PDATAQUEUE element at index
  * result buffer is a pointer to the type of structure expected to be

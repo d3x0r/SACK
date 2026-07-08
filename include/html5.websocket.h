@@ -132,14 +132,14 @@ HTML5_WEBSOCKET_PROC( PCLIENT, WebSocketSetProtocols )( PCLIENT pc, const char *
 /* a server side utility to get the request headers that came in.
 this is for going through proxy agents mostly where the header might have x-forwarded-for
 */
-HTML5_WEBSOCKET_PROC( PLIST, GetWebSocketHeaders )( PCLIENT pc );
+HTML5_WEBSOCKET_PROC( PNVLIST, GetWebSocketHeaders )( PCLIENT pc );
 /* for server side sockets, get the requested resource path from the client request.
 */
 HTML5_WEBSOCKET_PROC( PTEXT, GetWebSocketResource )( PCLIENT pc );
 
 HTML5_WEBSOCKET_PROC( HTTPState, GetWebSocketHttpState )( PCLIENT pc );
 
-HTML5_WEBSOCKET_PROC( PLIST, GetWebSocketPipeHeaders )( struct html5_web_socket* socket );
+HTML5_WEBSOCKET_PROC( PNVLIST, GetWebSocketPipeHeaders )( struct html5_web_socket* socket );
 HTML5_WEBSOCKET_PROC( PTEXT, GetWebSocketPipeResource )( struct html5_web_socket* socket );
 HTML5_WEBSOCKET_PROC( HTTPState, GetWebSocketPipeHttpState )( struct html5_web_socket* socket );
 

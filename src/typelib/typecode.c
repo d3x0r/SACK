@@ -64,7 +64,7 @@ namespace sack {
 #define LockedExchange InterlockedExchange
 #endif
 
-			PLIST  CreateListEx( DBG_VOIDPASS )
+			PNVLIST  CreateListEx( DBG_VOIDPASS )
 			{
 				PLIST pl;
 				INDEX size;
@@ -433,13 +433,21 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PDATALIST  CreateDataListEx( uintptr_t nSize DBG_PASS )
+			PNVDATALIST  CreateDataList2Ex(PDATALIST *ppdl, uintptr_t nSize DBG_PASS)
 			{
-				PDATALIST pdl = (PDATALIST)AllocateEx( sizeof( DATALIST ) + (nSize * 8) - 1 DBG_RELAY );
+				PDATALIST pdl = (*ppdl) = (PDATALIST)AllocateEx(sizeof(DATALIST) + (nSize * 8) - 1 DBG_RELAY);
 				pdl->Cnt = 0;
 				pdl->Avail = 8;
 				pdl->Size = nSize;
 				return pdl;
+			}
+
+			//--------------------------------------------------------------------------
+
+			PNVDATALIST  CreateDataListEx( uintptr_t nSize DBG_PASS )
+			{
+				PDATALIST pdl;
+				return CreateDataList2Ex( &pdl, nSize DBG_RELAY );
 			}
 
 			//--------------------------------------------------------------------------
@@ -530,15 +538,20 @@ namespace sack {
 				pls->Max = max_entries;
 			}
 
-
-			PLINKSTACK		CreateLinkStackLimitedEx( int max_entries  DBG_PASS )
+			PNVLINKSTACK		CreateLinkStackLimited2Ex(PLINKSTACK* ppls, int max_entries  DBG_PASS)
 			{
 				PLINKSTACK pls;
-				pls = (PLINKSTACK)AllocateEx( sizeof( LINKSTACK ) DBG_RELAY );
+				(*ppls) = pls = (PLINKSTACK)AllocateEx(sizeof(LINKSTACK) DBG_RELAY);
 				pls->Top = 0;
 				pls->Cnt = 0;
 				pls->Max = max_entries;
 				return pls;
+			}
+
+			PNVLINKSTACK		CreateLinkStackLimitedEx( int max_entries  DBG_PASS )
+			{
+				PLINKSTACK pls;
+				return CreateLinkStackLimited2Ex(&pls, max_entries DBG_RELAY);
 			}
 
 			//--------------------------------------------------------------------------
@@ -550,9 +563,13 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PLINKSTACK  CreateLinkStackEx( DBG_VOIDPASS )
+			PNVLINKSTACK  CreateLinkStackEx( DBG_VOIDPASS )
 			{
 				return CreateLinkStackLimitedEx( 0 DBG_RELAY );
+			}
+			PNVLINKSTACK  CreateLinkStack2Ex(PLINKSTACK *ppls DBG_PASS)
+			{
+				return CreateLinkStackLimited2Ex(ppls, 0 DBG_RELAY);
 			}
 
 			//--------------------------------------------------------------------------
@@ -737,17 +754,26 @@ namespace sack {
 
 			//--------------------------------------------------------------------------
 
-			PDATASTACK  CreateDataStackEx( size_t size DBG_PASS )
+			PNVDATASTACK  CreateDataStackEx( size_t size DBG_PASS )
 			{
-				return CreateDataStackLimitedEx( size, 0 DBG_RELAY );
+				PDATASTACK pds;
+				return CreateDataStackLimited2Ex( &pds, size, 0 DBG_RELAY );
 			}
 
 			//--------------------------------------------------------------------------
 
-			PDATASTACK  CreateDataStackLimitedEx( size_t size, INDEX max_items DBG_PASS )
+			PNVDATASTACK  CreateDataStackLimitedEx( size_t size, INDEX max_items DBG_PASS )
 			{
 				PDATASTACK pds;
-				pds = (PDATASTACK)AllocateEx( sizeof( DATASTACK ) + (10 * size) DBG_RELAY );
+				return CreateDataStackLimited2Ex(&pds, size, max_items DBG_RELAY);
+			}
+
+			//--------------------------------------------------------------------------
+
+			PNVDATASTACK  CreateDataStackLimited2Ex( PDATASTACK *ppds,size_t size, INDEX max_items DBG_PASS)
+			{
+				PDATASTACK pds;
+				(*ppds) = pds = (PDATASTACK)AllocateEx(sizeof(DATASTACK) + (10 * size) DBG_RELAY);
 				pds->Cnt = 10;
 				pds->Top = 0;
 				pds->Size = size;
@@ -794,11 +820,10 @@ namespace sack {
 #  define link_queue_local_lock  ((_link_queue_local)?(&_link_queue_local->lock):(&s_link_queue_local.lock))
 #endif
 
-
-			PLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
+			PNVLINKQUEUE CreateLinkQueue2Ex(PLINKQUEUE *pplq DBG_PASS)
 			{
 				PLINKQUEUE plq = 0;
-				plq = (PLINKQUEUE)AllocateEx( MY_OFFSETOF( &plq, pNode[8] ) DBG_RELAY ); //-V557
+				(*pplq) = plq = (PLINKQUEUE)AllocateEx(MY_OFFSETOF(&plq, pNode[8]) DBG_RELAY); //-V557
 #if USE_CUSTOM_ALLOCER
 				plq->Lock = 0;
 #endif
@@ -808,6 +833,12 @@ namespace sack {
 				plq->pNode[0] = NULL;
 				plq->pNode[1] = NULL; // shrug
 				return plq;
+			}
+
+			PNVLINKQUEUE CreateLinkQueueEx( DBG_VOIDPASS )
+			{
+				PLINKQUEUE plq = 0;
+				return CreateLinkQueue2Ex(&plq DBG_RELAY);
 			}
 
 			//--------------------------------------------------------------------------
@@ -1264,10 +1295,10 @@ namespace sack {
 #  define data_queue_local_lock ((_data_queue_local)?(&_data_queue_local->lock):(&s_data_queue_local.lock))
 #endif
 
-			PDATAQUEUE CreateDataQueueEx( INDEX size DBG_PASS )
+			PDATAQUEUE CreateDataQueue2Ex( PDATAQUEUE *ppdq, INDEX size DBG_PASS )
 			{
 				PDATAQUEUE pdq;
-				pdq = (PDATAQUEUE)AllocateEx( ((sizeof( DATAQUEUE ) + (2 * size)) - 1) DBG_RELAY );
+				(*ppdq) = pdq = (PDATAQUEUE)AllocateEx( ((sizeof( DATAQUEUE ) + (2 * size)) - 1) DBG_RELAY );
 				pdq->Top = 0;
 				pdq->Bottom = 0;
 				pdq->ExpandBy = 16;
@@ -1276,6 +1307,11 @@ namespace sack {
 				return pdq;
 			}
 
+			PNVDATAQUEUE CreateDataQueueEx(INDEX size DBG_PASS)
+			{
+				PDATAQUEUE pdq;
+				return CreateDataQueue2Ex(&pdq, size DBG_RELAY);
+			}
 			//--------------------------------------------------------------------------
 
 			void DeleteDataQueueEx( PDATAQUEUE* ppdq DBG_PASS )
@@ -1327,11 +1363,19 @@ namespace sack {
 				return pdqNew;
 			}
 
-			PDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_PASS )
+			PNVDATAQUEUE  CreateLargeDataQueueEx( INDEX size, INDEX entries, INDEX expand DBG_PASS )
 			{
-				PDATAQUEUE pdq = CreateDataQueueEx( size DBG_RELAY );
+				PNVDATAQUEUE pdq = CreateDataQueueEx( size DBG_RELAY );
 				pdq->ExpandBy = expand;
 				ExpandDataQueueEx( &pdq, entries DBG_RELAY );
+				return pdq;
+			}
+
+			PNVDATAQUEUE  CreateLargeDataQueue2Ex(PDATAQUEUE *ppdq, INDEX size, INDEX entries, INDEX expand DBG_PASS)
+			{
+				PNVDATAQUEUE pdq = (*ppdq) = CreateDataQueue2Ex(ppdq, size DBG_RELAY);
+				pdq->ExpandBy = expand;
+				ExpandDataQueueEx(&pdq, entries DBG_RELAY);
 				return pdq;
 			}
 

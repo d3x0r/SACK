@@ -576,7 +576,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
 
-				pcs->dwLocks++;
+				pcs->dwLocks=pcs->dwLocks+1;
 				pcs->dwUpdating = 0;
 				return 1;
 			}
@@ -652,7 +652,7 @@ static void DumpSection( PCRITICALSECTION pcs )
 		pcs->dwThreadPrior[pcs->nPrior] = dwCurProc;
 		pcs->nPrior = (pcs->nPrior + 1) % MAX_SECTION_LOG_QUEUE;
 #endif
-				pcs->dwLocks--;
+				pcs->dwLocks=pcs->dwLocks-1;
 				if( !pcs->dwLocks )
 				{
 					pcs->dwThreadID = 0;

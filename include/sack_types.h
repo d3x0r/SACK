@@ -1646,6 +1646,7 @@ _CONTAINER_NAMESPACE
 	POINTER pNode[1];
 } LIST;
 typedef struct LinkBlock volatile* volatile PLIST;
+typedef struct LinkBlock volatile* PNVLIST;
 
 _LINKLIST_NAMESPACE_END
 
@@ -1658,6 +1659,7 @@ _DATALIST_NAMESPACE
 typedef struct DataBlock  DATALIST;
 /* A typedef of a pointer to a DATALIST struct DataList. */
 typedef struct DataBlock volatile * volatile PDATALIST;
+typedef struct DataBlock volatile * PNVDATALIST;
 
 /* Data Blocks are like LinkBlocks, and store blocks of data in
    slab format. If the count of elements exceeds available, the
@@ -1704,6 +1706,7 @@ _DATALIST_NAMESPACE_END
 	POINTER pNode[1];
 } LINKSTACK;
 typedef struct LinkStack volatile* volatile PLINKSTACK;
+typedef struct LinkStack volatile* PNVLINKSTACK;
 
 /* A Stack that stores information in an array of structures of
    known size.
@@ -1726,6 +1729,7 @@ typedef struct DataListStack
 	uint8_t      data[1]; /* The actual data area of the stack.  */
 } DATASTACK;
 typedef struct DataListStack volatile* volatile PDATASTACK;
+typedef struct DataListStack volatile* PNVDATASTACK;
 
 /* A queue which contains pointers to user objects. If the queue
    is filled to capacity and new queue is allocated, and all
@@ -1749,6 +1753,7 @@ typedef struct LinkQueue
 	POINTER pNode[2]; // need two to have distinct empty/full conditions
 } LINKQUEUE;
 typedef struct LinkQueue volatile* volatile PLINKQUEUE;
+typedef struct LinkQueue volatile* PNVLINKQUEUE;
 
 /* A queue of structure elements.
    Remarks
@@ -1781,6 +1786,7 @@ typedef struct DataQueue
 	uint8_t      data[1];
 } DATAQUEUE;
 typedef struct DataQueue volatile* volatile PDATAQUEUE;
+typedef struct DataQueue volatile* PNVDATAQUEUE;
 
 /* A mostly obsolete function, but can return the status of
    whether all initially scheduled startups are completed. (Or

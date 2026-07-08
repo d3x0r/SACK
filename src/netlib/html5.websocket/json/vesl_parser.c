@@ -142,12 +142,14 @@ static void vesl_state_init( struct vesl_parse_state *state )
 	ppQueue = GetFromSet( PLINKQUEUE, &vpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->inBuffers = ppQueue;// CreateLinkQueue();
-	state->inBuffers[0]->Top = state->inBuffers[0]->Bottom = 0;
+	state->inBuffers[0]->Top = 0;
+	state->inBuffers[0]->Bottom = 0;
 
 	ppQueue = GetFromSet( PLINKQUEUE, &vpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->outQueue = ppQueue;// CreateLinkQueue();
-	state->outQueue[0]->Top = state->outQueue[0]->Bottom = 0;
+	state->outQueue[0]->Top = 0;
+	state->outQueue[0]->Bottom = 0;
 
 	ppList = GetFromSet( PLIST, &vpsd.listSet );
 	if( ppList[0] ) ppList[0]->Cnt = 0;
@@ -273,7 +275,7 @@ static void vesl_dump_parse_level( PDATALIST *pdl, int level ) {
 
 }
 
-static void vesl_dump_parse( PDATALIST pdl ) {
+static void vesl_dump_parse( PNVDATALIST pdl ) {
 	vesl_dump_parse_level( &pdl, 0 );
 }
 
@@ -1063,7 +1065,7 @@ struct vesl_parse_state * vesl_begin_parse( void )
 }
 
 
-PDATALIST vesl_parse_get_data( struct vesl_parse_state *state ) {
+PNVDATALIST vesl_parse_get_data( struct vesl_parse_state *state ) {
 	PDATALIST *result = state->elements;
 	state->elements = GetFromSet( PDATALIST, &vpsd.dataLists );// CreateDataList( sizeof( state->val ) );
 	if( !state->elements[0] ) state->elements[0] = CreateDataList( sizeof( state->val ) );

@@ -156,7 +156,7 @@ void json_add_value( struct json_context *context, CTEXTSTR name, CTEXTSTR value
 
 //----------------------------------------------------------------------------------------------
 
-void json_add_list_value( struct json_context_object *object, struct json_context *context, CTEXTSTR name, PLIST values )
+void json_add_list_value( struct json_context_object *object, struct json_context *context, CTEXTSTR name, PNVLIST values )
 {
 	INDEX idx;
 	POINTER p;

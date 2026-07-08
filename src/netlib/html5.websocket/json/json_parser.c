@@ -320,12 +320,14 @@ static void json_state_init( struct json_parse_state *state )
 	ppQueue = GetFromSet( PLINKQUEUE, &jpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->inBuffers = ppQueue;// CreateLinkQueue();
-	state->inBuffers[0]->Top = state->inBuffers[0]->Bottom = 0;
+	state->inBuffers[0]->Top = 0;
+	state->inBuffers[0]->Bottom = 0;
 	
 	ppQueue = GetFromSet( PLINKQUEUE, &jpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->outQueue = ppQueue;// CreateLinkQueue();
-	state->outQueue[0]->Top = state->outQueue[0]->Bottom = 0;
+	state->outQueue[0]->Top = 0;
+	state->outQueue[0]->Bottom = 0;
 
 	ppList = GetFromSet( PLIST, &jpsd.listSet );
 	if( ppList[0] ) ppList[0]->Cnt = 0;
@@ -1218,7 +1220,7 @@ static void FillDataToElement( struct json_context_object_element *element
 */
 
 LOGICAL json_decode_message( struct json_context *format
-								, PDATALIST msg_data
+								, PNVDATALIST msg_data
 								, struct json_context_object **result_format
 								, POINTER *_msgbuf )
 {

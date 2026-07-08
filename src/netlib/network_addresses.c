@@ -1215,7 +1215,7 @@ retry:
 #  endif
 }
 
-NETWORK_PROC( PLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, unsigned char *buffer)
+NETWORK_PROC( PNVLIST, GetMacAddresses)( void )//int get_mac_addr (char *device, unsigned char *buffer)
 {
 	PLIST list = NULL;
 	setupInterfaces();
@@ -1911,7 +1911,7 @@ LOGICAL CompareAddress( SOCKADDR *sa1, SOCKADDR *sa2 )
 
 //----------------------------------------------------------------------------
 
-PLIST GetLocalAddresses( void )
+PNVLIST GetLocalAddresses( void )
 {
 	return globalNetworkData.addresses;
 }

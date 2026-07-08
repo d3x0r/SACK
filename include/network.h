@@ -384,7 +384,7 @@ NETWORK_PROC( LOGICAL, IsThisAddressMe )( SOCKADDR *addr, uint16_t myport );
 /*
  *  Get the list of SOCKADDR addresses that are on this box (for this name)
  */
-NETWORK_PROC( PLIST, GetLocalAddresses )( void );
+NETWORK_PROC( PNVLIST, GetLocalAddresses )( void );
 
 /*
  * Return the text of a socket's IP address
@@ -951,7 +951,7 @@ enum GetNetworkLongAccessInternal{
 
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen, uint8_t* bufRemote, size_t *bufRemoteLen );//int get_mac_addr (char *device, unsigned char *buffer)
 //NETWORK_PROC( int, GetMacAddress)(PCLIENT pc );
-NETWORK_PROC( PLIST, GetMacAddresses)( void );//int get_mac_addr (char *device, unsigned char *buffer)
+NETWORK_PROC( PNVLIST, GetMacAddresses)( void );//int get_mac_addr (char *device, unsigned char *buffer)
 
 NETWORK_PROC( LOGICAL, sack_network_is_active )( PCLIENT pc );
 

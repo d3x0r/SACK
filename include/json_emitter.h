@@ -153,7 +153,7 @@ JSON_EMITTER_PROC( int, json_parse_add_data )( struct json_parse_state *context
 
 
 // these are common functions that work for json or json6 stream parsers
-JSON_EMITTER_PROC( PDATALIST, json_parse_get_data )( struct json_parse_state *context );
+JSON_EMITTER_PROC( PNVDATALIST, json_parse_get_data )( struct json_parse_state *context );
 // get actual allocated root for a value... allows holding that.
 JSON_EMITTER_PROC( const char *, json_get_parse_buffer )(struct json_parse_state *pState, const char *buf);
 JSON_EMITTER_PROC( void, json_parse_dispose_state )( struct json_parse_state **context );
@@ -198,7 +198,7 @@ JSON_EMITTER_PROC( int, json6_parse_add_data )( struct json_parse_state *context
 
 
 JSON_EMITTER_PROC( LOGICAL, json_decode_message )( struct json_context *format
-                                                 , PDATALIST parsedMsg
+                                                 , PNVDATALIST parsedMsg
                                                  , struct json_context_object **result_format
                                                  , POINTER *msg_data_out
                                                  );

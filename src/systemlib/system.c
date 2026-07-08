@@ -1061,7 +1061,7 @@ struct handle_data {
 	HWND window_handle;
 };
 
-PDATALIST GetProcessTree( PTASK_INFO task ){
+PNVDATALIST GetProcessTree( PTASK_INFO task ){
 	INDEX idx;
 	INDEX idx2;
 	struct process_id_pair* pair;

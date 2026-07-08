@@ -109,7 +109,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
                                                , TaskOutput OutputHandler2
                                                , TaskEnd EndNotice
                                                , uintptr_t psv
-                                               , PLIST envStrings
+                                               , PNVLIST envStrings
                                                 DBG_PASS
                                                );
 
@@ -401,7 +401,7 @@ struct process_tree_pair {
     }
 
 */
-SYSTEM_PROC( PDATALIST, GetProcessTree )( PTASK_INFO task );
+SYSTEM_PROC( PNVDATALIST, GetProcessTree )( PTASK_INFO task );
 
 #endif
 

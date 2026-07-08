@@ -659,7 +659,8 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 	}
 	else
 	{
-		if( ( this_thread.parent_peer->child_peer = this_thread.child_peer ) )
+		this_thread.parent_peer->child_peer = this_thread.child_peer;
+		if( this_thread.child_peer )
 			this_thread.child_peer->parent_peer = this_thread.parent_peer;
 	}
 	// this used to be done in the WM_DESTROY

@@ -69,17 +69,17 @@ TRANSLATION_PROC void TRANSLATION_API LoadTranslationDataFromFile( FILE *file );
 /* 
    return: PLIST is a list of PTranslation
 */
-TRANSLATION_PROC PLIST TRANSLATION_API GetTranslations( void ); 
+TRANSLATION_PROC PNVLIST TRANSLATION_API GetTranslations( void ); 
 
 TRANSLATION_PROC CTEXTSTR TRANSLATION_API GetTranslationName( struct translation *translation );
 /*
 	return: PLIST of CTEXTSTR which are result strings of this translation
 */
-TRANSLATION_PROC PLIST TRANSLATION_API GetTranslationStrings( struct translation *translation );
+TRANSLATION_PROC PNVLIST TRANSLATION_API GetTranslationStrings( struct translation *translation );
 /*
   return: PLIST of CTEXTSTR which are source index strings
   */
-TRANSLATION_PROC PLIST TRANSLATION_API GetTranslationIndexStrings( );
+TRANSLATION_PROC PNVLIST TRANSLATION_API GetTranslationIndexStrings( );
 
 
 

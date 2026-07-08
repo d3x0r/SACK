@@ -781,7 +781,8 @@ void WebSocketPipeEof( HTML5WebSocket pipe ) {
 void WebSocketPipeAccept( HTML5WebSocket socket, char *protocols, int yesno ) {
 	PVARTEXT pvt_output = VarTextCreate();
 	PTEXT key1, key2, value;
-	if( !(socket->flags.accepted = yesno) ) {
+	socket->flags.accepted = yesno;
+	if (!yesno) {
 		vtprintf( pvt_output, "HTTP/1.1 403 Connection refused\r\n" );
 		value = VarTextPeek( pvt_output );
 		if( socket->input_state.on_send )
@@ -924,7 +925,7 @@ PCLIENT WebSocketCreate( CTEXTSTR hosturl
 	return WebSocketCreate_v2( hosturl, on_open, on_event, on_closed, on_error, psv, 0 );
 }
 
-PLIST GetWebSocketHeaders( PCLIENT pc ) {
+PNVLIST GetWebSocketHeaders( PCLIENT pc ) {
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
 	if( socket && socket->Magic == 0x20130912 ) {
 		return GetHttpHeaderFields( socket->http_state );
@@ -952,7 +953,7 @@ HTTPState GetWebSocketHttpState( PCLIENT pc ) {
 	return NULL;
 }
 
-PLIST GetWebSocketPipeHeaders( HTML5WebSocket socket ) {
+PNVLIST GetWebSocketPipeHeaders( HTML5WebSocket socket ) {
 	if( socket && socket->Magic == 0x20240310 ) {
 		return GetHttpHeaderFields( socket->http_state );
 	}

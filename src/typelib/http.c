@@ -1781,7 +1781,7 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 	return NULL;
 }
 
-PLIST GetHttpHeaderFields( HTTPState pHttpState )
+PNVLIST GetHttpHeaderFields( HTTPState pHttpState )
 {
 	if( pHttpState )
 		return pHttpState->fields;

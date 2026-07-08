@@ -165,7 +165,7 @@ JSOX_PARSER_PROC( int, jsox_parse_add_data )(struct jsox_parse_state *context
 
 JSOX_PARSER_PROC( PTEXT, jsox_parse_get_error )(struct jsox_parse_state *state);
 
-JSOX_PARSER_PROC( PDATALIST, jsox_parse_get_data )(struct jsox_parse_state *context);
+JSOX_PARSER_PROC( PNVDATALIST, jsox_parse_get_data )(struct jsox_parse_state *context);
 
 // single all-in-one parsing of an input buffer.
 JSOX_PARSER_PROC( LOGICAL, jsox_parse_message )(const char * msg
@@ -210,7 +210,7 @@ JSOX_PARSER_PROC( char *, jsox_escape_string )(const char *string);
 	jsox_get_parsed_object_value() and jsox_get_parsed_array_value() :  returns a value from a value member.
 
 */
-JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_value )(PDATALIST pdlMessage, const char *path
+JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_value )(PNVDATALIST pdlMessage, const char *path
 	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
 	);
 JSOX_PARSER_PROC( struct jsox_value_container *, jsox_get_parsed_object_value )(struct jsox_value_container *pdlMessage, const char *path

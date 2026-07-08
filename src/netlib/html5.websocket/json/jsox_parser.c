@@ -73,12 +73,14 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	ppQueue = GetFromSet( PLINKQUEUE, &jxpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->inBuffers = ppQueue;// CreateLinkQueue();
-	state->inBuffers[0]->Top = state->inBuffers[0]->Bottom = 0;
+	state->inBuffers[0]->Top = 0;
+	state->inBuffers[0]->Bottom = 0;
 
 	ppQueue = GetFromSet( PLINKQUEUE, &jxpsd.linkQueues );
 	if( !ppQueue[0] ) ppQueue[0] = CreateLinkQueue();
 	state->outQueue = ppQueue;// CreateLinkQueue();
-	state->outQueue[0]->Top = state->outQueue[0]->Bottom = 0;
+	state->outQueue[0]->Top = 0;
+	state->outQueue[0]->Bottom = 0;
 
 	ppList = GetFromSet( PLIST, &jxpsd.listSet );
 	if( ppList[0] ) ppList[0]->Cnt = 0;
@@ -2325,7 +2327,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 	return retval;
 }
 
-PDATALIST jsox_parse_get_data( struct jsox_parse_state *state ) {
+PNVDATALIST jsox_parse_get_data( struct jsox_parse_state *state ) {
 	PDATALIST *result = state->elements;
 	EnterCriticalSec( &jxpsd.cs_states );
 	state->elements = GetFromSet( PDATALIST, &jxpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -2393,31 +2395,20 @@ static uintptr_t jsox_FindDataList( void*p, uintptr_t psv ) {
 static PLINKQUEUE dispose_queue;
 static PTHREAD dispose_thread;
 static uintptr_t jsox_dispose_thread( PTHREAD thread ) {
-	PDATALIST msg_data;
+	PNVDATALIST msg_data;
 	while( 1 ) {
-		while( ( msg_data = (PDATALIST)DequeLink( &dispose_queue ) ) ) {
-			/*
-			INDEX listIndex = GetMemberIndex( PDATALIST, &jxpsd.dataLists, (POINTER)msg_data );
-			if( listIndex != INVALID_INDEX ) {
-				PDATALIST* actual = GetSetMember( PDATALIST, &jxpsd.dataLists, listIndex );
-				_jsox_dispose_message( actual );
-				DeleteSetMember( PDATALIST, &jxpsd.dataLists, listIndex );
-			} else 
-			*/
-			{
-				uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data );
-				//lprintf( "Disposing message: %p %p", msg_data, actual );
-				if( actual )
-					_jsox_dispose_message( (PDATALIST*)actual );
-				else
-					lprintf( "Failed to find message to dispose (not from JSOX parsing?) %p", msg_data );
-			}
+		while( ( msg_data = (PNVDATALIST)DequeLink( &dispose_queue ) ) ) {
+			uintptr_t actual = ForAllInSet( PDATALIST, jxpsd.dataLists, jsox_FindDataList, (uintptr_t)msg_data );
+			//lprintf( "Disposing message: %p %p", msg_data, actual );
+			if( actual )
+				_jsox_dispose_message( (PDATALIST*)actual );
+			else
+				lprintf( "Failed to find message to dispose (not from JSOX parsing?) %p", msg_data );
 		}
 		WakeableSleep( 100000 );
 	}
 	return 0;
 }
-
 
 
 void jsox_dispose_message( PDATALIST *msg_data ) {
@@ -2651,7 +2642,7 @@ struct jsox_value_container *jsox_get_parsed_object_value( struct jsox_value_con
 	return NULL;
 }
 
-struct jsox_value_container *jsox_get_parsed_value( PDATALIST pdlMessage, const char *path
+struct jsox_value_container *jsox_get_parsed_value( PNVDATALIST pdlMessage, const char *path
 	, void( *callback )(uintptr_t psv, struct jsox_value_container *val), uintptr_t psv
 ) {
 	INDEX idx;
