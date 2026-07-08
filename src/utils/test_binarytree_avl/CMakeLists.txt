@@ -10,4 +10,9 @@ SET_TARGET_PROPERTIES(${project} PROPERTIES
         FOLDER tests
 )
 
+add_program( test_remove_binary test_remove_binary.c )
+SET_TARGET_PROPERTIES(test_remove_binary PROPERTIES
+        FOLDER tests
+)
+
 
