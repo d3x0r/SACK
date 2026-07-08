@@ -517,8 +517,9 @@ ATEXIT( CloseMacThread ){
 
 static int rtnetlink_socket = -1;
 static int rtnetlink_seq = 0;
+static uint64_t last_request;
 static void RequestNeighborDump( void ) {
-	static uint64_t last_request;
+	if (rtnetlink_socket < 0) return;
 	uint64_t now = timeGetTime64();
 	// if there was a request, and it was recnt, just skip
 	if( last_request && (last_request < now) ){
@@ -531,7 +532,6 @@ static void RequestNeighborDump( void ) {
 		struct nlmsghdr nlh;
 		struct ndmsg ndm;
 	} req;
-	if( rtnetlink_socket < 0 ) return;
 	memset( &req, 0, sizeof( req ) );
 	req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
 	req.nlh.nlmsg_type = RTM_GETNEIGH;
@@ -545,7 +545,7 @@ static void RequestNeighborDump( void ) {
 static uintptr_t MacThread( PTHREAD thread ) {
 
 	int stat;
-	int rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
+	rtnetlink_socket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
 	if( rtnetlink_socket < 0 )
 	{
 		threadFailed = 1;
@@ -621,6 +621,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 
 					switch( res->nl.nlmsg_type ) {
 						case NLMSG_DONE:
+							last_request = 0;
 							// end of dump; should send information here.
 							break;
 						case RTM_DELNEIGH: {
@@ -928,6 +929,9 @@ static void ReadNeighborTable( void ) {
 NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLocalLen
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
+#if defined( __LINUX__ ) 
+	int retryCount = 0;
+#endif
 	struct addressNode *newAddress = NULL;
 	if( pc->dwFlags & CF_AVAILABLE ) 
 		return FALSE;
@@ -948,7 +952,7 @@ retry:
 #endif
 
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
-	DumpAddr( "Find address in tree", saDup );
+	DumpAddr("Find address in tree", saDup);
 #endif	
 	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP	
@@ -1066,7 +1070,7 @@ retry:
 #elif defined( __LINUX__ )
 	PTHREAD thread = MakeThread();
 	AddLink( &macWaiters, thread );
-	RequestNeighborDump();
+	RequestNeighborDump();  // should keep requesting until it's found?
 	uint64_t waitTime = timeGetTime64() + 500;
 	while( !macTableUpdated && !( threadFailed || ( timeGetTime64() > waitTime ) ) ) {
 		// guess I should check to see if it is even possible to resolve with netmask...
