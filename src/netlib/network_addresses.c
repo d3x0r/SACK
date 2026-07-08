@@ -143,6 +143,17 @@ static struct mac_data {
 	PMACADDRESSNODESET addressNodePool;
 } mac_data;
 
+// guards pbtAddresses, the MACADDRESSNODE pool, and cached node hw fields
+// against concurrent access from MacThread (netlink) and lookup callers.
+// Never held across a sleep; nesting would be safe (sack critical sections
+// are owner-reentrant) but none of the call paths nest it.
+static CRITICALSECTION macLock;
+
+PRELOAD( InitMacAddressLock ) {
+	// windows requires explicit initialization; linux/mac accept the zeroed static
+	InitializeCriticalSec( &macLock );
+}
+
 typedef uint8_t NETWORK_ADDRESS_BUFFER[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
 #define MAXNETWORK_ADDRESS_BUFFERSPERSET 256
 DeclareSet( NETWORK_ADDRESS_BUFFER );
@@ -157,8 +168,10 @@ static PNETWORK_ADDRESS_BUFFERSET networkAddressBufferSet;
 static void deleteAddress( CPOINTER node, uintptr_t a )
 {
 	struct addressNode *an = (struct addressNode*)node;
+	// ReleaseAddress already returns the buffer to networkAddressBufferSet;
+	// the node itself goes back to the address node pool.
 	ReleaseAddress( an->remote );
-	DeleteFromSet( NETWORK_ADDRESS_BUFFER, networkAddressBufferSet, (uintptr_t)an->remote );
+	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, an );
 }
 
 static int compareAddress( uintptr_t a, uintptr_t b )
@@ -193,7 +206,8 @@ static int compareAddress( uintptr_t a, uintptr_t b )
 static void setupInterfaces( void ) {
 	PMIB_IF_TABLE2 if_table;
 	MIB_IPNET_ROW2 row;
-	if( mac_data.addresses ) return; // already did this work.
+	EnterCriticalSec( &macLock );
+	if( mac_data.addresses ) { LeaveCriticalSec( &macLock ); return; } // already did this work.
 	MemSet( &row.InterfaceLuid, 0, sizeof( row.InterfaceLuid ) );
 	GetIfTable2( &if_table );
 	int ifCount = 0;
@@ -286,6 +300,7 @@ static void setupInterfaces( void ) {
 
 	FreeMibTable( if_table );
 	FreeMibTable( uip_table );
+	LeaveCriticalSec( &macLock );
 }
 #endif
 
@@ -305,7 +320,8 @@ static void LogMacAddress( struct addressNode *newAddress ){
 
 static void setupInterfaces() {
 	struct ifconf ifc;
-	if( mac_data.ifbuf[0] ) return; // already did this work.
+	EnterCriticalSec( &macLock );
+	if( mac_data.ifbuf[0] ) { LeaveCriticalSec( &macLock ); return; } // already did this work.
 #ifdef __MAC__
 		// BSD SIOCGIFCONF returns variable-length records and provides neither
 		// SIOCGIFINDEX nor SIOCGIFHWADDR, so build the interface name/index/
@@ -495,7 +511,8 @@ static void setupInterfaces() {
 				lprintf( "IF: %d(%d) %s %02x:%02x:%02x:%02x:%02x", i, mac_data.ifIndexes[i], IFR->ifr_name, mac_data.hwaddrs[i][0], mac_data.hwaddrs[i][1], mac_data.hwaddrs[i][2], mac_data.hwaddrs[i][3], mac_data.hwaddrs[i][4], mac_data.hwaddrs[i][5] );
 			}
 		}
-#endif		
+#endif
+		LeaveCriticalSec( &macLock );
 }
 
 
@@ -521,12 +538,11 @@ static uint64_t last_request;
 static void RequestNeighborDump( void ) {
 	if (rtnetlink_socket < 0) return;
 	uint64_t now = timeGetTime64();
-	// if there was a request, and it was recnt, just skip
-	if( last_request && (last_request < now) ){
-		last_request = now + 250;
+	// a dump is already pending or just completed within the holdoff; the
+	// in-flight snapshot serves this request too.  (NLMSG_DONE clears
+	// last_request so a fresh request can go out immediately after.)
+	if( last_request && ( now < last_request ) )
 		return;
-	}
-	// update the new last_reqeust to now plus some...
 	last_request = now + 250;
 	struct {
 		struct nlmsghdr nlh;
@@ -577,13 +593,22 @@ static uintptr_t MacThread( PTHREAD thread ) {
 		lprintf( "Unable to bind netlink socket %s", strerror( errno ) );
 		return 0;
 	}
+	{
+		// absorb dump/event bursts; overflow shows up as ENOBUFS with
+		// silently dropped messages (capped by net.core.rmem_max)
+		int rcvbuf = 1024 * 1024;
+		setsockopt( rtnetlink_socket, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof( rcvbuf ) );
+	}
 	RequestNeighborDump();
 
 	while( !macThreadEnd ) {
 		//sendmsg( rtnetlink_socket, (struct msghdr*)&req, 0);
 		ssize_t rstat;
-		static uint8_t buf[8192];
+		// dump datagrams on modern kernels can exceed 8K; a short buffer
+		// truncates the batch and silently drops the tail entries
+		static uint8_t buf[32768];
 		int loop = 1;
+		int gotDone = 0;
 		do {
 			rstat = recv( rtnetlink_socket, buf, sizeof(buf), 0/*MSG_DONTWAIT*/ );
 			if( rstat < 0) {
@@ -591,10 +616,12 @@ static uintptr_t MacThread( PTHREAD thread ) {
 					//lprintf( "No data available" );
 					Relinquish();
 				} else if( errno == ENOBUFS ) {
-					//lprintf( "No data available" );
-					// too many sends happened, they should have been throttled...
+					// kernel dropped messages while we were busy; the stream
+					// has gaps (possibly a dump tail) - force a fresh dump
+					last_request = 0;
+					RequestNeighborDump();
 				} else{
-					lprintf( "Error: %s", strerror( errno ) );
+					lprintf( "netlink recv error: %d %s", errno, strerror( errno ) );
 					loop = 0;
 				}
 			}
@@ -621,8 +648,8 @@ static uintptr_t MacThread( PTHREAD thread ) {
 
 					switch( res->nl.nlmsg_type ) {
 						case NLMSG_DONE:
-							last_request = 0;
-							// end of dump; should send information here.
+							last_request = 0; // dump complete; allow the next request
+							gotDone = 1;      // wake waiters - the snapshot is applied
 							break;
 						case RTM_DELNEIGH: {
 							// kernel dropped this neighbor; drop the cached entry too.
@@ -635,9 +662,9 @@ static uintptr_t MacThread( PTHREAD thread ) {
 							size_t attLen = res->nl.nlmsg_len - sizeof( *res );
 							size_t attOfs = priorLen + sizeof( *res );
 							LOGICAL destFound = FALSE;
-							while( attLen ) {
+							while( attLen >= sizeof( struct rtattr ) ) {
 								struct rtattr *attr = (struct rtattr*)(buf+attOfs);
-								if( !attr->rta_len )
+								if( attr->rta_len < sizeof( struct rtattr ) )
 									break;
 								if( attr->rta_type == NDA_DST ) {
 									destFound = TRUE;
@@ -651,23 +678,34 @@ static uintptr_t MacThread( PTHREAD thread ) {
 									}
 									break;
 								}
-								attOfs += attr->rta_len;
-								attLen -= attr->rta_len;
+								if( RTA_ALIGN( attr->rta_len ) >= attLen )
+									break;
+								attOfs += RTA_ALIGN( attr->rta_len );
+								attLen -= RTA_ALIGN( attr->rta_len );
 							}
 							if( destFound ) {
-								struct addressNode *gone = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa );
+								struct addressNode *gone;
+								EnterCriticalSec( &macLock );
+								gone = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)sa );
 								if( gone ) {
+									int isLocal = 0;
+									// never remove the interface self-entries; the
+									// subnet tables hold raw pointers to them
+									for( int i = 0; i < mac_data.addressCount; i++ )
+										if( mac_data.addresses[i] == gone ) { isLocal = 1; break; }
+									if( !isLocal ) {
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
-									DumpAddr( "Neighbor deleted", sa );
+										DumpAddr( "Neighbor deleted", sa );
 #endif
-									//RemoveBinaryNode( mac_data.pbtAddresses, (POINTER)gone, (uintptr_t)sa );
+										// safe now: the AVL remove-path bugs are fixed and
+										// covered by test_remove_binary
+										RemoveBinaryNode( mac_data.pbtAddresses, (POINTER)gone, (uintptr_t)sa );
+									}
 								}
+								LeaveCriticalSec( &macLock );
 							}
 							break;
 						}
-						//case RTM_DELNEIGH:
-						//	// should probably delete the entry in the tree here...
-						//	break;
 						case RTM_NEWNEIGH:
 							//LogBinary( (uint8_t*)(res), res->nl.nlmsg_len );
 							/*
@@ -683,6 +721,7 @@ static uintptr_t MacThread( PTHREAD thread ) {
 							// 
 							if( res->rt.ndm_state & (NUD_INCOMPLETE|NUD_FAILED) )
 								break; // no lladdr yet/ever; a later NEWNEIGH will carry it
+							EnterCriticalSec( &macLock );
 							{
 								uint8_t addrbuf[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
 
@@ -696,6 +735,10 @@ static uintptr_t MacThread( PTHREAD thread ) {
 								sa->sa_data[0] = 0;
 								sa->sa_data[1] = 0;
 								newAddress.remote = sa;
+								// stack struct; don't let a missed ifindex or attribute
+								// leave garbage in the hardware address fields
+								memset( newAddress.localHw, 0, 6 );
+								memset( newAddress.remoteHw, 0, 6 );
 								for( int i = 0; i < mac_data.interfaceCount; i++ ) {
 									if( mac_data.ifIndexes[i] == res->rt.ndm_ifindex ) {
 										memcpy( newAddress.localHw, mac_data.hwaddrs[i], 6);
@@ -709,11 +752,11 @@ static uintptr_t MacThread( PTHREAD thread ) {
 									size_t attLen = res->nl.nlmsg_len-sizeof( *res);
 									size_t attOfs = priorLen + sizeof( *res );
 									destFound = linkFound = FALSE;
-									struct addressNode *existing;
+									struct addressNode *existing = NULL;
 									do {
 										struct rtattr *attr = (struct rtattr*)(buf+attOfs);
 
-										if( !attr->rta_len )
+										if( attr->rta_len < sizeof( struct rtattr ) )
 											break;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 										lprintf( "Attr:%d %d %d", attLen, attr->rta_len, attr->rta_type );
@@ -775,29 +818,37 @@ static uintptr_t MacThread( PTHREAD thread ) {
 												break;
 											}
 											default:
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
+												// proper RTA_ALIGN stepping now reaches trailing
+												// attributes (NDA_FLAGS_EXT etc.); they're benign
 												lprintf( "Unknown attribute type: %d", attr->rta_type );
+#endif
 												break;
 										}
-										attOfs += attr->rta_len;
-										attLen -= attr->rta_len;
-									} while( !duplicated && attLen );
-									if( !linkFound || !destFound || duplicated ) {
-										if( duplicated ) {
-											memcpy( existing->remoteHw, newAddress.remoteHw, 6 );
-											memcpy( existing->localHw,  newAddress.localHw,  6 );
-										}
+										if( RTA_ALIGN( attr->rta_len ) >= attLen )
+											break;
+										attOfs += RTA_ALIGN( attr->rta_len );
+										attLen -= RTA_ALIGN( attr->rta_len );
+									} while( 1 ); // keep parsing past duplicates; LLADDR follows DST
+									if( !linkFound || !destFound ) {
+										// no MAC in this message (e.g. NUD_NOARP entries);
+										// never overwrite a cached entry from one of these
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
-										if( !duplicated )
-											if( !linkFound || !destFound )
-												lprintf( "Network Address was incomplete: %s %s", linkFound?"":"Link Address", destFound?"":"Destination Address" );
-#endif											
+										lprintf( "Network Address was incomplete: %s %s", linkFound?"":"Link Address", destFound?"":"Destination Address" );
+#endif
+										LeaveCriticalSec( &macLock );
 										break;
 									}
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP
-									else {
-										lprintf( "duplicated wasn't found?");
+									if( duplicated ) {
+										// known IP seen again (dumps repeat every entry, and
+										// hardware can change) - refresh in place; the tree
+										// key (the address) is untouched
+										memcpy( existing->remoteHw, newAddress.remoteHw, 6 );
+										memcpy( existing->localHw,  newAddress.localHw,  6 );
+										gotDone = 1;
+										LeaveCriticalSec( &macLock );
+										break;
 									}
-#endif
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 									LogMacAddress( &newAddress );
 #endif										
@@ -808,13 +859,16 @@ static uintptr_t MacThread( PTHREAD thread ) {
 										lprintf( "Failed to add address to tree; should have already been marked as duplicated and in tree?" );
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 										LogMacAddress( storeAddress );
-#endif										
+#endif
 										ReleaseAddress( storeAddress->remote );
-										Deallocate( struct addressNode *, storeAddress );
+										DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, storeAddress );
 									}
+									else
+										gotDone = 1; // tree changed; wake waiters
 									//LogBinary( (uint8_t*)(buf+attOfs), res->nl.nlmsg_len-attOfs );
 								}
 							}
+							LeaveCriticalSec( &macLock );
 
 							break;
 						default:
@@ -827,14 +881,17 @@ static uintptr_t MacThread( PTHREAD thread ) {
 				}
 				//LogBinary( buf, rstat );
 			}
+			if (gotDone)
 			{
 				INDEX idx;
 				PTHREAD waiter;
 				macTableUpdated = TRUE;
-				LIST_FORALL( macWaiters, idx, PTHREAD, waiter ) {
-					WakeThread( waiter );
+				LIST_FORALL(macWaiters, idx, PTHREAD, waiter) {
+					WakeThread(waiter);
 				}
+				gotDone = 0;
 			}
+
 		} while( loop );
 	}
 	close( rtnetlink_socket );
@@ -897,8 +954,11 @@ static void ReadNeighborFamily( int family ) {
 			SET_SOCKADDR_LENGTH( key, IN6_SOCKADDR_LENGTH );
 		}
 
-		if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)key ) )
+		EnterCriticalSec( &macLock );
+		if( FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)key ) ) {
+			LeaveCriticalSec( &macLock );
 			continue; // already cached
+		}
 
 		node = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );
 		node->remote = DuplicateAddress( key );
@@ -913,6 +973,7 @@ static void ReadNeighborFamily( int family ) {
 			ReleaseAddress( node->remote );
 			DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, node );
 		}
+		LeaveCriticalSec( &macLock );
 	}
 	Deallocate( char*, buf );
 }
@@ -930,13 +991,16 @@ NETWORK_PROC( int, GetMacAddress)(PCLIENT pc, uint8_t* bufLocal, size_t *bufLoca
                                  , uint8_t *bufRemote, size_t* bufRemoteLen )//int get_mac_addr (char *device, unsigned char *buffer)
 {
 #if defined( __LINUX__ ) 
+	// only the linux netlink path retries
 	int retryCount = 0;
 #endif
 	struct addressNode *newAddress = NULL;
-	if( pc->dwFlags & CF_AVAILABLE ) 
+	if( pc->dwFlags & CF_AVAILABLE )
 		return FALSE;
+	EnterCriticalSec( &macLock );
 	if( !mac_data.pbtAddresses )
 		mac_data.pbtAddresses = CreateBinaryTreeExx( BT_OPT_NODUPLICATES, compareAddress, deleteAddress );
+	LeaveCriticalSec( &macLock );
 	SOCKADDR *saDup = DuplicateAddress_6to4( pc->saClient );
 	// clear Port for later... 
 	saDup->sa_data[0] = 0;
@@ -954,8 +1018,9 @@ retry:
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
 	DumpAddr("Find address in tree", saDup);
 #endif	
+	EnterCriticalSec( &macLock );
 	struct addressNode *oldAddress = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
-#ifdef DEBUG_MAC_ADDRESS_LOOKUP	
+#ifdef DEBUG_MAC_ADDRESS_LOOKUP
 	lprintf( "FindinBinaryTree: %p", oldAddress );
 #endif
 	if( oldAddress )
@@ -963,9 +1028,11 @@ retry:
 		MemCpy( bufLocal, oldAddress->localHw, 6 );
 		MemCpy( bufRemote, oldAddress->remoteHw, 6 );
 		if( newAddress ) DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+		LeaveCriticalSec( &macLock );
 		ReleaseAddress( saDup );
 		return TRUE;
 	}
+	LeaveCriticalSec( &macLock );
 
 	if( ( saDup->sa_family == AF_INET6 
 	     && ( ( MemCmp( saDup->sa_data+6, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16 ) == 0 )
@@ -984,7 +1051,9 @@ retry:
 #endif
 	int addr;
 	if( !newAddress ) {
+		EnterCriticalSec( &macLock );
 		newAddress = GetFromSet( MACADDRESSNODE, &mac_data.addressNodePool );//  (struct addressNode*)AllocateEx( sizeof( struct addressNode ) DBG_SRC );
+		LeaveCriticalSec( &macLock );
 		memset( newAddress->localHw, 0, 6 );
 		memset( newAddress->remoteHw, 0, 6 );
 		newAddress->remote = saDup;
@@ -1038,11 +1107,19 @@ retry:
 	MemCpy( newAddress->localHw, bufLocal, 6 );
 
 
+#if !defined( __LINUX__ ) || defined( __MAC__ )
+	// Off-subnet peer (or the interface snapshot missed it): the OS resolver
+	// can't produce a MAC, so record zeros permanently.  On netlink linux the
+	// kernel neighbor table is authoritative - fall through and let it decide;
+	// the subnet tables there only feed bufLocal.
 	if( addr == mac_data.addressCount || local_addr == mac_data.addressCount ) {
 		// keep this remote address for future checks...
+		EnterCriticalSec( &macLock );
 		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
+		LeaveCriticalSec( &macLock );
 		return TRUE;
 	}
+#endif
 
 #if defined( __MAC__ )
 	// Refresh the BSD ARP/NDP neighbour cache into the shared tree, then look up
@@ -1051,41 +1128,60 @@ retry:
 	// the linux netlink dump and Windows ResolveIpNetEntry2 rely on.
 	ReadNeighborTable();
 	{
-		struct addressNode *found = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
+		struct addressNode *found;
+		EnterCriticalSec( &macLock );
+		found = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
 		if( found ) {
 			MemCpy( bufLocal, found->localHw, 6 );
 			(*bufLocalLen) = 6;
 			MemCpy( bufRemote, found->remoteHw, 6 );
 			(*bufRemoteLen) = 6;
 			DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+			LeaveCriticalSec( &macLock );
 			ReleaseAddress( saDup );
 			return TRUE;
 		}
+		// Not in the neighbour cache yet (unresolved); report none and let the
+		// caller retry later once traffic has populated the cache.
+		DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+		LeaveCriticalSec( &macLock );
 	}
-	// Not in the neighbour cache yet (unresolved); report none and let the
-	// caller retry later once traffic has populated the cache.
-	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
 	ReleaseAddress( saDup );
 	return FALSE;
 #elif defined( __LINUX__ )
-	PTHREAD thread = MakeThread();
-	AddLink( &macWaiters, thread );
-	RequestNeighborDump();  // should keep requesting until it's found?
-	uint64_t waitTime = timeGetTime64() + 500;
-	while( !macTableUpdated && !( threadFailed || ( timeGetTime64() > waitTime ) ) ) {
-		// guess I should check to see if it is even possible to resolve with netmask...
-		WakeableSleep( 500 );
+	{
+		PTHREAD thread = MakeThread();
+		AddLink( &macWaiters, thread );
+		RequestNeighborDump();
+		uint64_t waitTime = timeGetTime64() + 500;
+		while( !macTableUpdated && !( threadFailed || ( timeGetTime64() > waitTime ) ) ) {
+			WakeableSleep( 500 );
+		}
+		DeleteLink( &macWaiters, thread );
 	}
-	DeleteLink( &macWaiters, thread );
-	if( threadFailed || ( timeGetTime64() > waitTime ) ) {
-		//lprintf( "Timeout waiting for mac address" );
+	// the table changed - re-check the tree (bounded; a busy LAN generates
+	// endless neighbor events, so don't chase updates forever)
+	if( macTableUpdated && !threadFailed && ( retryCount++ < 3 ) )
+		goto retry;
+	// The kernel doesn't know this peer (off-subnet, or its entry expired).
+	// Cache the zeros so lookups don't stall 500ms every call; a later
+	// RTM_NEWNEIGH updates this entry in place if the address ever resolves,
+	// and RTM_DELNEIGH cleans it up.
+	EnterCriticalSec( &macLock );
+	if( !AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote ) ) {
+		// raced with the netlink thread adding this address; use its entry
+		struct addressNode *raced = (struct addressNode *)FindInBinaryTree( mac_data.pbtAddresses, (uintptr_t)saDup );
+		if( raced ) {
+			MemCpy( bufLocal, raced->localHw, 6 );
+			MemCpy( bufRemote, raced->remoteHw, 6 );
+		}
 		DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+		LeaveCriticalSec( &macLock );
 		ReleaseAddress( saDup );
 		return TRUE;
 	}
-	goto retry;
-
-	return 0;
+	LeaveCriticalSec( &macLock );
+	return TRUE;
 #endif
 
 #  ifdef WIN32
@@ -1100,7 +1196,9 @@ retry:
 	if( hr == S_OK ) {
 		int sz = (int)( row.PhysicalAddressLength<6?row.PhysicalAddressLength:6 );
 		MemCpy( newAddress->remoteHw, row.PhysicalAddress, sz );
+		EnterCriticalSec( &macLock );
 		AddBinaryNode( mac_data.pbtAddresses, (CPOINTER)newAddress, (uintptr_t)newAddress->remote );
+		LeaveCriticalSec( &macLock );
 		MemCpy( bufRemote, row.PhysicalAddress, sz );
 		(*bufRemoteLen) = sz;
 #ifdef DEBUG_MAC_ADDRESS_LOOKUP
@@ -1109,7 +1207,9 @@ retry:
 #endif
 		return TRUE;
 	}
+	EnterCriticalSec( &macLock );
 	DeleteFromSet( MACADDRESSNODE, mac_data.addressNodePool, newAddress );
+	LeaveCriticalSec( &macLock );
 	ReleaseAddress( saDup);
 	return FALSE;
 #  endif
