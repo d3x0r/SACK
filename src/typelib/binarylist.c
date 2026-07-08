@@ -14,7 +14,7 @@
  *
  */
 #include <stdhdrs.h>
-
+//#define DEBUG_AVL_VALIDATION
 //#define DEFINE_BINARYLIST_PERF_COUNTERS
 #ifdef DEFINE_BINARYLIST_PERF_COUNTERS
 #  include <deadstart.h>
@@ -167,7 +167,8 @@ void ValidateTreeNode( PTREENODE node ) {
 void ValidateTree( PTREEROOT root ) {
 	//lprintf( "--------------------------- VALIDATE TREE -----------------------------" );
 	//DumpTree( root, NULL );
-	ValidateTreeNode( root->tree );
+	if( root->tree )
+		ValidateTreeNode( root->tree );
 }
 #endif
 //---------------------------------------------------------------------------
@@ -551,6 +552,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 		if( !node->lesser ) {
 			if( node->greater ) {
 				bottom = (*node->me) = node->greater;
+				bottom->me = node->me;
 				bottom->parent = node->parent;
 			} else {
 				(*node->me) = NULL;
@@ -559,6 +561,7 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		} else if( !node->greater ) {
 			bottom = (*node->me) = node->lesser;
+			bottom->me = node->me;
 			bottom->parent = node->parent;
 		} else {
 			node->children--;
@@ -586,94 +589,66 @@ static void NativeRemoveBinaryNode( PTREEROOT root, PTREENODE node )
 			}
 		}
 		{
-			LOGICAL updating = 1;
-			backtrack = bottom;
+			// Start the walk at the unhooked successor (two-child case) so its
+			// old parent gets its decrement and rebalance too; otherwise start
+			// at 'bottom' (the removed node, or its promoted child).  The walk
+			// runs in two legs when transplanting: the successor's parent up to
+			// 'node' (exclusive), then - after the transplant clears 'node' -
+			// from the shell's parent up to the root.
+			backtrack = least ? least : bottom;
 			do {
-				backtrack = backtrack->parent;
-				while( backtrack && ( no_children || backtrack != node ) ) {
-					backtrack->children--;
-					if( updating ) {
-						if( backtrack->lesser ) {
-							if( backtrack->greater ) {
-								int tmp1, tmp2;
-								PTREENODE z_, y_/*, x_*/;
-
-								if( (tmp1=backtrack->lesser->depth) > (tmp2=backtrack->greater->depth) ) {
-									if( backtrack->depth != ( tmp1 + 1 ) ) 
-										backtrack->depth = tmp1 + 1;
-									else 
-										updating = 0;
-									if( (tmp1-tmp2) > 1 ) {
-										// unblanced here...
-										int tmp3, tmp4;
-										tmp3 = backtrack->lesser->lesser?backtrack->lesser->lesser->depth:0;
-										tmp4 = backtrack->lesser->greater?backtrack->lesser->greater->depth:0;
-										z_ = backtrack;
-										y_ = backtrack->lesser;
-										if( tmp3 > tmp4 ) {
-											//x_ = backtrack->lesser->lesser; 
-											// left-left Rotate Right(Z)
-											AVL_RotateToRight( z_ );
-										} else {
-											// left-right
-											//x_ = backtrack->lesser->greater; 
-											AVL_RotateToLeft( y_ );
-											AVL_RotateToRight( z_ );
-										}
-									}
-								} else {
-									if( backtrack->depth != ( tmp2 + 1 ) )
-										backtrack->depth = tmp2 + 1;
-									else 
-										updating = 0;
-									if( (tmp2-tmp1) > 1 ) {
-										// unblanced here...
-										int tmp3, tmp4;
-										tmp3 = backtrack->greater->lesser?backtrack->greater->lesser->depth:0;
-										tmp4 = backtrack->greater->greater?backtrack->greater->greater->depth:0;
-										z_ = backtrack;
-										y_ = backtrack->greater;
-										if( tmp4 > tmp3 ) {
-											//x_ = y_->greater; 
-											// right-right Rotate Right(Z)
-											AVL_RotateToLeft( y_ );
-										} else {
-											// right-left
-											//x_ = y_->lesser; 
-											AVL_RotateToRight( y_ );
-											AVL_RotateToLeft( z_ );
-										}
-									}
-								}
-							} else {
-								if( backtrack->depth != ( backtrack->lesser->depth + 1 ) )
-									backtrack->depth = backtrack->lesser->depth + 1;
-								else
-									updating = 0;
-							}
-						} else {
-							if( backtrack->greater )
-									if( backtrack->depth != ( backtrack->greater->depth + 1 ) )
-										backtrack->depth = backtrack->greater->depth + 1;
-									else 
-										updating = 0;
-							else
-									if( backtrack->depth != 0 )
-										backtrack->depth = 0;
-									else 
-										updating = 0;
+			backtrack = backtrack->parent;
+			while (backtrack && (no_children || backtrack != node)) {
+				backtrack->children--;
+				if (!backtrack->flags.bRoot) {
+					int leftDepth = backtrack->lesser ? backtrack->lesser->depth : 0;
+					int rightDepth = backtrack->greater ? backtrack->greater->depth : 0;
+					backtrack->depth = (leftDepth > rightDepth ? leftDepth : rightDepth) + 1;
+					if ((leftDepth - rightDepth) > 1) {
+						PTREENODE z_ = backtrack, y_ = backtrack->lesser;
+						int tmp3 = y_->lesser ? y_->lesser->depth : 0;
+						int tmp4 = y_->greater ? y_->greater->depth : 0;
+						if (tmp3 >= tmp4) {
+							AVL_RotateToRight(z_);
 						}
+						else {
+							AVL_RotateToLeft(y_);
+							AVL_RotateToRight(z_);
+						}
+						backtrack = backtrack->parent; // corrected head; resume above it
 					}
-					if (!backtrack->flags.bRoot) backtrack = backtrack->parent;
-					else backtrack = NULL;
+					else if ((rightDepth - leftDepth) > 1) {
+						PTREENODE z_ = backtrack, y_ = backtrack->greater;
+						int tmp3 = y_->lesser ? y_->lesser->depth : 0;
+						int tmp4 = y_->greater ? y_->greater->depth : 0;
+						if (tmp4 >= tmp3) {
+							AVL_RotateToLeft(z_);
+						}
+						else {
+							AVL_RotateToRight(y_);
+							AVL_RotateToLeft(z_);
+						}
+						backtrack = backtrack->parent;
+					}
 				}
-				if( least ) {
-					node->userdata = least->userdata;
-					node->key      = least->key;
-					DeleteFromSet( TREENODE, TreeNodeSet, least );
-					node   = NULL;
-					least  = NULL;
+				if (!backtrack->flags.bRoot) backtrack = backtrack->parent;
+				else backtrack = NULL;
+			}
+			// two-child case: the successor's payload takes over the removed
+			// node's shell; clearing 'node' lets the outer loop finish the
+			// walk from the shell's parent up to the root
+			if( least ) {
+				node->userdata = least->userdata;
+				node->key = least->key;
+				{
+					int ld = node->lesser ? node->lesser->depth : 0;
+					int gd = node->greater ? node->greater->depth : 0;
+					node->depth = ( ld > gd ? ld : gd ) + 1;
 				}
+				DeleteFromSet( TREENODE, TreeNodeSet, least );
+				node = NULL;
+				least = NULL;
+			}
 			} while( backtrack );
 		}
 		
