@@ -19,10 +19,13 @@ uintptr_t CPROC TestThread( PTHREAD thread )
       cycles[t]++;
       EnterCriticalSec( cs1 );
 		EnterCriticalSec( cs2 );
+		Relinquish();
 		LeaveCriticalSec( cs1 );
-      WakeableSleep( 5 );
+		Relinquish();
+		// WakeableSleep( 5 );
 		LeaveCriticalSec( cs2 );
-      WakeableSleep( 25 );
+		Relinquish();
+		//WakeableSleep( 25 );
       locked[t]++;
 	}
    return 0;
