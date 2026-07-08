@@ -1046,7 +1046,11 @@ NETWORK_PROC( uintptr_t, GetNetworkLong )(PCLIENT lpClient,int nLong)
 	else if( nLong < globalNetworkData.nUserData ) {
 		if( lpClient->lpUserData )
 			return lpClient->lpUserData[nLong];
-		else lprintf( "User data wasn't set on socket... %d", nLong );
+		else {
+			lprintf( "User data wasn't set on socket... %d", nLong );
+			// content is expected to be NULL, even though this is sort of an error
+			return 0;
+		}
 	}
 
 	return (uintptr_t)-1;
