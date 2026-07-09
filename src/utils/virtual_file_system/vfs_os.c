@@ -1760,7 +1760,7 @@ static LOGICAL _os_ValidateBAT( struct sack_vfs_os_volume *vol ) {
 		}
 
 		// this ends up pusing 1 more so that compute can actually work on reload
-		vol->pdl_BAT_information->Cnt--;
+		vol->pdl_BAT_information->Cnt = vol->pdl_BAT_information->Cnt - 1;
 		priorInfo = (struct sack_vfs_os_BAT_info*)GetDataItem( &vol->pdl_BAT_information, vol->pdl_BAT_information->Cnt-1 );
 
 		if( priorInfo->sectorEnd > vol->dwSize )
@@ -2018,7 +2018,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			check_val = 0;
 			b = (unsigned int)(newblock / BLOCKS_PER_BAT);
 			n = newblock % BLOCKS_PER_BAT;
-			vol->pdlFreeBlocks->Cnt--;
+			vol->pdlFreeBlocks->Cnt = vol->pdlFreeBlocks->Cnt - 1;
 		}
 		else {
 			check_val = EOBBLOCK;
@@ -2032,7 +2032,7 @@ static BLOCKINDEX _os_GetFreeBlock_( struct sack_vfs_os_volume *vol, enum block_
 			check_val = 0;
 			n = newblock % BLOCKS_PER_BAT;
 			b = (unsigned int)( newblock / BLOCKS_PER_BAT );
-			vol->pdlFreeSmallBlocks->Cnt--;
+			vol->pdlFreeSmallBlocks->Cnt = vol->pdlFreeSmallBlocks->Cnt - 1;
 		}
 		else {
 			check_val = EOBBLOCK;
@@ -3889,7 +3889,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 #endif
 	while( LockedExchange( &file->vol->lock, 1 ) ) Relinquish();
 
-	if( file->entry->first_block != DIR_ALLOCATING_MARK )
+	if( file->entry->first_block != DIR_ALLOCATING_MARK ) {
 		if( file->flags.versioned )
 		{
 			// if versioned, but no limit, just do this.
@@ -3929,7 +3929,7 @@ size_t CPROC sack_vfs_os_write_internal( struct sack_vfs_os_file* file, const vo
 			//file->entry->timelineEntry = file->timeline.index;
 			updated = TRUE;
 		}
-
+	}
 #ifdef XX_VIRTUAL_OBJECT_STORE
 
 	if( (file->entry->name_offset) & DIRENT_NAME_OFFSET_FLAG_SEALANT ) {

@@ -741,7 +741,7 @@ static BLOCKINDEX GetFreeBlock( struct sack_vfs_volume *vol, int init )
 		check_val = 0;
 		b = newblock / BLOCKS_PER_BAT;
 		n = newblock % BLOCKS_PER_BAT;
-		vol->pdlFreeBlocks->Cnt--;
+		vol->pdlFreeBlocks->Cnt = vol->pdlFreeBlocks->Cnt - 1;
 	}
 	else {
 		check_val = EOBBLOCK;

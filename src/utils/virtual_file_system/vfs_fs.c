@@ -151,11 +151,12 @@ static int _fs_MaskStrCmp( struct sack_vfs_fs_volume *vol, CTEXTSTR filename, FP
 		if( path_match ) {
 			size_t l;
 			int r = _fs_PathCaseCmpEx( filename, dirname + name_offset, l = strlen( filename ) );
-			if( !r )
+			if( !r ) {
 				if( (dirname + name_offset)[l] == '/' || (dirname + name_offset)[l] == '\\' )
 					return 0;
 				else
 					return 1;
+			}
 			return r;
 		}
 		else
@@ -551,7 +552,7 @@ static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 					//	memcpy( ((uint8_t*)vol->disk) + (vol->segment[cache]-1) * BLOCK_SIZE, vol->usekey[cache], BLOCK_SIZE );
 				}
 				SETFLAG( vol->dirty, cache );
-				if( (check_val == EOBBLOCK) )
+				if( check_val == EOBBLOCK ) {
 					if( n < (BLOCKS_PER_BAT - 1) ) {
 						LoG( "Write EOB to %d", b * BLOCKS_PER_BAT +n + 1 );
 						current_BAT[1] = EOBBLOCK ^ blockKey[1];
@@ -564,6 +565,7 @@ static BLOCKINDEX _fs_GetFreeBlock( struct sack_vfs_fs_volume *vol, int init )
 						current_BAT[0] = EOBBLOCK ^ blockKey[0];
 						SETFLAG( vol->dirty, cache );
 					}
+				}
 				LoG( "Return new block:%d", b * BLOCKS_PER_BAT + n );
 				return b * BLOCKS_PER_BAT + n;
 			}
@@ -1291,7 +1293,7 @@ size_t CPROC sack_vfs_fs_read( struct sack_vfs_fs_file *file, void * data_, size
 		else
 			length = (size_t)(( file->entry->filesize  ^ file->dirent_key.filesize ) - file->fpi);
 	}
-	if( !length ) { errno = file->vol->lock = 0; LoG( "No Data to write..." );  return 0; }
+	if( !length ) { errno = 0; file->vol->lock = 0; LoG( "No Data to write..." );  return 0; }
 
 	if( ofs ) {
 		enum block_cache_entries cache = BC(FILE);
