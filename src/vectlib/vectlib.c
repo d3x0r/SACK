@@ -2022,7 +2022,7 @@ void EXTERNAL_NAME(basis_lq)( PVECTOR4 v4, PMatrix basis ) {
 	//  I thought it was more that sine() - 0->pi is one full positive wave... where the end is the same as the start
 	//  and then pi to 2pi is all negative, so it's like the inverse of the rotation (and is only applied as an inverse? which reverses the negative limit?)
 	//  So maybe it seems a lot of this is just biasing math anyway?
-	const double angle = acos(t);
+	const double angle = acos2(t);
 	if( !angle ) {
 		//console.log( "primary rotation is '0'", t, angle, this.θ, basis.right.x, basis.up.y, basis.forward.z );
 		v4[0] = 0;
@@ -2253,7 +2253,7 @@ VECTOR_METHOD( PVECTOR4, lq_applyRotation, ( PVECTOR4 out, PCVECTOR4 r, PCVECTOR
 	//    cos(A) (cos(x + y) - cos(x - y)) + cos(x - y) + cos(x + y)
 	// octive should have some sort of computation that gets there...s
 	// would have to be a small change
-	const RCOORD ang  = acos( cosCo2 ) * 2/* + oct * ( M_PI * 2 )*/;
+	const RCOORD ang  = acos2( cosCo2 ) * 2/* + oct * ( M_PI * 2 )*/;
 
 	if( ang ) {
 		const RCOORD sxmy = sin( xmy );
@@ -2337,7 +2337,7 @@ static PVECTOR4 alignZero( PVECTOR4 q ) {
 	EXTERNAL_NAME( lq_basis )( &b, q );
 
 	const RCOORD ty       = b[ 1 ][ 1 ];
-	const RCOORD cosTheta = acos( ty ); // 1->-1 (angle from pole around this circle.
+	const RCOORD cosTheta = acos2( ty ); // 1->-1 (angle from pole around this circle.
 	const RCOORD txn = -q[ 2 ];
 	const RCOORD tzn = q[ 0 ];
 
@@ -2345,7 +2345,7 @@ static PVECTOR4 alignZero( PVECTOR4 q ) {
 	const RCOORD c = 1 - cos( cosTheta ); // double angle substituted
 
 	// determinant coordinates
-	const RCOORD angle = txn == 1 ? cosTheta : acos( ( ty + 1 ) * ( 1 - txn ) / 2 - 1 );
+	const RCOORD angle = txn == 1 ? cosTheta : acos2( ( ty + 1 ) * ( 1 - txn ) / 2 - 1 );
 
 	// compute the axis
 	const RCOORD yz           = s * q[0];
@@ -2447,7 +2447,7 @@ PVECTOR4 EXTERNAL_NAME(lq_cross)( PVECTOR4 out, PCVECTOR a, PCVECTOR b ) {
 	const RCOORD alen         = sqrt( a[ 0 ] * a[ 0 ] + a[ 1 ] * a[ 1 ] + a[ 2 ] * a[ 2 ] );
 	const RCOORD blen  = sqrt( b[ 0 ] * b[ 0 ] + b[ 1 ] * b[ 1 ] + b[ 2 ] * b[ 2 ] );
 	const RCOORD dot   = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])/(alen*blen);
-	const RCOORD angle = acos( dot ); // returns 0 to pi; 0 to 1/2 turn.
+	const RCOORD angle = acos2( dot ); // returns 0 to pi; 0 to 1/2 turn.
 
 	const RCOORD norm  = sin( angle );
 

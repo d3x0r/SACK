@@ -595,7 +595,7 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 	AddDataItem( &peer->event_list, &pc->event );
 	pc->this_thread = peer;
 	pc->flags.bAddedToEvents = 1;
-	peer->nEvents++;
+	peer->nEvents = peer->nEvents +1;
 #ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif

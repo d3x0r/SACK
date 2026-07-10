@@ -2071,7 +2071,7 @@ void SQLBeginTransact( PODBC odbc ) {
 
 //----------------------------------------------------------------------
 
-static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PDATALIST pdlParams DBG_PASS );
+static int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t queryLength, PNVDATALIST pdlParams DBG_PASS );
 
 void DispatchPriorRequests( PODBC odbc )
 {
@@ -4825,7 +4825,7 @@ int __DoSQLQueryExx( PODBC odbc, PCOLLECT collection, CTEXTSTR query, size_t que
 			//DebugBreak();
 			tmp = sqlite3_errmsg(odbc->db);
 			// this will have to have a Char based version
-			if( strnicmp( tmp, "no such table", 13 ) == 0 )
+			if( StrCaseCmpEx( tmp, "no such table", 13 ) == 0 )
 				vtprintf( collection->pvt_errorinfo, "(S0002)" );
 			vtprintf( collection->pvt_errorinfo, "Result of prepare failed? (%d) %s at-or near char %" _size_f "[%" _cstring_f "] in [%" _string_f "]", rc3, tmp, tail - query, tail, query );
 			if( EnsureLogOpen(odbc ) )

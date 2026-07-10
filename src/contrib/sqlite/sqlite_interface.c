@@ -146,7 +146,7 @@ int xClose(sqlite3_file*file)
 				// they're the same structure type and everything, but C++ can't just assign them
 				// but C++ throws some warning about assignment with no trivial copy-assigment.
 				// (see above deleted operator)
-				memcpy( &check->locks_ , & my_file->locks_, sizeof( check->locks_ ) );
+				memcpy( (void*)&check->locks_, (const void*)&my_file->locks_, sizeof( check->locks_ ) );
 				my_file->locks = &check->locks_;
 			}
 			check->locks = my_file->locks;

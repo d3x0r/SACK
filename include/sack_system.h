@@ -78,6 +78,11 @@ typedef void (CPROC*TaskOutput)(uintptr_t, PTASK_INFO task, CTEXTSTR buffer, siz
 // this is a Linux option - uses forkpty() instead of just fork() to 
 // start a process - meant for interactive processes.
 #define LPP_OPTION_INTERACTIVE        2048
+// on windows, enable nShow as minimized (else normal)
+#define LPP_OPTION_MINIMIZED          4096
+// on windows, enable nShow as maximized (else normal)
+#define LPP_OPTION_MAXIMIZED          8192
+
 
 struct environmentValue {
 	char* field;

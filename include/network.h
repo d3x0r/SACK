@@ -233,7 +233,16 @@ enum SackNetworkErrorIdentifier {
 	SACK_NETWORK_ERROR_HTTP_UNSUPPORTED, // command parsing resulted in invalid command.  (HTTPS request to HTTP)
 	SACK_NETWORK_ERROR_HOST_NOT_FOUND, // host name could not be resolved
 };
-typedef void (CPROC*cErrorCallback)(uintptr_t psvError, PCLIENT pc, enum SackNetworkErrorIdentifier error, ... );
+/* Anchor type for the last named parameter of error callbacks.
+   C++ makes va_start() on a parameter that undergoes default argument
+   promotion (any unscoped enum) undefined behavior [-Wvarargs], so C++
+   builds use int; the values are enum SackNetworkErrorIdentifier either way. */
+#ifdef __cplusplus
+typedef int SackNetworkError;
+#else
+typedef enum SackNetworkErrorIdentifier SackNetworkError;
+#endif
+typedef void (CPROC*cErrorCallback)(uintptr_t psvError, PCLIENT pc, SackNetworkError error, ... );
 
 NETWORK_PROC( void, SetNetworkWriteComplete )( PCLIENT, cWriteComplete );
 #ifdef __cplusplus

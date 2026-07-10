@@ -1371,7 +1371,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 	return NULL;
 }
 
-void httpSSLError( uintptr_t psv, PCLIENT pc, enum SackNetworkErrorIdentifier error, ... ) {
+void httpSSLError( uintptr_t psv, PCLIENT pc, SackNetworkError error, ... ) {
 	lprintf( "SSL Level Error: %d (unhandled)", error );
 }
 

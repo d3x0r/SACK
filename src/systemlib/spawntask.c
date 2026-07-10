@@ -768,6 +768,10 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				task->si.StartupInfo.wShowWindow = SW_HIDE;
 			else
 				task->si.StartupInfo.wShowWindow = SW_SHOW;
+			if( flags & LPP_OPTION_MINIMIZED )
+				task->si.StartupInfo.wShowWindow = SW_HIDE;
+			else if( flags & LPP_OPTION_MAXIMIZED )
+				task->si.StartupInfo.wShowWindow = SW_SHOW;
 		}
 
 		{
