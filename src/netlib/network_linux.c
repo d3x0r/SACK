@@ -646,7 +646,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										pc->dwFlags |= CF_WRITEREADY;
 									}
 									if( !pc->lpFirstPending ) {
-										if( pc->dwFlags & CF_TOCLOSE )
+										if( ( pc->dwFlags & CF_TOCLOSE ) && !pc->flags.bInUse )
 										{
 											pc->dwFlags &= ~CF_TOCLOSE;
 											lprintf( "Pending write completed - and wants to close. %s", NetworkExpandFlags( pc ) );
@@ -655,6 +655,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 											TerminateClosedClient( pc );
 											LeaveCriticalSec( &globalNetworkData.csNetwork );
 										}
+										// else bInUse: application work outstanding; CF_TOCLOSE
+										// stays set and ClearNetWork closes when released.
 									}
 								}
 							}

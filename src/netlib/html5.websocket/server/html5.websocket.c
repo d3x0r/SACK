@@ -13,6 +13,7 @@
 
 HTML5_WEBSOCKET_NAMESPACE
 
+//#define DEBUG_WEBSOCKET_CLOSE
 #define WSS_DEFAULT_BUFFER_SIZE 4096
 
 typedef struct html5_web_socket *HTML5WebSocket;
@@ -223,11 +224,22 @@ uintptr_t WebSocketPipeGetServerData( HTML5WebSocket socket ) {
 
 static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
+	if( !socket ) return;
 	if( socket->input_state.flags.in_open_event ) {
 		socket->flags.closed = 1;
 		return;
 	}
-	SetNetworkLong( pc_client, 0, 0 );
+	if( pc_client ) {
+		SetNetworkLong( pc_client, 0, 0 );
+		SetNetworkLong( pc_client, 1, 0 );
+	}
+	else if( socket->Magic == 0x20130912 && socket->pc ) {
+		// freeing without a close event (deferred destroy); the client must not
+		// be able to reach this socket after it is freed, or a later close
+		// event reads freed memory.
+		SetNetworkLong( socket->pc, 0, 0 );
+		SetNetworkLong( socket->pc, 1, 0 );
+	}
 	//lprintf( "ServerWebSocket Connection closed event..." );
 	if( pc_client && socket->input_state.on_close && socket->input_state.psv_open  ) {
 		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
@@ -248,6 +260,9 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	Deallocate( uint8_t*, socket->input_state.fragment_collection );
 	DestroyHttpState( socket->http_state );
 	Deallocate( POINTER, socket->buffer );
+#ifdef DEBUG_WEBSOCKET_CLOSE
+	lprintf( "WSS destroy socket %p pc %p/%p", socket, pc_client, socket->pc ); // TRACE close-path debugging
+#endif
 	Deallocate( HTML5WebSocket, socket );
 }
 
@@ -594,7 +609,11 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 static void CPROC closed( PCLIENT pc_client ) {
 	// this better be the last operation - this is a network socket close callback.
 	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
-	destroyHttpState( socket, pc_client ); // does all of the memory cleanup (lower case d)
+#ifdef DEBUG_WEBSOCKET_CLOSE
+	lprintf( "WSS closed event %p socket %p", pc_client, socket ); // TRACE close-path debugging
+#endif
+	if( socket )
+		destroyHttpState( socket, pc_client ); // does all of the memory cleanup (lower case d)
 	SetNetworkLong( pc_client, 0, 0 );
 	SetNetworkLong( pc_client, 1, 0 );
 }

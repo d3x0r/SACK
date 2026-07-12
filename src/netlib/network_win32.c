@@ -350,6 +350,47 @@ static void HandleEvent( PCLIENT pClient )
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "FD_Write %p", pClient );
 #endif
+						if( ( pClient->dwFlags & CF_CONNECTING ) && !( pClient->dwFlags & ( CF_CONNECTED | CF_CONNECTERROR ) ) )
+						{
+							// FD_WRITE on a connecting socket means the connect
+							// completed; rarely (heavy socket churn) FD_CONNECT is
+							// never signaled - complete the connect from here so the
+							// socket doesn't sit CF_CONNECTING forever.
+							lprintf( "FD_WRITE is completing a connect that never received FD_CONNECT %p", pClient );
+							pClient->dwFlags |= CF_CONNECTED;
+							pClient->dwFlags &= ~CF_CONNECTING;
+							if( !pClient->saSource ) {
+								int nLen = MAGIC_SOCKADDR_LENGTH;
+								pClient->saSource = AllocAddr();
+								if( getsockname( pClient->Socket, pClient->saSource, &nLen ) )
+									lprintf( "getsockname errno = %d", errno );
+								else
+									SET_SOCKADDR_LENGTH( pClient->saSource
+										, pClient->saSource->sa_family == AF_INET
+										? IN_SOCKADDR_LENGTH
+										: IN6_SOCKADDR_LENGTH );
+							}
+							if( pClient->connect.ThisConnected )
+							{
+								pClient->dwFlags |= CF_CONNECT_ISSUED;
+								if( pClient->dwFlags & CF_CPPCONNECT )
+									pClient->connect.CPPThisConnected( pClient->psvConnect, 0 );
+								else
+									pClient->connect.ThisConnected( pClient, 0 );
+							}
+							// initial read kick, as the FD_CONNECT path would have done
+							if( ( pClient->dwFlags & ( CF_ACTIVE | CF_CONNECTED ) ) == ( CF_ACTIVE | CF_CONNECTED ) )
+							{
+								if( pClient->read.ReadComplete ) {
+									if( pClient->dwFlags & CF_CPPREAD )
+										pClient->read.CPPReadComplete( pClient->psvRead, NULL, 0 );
+									else
+										pClient->read.ReadComplete( pClient, NULL, 0 );
+								}
+							}
+							if( pClient->pWaiting )
+								WakeThread( pClient->pWaiting );
+						}
 						// returns true while it wrote or there is data to write
 						if( pClient->lpFirstPending && !pClient->flags.bAggregateOutput && !pClient->writeTimer ) {
 #if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
@@ -360,7 +401,7 @@ static void HandleEvent( PCLIENT pClient )
 							pClient->dwFlags |= CF_WRITEREADY;
 						}
 						if( !pClient->lpFirstPending ) {
-							if( pClient->dwFlags & CF_TOCLOSE )
+							if( ( pClient->dwFlags & CF_TOCLOSE ) && !pClient->flags.bInUse )
 							{
 								pClient->dwFlags &= ~CF_TOCLOSE;
 								//lprintf( "Pending read failed - and wants to close." );
@@ -370,6 +411,9 @@ static void HandleEvent( PCLIENT pClient )
 								TerminateClosedClient( pClient );
 								LeaveCriticalSec( &globalNetworkData.csNetwork );
 							}
+							// else bInUse: the application holds work on this socket
+							// (AddNetWork); CF_TOCLOSE stays set and ClearNetWork
+							// performs the close when the work releases.
 						}
 						NetworkUnlock( pClient, 0 );
 #if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
@@ -403,14 +447,29 @@ static void HandleEvent( PCLIENT pClient )
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf("FD_CLOSE... %p  %08x", pClient, pClient->dwFlags );
 #endif
-					if( pClient->dwFlags & CF_ACTIVE && !pClient->flags.bInUse )
 					{
-						// might already be cleared and gone..
-						EnterCriticalSec( &globalNetworkData.csNetwork );
-						InternalRemoveClientEx( pClient, FALSE, TRUE );
-						TerminateClosedClient( pClient );
-						LeaveCriticalSec( &globalNetworkData.csNetwork );
-						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+						// the defer decision must not race ClearNetWork releasing the
+						// work, or both sides believe the other performs the close and
+						// the socket strands in CLOSE_WAIT.
+						LOGICAL deferred = FALSE;
+						lockNetWorkList();
+						if( ( pClient->dwFlags & CF_ACTIVE ) && pClient->flags.bInUse )
+						{
+							// application holds work on this socket; mark the close so
+							// ClearNetWork completes it when the work releases.
+							pClient->dwFlags |= CF_TOCLOSE;
+							deferred = TRUE;
+						}
+						unlockNetWorkList();
+						if( !deferred && ( pClient->dwFlags & CF_ACTIVE ) )
+						{
+							// might already be cleared and gone..
+							EnterCriticalSec( &globalNetworkData.csNetwork );
+							InternalRemoveClientEx( pClient, FALSE, TRUE );
+							TerminateClosedClient( pClient );
+							LeaveCriticalSec( &globalNetworkData.csNetwork );
+							pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+						}
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
 				}
@@ -595,7 +654,7 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 	AddDataItem( &peer->event_list, &pc->event );
 	pc->this_thread = peer;
 	pc->flags.bAddedToEvents = 1;
-	peer->nEvents = peer->nEvents +1;
+	peer->nEvents = peer->nEvents + 1;
 #ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif

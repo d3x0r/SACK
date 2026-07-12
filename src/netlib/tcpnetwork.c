@@ -77,6 +77,26 @@ static inline void scheduleSocket( PCLIENT pc, struct peer_thread_info *this_thr
 	if( this_thread == globalNetworkData.root_thread ) {
 		ProcessNetworkMessages( this_thread, 1 );
 	}
+	else {
+		// the hand-off through the root thread is rarely lost; the socket then
+		// never gets event service - connects stay CF_CONNECTING forever and
+		// reads never dispatch.  Watch for the schedule to complete, and requeue
+		// if it was lost.  (successor of the disabled waitScheduleSocket, which
+		// found the same thing; its PeekQueueEx scan was unsafe against a
+		// concurrent queue expansion, so just requeue on time instead.)
+		int tries = 0;
+		while( !pc->this_thread && sack_network_is_active( pc ) ) {
+			IdleFor( 1 );
+			if( ++tries >= 50 ) {
+				tries = 0;
+				if( !pc->this_thread && sack_network_is_active( pc ) ) {
+					lprintf( "Lost client in schedule list:%p (Requeuing)", pc );
+					EnqueLink( &globalNetworkData.client_schedule, pc );
+					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
+				}
+			}
+		}
+	}
 #endif
 #ifdef __LINUX__
 	{
@@ -1710,142 +1730,194 @@ static void triggerWrite( uintptr_t psv ){
 
 static PDATAQUEUE pdqPendingWrites = NULL;
 static PTHREAD writeWaitThread = NULL;
+// writes dequeued from pdqPendingWrites whose client was still locked; these are
+// older than anything in pdqPendingWrites and must be sent first (per client).
+static PDATALIST pdlStalledWrites = NULL;
+static volatile uint32_t stalledWriteLock;
+
+static void lockStalledWrites( void ) {
+	while( LockedExchange( &stalledWriteLock, 1 ) )
+		Relinquish();
+}
+
+static void unlockStalledWrites( void ) {
+	stalledWriteLock = 0;
+}
 
 void clearPending( PCLIENT pc ) {
 	INDEX i;
-	struct PendingWrite pending;
+	struct PendingWrite *pending;
 	i = 0;
-	while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i++ ) ){
-		if( pending.pc == pc ) {
-			pending.pc = NULL;
+	// PeekDataQueueEx copies the entry out, so writing to the copy never marked
+	// anything; get the entry in-queue and clear the client so the write cannot
+	// be delivered to a closed (and later recycled) client.
+	// (An entry already copied out by the write thread, or an expansion of the
+	// queue during this scan, can still slip a stale client through; delivery
+	// re-checks the client flags, and a client generation serial would close
+	// that entirely.)
+	while( ( pending = (struct PendingWrite*)PeekDataInQueueEx( &pdqPendingWrites, i++ ) ) ) {
+		if( pending->pc == pc )
+			pending->pc = NULL;
+	}
+	lockStalledWrites();
+	{
+		struct PendingWrite *stalled;
+		DATA_FORALL( pdlStalledWrites, i, struct PendingWrite*, stalled ) {
+			if( stalled->pc == pc )
+				stalled->pc = NULL;
 		}
 	}
+	unlockStalledWrites();
 }
 
-static LOGICAL hasPending( PCLIENT pc ) {
+// stall list lock must be held; TRUE if a write for this client is stalled
+// in a slot before `before` - in which case a later write for the same client
+// must wait behind it to keep the client's writes in issue order.
+static LOGICAL stalledEarlier( PCLIENT pc, INDEX before ) {
 	INDEX i;
-	struct PendingWrite pending;
-	i = 0;
-	while( PeekDataQueueEx( &pdqPendingWrites, struct PendingWrite*, &pending, i++ ) ){
-		if( pending.pc == pc ) {
-			// results with 'don't clear wake'
-			//  if( pending ) already waiting, don't clear
-			//  if( !pending ) clear that we want to be woken, just completed sending all the pending data
-			//lprintf( "Might have still been able to get the lock...");
+	struct PendingWrite *entry;
+	for( i = 0; i < before; i++ ) {
+		entry = (struct PendingWrite*)GetDataItem( &pdlStalledWrites, i );
+		if( entry && entry->pc == pc )
 			return TRUE;
-		}
 	}
 	return FALSE;
 }
 
+// attempt delivery of one deferred write.  TRUE if the entry was disposed
+// (delivered, or dropped because the client closed); FALSE if the client is
+// still locked and the write remains stalled.
+static LOGICAL deliverPendingWrite( struct PendingWrite *pending, PTHREAD thread ) {
+	if( !pending->pc ) {
+		// clearPending() found this while the client closed.
+		if( !pending->bLong && pending->buffer )
+			Release( pending->buffer );
+		return TRUE;
+	}
+	if( !( pending->pc->dwFlags & CF_ACTIVE ) || ( pending->pc->dwFlags & CF_CLOSED ) ) {
+		// left active state without passing clearPending yet; the counter is
+		// reset with the rest of the client state on recycle, don't touch it.
+		if( !pending->bLong && pending->buffer )
+			Release( pending->buffer );
+		return TRUE;
+	}
+	if( pending->pc->dwFlags & CF_TOCLOSE ) {
+		lprintf( "Socket is intended to close already... %08x %p", pending->pc->dwFlags, pending->pc );
+		LockedDecrement( &pending->pc->nWritesPended );
+		if( !pending->bLong && pending->buffer )
+			Release( pending->buffer );
+		return TRUE;
+	}
+	if( !NetworkLockEx( pending->pc, 0 DBG_SRC ) ) {
+		// still contended; make sure the lock owner wakes this thread on unlock.
+		pending->pc->wakeOnUnlock = thread;
+		if( NetworkLockEx( pending->pc, 0 DBG_SRC ) ) {
+			// the owner released between the failure above and setting the wake;
+			// this unlock (without the wake-suppress flag) posts the missed wake.
+			NetworkUnlockEx( pending->pc, 0 DBG_SRC );
+		}
+		return FALSE;
+	}
+	doTCPWriteV2( pending->pc, pending->buffer, pending->len, pending->bLong, pending->failpending, FALSE DBG_SRC );
+	// short buffers were copied when queued (and doTCPWriteV2 copies again if it
+	// has to pend); long buffers belong to the caller in all cases.
+	if( !pending->bLong && pending->buffer )
+		Release( pending->buffer );
+	LockedDecrement( &pending->pc->nWritesPended );
+	if( !pending->pc->nWritesPended )
+		pending->pc->wakeOnUnlock = NULL;
+	NetworkUnlockEx( pending->pc, 0|0x10 DBG_SRC );
+	return TRUE;
+}
+
 uintptr_t WaitToWrite( PTHREAD thread ) {
-	PDATALIST requeued = CreateDataList( sizeof( struct PendingWrite ) );
-	INDEX lastCount = 0;
 	if( !pdqPendingWrites )
 		pdqPendingWrites = CreateDataQueue( sizeof( struct PendingWrite ) );
+	if( !pdlStalledWrites )
+		pdlStalledWrites = CreateDataList( sizeof( struct PendingWrite ) );
 	//lprintf( "started waittowrite" );
 	while( 1 ) {
-		//uint32_t tick; tick = timeGetTime();
-		if( lastCount == GetDataQueueLength( pdqPendingWrites ) || IsDataQueueEmpty( &pdqPendingWrites ) ) {
-			//lprintf( "WaitToWrite sleeps..." );
-			WakeableSleep( 10000 );
-			/*
-			uint32_t now; now = timeGetTime();
-			if( now -tick < 9000 ) {
-				lprintf( "woke to write writes %d", now-tick);
-			}else {
-				if( !IsDataQueueEmpty( &pdqPendingWrites ))
-					lprintf( "delayed like 10 seconds and now checking writes");
-			}
-			*/
-		} else {
-			;//lprintf( "already have writes to check" );
-		}
+		int progress = 0;
+		INDEX idx;
+		INDEX count;
 		struct PendingWrite pending;
-		struct PendingWrite *lpPending = &pending;
 #ifdef LOG_PENDING_WRITES
 		lprintf( "WaitToWrite is checking for writes" );
 #endif
+		// stalled writes are older than anything in the queue; retry them first,
+		// in order.  Entries stay in their slot during delivery so clearPending()
+		// can still mark them; disposed slots are compacted out below.
+		lockStalledWrites();
+		count = pdlStalledWrites->Cnt;
+		for( idx = 0; idx < count; idx++ ) {
+			struct PendingWrite *slot = (struct PendingWrite*)GetDataItem( &pdlStalledWrites, idx );
+			if( !slot->pc && !slot->buffer )
+				continue; // already disposed
+			if( slot->pc && stalledEarlier( slot->pc, idx ) )
+				continue; // an older write for this client is still stalled
+			pending = slot[0];
+			unlockStalledWrites();
+			if( deliverPendingWrite( &pending, thread ) ) {
+				lockStalledWrites();
+				// refetch; the list does not move while entries are only marked
+				slot = (struct PendingWrite*)GetDataItem( &pdlStalledWrites, idx );
+				slot->pc = NULL;
+				slot->buffer = NULL;
+				progress++;
+			}
+			else
+				lockStalledWrites();
+		}
+		// compact disposed slots out of the stall list
+		{
+			INDEX to = 0;
+			for( idx = 0; idx < pdlStalledWrites->Cnt; idx++ ) {
+				struct PendingWrite *slot = (struct PendingWrite*)GetDataItem( &pdlStalledWrites, idx );
+				if( !slot->pc && !slot->buffer )
+					continue;
+				if( to != idx )
+					SetDataItemEx( &pdlStalledWrites, to, slot DBG_SRC );
+				to++;
+			}
+			pdlStalledWrites->Cnt = to;
+		}
+		unlockStalledWrites();
+
 		while( DequeData( &pdqPendingWrites, &pending ) ) {
+			LOGICAL defer = FALSE;
 			if( !pending.pc ) {
-				Release( pending.buffer );
 				lprintf( "Socket closed while data was pending");
+				if( !pending.bLong && pending.buffer )
+					Release( pending.buffer );
 				continue;
 			}
 #ifdef LOG_PENDING_WRITES
 			lprintf( "Handling pending writes... %p %zd", pending.pc, pending.len );
 #endif
-			{
-				INDEX idx;
-				struct PendingWrite* lpPending;
-				DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
-					if( lpPending->pc == pending.pc ) {
-						lprintf( "socket is already pending, requeue more:%p", pending.pc );
-						AddDataItem( &requeued, lpPending );
-						break;
-					}
-				}
-				if( lpPending ) {
-					lprintf( "This was already found as pending, saved for requeue");
-					continue;
-				}
+			lockStalledWrites();
+			if( stalledEarlier( pending.pc, pdlStalledWrites->Cnt ) ) {
+				// an older write for this client is still stalled; keep this one
+				// behind it instead of letting it pass out of order.
+				AddDataItem( &pdlStalledWrites, &pending );
+				defer = TRUE;
 			}
-			if( !( pending.pc->dwFlags & CF_ACTIVE )  || (pending.pc->dwFlags & CF_TOCLOSE) ) {
-				if(pending.pc->dwFlags & CF_TOCLOSE) 
-					lprintf( "Socket is intended to close already... %08x %p" , pending.pc->dwFlags, pending.pc );
-				else
-					;//lprintf( "Socket is inactive already... %08x %p" , pending.pc->dwFlags, pending.pc );
+			unlockStalledWrites();
+			if( defer )
 				continue;
+			if( deliverPendingWrite( &pending, thread ) )
+				progress++;
+			else {
+				lockStalledWrites();
+				AddDataItem( &pdlStalledWrites, &pending );
+				unlockStalledWrites();
 			}
-			if( !NetworkLockEx( pending.pc, 0 DBG_SRC ) ) {
-				if( !( pending.pc->dwFlags & CF_ACTIVE ) || (pending.pc->dwFlags & CF_TOCLOSE) ) {
-					lprintf( "Pending write on socket can't happen, no longer active." );
-					continue; // do not requeue this... the socket has closed.
-				}
-#ifdef LOG_PENDING_WRITES
-				lprintf( "(pending writer)Failed to lock network... requeueing %p", pending.pc );
-#endif
-				AddDataItem( &requeued, &pending );
-			} else {
-#ifdef LOG_PENDING_WRITES
-				LogBinary( (const uint8_t*)pending.buffer, pending.len );
-				lprintf( "Send pending block %p %p %zd", pending.pc, pending.buffer, pending.len );
-#endif
-				LOGICAL stillPend = doTCPWriteV2( pending.pc, pending.buffer, pending.len, pending.bLong, pending.failpending, FALSE DBG_SRC );
-				if( stillPend == -1 ) {
-#ifdef LOG_PENDING_WRITES
-					lprintf( "--- This should not happen - have the lock already... %08x", pending.pc->dwFlags );
-#endif
-					AddDataItem( &requeued, &pending );
-				} else {
-					if( !hasPending( pending.pc ))
-						pending.pc->wakeOnUnlock = NULL;
-#ifdef LOG_PENDING_WRITES
-					else
-						lprintf( "Still has pending writes... %p", pending.pc );
-#endif
-				}
-				NetworkUnlockEx( lpPending->pc, 0|0x10 DBG_SRC );
-			}
-			;
-			//i++;
 		}
 
-		{
-			INDEX idx;
-			struct PendingWrite* lpPending;
-			DATA_FORALL( requeued, idx, struct PendingWrite*, lpPending ) {
-#ifdef LOG_PENDING_WRITES
-				lprintf( "Requeing block %p %p %zd", lpPending->pc, lpPending->buffer, lpPending->len );
-#endif
-				EnqueData( &pdqPendingWrites, lpPending );
-				lpPending->pc->wakeOnUnlock = thread;
-			}
-			lastCount = idx;
-			//lprintf( "Emptied requeue list...");
-			EmptyDataList( &requeued );
+		if( !progress && IsDataQueueEmpty( &pdqPendingWrites ) ) {
+			// nothing deliverable; stalled clients wake this thread when their
+			// lock owner releases (wakeOnUnlock), new writes wake it on queue.
+			WakeableSleep( 10000 );
 		}
-
 	}
 }
 
@@ -1867,12 +1939,16 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
 
-	while( ( pend_on_fail && lpClient->wakeOnUnlock/*hasPending(lpClient)*/ ) || !NetworkLockEx( lpClient, 0 DBG_RELAY ) )
+	// nWritesPended gates the direct path: while any older write for this client
+	// is still in the deferred queue/stall list, this write has to follow it
+	// through the queue or it would pass it on the wire.  (wakeOnUnlock can't be
+	// the gate - NetworkUnlockEx consumes it on any write unlock.)
+	while( ( pend_on_fail && lpClient->nWritesPended ) || !NetworkLockEx( lpClient, 0 DBG_RELAY ) )
 	{
 #ifdef LOG_NETWORK_LOCKING
 		if( lpClient->wakeOnUnlock )
 			lprintf( "client is already waiting for wake on unlock? %p  %p", lpClient, lpClient->wakeOnUnlock);
-#endif		
+#endif
 		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
 		{
 #ifdef LOG_NETWORK_LOCKING
@@ -1905,17 +1981,14 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 			if( pw.len < 16 ) LogBinary( (uint8_t*)pw.buffer, pw.len );
 			fprintf( stderr, DBG_FILELINEFMT "Saving buffer to queue %p %d %p %zd\n" DBG_RELAY, lpClient, bLongBuffer, pw.buffer, pw.len );
 #endif			
+			// close the direct-path gate before the entry is visible so another
+			// thread's write cannot pass this one.
+			LockedIncrement( &lpClient->nWritesPended );
 			EnqueData( &pdqPendingWrites, &pw );
 			lpClient->wakeOnUnlock = writeWaitThread;
-			if( NetworkLockEx( lpClient, 0 DBG_SRC ) ) {
-#ifdef LOG_PENDING_WRITES		
-				lprintf( "Network lock would not have been unlocked (wakeOnUnlock)... %p", lpClient );
-#endif				
-				NetworkUnlockEx( lpClient, 0 DBG_SRC );
-			}
-#ifdef LOG_PENDING_WRITES		
-			else lprintf( "pended on fail - queued buffer as pending... %p ", lpClient );
-#endif			
+			// wake the writer directly; the unlock wake alone can be missed if
+			// the lock owner released between the lock failure and just now.
+			WakeThread( writeWaitThread );
 		}
 		return -1;
 	}
@@ -2014,6 +2087,16 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 				lpClient->FirstWritePending.buffer.p = Allocate( nInLen );
 				MemCpy( lpClient->FirstWritePending.buffer.p, pInBuffer, nInLen );
 				lpClient->FirstWritePending.s.bDynBuffer = TRUE;
+			}
+			if( ( lpClient->dwFlags & CF_CONNECTED ) && lpClient->lpFirstPending )
+			{
+				// TCPWriteEx above bailed because the socket wasn't connected yet,
+				// and the connect completed between that check and now.  The
+				// connect-time FD_WRITE flush may have already run (it saw an
+				// empty pending chain, or is spinning on our lock and will see the
+				// data) - flushing here under the lock closes the window where the
+				// data sits queued with nothing left to trigger a send.
+				TCPWriteEx( lpClient DBG_RELAY );
 			}
 		}
 #ifdef VERBOSE_DEBUG

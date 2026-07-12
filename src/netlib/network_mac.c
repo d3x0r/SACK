@@ -461,7 +461,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						// partial messages at a time...
 						read = FinishPendingRead( event_data->pc DBG_SRC );
 						//lprintf( "Read %d", read );
-						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) )
+						if( ( read == -1 )
+						   && ( event_data->pc->dwFlags & CF_TOCLOSE )
+						   && !event_data->pc->flags.bInUse )
 						{
 #ifdef LOG_NOTICES
 							//if( globalNetworkData.flags.bLogNotices )

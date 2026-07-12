@@ -366,6 +366,18 @@ struct NetworkClient
 		BIT_FIELD bAggregateOutput : 1;
 	} flags;
 	PTHREAD wakeOnUnlock;
+	// count of writes for this client held in the deferred write queue/stall list
+	// (tcpnetwork.c); while nonzero, new writes must also be deferred so writes
+	// stay in the order they were issued.  Cleared with the rest of the client
+	// state when the client is recycled.
+	volatile uint32_t nWritesPended;
+	// connection generation; bumps when the client closes, and survives the
+	// client being cleared for reuse.  Application code that holds a PCLIENT
+	// across deferred work captures NetworkClientSerial() while the connection
+	// is alive and passes it to NetworkClientValid() at time of use - a
+	// recycled client fails the check where the flags alone cannot tell it
+	// from the connection the holder meant.
+	volatile uint32_t serial;
 	volatile uint32_t writeTimer;
 	PLIST psvInUse; // we have the ability to save outstatnding UID locks...
 
@@ -475,6 +487,11 @@ LOCATION struct network_global_data *global_network_data
 // routines exported from the core for use in external modules
 PCLIENT GetFreeNetworkClientEx( DBG_VOIDPASS );
 #define GetFreeNetworkClient() GetFreeNetworkClientEx( DBG_VOIDSRC )
+
+// serializes psvInUse/bInUse against the deferred-close decision (network.c);
+// event threads take this while deciding whether a close defers to ClearNetWork.
+void lockNetWorkList( void );
+void unlockNetWorkList( void );
 
 _UDP_NAMESPACE
 int FinishUDPRead( PCLIENT pc, int broadcastEvent );

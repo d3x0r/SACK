@@ -1537,6 +1537,10 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			}
 
 
+			// response timeout budget starts now; time spent connecting and
+			// sending (which stalls under TIME_WAIT port pressure) is not
+			// response-wait time.
+			state->last_read_tick = timeGetTime();
 			// wait for response.
 			while( state->request_socket && !state->closed && !state->returned_status
 				&& ( state->last_read_tick > ( timeGetTime() - options->timeout ) ) ) {
@@ -1544,6 +1548,18 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				WakeableSleep( 1000 );
 			}
 			state->waiter = NULL;
+			if( !state->returned_status ) {
+				// this becomes the caller's generic 'Bad Parsing State'; say why,
+				// and say where the request bytes are being held if they never left.
+				lprintf( "HTTP request ended without a response: pc:%p closed:%d sinceRead:%" _32f " budget:%" _32f " pendingSend:%d deferred:%" _32f " flags:%08x evstate:%08x"
+				       , state->request_socket, state->closed
+				       , timeGetTime() - state->last_read_tick
+				       , options->timeout
+				       , state->request_socket ? NetworkClientHasPendingSend( state->request_socket ) : 0
+				       , state->request_socket ? NetworkClientWritesPended( state->request_socket ) : 0
+				       , state->request_socket ? NetworkClientFlags( state->request_socket ) : 0
+				       , state->request_socket ? NetworkClientEventState( state->request_socket ) : 0 );
+			}
 			//lprintf( "Request has completed.... %p %p %d", pc, state->content, state->closed );
 			if( state->request_socket && !state->closed ) {
 				//lprintf( "Closing in got response?" );

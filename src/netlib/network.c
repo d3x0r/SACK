@@ -248,12 +248,74 @@ LOGICAL sack_network_is_active( PCLIENT pc ) {
 	return FALSE;
 }
 
+uint32_t NetworkClientSerial( PCLIENT pc ) {
+	if( pc ) return pc->serial;
+	return 0;
+}
+
+// diagnostic accessors - where is outbound data being held?
+LOGICAL NetworkClientHasPendingSend( PCLIENT pc ) {
+	return pc && ( pc->lpFirstPending != NULL );
+}
+
+uint32_t NetworkClientFlags( PCLIENT pc ) {
+	return pc ? (uint32_t)pc->dwFlags : 0;
+}
+
+// diagnostic: is the client's network event object signaled right now, and is
+// the client attached to an event thread?  A signaled event on an attached,
+// live client means the event thread is failing to dispatch it.
+int NetworkClientEventState( PCLIENT pc ) {
+	int state = 0;
+#ifdef _WIN32
+	if( !pc ) return 0;
+	if( pc->this_thread ) state |= 1;
+	if( pc->event && WaitForSingleObject( pc->event, 0 ) == WAIT_OBJECT_0 )
+		state |= 2;
+	if( pc->this_thread && pc->this_thread->flags.bProcessing ) state |= 4;
+	if( pc->this_thread ) state |= ( (uint32_t)pc->this_thread->nWaitEvents << 8 ) | ( (uint32_t)pc->this_thread->nEvents << 16 );
+#endif
+	return state;
+}
+
+uint32_t NetworkClientWritesPended( PCLIENT pc ) {
+	return pc ? pc->nWritesPended : 0;
+}
+
+LOGICAL NetworkClientValid( PCLIENT pc, uint32_t serial ) {
+	// TRUE only if this is still the same connection the serial was captured
+	// from; a closed or recycled client fails even though a new connection on
+	// the same PCLIENT would pass the active-flags test.
+	return sack_network_is_active( pc ) && pc->serial == serial;
+}
+
+//----------------------------------------------------------------------------
+
+// guards the psvInUse lists (AddNetWork/ClearNetWork run on application
+// threads while the client closes/recycles on the network thread), and
+// serializes the deferred-close decision: an event thread deciding whether to
+// defer a close because work is outstanding (bInUse) must not race the
+// ClearNetWork that releases the work, or both sides conclude the other will
+// perform the close and the socket strands in CLOSE_WAIT.
+static volatile uint32_t netWorkListLock;
+
+void lockNetWorkList( void ) {
+	while( LockedExchange( &netWorkListLock, 1 ) )
+		Relinquish();
+}
+
+void unlockNetWorkList( void ) {
+	netWorkListLock = 0;
+}
+
 //----------------------------------------------------------------------------
 
 static PCLIENT AddClosed( PCLIENT pClient )
 {
 	if( pClient )
 	{
+		// leaving active life; invalidate handles captured against this connection.
+		LockedIncrement( &pClient->serial );
 		pClient->dwFlags |= CF_CLOSED;
 		pClient->LastEvent = timeGetTime();
 		pClient->me = &globalNetworkData.ClosedClients;
@@ -274,6 +336,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	SOCKADDR *sa_rel;
 	CRITICALSECTION csr;
 	CRITICALSECTION csw;
+	uint32_t serial;
 	// keep the closing flag until it's really been closed. (getfreeclient will try to nab it)
 	int /*enum NetworkConnectionFlags*/  dwFlags = pc->dwFlags & (CF_STATEFLAGS | CF_CLOSING | CF_CONNECT_WAITING | CF_CONNECT_CLOSED);
 #ifdef VERBOSE_DEBUG
@@ -285,7 +348,10 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	pbtemp = pc->lpUserData;
 	csr = pc->csLockRead;
 	csw = pc->csLockWrite;
+	serial = pc->serial; // generation continues across reuse; only close bumps it
+	lockNetWorkList();
 	DeleteListEx( &pc->psvInUse DBG_SRC );
+	unlockNetWorkList();
 	// these are memset to 0 afterward... 
 	sa_rel = pc->saClient;
 	pc->saClient = NULL;
@@ -305,6 +371,7 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	pc->Socket = INVALID_SOCKET;
 	pc->csLockRead = csr;
 	pc->csLockWrite = csw;
+	pc->serial = serial;
 	pc->lpUserData = pbtemp;
 	if( pc->lpUserData )
 		MemSet( pc->lpUserData, 0, globalNetworkData.nUserData * sizeof( uintptr_t ) );
@@ -551,6 +618,30 @@ void TriggerNetworkErrorCallback( PCLIENT pc, enum SackNetworkErrorIdentifier er
 
 //----------------------------------------------------------------------------
 
+#ifdef _WIN32
+static void CPROC checkStuckConnects( uintptr_t psv )
+{
+	PCLIENT pc;
+	uint32_t now = timeGetTime();
+	EnterCriticalSec( &globalNetworkData.csNetwork );
+	for( pc = globalNetworkData.ActiveClients; pc; pc = pc->next ) {
+		if( ( pc->dwFlags & CF_CONNECTING ) && !( pc->dwFlags & ( CF_CONNECTED | CF_CONNECTERROR ) )
+		  && pc->this_thread && IsValid( pc->Socket )
+		  && ( now - pc->LastEvent ) > 1500 ) {
+			// rarely (under heavy socket churn) a connecting socket's event
+			// association never delivers FD_CONNECT and the socket sits
+			// CF_CONNECTING forever with its request queued.  Re-select; a
+			// socket that is already writable re-posts FD_WRITE, which now
+			// completes the connect from the event handler.
+			lprintf( "Connect stuck without events %p; re-selecting socket:%p event:%p", pc, (POINTER)(uintptr_t)pc->Socket, pc->event );
+			WSAEventSelect( pc->Socket, pc->event, FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE );
+			pc->LastEvent = now; // don't re-poke every tick
+		}
+	}
+	LeaveCriticalSec( &globalNetworkData.csNetwork );
+}
+#endif
+
 uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 {
 	struct peer_thread_info *peer_thread = (struct peer_thread_info*)GetThreadParam( thread );
@@ -563,6 +654,8 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.uNetworkPauseTimer = AddTimerEx( 1, 1000, NetworkPauseTimer, 0 );
 		if( !globalNetworkData.client_schedule )
 			globalNetworkData.client_schedule = CreateLinkQueue();
+		// watchdog for connects whose events were never delivered
+		AddTimerEx( 1000, 1000, checkStuckConnects, 0 );
 #endif
 #ifdef __LINUX__
 		globalNetworkData.flags.bNetworkReady = TRUE;
@@ -722,17 +815,16 @@ int NetworkQuit(void)
 		PTHREAD thread;
 		INDEX idx;
 #ifdef USE_WSA_EVENTS
-		PLIST wakeEvents = NULL;
 		struct peer_thread_info *peer_thread;
-		WSAEVENT hThread;
 		peer_thread = globalNetworkData.root_thread;
 		globalNetworkData.root_thread = NULL;
       MakeThread();
+		// set the events directly - this runs from atexit/process detach where a
+		// terminated thread may hold the heap lock; allocating (AddLink) here
+		// spins forever on that orphaned lock.
 		for( ; peer_thread; peer_thread = peer_thread->child_peer ) {
-			AddLink( &wakeEvents, peer_thread->hThread );
+			WSASetEvent( peer_thread->hThread );
 		}
-		LIST_FORALL( wakeEvents, idx, WSAEVENT, hThread )
-			WSASetEvent( hThread );
 #endif
 		LIST_FORALL( globalNetworkData.pThreads, idx, PTHREAD, thread ) {
 			WakeThread( thread );
@@ -1340,6 +1432,10 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 				lprintf( "Marked closing first, and dispatching callback? %p", lpClient );
 #endif
 				lpClient->dwFlags |= CF_CLOSING;
+				// invalidate deferred handles BEFORE the close callback tears down
+				// application state; NetworkClientValid() fails from here on, so a
+				// deferred event validated after this cannot find half-torn state.
+				LockedIncrement( &lpClient->serial );
 				LeaveCriticalSec( &globalNetworkData.csNetwork );
 				if( lpClient->close.CloseCallback )
 				{
@@ -1446,22 +1542,29 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 }
 
 void AddNetWork( PCLIENT lpClient, uintptr_t psv ) {
+	lockNetWorkList();
 	AddLink( &lpClient->psvInUse, (POINTER)psv );
-	if( lpClient->flags.bInUse ) {
-		return;
-	}
 	lpClient->flags.bInUse = 1;
+	unlockNetWorkList();
 }
 
 
 void ClearNetWork( PCLIENT lpClient, uintptr_t psv ) {
-	INDEX id = FindLink( &lpClient->psvInUse, (POINTER)psv );
-	if( id != INVALID_INDEX ) {
-		SetLink( &lpClient->psvInUse, id, NULL );
-	}	
-	if( GetLinkCount( lpClient->psvInUse ) ) 
+	LOGICAL emptied = FALSE;
+	lockNetWorkList();
+	{
+		INDEX id = FindLink( &lpClient->psvInUse, (POINTER)psv );
+		if( id != INVALID_INDEX ) {
+			SetLink( &lpClient->psvInUse, id, NULL );
+		}
+		if( !GetLinkCount( lpClient->psvInUse ) ) {
+			lpClient->flags.bInUse = 0;
+			emptied = TRUE;
+		}
+	}
+	unlockNetWorkList();
+	if( !emptied )
 		return;
-	lpClient->flags.bInUse = 0;
 	if( lpClient->dwFlags & CF_TOCLOSE && (!lpClient->lpFirstPending || !lpClient->lpFirstPending->dwAvail) ) {
 		RemoveClient( lpClient );
 	}
