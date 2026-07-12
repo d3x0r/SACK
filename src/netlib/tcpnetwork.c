@@ -213,18 +213,13 @@ void AcceptClient(PCLIENT pListen)
 		AddActive( pNewClient );
 		{
 			//lprintf( "Accepted and notifying..." );
-			if( pNewClient->Socket != INVALID_SOCKET ) {
-				// accept runs on the listener's event thread; scheduleSocket must
-				// know it is on a network thread so it does not block there.
-				scheduleSocket( pNewClient, pListen->this_thread );
-			}
 			if( pListen->connect.ClientConnected )
 			{
 				pNewClient->dwFlags |= CF_CONNECT_ISSUED;
 				// SSL layer(if hooked) will clear CONNECT_ISSUED, and track that state itself.
 				if( pListen->dwFlags & CF_CPPCONNECT )
 					pListen->connect.CPPClientConnected( pListen->psvConnect, pNewClient );
-				else 
+				else
 					pListen->connect.ClientConnected( pListen, pNewClient );
 			}
 
@@ -237,6 +232,21 @@ void AcceptClient(PCLIENT pListen)
 					pNewClient->read.CPPReadComplete( pNewClient->psvRead, NULL, 0 );  // process read to get data already pending...
 				else
 					pNewClient->read.ReadComplete( pNewClient, NULL, 0 );  // process read to get data already pending...
+			}
+
+			// schedule for event service only after the connect callback and the
+			// initial inline read completed.  On Linux this adds to epoll
+			// immediately, and an event thread would dispatch reads for this
+			// socket CONCURRENTLY with the initial read parsing above (the epoll
+			// read path takes no read lock) - two threads then feed the same
+			// parser state and one frees segments under the other (seen as
+			// GetText(0xfacebead...) in ProcessHttp under AcceptClient).  Data
+			// that arrived meanwhile still fires level-triggered EPOLLIN (and a
+			// signaled WSA event) right after the add.
+			if( pNewClient->Socket != INVALID_SOCKET && sack_network_is_active( pNewClient ) ) {
+				// accept runs on the listener's event thread; scheduleSocket must
+				// know it is on a network thread so it does not block there.
+				scheduleSocket( pNewClient, pListen->this_thread );
 			}
 
 			NetworkUnlockEx( pNewClient, 0 DBG_SRC );
