@@ -640,7 +640,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 											&&( !pc->flags.bAggregateOutput
 											|| !pc->writeTimer ) ) {
 										//lprintf( "Data was pending on a connecting socket, try sending it now" );
+										//NetworkLock( event_data->pc, 1 );
 										TCPWrite( pc );
+										//NetworkUnlock( event_data->pc, 1 );
 									} else {
 										//lprintf( "No data pending on a connecting socket; setting write ready" );
 										pc->dwFlags |= CF_WRITEREADY;
@@ -673,14 +675,33 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							// wait until it finished there?
 							// did this wake up because that wrote?
 							if( locked ) {
-								if( pc->lpFirstPending 
-										&&( !pc->flags.bAggregateOutput 
+								if( pc->lpFirstPending
+										&&( !pc->flags.bAggregateOutput
 											|| !pc->writeTimer ) ) {
 									//lprintf( "(2)Data was pending on a connected socket, try sending it now" );
 									// this is the normal large packet auto write....
 									TCPWrite( pc );
 								}else {
 									pc->dwFlags |= CF_WRITEREADY;
+								}
+								// the response that deferred a close (peer already sent
+								// FIN, so we owe the close) may have just drained here;
+								// ClearNetWork could not close it while data was still
+								// pending.  Complete the close now, or the socket sits
+								// in CLOSE_WAIT forever.  (The connecting branch above
+								// has the same check; the normal write path was missing
+								// it - only Windows FD_WRITE had it.)  Falls through to
+								// the shared channel-0 unlock below, as that branch does.
+								if( !pc->lpFirstPending
+										&& ( pc->dwFlags & CF_TOCLOSE )
+										&& !pc->flags.bInUse )
+								{
+									pc->dwFlags &= ~CF_TOCLOSE;
+									//lprintf( "Pending write completed - and wants to close. %s", NetworkExpandFlags( pc ) );
+									EnterCriticalSec( &globalNetworkData.csNetwork );
+									InternalRemoveClientEx( pc, FALSE, TRUE );
+									TerminateClosedClient( pc );
+									LeaveCriticalSec( &globalNetworkData.csNetwork );
 								}
 							} else {
 								//lprintf( "Write but lock wasn't enabled? (set WOU)" );
