@@ -443,6 +443,11 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		size_t size, pos;
 		INDEX start = 0;
 		PTEXT pMergedLine;
+		// lock across the whole merge+parse: the prologue below consumes
+		// pvt_collector and replaces pHttpState->partial, and a concurrent
+		// EndHttp / second ProcessHttp on the same state (JS end() thread)
+		// frees the old partial - pCurrent would dangle (use-after-free).
+		lockHttp( pHttpState );
 		PTEXT pInput = VarTextGet( pHttpState->pvt_collector );
 		PTEXT pNewLine = SegAppend( pHttpState->partial, pInput );
 		pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
@@ -457,8 +462,7 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 		{
 			//lprintf( "process HTTP: %s %d", GetText( pCurrent ), pHttpState->bLine );
 			size = GetTextSize( pCurrent );
-			if( !size ) return HTTP_STATE_RESULT_NOTHING;
-			lockHttp( pHttpState );
+			if( !size ) { unlockHttp( pHttpState ); return HTTP_STATE_RESULT_NOTHING; }
 			c = GetText( pCurrent );
 			if( pHttpState->bLine < 4 )
 			{

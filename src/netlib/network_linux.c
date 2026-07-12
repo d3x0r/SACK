@@ -394,17 +394,26 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						TCPDrainRead( event_data->pc );
 					}
 #endif
-					else if( event_data->pc->dwFlags & CF_READPENDING )
+					else if( ( event_data->pc->dwFlags & CF_READPENDING )
+					       || ( events[n].events & ( EPOLLRDHUP | EPOLLHUP ) ) )
 					{
 						size_t read;
 #ifdef LOG_NOTICES
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "TCP Read Event... %p", event_data->pc );
 #endif
-						// packet oriented things may probably be reading only
-						// partial messages at a time...
-						read = FinishPendingRead( event_data->pc DBG_SRC );
-						//lprintf( "FinishPendingRead return %d", read );						
+						if( event_data->pc->dwFlags & CF_READPENDING ) {
+							// packet oriented things may probably be reading only
+							// partial messages at a time...
+							read = FinishPendingRead( event_data->pc DBG_SRC );
+							//lprintf( "FinishPendingRead return %d", read );
+						} else {
+							// EPOLLET delivered the peer hangup (EPOLLRDHUP/EPOLLHUP) but no read
+							// was queued to consume it; the edge is never re-signaled, so the FIN
+							// is lost and the socket strands in CLOSE_WAIT.  Drive the close here.
+							event_data->pc->dwFlags |= CF_TOCLOSE;
+							read = ( !event_data->pc->lpFirstPending ) ? (size_t)-1 : 0;
+						}
 						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !event_data->pc->flags.bInUse )
 						{
 							int locked;
@@ -640,9 +649,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 											&&( !pc->flags.bAggregateOutput
 											|| !pc->writeTimer ) ) {
 										//lprintf( "Data was pending on a connecting socket, try sending it now" );
-										//NetworkLock( event_data->pc, 1 );
+										NetworkLock( event_data->pc, 1 );
 										TCPWrite( pc );
-										//NetworkUnlock( event_data->pc, 1 );
+										NetworkUnlock( event_data->pc, 1 );
 									} else {
 										//lprintf( "No data pending on a connecting socket; setting write ready" );
 										pc->dwFlags |= CF_WRITEREADY;
