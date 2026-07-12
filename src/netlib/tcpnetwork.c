@@ -77,26 +77,29 @@ static inline void scheduleSocket( PCLIENT pc, struct peer_thread_info *this_thr
 	if( this_thread == globalNetworkData.root_thread ) {
 		ProcessNetworkMessages( this_thread, 1 );
 	}
-	else {
-		// the hand-off through the root thread is rarely lost; the socket then
-		// never gets event service - connects stay CF_CONNECTING forever and
-		// reads never dispatch.  Watch for the schedule to complete, and requeue
-		// if it was lost.  (successor of the disabled waitScheduleSocket, which
-		// found the same thing; its PeekQueueEx scan was unsafe against a
-		// concurrent queue expansion, so just requeue on time instead.)
-		int tries = 0;
+	else if( !this_thread ) {
+		// application thread: watch for the schedule hand-off through the root
+		// thread to complete, and requeue if it was lost.  (successor of the
+		// disabled waitScheduleSocket; its PeekQueueEx scan was unsafe against
+		// a concurrent queue expansion, so just requeue on time instead.)
+		// Relinquish, not Idle - a 1ms sleep is a long time at thousands of
+		// connects per second.
+		uint32_t started = timeGetTime();
 		while( !pc->this_thread && sack_network_is_active( pc ) ) {
-			IdleFor( 1 );
-			if( ++tries >= 50 ) {
-				tries = 0;
-				if( !pc->this_thread && sack_network_is_active( pc ) ) {
-					lprintf( "Lost client in schedule list:%p (Requeuing)", pc );
-					EnqueLink( &globalNetworkData.client_schedule, pc );
-					WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
-				}
+			Relinquish();
+			if( ( timeGetTime() - started ) > 100 ) {
+				started = timeGetTime();
+				lprintf( "Lost client in schedule list:%p (Requeuing)", pc );
+				EnqueLink( &globalNetworkData.client_schedule, pc );
+				WSASetEvent( globalNetworkData.hMonitorThreadControlEvent );
 			}
 		}
 	}
+	// else: on another network event thread (accept path).  Must not block
+	// here - the root thread's close sweep (RemoveThreadEvent) can be waiting
+	// for THIS thread to reach its wait state while we would be waiting for
+	// root to drain the schedule: livelock.  The enqueue+wake above is enough;
+	// checkStuckConnects covers any loss.
 #endif
 #ifdef __LINUX__
 	{
@@ -211,7 +214,9 @@ void AcceptClient(PCLIENT pListen)
 		{
 			//lprintf( "Accepted and notifying..." );
 			if( pNewClient->Socket != INVALID_SOCKET ) {
-				scheduleSocket( pNewClient, NULL );
+				// accept runs on the listener's event thread; scheduleSocket must
+				// know it is on a network thread so it does not block there.
+				scheduleSocket( pNewClient, pListen->this_thread );
 			}
 			if( pListen->connect.ClientConnected )
 			{
