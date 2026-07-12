@@ -13,10 +13,14 @@ extern CONTROL_REGISTRATION ConsoleClass;
 struct mydatapath_tag {
 	//DATAPATH common;
 	PCONSOLE_INFO console;
-	// ANSI burst state variables...
+	// ANSI burst state variables... (output)
 	int nState;
 	int nParams;
 	int ParamSet[12];
+	// inbound parsing state.
+	int nInState;
+	int nInParams;
+	int InParamSet[12];
 	TEXTCHAR repeat_character; // set at '\x1b' so that \x1b[#b can repeat it.
 	FORMAT attribute; // keep this for continuous attributes across buffers
 	PLINKQUEUE Pending;
@@ -60,95 +64,83 @@ typedef struct mydatapath_tag  MYDATAPATH, * PMYDATAPATH;
 
 //---------------------------------------------------------------------------
 
-//void IncomingAnsi( PMYDATAPATH pdp, PTEXT pBuffer )
-//{
-//   INDEX idx, store = 0;
-//   TEXTCHAR *p;
-//   int state = 0;
-//   p = pBuffer->data.data;
-//   // filter out escape parameters from windows telnet...
-//   // this should be like <ESC>[A <ESC>[B, etc...
-//
-//   for( idx = 0; idx < pBuffer->data.size; idx++ )
-//   {
-//      switch( state )
-//      {
-//      case 0:
-//         if( p[idx] == 27 )
-//         {
-//
-//            state = 1;
-//         }
-//         else
-//            p[store++] = p[idx];
-//         break;
-//      case 1:
-//         if( p[idx] == 'O' )
-//         {
-//            state = 2;
-//         }
-//         else
-//         {
-//            /*
-//            ClearLastCommandOutput();
-//            if( pdp->nHistory != -1 )
-//            {
-//               pdp->nHistory = -1;
-//               pdp->bRecalled = FALSE;
-//            }
-//            */
-//            p[store++] = p[idx-1];
-//            p[store++] = p[idx];
-//         }
-//         break;
-//      case 2:
-//         if( p[idx] == 'A' )  // up arrow
-//         {
-//            ClearLastCommandOutput();
-//            RecallCommand( &pdp->CommandInfo, TRUE );   
-//            SendTCP( pdp->handle
-//                   , GetText( pdp->CommandInfo.CollectionBuffer )
-//                   , GetTextSize( pdp->CommandInfo.CollectionBuffer ) );
-//         }
-//         else if( p[idx] == 'B' ) // down arrow
-//         {
-//            ClearLastCommandOutput();
-//            RecallCommand( &pdp->CommandInfo, FALSE );   
-//            SendTCP( pdp->handle
-//                   , GetText( pdp->CommandInfo.CollectionBuffer )
-//                   , GetTextSize( pdp->CommandInfo.CollectionBuffer ) );
-//			}
-//			else if( p[idx] == 'C' ) // right arrow...
-//			{
-//			}
-//			else if( p[idx] == 'D' ) // left arrow....
-//			{
-//			}
-//			else
-//			{ // otherwise data will be shifted down...
-//				/*
-//				ClearLastCommandOutput();
-//				if( pdp->nHistory != -1 )
-//				{
-//					pdp->nHistory = -1;
-//					pdp->bRecalled = FALSE;
-//				}
-//				*/
-//				p[store++] = p[idx-2];
-//				p[store++] = p[idx-1];
-//				p[store++] = p[idx];
-//			}
-//			state = 0;
-//			break;
-//		}
-//	}
-//	pBuffer->data.size = store;
-//}
+void IncomingAnsi( PMYDATAPATH pdp, PTEXT pBuffer )
+{
+   INDEX idx, store = 0;
+   TEXTCHAR *p;
+   p = pBuffer->data.data;
+   // filter out escape parameters from windows telnet...
+   // this should be like <ESC>[A <ESC>[B, etc...
+
+	for( idx = 0; idx < pBuffer->data.size; idx++ )
+	{
+		lprintf( "in char: %d(%c)", p[idx], (p[idx]>32&&p[idx<127])?p[idx]:'.' );
+		switch( pdp->nInState )
+		{
+		case 0:
+			if( p[idx] == 27 )
+				pdp->nInState = 1;
+			else
+				p[store++] = p[idx];
+			break;
+		case 1:
+			if( p[idx] == 'O' )
+			{
+				pdp->nInState = 2;
+			}
+			else
+			{
+				/*
+				ClearLastCommandOutput();
+				if( pdp->nHistory != -1 )
+				{
+				pdp->nHistory = -1;
+				pdp->bRecalled = FALSE;
+				}
+				*/
+				p[store++] = p[idx-1];
+				p[store++] = p[idx];
+			}
+			break;
+		case 2:
+			if( p[idx] == 'A' )  // up arrow
+			{
+			}
+			else if( p[idx] == 'B' ) // down arrow
+			{
+			}
+			else if( p[idx] == 'C' ) // right arrow...
+			{
+			}
+			else if( p[idx] == 'D' ) // left arrow....
+			{
+			}
+			else
+			{ // otherwise data will be shifted down...
+				/*
+				ClearLastCommandOutput();
+				if( pdp->nHistory != -1 )
+				{
+					pdp->nHistory = -1;
+					pdp->bRecalled = FALSE;
+				}
+				*/
+				p[store++] = p[idx-2];
+				p[store++] = p[idx-1];
+				p[store++] = p[idx];
+			}
+			pdp->nInState = 0;
+			break;
+		}
+	}
+	pBuffer->data.size = store;
+}
 
 static PTEXT CPROC AnsiEncode( PMYDATAPATH pmdp, PTEXT pBuffer )
 {
 	// this would handle things like keyboard and mouse motion into ansi codes...
 	// null operation for now... incoming doesn't even work :(
+	IncomingAnsi( pmdp, pBuffer );
 	return pBuffer;
 }
 
@@ -328,6 +320,7 @@ void AnsiBurst( PMYDATAPATH pmdp, PTEXT pBuffer )
 		ptext = GetText( pBuffer );
 		for( idx = 0; idx < pBuffer->data.size; idx++ )
 		{
+		lprintf( "in char: %d(%c)", ptext[idx], (ptext[idx]>32&&ptext[idx<127])?ptext[idx]:'.' );
 			if( !pmdp->nState )
 			{
 				switch( ptext[idx] )
