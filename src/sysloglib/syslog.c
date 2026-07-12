@@ -1515,6 +1515,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 		return;
 	if( !(*syslog_local).flags.group_ok && openLock )
 		return;
+	cannot_log = 1;
 	while( LockedExchange( &lowLevelLock, 1 ) ) Relinquish();
 	logtime = GetLogTime();
 	if( (*syslog_local).flags.bLogSourceFile && pFile )
@@ -1557,6 +1558,7 @@ void SystemLogFL( const TEXTCHAR *message FILELINE_PASS )
 				  , message );
 	DoSystemLog( buffer );
 	lowLevelLock = 0;
+	cannot_log = 0;
 }
 
 
