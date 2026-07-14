@@ -84,8 +84,8 @@ static struct local_http_data
 	struct http_data_flags {
 		BIT_FIELD bLogReceived : 1;
 	} flags;
-	PLIST pendingConnects;
-	PLIST activeConnects;
+	//PLIST pendingConnects;
+	//PLIST activeConnects;
 }local_http_data;
 #define l local_http_data
 
@@ -848,7 +848,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size 
 	}
 }
 
-struct HttpState *CreateHttpState( PCLIENT *pc )
+struct HttpState *CreateHttpState( void )
 {
 	struct HttpState *pHttpState;
 
@@ -856,8 +856,10 @@ struct HttpState *CreateHttpState( PCLIENT *pc )
 	MemSet( pHttpState, 0, sizeof( struct HttpState ) );
 	InitializeCriticalSec( &pHttpState->lock );
 	pHttpState->flags.no_content_length = 1;
+	pHttpState->pc = &pHttpState->request_socket;
+
 	pHttpState->pvt_collector = VarTextCreate();
-	pHttpState->pc = pc;
+	//pHttpState->pc = pc;
 	return pHttpState;
 }
 
@@ -1009,6 +1011,11 @@ PTEXT GetHttpMethod( struct HttpState *pHttpState )
 	return NULL;
 }
 
+void ShutdownHttpStateEx( struct HttpState *pHttpState DBG_PASS ) {
+	lockHttp( pHttpState );
+	RemoveClient( pHttpState->pc[0] );
+	unlockHttp(pHttpState );	
+}
 
 void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 {
@@ -1032,14 +1039,6 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	DeleteCriticalSec( &pHttpState->lock );
 	Release( pHttpState );
 }
-
-void DestroyHttpState( struct HttpState *pHttpState ) {
-	DestroyHttpStateEx( pHttpState DBG_SRC );
-}
-
-#define DestroyHttpState(state) DestroyHttpStateEx(state DBG_SRC )
-
-
 
 void SendHttpResponse ( struct HttpState *pHttpState, PCLIENT pc, int numeric, CTEXTSTR text, CTEXTSTR content_type, PTEXT body )
 {
@@ -1105,9 +1104,10 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 
 //---------- CLIENT --------------------------------------------
 
-static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
+static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 {
-	struct HttpState *state = (struct HttpState *)GetNetworkLong( pc, 0 );
+	struct HttpState *state = (struct HttpState *)psv;
+	PCLIENT pc = state->pc[0];
 	if( !buffer )
 	{
 		//lprintf( "Initial read on HTTP requestor" );
@@ -1185,9 +1185,9 @@ static void CPROC HttpReader( PCLIENT pc, POINTER buffer, size_t size )
 	}
 }
 
-static void CPROC HttpReaderClose( PCLIENT pc )
+static void CPROC HttpReaderClose( uintptr_t psv )
 {
-	struct HttpState *data = (struct HttpState *)GetNetworkLong( pc, 0 );
+	struct HttpState *data = (struct HttpState *)psv;
 	if( !data ) return;
 	PCLIENT *ppc = data->pc;// (PCLIENT*)GetNetworkLong( pc, 0 );
 	//lprintf( "HTTP Socket Close Event" );
@@ -1202,24 +1202,19 @@ static void CPROC HttpReaderClose( PCLIENT pc )
 		ProcessHttp( data, NULL, 0 );
 	}
 	//lprintf( "Closing http: %p ", pc );
-	if( ppc[0] == pc ) {
-		if( ppc )
-			ppc[0] = NULL;
-		//lprintf( "So now i's null?" );
-		data->closed = TRUE;
-		if( data->waiter ) {
-			//lprintf( "(on close) Waking waiting to return with result." );
-			WakeThread( data->waiter );
-		}
+	if( ppc )
+		ppc[0] = NULL;
+	data->closed = TRUE;
+	if( data->waiter ) {
+		//lprintf( "(on close) Waking waiting to return with result." );
+		WakeThread( data->waiter );
 	}
-	else {
-		lprintf( "Close resulting on a socket using the same state, but that state is now already busy." );
-	}
-	//if( !data->flags.success )
-	//	DestroyHttpState( data );
 }
 
-static void CPROC HttpConnected( PCLIENT pc, int error ) {
+static void CPROC HttpConnected( uintptr_t psv, int error ) {
+//	struct HttpState *state = (struct HttpState*)psv;
+//	PCLIENT pc = state->requestSocket;
+#if 0
 	INDEX idx;
 	struct pendingConnect *connect;
 	//lprintf( "Connection for Http: %p", pc );
@@ -1245,21 +1240,24 @@ static void CPROC HttpConnected( PCLIENT pc, int error ) {
 	} else {
 		lprintf( "Pending connect didn't have a connection; so we didn't set a http State" );
 	}
+#endif
 	//lprintf( "Got connected... so connect gets released?");
 }
 
 HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 {
 	PCLIENT pc;
-	struct pendingConnect *connect = New( struct pendingConnect );
-	struct HttpState *state = CreateHttpState(&connect->pc);
-	connect->pc = NULL;
-	connect->state = state;
+	//struct pendingConnect *connect = New( struct pendingConnect );
+	struct HttpState *state = CreateHttpState();
+	//connect->pc = NULL;
+	//connect->state = state;
 	state->closed = FALSE;
 	//lprintf( "adding pending: %p", connect->pc );
-	AddLink( &l.pendingConnects, connect );
-	pc = OpenTCPClientExx( GetText( address ), 80, HttpReader, NULL, NULL, HttpConnected );
-	connect->pc = pc;
+	//AddLink( &l.pendingConnects, connect );
+	pc = CPPOpenTCPClientExx( GetText( address ), 80, HttpReader, (uintptr_t)state
+					, NULL, 0, NULL, 0, HttpConnected, (uintptr_t)state
+					, 0 );
+	//connect->pc = pc;
 	PVARTEXT pvtOut = VarTextCreate();
 	vtprintf( pvtOut, "POST %s HTTP/1.1\r\n", url );
 	vtprintf( pvtOut, "content-length:%d\r\n", GetTextSize( content ) );
@@ -1272,7 +1270,7 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 		state->pc = &state->request_socket;
 		state->waiter = MakeThread();
 		SetNetworkLong( pc, 0, (uintptr_t)state );
-		SetNetworkCloseCallback( pc, HttpReaderClose );
+		SetCPPNetworkCloseCallback( pc, HttpReaderClose, (uintptr_t)state );
 		if( l.flags.bLogReceived )
 		{
 			lprintf( "Sending POST..." );
@@ -1303,13 +1301,13 @@ PTEXT PostHttp( PTEXT address, PTEXT url, PTEXT content )
 	return NULL;
 }
 
-static void httpConnected( PCLIENT pc, int error ) {
-	struct HttpState *pHttpState = (struct HttpState *)GetNetworkLong( pc, 0 );
+static void httpConnected( uintptr_t psv, int error ) {
+	struct HttpState *pHttpState = (struct HttpState *)psv;//GetNetworkLong( pc, 0 );
 	if( pHttpState ) {
 		if( error ) {
 			pHttpState->options->connectError = error;
 			lprintf( "This is a request, and it failed with error %d", error );
-			RemoveClient( pc );
+			RemoveClient( pHttpState->pc[0] );
 		}
 		else {
 			pHttpState->options->connected = TRUE;
@@ -1328,15 +1326,20 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 	{
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
-		struct pendingConnect *connect = New( struct pendingConnect );
-		struct HttpState *state = CreateHttpState( &connect->pc );
-		connect->pc = NULL;
-		connect->state = state;
+		//struct pendingConnect *connect = New( struct pendingConnect );
+		struct HttpState *state = CreateHttpState( );
+		//connect->pc = NULL;
+		//connect->state = state;
 		state->closed = FALSE;
 		//lprintf( "adding pending2: %p", connect->pc );
 		//AddLink( &l.pendingConnects, connect );
-		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose, NULL, httpConnected, 0 DBG_SRC );
-		connect->pc = pc;
+		pc = CPPOpenTCPClientAddrExxx( addr, HttpReader, (uintptr_t)state
+					, HttpReaderClose, (uintptr_t)state
+					, NULL, 0
+					, httpConnected, (uintptr_t)state
+					, 0 DBG_SRC );
+		state->request_socket = pc;
+		//connect->pc = pc;
 		ReleaseAddress( addr );
 		if( pc ) {
 			PVARTEXT pvtOut = VarTextCreate();
@@ -1391,8 +1394,8 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 	return GetHttpsQueryEx( address, url, certChain, &defaultOpts );
 }
 
-static void writeComplete( PCLIENT pc, CPOINTER buffer, size_t length ) {
-	struct HttpState* data = (struct HttpState*)GetNetworkLong( pc, 0 );
+static void writeComplete( uintptr_t psv, CPOINTER buffer, size_t length ) {
+	struct HttpState* data = (struct HttpState*)psv;//GetNetworkLong( pc, 0 );
 	if( data && data->options && data->options->writeComplete )
 		data->options->writeComplete( data->options->userData );
 }
@@ -1422,20 +1425,21 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 	{
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddressV2( GetText( address ), options->ssl?443:80, options->addrFlags );
-		struct pendingConnect *connect = New( struct pendingConnect );
-		struct HttpState *state = CreateHttpState( &connect->pc );
+		//struct pendingConnect *connect = New( struct pendingConnect );
+		struct HttpState *state = CreateHttpState();
 		state->options = options;
 		state->closed = FALSE;
-		connect->pc = NULL;
-		connect->state = state;
+		//connect->pc = NULL;
+		//connect->state = state;
 		//lprintf( "adding pending3: %p", connect );
 		//AddLink( &l.pendingConnects, connect );
 		//lprintf( "added pending3" );
 		//DumpAddr( "Http Address:", addr );
 		options->connectError = 0; // clear any previous error.
-		pc = OpenTCPClientAddrExxx( addr, HttpReader, HttpReaderClose
-				, writeComplete, httpConnected, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
-		connect->pc = pc;
+		pc = CPPOpenTCPClientAddrExxx( addr, HttpReader, (uintptr_t)state, HttpReaderClose, (uintptr_t)state
+				, writeComplete, (uintptr_t)state, httpConnected, (uintptr_t)state, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		state->request_socket = pc;
+		//connect->pc = pc;
 		//lprintf( "setting pending3: %p", connect->pc );
 		ReleaseAddress( addr );
 		if( pc )
@@ -1449,8 +1453,6 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			if( !resource ) resource = "/";
 			state->last_read_tick = timeGetTime();
 			state->waiter = MakeThread();
-			state->request_socket = connect->pc;
-			state->pc = &state->request_socket;
 			SetNetworkLong( pc, 0, (uintptr_t)state );
 
 			//SetNetworkConn
@@ -1546,13 +1548,14 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			// response-wait time.
 			state->last_read_tick = timeGetTime();
 			// wait for response.
-			while( state->request_socket && !state->closed && !state->returned_status
-				&& ( state->last_read_tick > ( timeGetTime() - options->timeout ) ) ) {
+			LOGICAL timeout = FALSE;
+			while ((timeout = FALSE), state->request_socket && !state->closed && !state->returned_status
+				&& ((timeout = TRUE), (state->last_read_tick > (timeGetTime() - options->timeout)))) {
 				//lprintf( "waiting for response 1000 second %d", options->timeout );
-				WakeableSleep( 1000 );
+				WakeableSleep(1000);
 			}
 			state->waiter = NULL;
-			if( !state->returned_status ) {
+			if (!timeout && !state->returned_status) {
 				// this becomes the caller's generic 'Bad Parsing State'; say why,
 				// and say where the request bytes are being held if they never left.
 				lprintf( "HTTP request ended without a response: pc:%p closed:%d sinceRead:%" _32f " budget:%" _32f " pendingSend:%d deferred:%" _32f " flags:%08x evstate:%08x"
@@ -1656,7 +1659,7 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 	if( !buffer )
 	{
 		struct HttpState *pHttpStateServer = (struct HttpState *)GetNetworkLong( pc, 0 );
-		struct HttpState *pHttpState = CreateHttpState( NULL );
+		struct HttpState *pHttpState = CreateHttpState( );
 		pHttpState->ssl = pHttpStateServer->ssl;
 		buffer = pHttpState->buffer = Allocate( 4096 );
 		pHttpState->request_socket = pc;

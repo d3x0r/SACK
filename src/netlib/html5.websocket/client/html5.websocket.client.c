@@ -270,7 +270,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	//va_start( args, psv );
 
 	websock->buffer = Allocate( 4096 );
-	websock->pHttpState = CreateHttpState( &websock->pc );
+	websock->pHttpState = CreateHttpState();
+	websock->pHttpState->pc = &websock->pc;
 	websock->input_state.on_open = on_open;
 	websock->input_state.on_event = on_event;
 	websock->input_state.on_close = on_closed;

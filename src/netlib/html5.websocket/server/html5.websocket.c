@@ -586,15 +586,15 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 	}
 }
 
-static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
+static void CPROC read_complete( uintptr_t psv, POINTER buffer, size_t length )
 {
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc, 0 );
+	HTML5WebSocket socket = (HTML5WebSocket)psv;//GetNetworkLong( pc, 0 );
 	if( !socket ) {
-		lprintf( "read wasn't initilaized yet with socket %p %p", pc, socket );
+		lprintf( "read wasn't initilaized yet with socket %p %p", socket->pc, socket );
 		return; // closing/closed....
 	}
 	WebSocketWrite( socket, buffer, length );
-	if( socket->input_state.flags.use_ssl  && !ssl_IsClientSecure( pc ) ) {
+	if( socket->input_state.flags.use_ssl  && !ssl_IsClientSecure( socket->pc ) ) {
 		socket->input_state.flags.use_ssl = 0;
 		socket->input_state.on_send = WebSocketSendTCP;
 	}
@@ -602,13 +602,14 @@ static void CPROC read_complete( PCLIENT pc, POINTER buffer, size_t length )
 		if( socket->flags.skip_read ) 
 			socket->flags.skip_read = 0;
 		else 
-			ReadTCP( pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
+			ReadTCP( socket->pc, socket->buffer, WSS_DEFAULT_BUFFER_SIZE );
 	}
 }
 
-static void CPROC closed( PCLIENT pc_client ) {
+static void CPROC closed( uintptr_t psv  ) {
+	HTML5WebSocket socket = (HTML5WebSocket)psv;
+	PCLIENT pc_client = socket->pc;
 	// this better be the last operation - this is a network socket close callback.
-	HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 #ifdef DEBUG_WEBSOCKET_CLOSE
 	lprintf( "WSS closed event %p socket %p", pc_client, socket ); // TRACE close-path debugging
 #endif
@@ -639,12 +640,13 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->input_state.flags.use_ssl = 1;
 	socket->input_state.on_send = WebSocketSendSSL;
 
-	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
+	socket->http_state = CreateHttpState(  ); // start a new http state collector
+	socket->http_state->pc = &socket->pc;
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
 	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->input_state );
-	SetNetworkReadComplete( pc_new, read_complete );
-	SetNetworkCloseCallback( pc_new, closed );
+	SetCPPNetworkReadComplete( pc_new, read_complete, (uintptr_t)socket );
+	SetCPPNetworkCloseCallback( pc_new, closed, (uintptr_t)socket );
 }
 
 
@@ -699,7 +701,8 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 #endif	
 	socket->input_state.psvSender = psvNew;
 	// this new socket gets a http state.
-	socket->http_state = CreateHttpState( &socket->pc ); // start a new http state collector
+	socket->http_state = CreateHttpState(  ); // start a new http state collector
+	socket->http_state->pc = &socket->pc;
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	return socket;
 }

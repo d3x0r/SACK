@@ -818,7 +818,7 @@ int NetworkQuit(void)
 		struct peer_thread_info *peer_thread;
 		peer_thread = globalNetworkData.root_thread;
 		globalNetworkData.root_thread = NULL;
-      MakeThread();
+		MakeThread();
 		// set the events directly - this runs from atexit/process detach where a
 		// terminated thread may hold the heap lock; allocating (AddLink) here
 		// spins forever on that orphaned lock.
