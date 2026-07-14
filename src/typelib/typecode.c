@@ -922,6 +922,7 @@ namespace sack {
 					plqNew = (PLINKQUEUE)AllocateEx( size DBG_RELAY );
 					plqNew->Cnt = plq->Cnt + entries;
 					plqNew->Bottom = 0;
+               plqNew->Lock = 1;
 					if (plq->Bottom > plq->Top)
 					{
 						INDEX bottom_half;
