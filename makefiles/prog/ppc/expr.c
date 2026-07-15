@@ -256,7 +256,7 @@ void DestroyExpressionEx( POPNODE root DBG_PASS )
 	while( root->left )
 		root = root->left;
 	next = root;
-	while( root = next )
+	while( ( root = next ) )
 	{
 		next = root->right;
 		DestroyOpNodeEx( root DBG_RELAY );
@@ -408,12 +408,12 @@ static int GetInteger( LONGEST_INT *result, int *length )
   			p += 2;
   			while( p[0] && okay )
   			{
-	  			if( hexchar = strchr( pHEX, p[0] ) )
+	  			if( ( hexchar = strchr( pHEX, p[0] ) ) )
 				{
   					accum *= 16;
   					accum += hexchar - pHEX;
   				}
-  				else if( hexchar = strchr( phex, p[0] ) )
+  				else if( ( hexchar = strchr( phex, p[0] ) ) )
   				{
   					accum *= 16;
   					accum += hexchar - phex;

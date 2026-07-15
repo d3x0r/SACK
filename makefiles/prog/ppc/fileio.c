@@ -81,7 +81,7 @@ PFILEDEP FindDependFile( PFILEDEP root, char *filename )
 LOGICAL AlreadyLoaded( char *filename )
 {
 	PFILEDEP dep;
-	if( dep = FindDependFile( FileDependancyRoot, filename ) ) {
+	if( ( dep = FindDependFile( FileDependancyRoot, filename ) ) ) {
 		if( dep->bAllowMultipleInclude )
 			return FALSE;
 		return TRUE;
@@ -274,7 +274,7 @@ char *FixName( char *file )
 		strcpy( realname, file );
 	{
 		char *tmp;
-		while( tmp = strstr( realname, ".." ) ) {
+		while( ( tmp = strstr( realname, ".." ) ) ) {
 			if( tmp == realname ) {
 				break;
 			}
@@ -282,7 +282,7 @@ char *FixName( char *file )
 				char *start;
 				tmp[-1] = 0;
 				start = pathrchr( realname );
-				{ int n; for( n = 0; start[n] = tmp[2+n]; n++ ); }
+				{ int n; for( n = 0; (start[n] = tmp[2+n]); n++ ); }
 			}
 		}
 	}

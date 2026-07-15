@@ -394,7 +394,7 @@ void LineReleaseEx(PTEXT *ppLine DBG_PASS )
 #endif
 	SetStart(line);
 	temp = line;
-	while(line = temp)
+	while((line = temp))
 	{
 		temp=NEXTLINE(line);
 		if( line == last_vartext_result )

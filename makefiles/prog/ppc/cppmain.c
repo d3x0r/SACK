@@ -1219,7 +1219,7 @@ void ProcessFile( char *file )
 		g.CurrentOutName[0] = 0xFF;
 		{
 			PINCLUDE_REF pRef;
-			while( pRef = PopLink( g.pIncludeList ) )
+			while( ( pRef = PopLink( g.pIncludeList ) ) )
 			{
 				g.flags.bNoOutput = pRef->flags.bMacros;
 				if( !ProcessSystemIncludeFile( pRef->name, TRUE, FALSE ) )
@@ -1842,7 +1842,7 @@ int main( int argc, char **argv, char **env )
 	}
 	{
 		PINCLUDE_REF pRef;
-		while( pRef = PopLink( g.pIncludeList ) )
+		while( ( pRef = PopLink( g.pIncludeList ) ) )
 			Release( pRef );
 	}
 	DestoyDepends();

@@ -354,9 +354,9 @@ void InsertDefine( PDEF pDef, PDEF p )
 {
 	*p->me = pDef;
 	pDef->me = p->me;
-	if( pDef->pGreater = p->pGreater )
+	if( ( pDef->pGreater = p->pGreater ) )
 		pDef->pGreater->me = &pDef->pGreater;
-	if( pDef->pLesser = p->pLesser )
+	if( ( pDef->pLesser = p->pLesser ) )
 		pDef->pLesser->me = &pDef->pLesser;
 	pDef->pSame = p;
 	p->me = &pDef->pSame;
@@ -1793,7 +1793,7 @@ void EvalSubstitutions( PTEXT *subst, int more )
 			{
 				pDefine->bUsed = TRUE;
 				// simple case - no names, no nothing, just literatal substitue
-				if( pSubst = TextDuplicate( pDefine->pData ) )
+				if( ( pSubst = TextDuplicate( pDefine->pData ) ) )
 				{
 					if( g.bDebugLog & DEBUG_SUBST )
 						fprintf( stddbg, "First subst word: %s\n", GetText( pSubst ) );

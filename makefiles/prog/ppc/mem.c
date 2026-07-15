@@ -102,7 +102,7 @@ void *AllocateEx( size_t size DBG_PASS ) {
 #endif
 #endif
 
-	if( mem->next = root )
+	if( ( mem->next = root ) )
 		root->me = &mem->next;
 	mem->me = &root;
 	root = mem;
@@ -191,7 +191,7 @@ void ReleaseExx( void **pp DBG_PASS ) {
 #endif
 #endif
 
-	if( *mem->me = mem->next )
+	if( ( *mem->me = mem->next ) )
 		mem->next->me = mem->me;
 
 #ifdef _DEBUG
