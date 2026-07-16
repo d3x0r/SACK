@@ -95,10 +95,10 @@ enum ProcessHttpResult{
 
 /* Creates an empty http state, the next operation should be
    AddHttpData.                                              */
-HTTP_EXPORT HTTPState  HTTPAPI CreateHttpState();
+HTTP_EXPORT HTTPState  HTTPAPI CreateHttpState(PCLIENT *ppc);
 
 /*Get the http state associated with a network client */
-HTTP_EXPORT HTTPState HTTPAPI GetHttpState( PCLIENT pc );
+//HTTP_EXPORT HTTPState HTTPAPI GetHttpState( PCLIENT pc );
 
 HTTP_EXPORT void HTTPAPI LockHttp( struct HttpState *state );
 HTTP_EXPORT void HTTPAPI UnlockHttp( struct HttpState *state );

@@ -848,7 +848,7 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size 
 	}
 }
 
-struct HttpState *CreateHttpState( void )
+struct HttpState *CreateHttpState( PCLIENT *ppc )
 {
 	struct HttpState *pHttpState;
 
@@ -856,7 +856,10 @@ struct HttpState *CreateHttpState( void )
 	MemSet( pHttpState, 0, sizeof( struct HttpState ) );
 	InitializeCriticalSec( &pHttpState->lock );
 	pHttpState->flags.no_content_length = 1;
-	pHttpState->pc = &pHttpState->request_socket;
+	if (ppc)
+		pHttpState->pc = ppc;
+	else
+		pHttpState->pc = &pHttpState->request_socket;
 
 	pHttpState->pvt_collector = VarTextCreate();
 	//pHttpState->pc = pc;
@@ -1248,7 +1251,7 @@ HTTPState PostHttpQuery( PTEXT address, PTEXT url, PTEXT content )
 {
 	PCLIENT pc;
 	//struct pendingConnect *connect = New( struct pendingConnect );
-	struct HttpState *state = CreateHttpState();
+	struct HttpState *state = CreateHttpState(NULL);
 	//connect->pc = NULL;
 	//connect->state = state;
 	state->closed = FALSE;
@@ -1327,7 +1330,7 @@ HTTPState GetHttpQuery( PTEXT address, PTEXT url )
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddress( GetText( address ), 443 );
 		//struct pendingConnect *connect = New( struct pendingConnect );
-		struct HttpState *state = CreateHttpState( );
+		struct HttpState *state = CreateHttpState( NULL);
 		//connect->pc = NULL;
 		//connect->state = state;
 		state->closed = FALSE;
@@ -1426,7 +1429,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		PCLIENT pc;
 		SOCKADDR *addr = CreateSockAddressV2( GetText( address ), options->ssl?443:80, options->addrFlags );
 		//struct pendingConnect *connect = New( struct pendingConnect );
-		struct HttpState *state = CreateHttpState();
+		struct HttpState *state = CreateHttpState(NULL);
 		state->options = options;
 		state->closed = FALSE;
 		//connect->pc = NULL;
@@ -1659,12 +1662,11 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 	if( !buffer )
 	{
 		struct HttpState *pHttpStateServer = (struct HttpState *)GetNetworkLong( pc, 0 );
-		struct HttpState *pHttpState = CreateHttpState( );
+		struct HttpState *pHttpState = CreateHttpState(NULL);
 		pHttpState->ssl = pHttpStateServer->ssl;
 		buffer = pHttpState->buffer = Allocate( 4096 );
 		pHttpState->request_socket = pc;
 		//lprintf( "update pc here?" );
-		pHttpState->pc = &pHttpState->request_socket;
 		SetNetworkLong( pc, 1, (uintptr_t)pHttpState );
 	}
 	else
