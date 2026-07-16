@@ -236,7 +236,9 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 	if( ( pImage->flags & IF_FLAG_FINAL_RENDER )
 		&& !( pImage->flags & IF_FLAG_IN_MEMORY ) )
 	{
+#if !defined( __3D__ )
 		int orientation = 0;
+#endif
 		int32_t xd;
 		int32_t yd;
 		int32_t yd_back;
@@ -258,21 +260,27 @@ static uint32_t PutCharacterFontX ( ImageFile *pImage
 			yd_back = by;
 			break;
 		case OrderPointsInvert:
+#if !defined( __3D__ )
 			orientation = BLOT_ORIENT_INVERT;
+#endif
 			xd = x;
 			yd = y- UseFont->baseline + pchar->ascent;
 			xd_back = bx;
 			yd_back = by;
 			break;
 		case OrderPointsVertical:
+#if !defined( __3D__ )
 			orientation = BLOT_ORIENT_VERTICAL;
+#endif
 			xd = x - (UseFont->baseline - pchar->ascent);
 			yd = y;
 			xd_back = bx;
 			yd_back = by;
 			break;
 		case OrderPointsVerticalInvert:
+#if !defined( __3D__ )
 			orientation = BLOT_ORIENT_VERTICAL_INVERT;
+#endif
 			xd = x + (UseFont->baseline - pchar->ascent);
 			yd = y;
 			xd_back = bx;

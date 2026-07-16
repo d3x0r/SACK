@@ -646,18 +646,18 @@ static void CPROC cBlotScaledMultiTImgAI( SCALED_BLOT_WORK_PARAMS
 #if !defined( __ANDROID__ ) && !defined( __QNX__ )
 				if( l.glActiveSurface->shader.inverse_shader )
 				{
-					int err;
+					//int err;
 					//lprintf( "HAVE SHADER %d", l.glActiveSurface->shader.inverse_shader );
 					//glEnable(GL_FRAGMENT_PROGRAM_ARB);
 					glUseProgram( l.glActiveSurface->shader.inverse_shader );
-					err = glGetError();
+					//err = glGetError();
 				}
 				else
 #endif
 				{
-					Image output_image;
+					//Image output_image;
 					//lprintf( "DID NOT HAVE SHADER" );
-					output_image = GetInvertedImage( pifSrc );
+					//output_image = GetInvertedImage( pifSrc );
 					/**///glBindTexture( GL_TEXTURE_2D, output_image->glActiveSurface );
 					;/**///glColor4ub( 255,255,255,255 );
 				}

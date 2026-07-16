@@ -271,7 +271,7 @@ int IMGVER(ReloadOpenGlTexture)( Image child_image, int option )
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 				/**///glColor4ub( 255, 255, 255, 255 );
-				if( err = glGetError() )
+				if( ( err = glGetError() ) )
 				{
 					lprintf( "gen text error %d", err );
 				}

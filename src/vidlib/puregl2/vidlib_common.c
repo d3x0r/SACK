@@ -172,7 +172,7 @@ void  ogl_PutDisplayAbove (PVIDEO hVideo, PVIDEO hAbove)
 	if( hVideo && hAbove )
 	{
 		EnterCriticalSec( &l.csList );
-		if( hVideo->pBelow = hAbove->pBelow )
+		if( ( hVideo->pBelow = hAbove->pBelow ) )
 		{
 			hAbove->pBelow->pAbove = hVideo;
 		}

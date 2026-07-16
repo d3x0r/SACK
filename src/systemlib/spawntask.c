@@ -538,6 +538,41 @@ SYSTEM_PROC( PTASK_INFO, MonitorTaskEx )( int pid, int flags, TaskEnd EndNotice,
 }
 
 
+#if 0  
+// experimental code that would resolve junctions to nearest points.
+#ifdef WIN32
+if (expanded_working_path) {
+	// Open a handle to the directory to inspect its true nature
+	HANDLE hDir = CreateFile(expanded_working_path,
+		GENERIC_READ,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL,
+		OPEN_EXISTING,
+		FILE_FLAG_BACKUP_SEMANTICS, // Required for folders
+		NULL);
+
+	if (hDir != INVALID_HANDLE_VALUE) {
+		wchar_t realPath[MAX_PATH];
+		// Bypasses junctions/symlinks and fetches the actual absolute target
+		DWORD len = GetFinalPathNameByHandleW(hDir, realPath, MAX_PATH, VOLUME_NAME_DOS);
+		CloseHandle(hDir);
+
+		if (len > 0 && len < MAX_PATH) {
+			// Strip the potential local device prefix "\\?\" if returned
+			wchar_t* cleanPath = realPath;
+			if (wcsncmp(realPath, L"\\\\?\\", 4) == 0) {
+				cleanPath += 4;
+			}
+			// Release your old path and convert cleanPath back to your frame's internal text type
+			Release(expanded_working_path);
+			expanded_working_path = CharWConvert(cleanPath); // Or your framework's string clone equivalent
+		}
+	}
+}
+#endif
+
+#endif
+
 // Run a program completely detached from the current process
 // it runs independantly.  Program does not suspend until it completes.
 // No way at all to know if the program works or fails.
@@ -698,6 +733,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 		VarTextDestroy( &pvt );
 		MemSet( &task->si, 0, sizeof( STARTUPINFOEX ) );
 		task->si.StartupInfo.cb = sizeof( STARTUPINFOEX );
+		launch_flags |= EXTENDED_STARTUPINFO_PRESENT;
 
 #ifdef _DEBUG
 		//xlprintf(LOG_NOISE)( "quotes?%s path [%s] program [%s]  [cmd.exe (%s)]", needs_quotes?"yes":"no", expanded_working_path, expanded_path, GetText( final_cmdline ) );
@@ -748,7 +784,6 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				size_t bytesRequired;
 				InitializeProcThreadAttributeList( NULL, 1, 0, &bytesRequired );
 				// Allocate memory to represent the list
-				launch_flags |= EXTENDED_STARTUPINFO_PRESENT;
 				task->si.lpAttributeList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc( GetProcessHeap(), 0, bytesRequired );
 				if( task->si.lpAttributeList ) {
 					InitializeProcThreadAttributeList( task->si.lpAttributeList, 1, 0, &bytesRequired );

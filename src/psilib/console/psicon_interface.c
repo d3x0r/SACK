@@ -171,7 +171,7 @@ int vpcprintf( PSI_CONTROL pc, CTEXTSTR format, va_list args )
 		PTEXT output;
 		vvtprintf( pvt, format, args );
 		output = VarTextGet( pvt );
-		//lprintf( "printf Output:%s", GetText( output ) );
+		lprintf( "printf Output:%s", GetText( output ) );
 
 		PSIConsoleOutput( pc, output );
 	}

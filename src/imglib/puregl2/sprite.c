@@ -88,8 +88,6 @@ static void PlotArbitrary( Image dest
 	// x2, y2 define the position of the corner to the right of the upper left
 	// x3, y3 define the position of the corner down from x2, y2
 	// x4, y4 define the position left of the corner at x3, y3
-	int lines = 0;
-   int cols  = 0;
 	struct {
 		struct {
 			unsigned int samepoint : 1;
@@ -113,6 +111,8 @@ static void PlotArbitrary( Image dest
 	int x0 = 0;
 	int y0 = 0; // needed cause macro isn't the smartest...
 #ifdef DEBUG_TIMING
+	int lines = 0;
+	int cols = 0;
 	//lprintf( "-- Begin Setup" );
 #endif
 
@@ -378,14 +378,14 @@ static void PlotArbitrary( Image dest
 	{
 #ifdef DEBUG_TIMING
 		int loops[20];
-#endif
 		int output = 0;
+#endif
 		struct {
 			int idx;
 			int curx, cury; // cury is common between left and right.
 			struct {
 				int x, y;
-            int out, image; // delta output vs delta image
+				int out, image; // delta output vs delta image
 			} del;
 			int incx, incy;
 			int err;
@@ -395,8 +395,8 @@ static void PlotArbitrary( Image dest
 				struct {
 					int x, y;
 				} del;
-            int incx, incy;
-            int err;
+				int incx, incy;
+				int err;
 			} image;
 		} right, left;
 
@@ -423,8 +423,8 @@ static void PlotArbitrary( Image dest
 
 #ifdef DEBUG_TIMING
 		for( output = 0; output<20;output++ ) loops[output] = 0;
-#endif
 		output = 0;
+#endif
 		//out.cury = points[0].left.y;
 		left.idx = 0;
 		right.idx = 0;
@@ -448,7 +448,9 @@ static void PlotArbitrary( Image dest
 			//if( ( left.cury - points[left.idx-1].left.y ) == 10 )
 			//   DebugBreak();
 			//lprintf( "Begin line." );
+#ifdef DEBUG_TIMING
 			lines++;
+#endif
 			if( left.idx > 0 )
 			{
 				out.curx = left.curx;
@@ -524,7 +526,9 @@ static void PlotArbitrary( Image dest
 									CDATA *po = IMG_ADDRESS(dest,out.curx,out.cury);
 									int alpha1 = AlphaVal(c);
 									*po = DOALPHA2( *po, c, alpha1 ) ;
+#  ifdef DEBUG_TIMING
 									output++;
+#  endif
 								}
 #endif
 							}
@@ -563,9 +567,11 @@ static void PlotArbitrary( Image dest
 						out.err = (-out.del.image)/2;
 						image.err = (-image.del.x)/2;
 						//lprintf( "plot..." );
+#ifdef DEBUG_TIMING
 						cols = 0;
+#endif
 						if( out.curx < dest->x )
-                     out.curx = dest->x;
+							out.curx = dest->x;
 						if( right.curx > dest->width )
 							right.curx = dest->width;
 						if( out.cury >= dest->y && out.cury < dest->height )
@@ -575,8 +581,8 @@ static void PlotArbitrary( Image dest
 							int cx, cy; // = image.curx >> SCALE_SHIFT, cy = image.cury >> SCALE_SHIFT;
 #ifdef DEBUG_TIMING
 							loops[3]++;
-#endif
 							cols++;
+#endif
 							//printf( "c %d,", image.curx );
 						   //if( //( out.curx >= dest->x ) && ( out.curx < (dest->x + dest->width) )
 								//&&
@@ -593,7 +599,9 @@ static void PlotArbitrary( Image dest
 									po = IMG_ADDRESS(dest,out.curx,out.cury);
 									alpha1 = AlphaVal(c);
 									*po = DOALPHA2( *po, c, alpha1 ) ;
+#  ifdef DEBUG_TIMING
 									output++;
+#  endif
 								}
 #endif
 							}
@@ -707,9 +715,9 @@ static void PlotArbitrary( Image dest
 					}
 				}
 			} // if left.cury == final y
-			if( (left.cury == points[left.idx].left.y) )
+			if( left.cury == points[left.idx].left.y )
 			{
-            //DebugBreak();
+				//DebugBreak();
 				if( points[left.idx+1].flags.no_left || ( left.idx == 2 ) )
 				{
 					// done!
@@ -840,7 +848,7 @@ static void PlotArbitrary( Image dest
 				}
 			} // if right.cury == destination point.
 
-			if( (right.cury == points[right.idx].right.y) )
+			if( right.cury == points[right.idx].right.y )
 			{
             //DebugBreak();
 				if( points[right.idx+1].flags.no_right || ( right.idx == 2 ) )

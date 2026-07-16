@@ -511,9 +511,9 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 	SetStart( pStart );
 	if( pdp->flags.bWrapCommand )
 	{
-		int skip_lines;
+		//int skip_lines;
 		PDISPLAYED_LINE pdlCommand;
-		skip_lines = 0;
+		//skip_lines = 0;
 		//lprintf( "Command line is wrapped ?" );
 		lines = CountDisplayedLines( pdp->pCommandDisplay );
 		if( !lines )
@@ -523,11 +523,11 @@ void PSI_RenderCommandLine( PCONSOLE_INFO pdp, PENDING_RECT *region )
 #ifdef DEBUG_OUTPUT
 		lprintf( "want to do this in %d lines", lines );
 #endif
-		if( lines > 3 )
-		{
-			skip_lines = lines - 3;
-			lines = 3;
-		}
+		//if( lines > 3 )
+		//{
+		//	skip_lines = lines - 3;
+		//	lines = 3;
+		//}
 		if( pdp->flags.bDirect )
 		{
 			// should already be set from last doStroke

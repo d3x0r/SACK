@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sha1.h>
 #include <md5.h>
+#include <network.h>
 #include <http.h>
 
 #include "../html5.websocket.common.h"
@@ -640,8 +641,7 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->input_state.flags.use_ssl = 1;
 	socket->input_state.on_send = WebSocketSendSSL;
 
-	socket->http_state = CreateHttpState(  ); // start a new http state collector
-	socket->http_state->pc = &socket->pc;
+	socket->http_state = CreateHttpState(&socket->pc); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	SetNetworkLong( pc_new, 0, (uintptr_t)socket );
 	SetNetworkLong( pc_new, 1, (uintptr_t)&socket->input_state );
@@ -701,8 +701,7 @@ HTML5WebSocket WebSocketPipeConnect( HTML5WebSocket pipe, uintptr_t psvNew ) {
 #endif	
 	socket->input_state.psvSender = psvNew;
 	// this new socket gets a http state.
-	socket->http_state = CreateHttpState(  ); // start a new http state collector
-	socket->http_state->pc = &socket->pc;
+	socket->http_state = CreateHttpState(&socket->pc); // start a new http state collector
 	//lprintf( "Init socket: handshake: %p %p  %d", pc_new, socket, socket->flags.initial_handshake_done );
 	return socket;
 }

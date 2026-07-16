@@ -24,15 +24,7 @@
 #include <sack_types.h>
 #include <timers.h>
 
-#ifndef USE_CUSTOM_ALLOCER
-#define USE_SACK_CUSTOM_MEMORY_ALLOCATION
- // this has to be a compile option (option from cmake)
-#ifdef USE_SACK_CUSTOM_MEMORY_ALLOCATION
-#define USE_CUSTOM_ALLOCER 1
-#else
-#define USE_CUSTOM_ALLOCER 0
-#endif
-#endif
+
 
 #ifdef __cplusplus
 namespace sack {
@@ -922,7 +914,9 @@ namespace sack {
 					plqNew = (PLINKQUEUE)AllocateEx( size DBG_RELAY );
 					plqNew->Cnt = plq->Cnt + entries;
 					plqNew->Bottom = 0;
-               plqNew->Lock = 1;
+#if USE_CUSTOM_ALLOCER
+					plqNew->Lock = 1;
+#endif
 					if (plq->Bottom > plq->Top)
 					{
 						INDEX bottom_half;

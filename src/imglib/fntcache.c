@@ -417,7 +417,7 @@ int IMGVER(OpenFontFile)( CTEXTSTR name, POINTER *font_memory, size_t *font_memo
 	if( !font_memory_size )
 		font_memory_size = &_font_memory_size;
 
-	if( font_style = (TEXTSTR)StrChr( name, '[' ) )
+	if( ( font_style = (TEXTSTR)StrChr( name, '[' ) ) )
 	{
 		TEXTSTR end = (TEXTSTR)StrChr( font_style, ']' );
 		if( end )

@@ -247,7 +247,7 @@ void FixupMyTLS( void )
 	PIMAGE_DOS_HEADER source_dos_header = (PIMAGE_DOS_HEADER)p;
 	PIMAGE_NT_HEADERS source_nt_header = (PIMAGE_NT_HEADERS)Seek( p, source_dos_header->e_lfanew );
 	PIMAGE_DATA_DIRECTORY dir = (PIMAGE_DATA_DIRECTORY)source_nt_header->OptionalHeader.DataDirectory;
-	PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( p, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
+	//PIMAGE_TLS_DIRECTORY tls = (PIMAGE_TLS_DIRECTORY)Seek( p, dir[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress );
 	int n;
 	if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
 	{

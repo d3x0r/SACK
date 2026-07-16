@@ -273,7 +273,7 @@ int InverseOpenGLMouse( struct display_camera *camera, PRENDERER hVideo, RCOORD 
 	if( camera->origin_camera )
 	{
 		VECTOR v1, v2;
-		int v = 0;
+		//int v = 0;
 
 		v2[0] = x;
 		v2[1] = y;

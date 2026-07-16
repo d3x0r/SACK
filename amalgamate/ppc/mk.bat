@@ -15,6 +15,7 @@ del panthers_c_preprocessor.c
 ppc.exe -c -K -once -ssio -sd -I../../include -p -opanthers_c_preprocessor.c -DINCLUDE_LOGGING %SRCS%
 
 gcc -O3 -o ppc.exe panthers_c_preprocessor.c
+clang -O3 -D_CRT_SECURE_NO_WARNINGS -o ppc.exe panthers_c_preprocessor.c
 
 echo Please Update https://gist.github.com/d3x0r/8c8ab33cd7130c3c9983e12d354ad067
 
