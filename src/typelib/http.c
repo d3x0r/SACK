@@ -566,6 +566,14 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 											//GET will never have a body?
 											pHttpState->flags.no_content_length = 0;
 										}
+										else if( TextSimilar( request, "PUT" ) )
+										{
+											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
+											request = NEXTLINE( request );
+											pHttpState->method = SegBreak( request );
+											//GET will never have a body?
+											pHttpState->flags.no_content_length = 0;
+										}
 										else if( TextSimilar( request, "POST" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
