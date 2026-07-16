@@ -245,34 +245,32 @@ typedef enum SackNetworkErrorIdentifier SackNetworkError;
 typedef void (CPROC*cErrorCallback)(uintptr_t psvError, PCLIENT pc, SackNetworkError error, ... );
 
 NETWORK_PROC( void, SetNetworkWriteComplete )( PCLIENT, cWriteComplete );
-#ifdef __cplusplus
+
 /* <combine sack::network::SetNetworkWriteComplete@PCLIENT@cWriteComplete>
 
    \ \                                                                     */
 NETWORK_PROC( void, SetCPPNetworkWriteComplete )( PCLIENT, cppWriteComplete, uintptr_t );
-#endif
+
 /* <combine sack::network::SetNetworkWriteComplete@PCLIENT@cWriteComplete>
 
    \ \                                                                     */
 #define SetWriteCallback SetNetworkWriteComplete
 NETWORK_PROC( void, SetNetworkReadComplete )( PCLIENT, cReadComplete );
-#ifdef __cplusplus
+
 /* <combine sack::network::SetNetworkReadComplete@PCLIENT@cReadComplete>
 
    \ \                                                                   */
 NETWORK_PROC( void, SetCPPNetworkReadComplete )( PCLIENT, cppReadComplete, uintptr_t );
-#endif
 /* <combine sack::network::SetNetworkReadComplete@PCLIENT@cReadComplete>
 
    \ \                                                                   */
 #define SetReadCallback SetNetworkReadComplete
 NETWORK_PROC( void, SetNetworkCloseCallback )( PCLIENT, cCloseCallback );
-#ifdef __cplusplus
+
 /* <combine sack::network::SetNetworkCloseCallback@PCLIENT@cCloseCallback>
 
    \ \                                                                     */
 NETWORK_PROC( void, SetCPPNetworkCloseCallback )( PCLIENT, cppCloseCallback, uintptr_t );
-#endif
 
 /* <combine sack::network::SetNetworkCloseCallback@PCLIENT@cCloseCallback>
 
@@ -429,14 +427,13 @@ NETWORK_PROC( SOCKADDR*, DuplicateAddress_6to4_Ex )( SOCKADDR *pAddr DBG_PASS );
 /* Transmission Control Protocol connection methods. This
    controls opening sockets that are based on TCP.        */
 _TCP_NAMESPACE
-#ifdef __cplusplus
+
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
 
    \ \                                                                            */
 NETWORK_PROC( PCLIENT, CPPOpenTCPListenerAddrExx )( SOCKADDR *, cppNotifyCallback NotifyCallback, uintptr_t psvConnect DBG_PASS );
 #define CPPOpenTCPListenerAddrEx(a,b,c)  CPPOpenTCPListenerAddrExx(a,b,c DBG_SRC )
 
-#endif
 /* Opens a TCP socket which listens for connections. Other TCP
    sockets may be connected to this one once it has been
    created.
@@ -470,13 +467,13 @@ NETWORK_PROC( PCLIENT, OpenTCPListenerAddr_v2d )(SOCKADDR *, cNotifyCallback Not
 
    \ \                                                                            */
 #define OpenTCPListenerAddr( pAddr ) OpenTCPListenerAddrExxx( paddr, NULL, FALSE DBG_SRC );
-#ifdef __cplusplus
-/* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
+
+   /* <combine sack::network::tcp::OpenTCPListenerEx@uint16_t@cNotifyCallback>
 
    \ \                                                                 */
 NETWORK_PROC( PCLIENT, CPPOpenTCPListenerExx )( uint16_t wPort, cppNotifyCallback NotifyCallback, uintptr_t psvConnect DBG_PASS );
 #define CPPOpenTCPListenerEx(a,b,c) CPPOpenTCPListenerExx(a,b,c DBG_SRC )
-#endif
+
 /* <combine sack::network::tcp::OpenTCPListenerAddrEx@SOCKADDR *@cNotifyCallback>
 
    \ \                                                                            */
@@ -544,7 +541,6 @@ NETWORK_PROC( void, SetNetworkListenerReady )( PCLIENT pListen );
 #define OPEN_TCP_FLAG_PREFER_V6  4
 #define OPEN_TCP_FLAG_PREFER_V4  8
 
-#ifdef __cplusplus
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
 
    \ \                                                                                                                        */
@@ -554,7 +550,6 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 																  cppWriteComplete WriteComplete, uintptr_t,
 																  cppConnectCallback pConnectComplete,  uintptr_t, int DBG_PASS );
 #define CPPOpenTCPClientAddrExx(a,b,c,d,e,f,g,h,i,j) CPPOpenTCPClientAddrExxx(a,b,c,d,e,f,g,h,i,j DBG_SRC )
-#endif
 
 NETWORK_PROC( PCLIENT, OpenTCPClientAddrFromAddrEx )( SOCKADDR *lpAddr, SOCKADDR *pFromAddr
                                                      , cReadComplete     pReadComplete
@@ -616,7 +611,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrExxx )(SOCKADDR *lpAddr,
 
    \ \                                                                                                                        */
 #define OpenTCPClientAddrExx(a,r,clo,w,con) OpenTCPClientAddrExxx( a,r,clo,w,con,0 DBG_SRC )
-#ifdef __cplusplus
+
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
 
    \ \                                                                                                                        */
@@ -626,7 +621,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientAddrEx )(SOCKADDR *
                                                , cppWriteComplete, uintptr_t
                                                , int flags
                                                );
-#endif
+
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
 
    \ \                                                                                                                        */
@@ -636,7 +631,7 @@ NETWORK_PROC( PCLIENT, OpenTCPClientAddrExEx )(SOCKADDR *, cReadComplete,
 
    \ \                                                                                                                        */
 #define OpenTCPClientAddrEx(a,b,c,d) OpenTCPClientAddrExEx(a,b,c,d DBG_SRC )
-#ifdef __cplusplus
+
 /* <combine sack::network::tcp::OpenTCPClientExx@CTEXTSTR@uint16_t@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
 
    \ \                                                                                                                      */
@@ -646,7 +641,7 @@ NETWORK_PROC( PCLIENT, CPPOpenTCPClientExEx )(CTEXTSTR lpName,uint16_t wPort
                          , cppWriteComplete WriteComplete, uintptr_t
 															, cppConnectCallback pConnectComplete, uintptr_t, int DBG_PASS );
 #define CPPOpenTCPClientExx(name,port,read,rd,close,cd,write,wd,connect,cod,flg) CPPOpenTCPClientExEx(name,port,read,rd,close,cd,write,wd,connect,cod,flg DBG_SRC)
-#endif
+
 /* <combine sack::network::tcp::OpenTCPClientAddrExx@SOCKADDR *@cReadComplete@cCloseCallback@cWriteComplete@cConnectCallback>
 
    \ \                                                                                                                        */
