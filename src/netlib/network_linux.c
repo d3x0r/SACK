@@ -384,16 +384,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						//lprintf( "UDP READ" );
 						FinishUDPRead( event_data->pc, event_data->broadcast );
 					}
-#if 0 && !DrainSupportDeprecated
-					else if( event_data->pc->bDraining )
-					{
-#ifdef LOG_NOTICES
-						if( globalNetworkData.flags.bLogNotices )
-							lprintf( "TCP Drain Event..." );
-#endif
-						TCPDrainRead( event_data->pc );
-					}
-#endif
 					else if( ( event_data->pc->dwFlags & CF_READPENDING )
 					       || ( events[n].events & ( EPOLLRDHUP | EPOLLHUP ) ) )
 					{

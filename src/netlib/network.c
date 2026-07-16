@@ -1496,7 +1496,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 #endif
 	if( !lpClient ) return;
 	//_lprintf(DBG_RELAY)( "RemoveClient: %p %d %d", lpClient, bBlockNotify, bLinger );
-	if( !( lpClient->dwFlags & CF_UDP ) 
+	if( !( lpClient->dwFlags & ( CF_UDP | CF_CLOSING ) ) 
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) )
 		&& !( lpClient->dwFlags & CF_CONNECTERROR ) ) {
 		// not linger 
@@ -1521,7 +1521,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 	} else {
 		int n = 0;
 		if( !(lpClient->dwFlags & CF_ACTIVE )
-			|| lpClient->dwFlags & CF_CLOSED )
+			|| lpClient->dwFlags & ( CF_CLOSED | CF_CLOSING ) )
 			return;
 		// UDP still needs to be done this way...
 		// socket not connected; shutdown will not work.

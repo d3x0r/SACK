@@ -230,6 +230,7 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 		socket->flags.closed = 1;
 		return;
 	}
+	//lprintf( "destoyHttpState %p %p", socket, pc_client );
 	if( pc_client ) {
 		SetNetworkLong( pc_client, 0, 0 );
 		SetNetworkLong( pc_client, 1, 0 );
@@ -242,11 +243,16 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 		SetNetworkLong( socket->pc, 1, 0 );
 	}
 	//lprintf( "ServerWebSocket Connection closed event..." );
+
 	if( pc_client && socket->input_state.on_close && socket->input_state.psv_open  ) {
-		socket->input_state.on_close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
+		web_socket_closed close = socket->input_state.on_close;
+		socket->input_state.on_close = NULL;
+		close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
 	}
 	else if( pc_client && socket->input_state.on_http_close ) {
-		socket->input_state.on_http_close( pc_client, socket->input_state.psv_on );
+		web_socket_http_close close = socket->input_state.on_http_close;
+		socket->input_state.on_http_close = NULL;
+		close( pc_client, socket->input_state.psv_on );
 	}
 	if( socket->input_state.close_reason )
 		Deallocate( char*, socket->input_state.close_reason );
@@ -269,6 +275,7 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 
 static void CPROC read_complete_process_data( HTML5WebSocket socket ) {
 	int result;
+	//lprintf( "Got some data, process it...");
 	while( ( result = ProcessHttp( socket->http_state, socket->input_state.on_send, socket->input_state.psvSender ) ) ) {
 		switch( result ) {
 		default:
@@ -542,6 +549,7 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 {
 	if( buffer )
 	{
+		//lprintf( "more data on socket?");
 		if( !( socket->input_state.flags.initial_handshake_done 
              || socket->input_state.flags.in_open_event )
           || socket->flags.http_request_only )
@@ -560,6 +568,7 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 	}
 	else
 	{
+		//lprintf( "First read on socket..");
 		// it's possible that we ended SSL on first read and are falling back...
 		// re-check here to see if it's still SSL.
 		// buffer is allocated by SSL layer if it is enabled.
@@ -616,8 +625,8 @@ static void CPROC closed( uintptr_t psv  ) {
 #endif
 	if( socket )
 		destroyHttpState( socket, pc_client ); // does all of the memory cleanup (lower case d)
-	SetNetworkLong( pc_client, 0, 0 );
-	SetNetworkLong( pc_client, 1, 0 );
+	//SetNetworkLong( pc_client, 0, 0 );
+	//SetNetworkLong( pc_client, 1, 0 );
 }
 
 static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
