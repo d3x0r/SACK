@@ -1480,7 +1480,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			{
 				// --- HTTP/1.1 HEADERS ---
 				// Format line: GET /path HTTP/1.1
-				vtprintf(state->pvtOut, "%s %s HTTP/1.1\r\n", options->method, resource);
+				//vtprintf(state->pvtOut, "%s %s HTTP/1.1\r\n", options->method, resource);
 				vtprintf(state->pvtOut, "Host:%s\r\n", targetHost);
 			}
 

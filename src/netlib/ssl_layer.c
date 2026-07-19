@@ -1659,21 +1659,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 		// bracketed [ipv6]).  A stored name may carry a nonstandard :port (default
 		// ports are not appended); IIS/HTTP.sys rejects a "host:port" SNI as Bad Host.
 		const char *addr = GetAddrName( pc->saClient );
-		if( addr && addr[0] != '[' && !( addr[0] >= '0' && addr[0] <= '9' ) )
-		{
-			const char *colon = StrRChr( addr, ':' );  // hostname has no ':' except a port
-			if( colon )
-			{
-				size_t hlen = (size_t)( colon - addr );
-				char host[256];
-				if( hlen >= sizeof( host ) ) hlen = sizeof( host ) - 1;
-				MemCpy( host, addr, hlen );
-				host[hlen] = 0;
-				SSL_set_tlsext_host_name( ses->ssl, host );
-			}
-			else
-				SSL_set_tlsext_host_name( ses->ssl, addr );
-		}
+		SSL_set_tlsext_host_name( ses->ssl, addr );
 	}
 	//SSL_set_default_read_buffer_len( ses->ssl, 16384 );
 	SSL_set_connect_state( ses->ssl );
