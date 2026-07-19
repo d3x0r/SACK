@@ -1449,6 +1449,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		options->connectError = 0; // clear any previous error.
 		pc = CPPOpenTCPClientAddrExxx( addr, HttpReader, (uintptr_t)state, HttpReaderClose, (uintptr_t)state
 				, writeComplete, (uintptr_t)state, httpConnected, (uintptr_t)state, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+		SetTCPNoDelay( pc, TRUE );   
 		state->request_socket = pc;
 		//connect->pc = pc;
 		//lprintf( "setting pending3: %p", connect->pc );
@@ -1472,24 +1473,26 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 			// 1.0 expects close after request - this is a one shot synchronous process so...
 			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.1" );
 			// 1.1 would need this sort of header....
-			//vtprintf( state->pvtOut, "connection: close\r\n" );
-			vtprintf( state->pvtOut, "Host:%s\r\n", options->hostname?options->hostname:GetText( address ) );
-			if( options->httpVersion && StrCaseCmpEx( options->httpVersion, "2.", 2 ) == 0 ) {
-				vtprintf( state->pvtOut, ":method:%s\r\n", options->method );
-				vtprintf( state->pvtOut, ":scheme:%s\r\n", options->ssl?"https":"http" );
-				vtprintf( state->pvtOut, ":authority:%s\r\n", GetText(address) );
-				vtprintf( state->pvtOut, ":path:%s\r\n", resource );
-				//vtprintf( state->pvtOut, ":status:\r\n" );
+
+			// Define your host/authority string safely (including port if non-standard)
+			const char* targetHost = options->hostname ? options->hostname : GetText(address);
+			// Note: Ensure targetHost includes ":port" if it's something like "mysite.com:8080"
+			{
+				// --- HTTP/1.1 HEADERS ---
+				// Format line: GET /path HTTP/1.1
+				vtprintf(state->pvtOut, "%s %s HTTP/1.1\r\n", options->method, resource);
+				vtprintf(state->pvtOut, "Host:%s\r\n", targetHost);
 			}
 
 			
 			LIST_FORALL( options->headers, idx, char*, header ) {
-				if( !hadConnection && ( StrCaseCmpEx( header, "connection", 9 ) == 0 ) ) {
+				if( !hadConnection && ( StrCaseCmpEx( header, "connection", 10 ) == 0 ) ) {
 					hadConnection = TRUE;
-					int spaces = 0; while( header[10+spaces] == ' ' ) spaces++;
-					if( StrCaseCmpEx( header+10+spaces, "keep-alive", 9 ) == 0 ) {
+					int spaces = 0; 
+					while( header[11+spaces] == ' ' || header[11+spaces] == ':' ) spaces++;
+					if( StrCaseCmpEx( header+11+spaces, "keep-alive", 9 ) == 0 ) {
 						state->flags.keep_alive = 1;
-					} else if( StrCaseCmpEx( header+10+spaces, "close", 5 ) == 0 ) {
+					} else if( StrCaseCmpEx( header+11+spaces, "close", 5 ) == 0 ) {
 						state->flags.close = 1;
 					}
 				}
@@ -1509,7 +1512,7 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 				}
 			}
 
-			if( !skipLength && options->content && options->contentLen ) {
+			if( !skipLength ) {
 				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
 			}
 			if( !hadUserAgent )
@@ -1736,6 +1739,7 @@ static void CPROC AcceptHttpClient( PCLIENT pc_server, PCLIENT pc_new )
 		Relinquish();
 	}
 	AddLink( &server->clients, pc_new );
+	SetTCPNoDelay( pc_new, TRUE );
 	SetNetworkLong( pc_new, 0, (uintptr_t)server );
 	SetNetworkReadComplete( pc_new, HandleRequest );
 	SetNetworkCloseCallback( pc_new, RequestorClosed );

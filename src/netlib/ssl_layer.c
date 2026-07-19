@@ -742,7 +742,19 @@ void ssl_WriteData( struct ssl_session *session, POINTER buffer, size_t length )
 	ssl_ReadComplete_( NULL, &session, buffer, length );
 }
 
+#ifdef __NOTE_TO_SELF_USE_TLS_BUFFERING___
 
+// When setting up the SSL connection:
+BIO *buf_bio = BIO_new(BIO_f_buffer());
+BIO_int_ctrl(buf_bio, BIO_C_SET_BUFF_SIZE, 16384, NULL); // 16KB buffer for headers
+BIO_push(buf_bio, network_bio); // Push it onto your network socket BIO
+
+// Inside your send code:
+SSL_write(ssl, GetText(send), GetTextSize(send)); // Goes into the 16KB buffer
+SSL_write(ssl, options->content, options->contentLen); // Zero copy, flushes the buffer out smoothly
+
+BIO_flush(buf_bio); // Force anything remaining out to the network
+#endif
 
 LOGICAL ssl_SendPipe( struct ssl_session **ses, CPOINTER buffer, size_t length )
 {
@@ -1642,8 +1654,26 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ssl_BeginClientSession_( ses, client_keypair, client_keypairlen, keypass, keypasslen, rootCert, rootCertLen );
 
 	{
+		// SNI (RFC 6066 server_name) must be a bare DNS hostname: strip any :port,
+		// and emit nothing for IP literals (leading digit = numeric IPv4/IPv6, or
+		// bracketed [ipv6]).  A stored name may carry a nonstandard :port (default
+		// ports are not appended); IIS/HTTP.sys rejects a "host:port" SNI as Bad Host.
 		const char *addr = GetAddrName( pc->saClient );
-		SSL_set_tlsext_host_name( ses->ssl, addr );
+		if( addr && addr[0] != '[' && !( addr[0] >= '0' && addr[0] <= '9' ) )
+		{
+			const char *colon = StrRChr( addr, ':' );  // hostname has no ':' except a port
+			if( colon )
+			{
+				size_t hlen = (size_t)( colon - addr );
+				char host[256];
+				if( hlen >= sizeof( host ) ) hlen = sizeof( host ) - 1;
+				MemCpy( host, addr, hlen );
+				host[hlen] = 0;
+				SSL_set_tlsext_host_name( ses->ssl, host );
+			}
+			else
+				SSL_set_tlsext_host_name( ses->ssl, addr );
+		}
 	}
 	//SSL_set_default_read_buffer_len( ses->ssl, 16384 );
 	SSL_set_connect_state( ses->ssl );

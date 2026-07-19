@@ -1475,6 +1475,23 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 			lprintf( "Sending previously queued data." );
 #endif
 
+/*
+
+An automatic feature that might be worht the pain....
+int state = 1;
+// 1. "Cork" the socket (tells the kernel: don't push the packet yet)
+setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
+
+// 2. Fire your zero-copy writes sequentially
+SendTCP(pc, GetText(send), GetTextSize(send)); 
+SendTCPLong(pc, options->content, options->contentLen); // Zero copy!
+
+// 3. Uncork the socket (tells the kernel: merge it all right now and send!)
+state = 0;
+setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
+
+*/
+
 		if( pc->lpFirstPending->dwAvail )
 		{
 			uint32_t dwError;
@@ -1495,8 +1512,12 @@ int TCPWriteEx(PCLIENT pc DBG_PASS)
 						MemCpy( ((uint8_t*)newbuffer) + size
 								, ((const uint8_t*)lpNext->buffer.c)+lpNext->dwUsed
 								, lpNext->dwAvail );
-						if( lpNext->s.bDynBuffer )
+
+						if( lpNext->s.bDynBuffer ) {
 							Release( lpNext->buffer.p );
+							lpNext->buffer.p = NULL; // Zero out immediately
+							lpNext->s.bDynBuffer = FALSE;
+						}								
 						size += lpNext->dwAvail;
 						PendingBuffer *next = lpNext->lpNext;
 						if( lpNext != &pc->FirstWritePending )

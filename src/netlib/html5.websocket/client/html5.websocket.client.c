@@ -126,7 +126,7 @@ static void CPROC WebSocketClientReceive( PCLIENT pc, POINTER buffer, size_t len
 		{
 			if( ( websock = wsc_local.opening_client ) )
 			{
-				//SetTCPNoDelay( pc, TRUE );
+				SetTCPNoDelay( pc, TRUE );   // avoid Nagle/delayed-ACK stall on chunked TLS/WS records
 				SetNetworkLong( pc, 0, (uintptr_t)wsc_local.opening_client );
 				SetNetworkLong( pc, 1, (uintptr_t)&wsc_local.opening_client->input_state );
 				wsc_local.opening_client = NULL; // clear this to allow open to return.
@@ -308,6 +308,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 		{
 			SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
 			SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->input_state );
+			SetTCPNoDelay( websock->pc, TRUE );
 #ifndef NO_SSL
 			if( StrCaseCmp( websock->url->protocol, "wss" ) == 0 )
 				websock->input_state.flags.use_ssl = 1;

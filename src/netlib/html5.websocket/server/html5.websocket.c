@@ -642,6 +642,8 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 #else
 	socket->input_state = server_socket->input_state; // clone callback methods and config flags
 #endif	
+	SetTCPNoDelay( pc_new, TRUE );   
+
 	socket->input_state.close_code = 1006;
 	socket->input_state.close_reason = StrDup( "Because I don't Like You?");
 	socket->input_state.psvSender = (uintptr_t)pc_new;
