@@ -760,15 +760,23 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				CreatePipe( &task->hReadErr, &task->hWriteErr, &sa, 0 );
 
 			CreatePipe( &task->hReadIn, &task->hWriteIn, &sa, 0 );
-			task->si.StartupInfo.hStdInput = task->hReadIn;
-			if( OutputHandler2 )
-				task->si.StartupInfo.hStdError = task->hWriteErr;
-			if( OutputHandler )
-				task->si.StartupInfo.hStdOutput = task->hWriteOut;
-			if( OutputHandler && !OutputHandler2 ) {
-				task->si.StartupInfo.hStdError = task->hWriteOut; // if this is not set, then stderr gets inherited.
+			// For an interactive pseudoconsole the child's console I/O is provided by the pty
+			// (PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE below); it must NOT also be given redirected
+			// std handles, or cmd treats stdin as a non-interactive pipe (no echo / no line input)
+			// and hReadIn ends up double-consumed by both conpty and the child.  Only wire the std
+			// handles for the plain-pipe (non-pty) case.
+			if( !( flags & LPP_OPTION_INTERACTIVE ) ) {
+				task->si.StartupInfo.hStdInput = task->hReadIn;
+				if( OutputHandler2 )
+					task->si.StartupInfo.hStdError = task->hWriteErr;
+				if( OutputHandler )
+					task->si.StartupInfo.hStdOutput = task->hWriteOut;
+				if( OutputHandler && !OutputHandler2 ) {
+					task->si.StartupInfo.hStdError = task->hWriteOut; // if this is not set, then stderr gets inherited.
+				}
+				task->si.StartupInfo.dwFlags |= STARTF_USESTDHANDLES;
 			}
-			task->si.StartupInfo.dwFlags |= STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+			task->si.StartupInfo.dwFlags |= STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.StartupInfo.wShowWindow = SW_HIDE;
 			else
@@ -907,6 +915,14 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					//task->hStdIn.pdp 		= pdp;
 					task->hStdIn.hThread  = 0;
 					task->hStdIn.bNextNew = TRUE;
+					// NOTE: win32-input-mode ( ESC[?9001h ) was tried to let SendPTYKeyEvent deliver
+					// full-fidelity key records, but ConPTY did not consume those sequences here even
+					// when the mode enabled successfully, so SendPTYKeyEvent now writes raw characters
+					// and we leave ConPTY in its default VT-input mode.
+					//if( task->hPty ) {
+					//	DWORD dwEnable = 0;
+					//	WriteFile( task->hStdIn.handle, "\x1b[?9001h", 8, &dwEnable, NULL );
+					//}
 					if( task->OutputEvent ) {
 						task->hStdOut.handle   = task->hReadOut;
 						task->hStdOut.pLine 	  = NULL;
@@ -1438,8 +1454,38 @@ int SendPTYKeyEvent( PTASK_INFO task, uint32_t key ) {
 
 	    Rc: the value of wRepeatCount - any number. If omitted, defaults to '1'.
 	*/
-	pprintf( task, "\x1b[%d;%d;%d;%d;%d;%d_", KEY_CODE( key ), KEY_REAL_CODE( key ), text ? GetUtfChar( &text ) : 0,
-	         IsKeyPressed( key ) ? 1 : 0, ( KEY_MOD( key ) & KEY_MOD_CTRL ) ? 1 : 0, 1 );
+	// ConPTY win32-input-mode ( ESC[Vk;Sc;Uc;Kd;Cs;Rc_ ) was not being consumed here even with
+	// ?9001h enabled, so send raw character input instead - the input path cmd.exe/ConPTY always
+	// accept.  The key dispatch currently delivers each transition twice, and we get both key-down
+	// and key-up; track per-VK pressed state so each physical press transmits its character exactly
+	// once (on the first key-down), and clear it on key-up.
+	// NOTE: KEY_MOD() (key bits 28-30) is not populated by the Win32 key packing in vidlib.c, so
+	// modifiers/Ctrl-combos do not reach here yet; and keys with no character (arrows, F-keys) are
+	// not yet mapped to VT sequences.
+	{
+		static uint8_t s_down[256];
+		int vk = KEY_CODE( key );
+		int uc = text ? GetUtfChar( &text ) : 0;
+		int kd = IsKeyPressed( key ) ? 1 : 0;
+		int vkIdx = vk & 0xFF;
+		//lprintf( "WTX: PTYKey key=%08x vk=%d uc=%d kd=%d held=%d", key, vk, uc, kd, s_down[vkIdx] );
+		if( kd ) {
+			if( !s_down[vkIdx] ) {
+				s_down[vkIdx] = 1;
+				if( uc ) {
+					uint8_t buf[8]; int n = 0;
+					if( uc < 0x80 ) buf[n++] = (uint8_t)uc;
+					else if( uc < 0x800 ) { buf[n++] = (uint8_t)(0xC0|(uc>>6)); buf[n++] = (uint8_t)(0x80|(uc&0x3F)); }
+					else if( uc < 0x10000 ) { buf[n++] = (uint8_t)(0xE0|(uc>>12)); buf[n++] = (uint8_t)(0x80|((uc>>6)&0x3F)); buf[n++] = (uint8_t)(0x80|(uc&0x3F)); }
+					else { buf[n++] = (uint8_t)(0xF0|(uc>>18)); buf[n++] = (uint8_t)(0x80|((uc>>12)&0x3F)); buf[n++] = (uint8_t)(0x80|((uc>>6)&0x3F)); buf[n++] = (uint8_t)(0x80|(uc&0x3F)); }
+					task_send( task, buf, n );
+				}
+			}
+		}
+		else {
+			s_down[vkIdx] = 0;
+		}
+	}
 	return 0;
 }
 
