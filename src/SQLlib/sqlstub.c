@@ -2725,11 +2725,14 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 				//return 0;
 			}
 
+			//  (S1000)[5014]:[ma-3.1.15][10.11.13-MariaDB-0ubuntu0.24.04.1]Write error: Broken pipe (32)
 			// native 2003 == could not connect... (do not retry)
 			// native 2013 == lost connection during query.
 			// state 08S01, native 5014 == (mariadb) Connection reset by peer (104)
+			// state S1000, native 5014 == (mariadb) Connection reset by peer (104)
 			if( ( ( strcmp( statecode, "S1T00" ) == 0 ) ||
-				 ( strcmp( statecode, "08S01" ) == 0 ) )
+				 ( strcmp( statecode, "08S01" ) == 0 ) ||
+				 ( strcmp( statecode, "S1000" ) == 0 ) )
 				&& ( native == 2013 || native == 5014 ) )
 			{
 				if( g.feedback_handler ) g.feedback_handler( "SQL Connection Lost...\nWaiting for reconnect..." );
