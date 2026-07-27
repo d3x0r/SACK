@@ -1112,6 +1112,80 @@ SQLGETOPTION_PROC( int, SACK_GetProfileBlob )( CTEXTSTR pSection, CTEXTSTR pOptn
 }
 
 //------------------------------------------------------------------------
+// Plain read of an option's string value.
+//
+// Unlike SACK_GetProfileString(), these do not take a default, and reading is not a write:
+// when the option does not exist it is NOT created/materialized in the option tree, and nothing
+// is stored.  The value comes back by reference like SACK_GetProfileBlob() does, so no maximum
+// option length has to be known up front; the returned buffer is allocated and belongs to the
+// caller ( Release() it ).  Length is in characters, and the buffer is null terminated as a
+// convenience even though the length is returned.
+//
+// Returns TRUE when the option exists and has a value ( an empty value still reads TRUE with
+// length 0, so "missing" and "present but empty" stay distinguishable ), else FALSE with the
+// caller's pointer left untouched.
+
+SQLGETOPTION_PROC( int, SACK_ReadPrivateProfileStringOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR **pBuffer, size_t *pnBuffer, CTEXTSTR pINIFile )
+{
+	POPTION_TREE_NODE optval;
+	LOGICAL drop_odbc = FALSE;
+	int success = FALSE;
+	EnterCriticalSec( &og.cs_option );
+	if( !odbc )
+	{
+		odbc = GetOptionODBC( GetDefaultOptionDatabaseDSN() );
+		drop_odbc = TRUE;
+	}
+	if( !pINIFile )
+		pINIFile = DEFAULT_PUBLIC_KEY;
+	else
+	{
+		TEXTCHAR buf[128];
+		pINIFile = ResolveININame( odbc, pSection, buf, pINIFile );
+	}
+	// bCreate FALSE - a read must not add the option to the tree.
+	optval = GetOptionIndexExx( odbc, OPTION_ROOT_VALUE, NULL, pINIFile, pSection, pOptname, FALSE, FALSE DBG_SRC );
+	if( optval )
+	{
+		TEXTCHAR *value = NULL;
+		size_t len = 0;
+		if( ( GetOptionStringValueEx( odbc, optval, &value, &len DBG_SRC ) != INVALID_INDEX ) && value )
+		{
+			// value points into an internal rotating result buffer; return a copy the caller owns.
+			if( pBuffer )
+			{
+				(*pBuffer) = NewArray( TEXTCHAR, len + 1 );
+				if( len )
+					MemCpy( (*pBuffer), value, len * sizeof( TEXTCHAR ) );
+				(*pBuffer)[len] = 0;
+			}
+			if( pnBuffer )
+				(*pnBuffer) = len;
+			success = TRUE;
+		}
+	}
+	if( drop_odbc )
+		DropOptionODBC( odbc );
+	LeaveCriticalSec( &og.cs_option );
+	return success;
+}
+
+SQLGETOPTION_PROC( int, SACK_ReadPrivateProfileString )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR **pBuffer, size_t *pnBuffer, CTEXTSTR pINIFile )
+{
+	return SACK_ReadPrivateProfileStringOdbc( og.Option, pSection, pOptname, pBuffer, pnBuffer, pINIFile );
+}
+
+SQLGETOPTION_PROC( int, SACK_ReadProfileStringOdbc )( PODBC odbc, CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR **pBuffer, size_t *pnBuffer )
+{
+	return SACK_ReadPrivateProfileStringOdbc( odbc, pSection, pOptname, pBuffer, pnBuffer, NULL );
+}
+
+SQLGETOPTION_PROC( int, SACK_ReadProfileString )( CTEXTSTR pSection, CTEXTSTR pOptname, TEXTCHAR **pBuffer, size_t *pnBuffer )
+{
+	return SACK_ReadPrivateProfileStringOdbc( og.Option, pSection, pOptname, pBuffer, pnBuffer, NULL );
+}
+
+//------------------------------------------------------------------------
 
 SQLGETOPTION_PROC( int32_t, SACK_GetProfileIntEx )( CTEXTSTR pSection, CTEXTSTR pOptname, int32_t defaultval, LOGICAL bQuiet )
 {
