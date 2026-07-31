@@ -825,6 +825,37 @@ void SetHistoryCursorPos( PHISTORY_LINE_CURSOR phlc, int32_t x, int32_t y )
 
 //----------------------------------------------------------------------------
 
+// Option-gated ( SACK/PSI/console : "clear line on reposition" ; add ||1 to force-enable a build ).
+// When the output cursor advances onto a line that already holds content - which in a scrolling
+// history only happens when the child (e.g. cmd.exe via ConPTY) re-addresses rows like a fixed
+// screen and overwrites with shorter text but without an explicit ESC[K - clear that line so stale
+// trailing characters don't bleed through (the "operable program... rights reserved." overlap).
+// A no-op for normal streaming, where the cursor advances onto not-yet-created (blank) lines.
+static int ClearLineOnReposition( void ) {
+	static int val = -1;
+	if( val < 0 ) val = SACK_GetProfileInt( "SACK/PSI/console", "clear line on reposition", 0 );
+	return val;
+}
+
+static void ClearHistoryLineAt( PHISTORY_LINE_CURSOR phc, int y ) {
+	PTEXTLINE ptl = GetAHistoryLine( phc, NULL, y, FALSE );
+	if( ptl && ptl->pLine ) {
+		LineRelease( ptl->pLine );
+		ptl->pLine = NULL;
+		ptl->flags.nLineLength = 0;
+	}
+}
+
+// Called after the output cursor is repositioned (newline, or absolute/relative cursor move).
+// When the option is on and the cursor landed at the start of a line (column 0 - the "repaint a
+// whole line" case), clear any pre-existing content on that line so a shorter overwrite doesn't
+// leave a stale tail.  Restricted to column 0 so mid-line positioning ( ESC[r;cH with c>1 ) does
+// not erase content the child means to keep.
+void PSI_MaybeClearRepositionLine( PHISTORY_LINE_CURSOR phc ) {
+	if( phc && ClearLineOnReposition() && phc->output.nCursorX == 0 )
+		ClearHistoryLineAt( phc, phc->output.nCursorY );
+}
+
 PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLine )
 {
 	PSI_Console_Phrase phrase = New( struct PSI_console_phrase );
@@ -844,6 +875,7 @@ PSI_Console_Phrase PSI_EnqueDisplayHistory( PHISTORY_LINE_CURSOR phc, PTEXT pLin
 		//lprintf( "Not NORETURN - therefore skipping to next line..." );
 		phc->output.nCursorX = 0;
 		phc->output.nCursorY++;
+		PSI_MaybeClearRepositionLine( phc );
 	}
 
 	{
