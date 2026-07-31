@@ -422,6 +422,12 @@ struct network_global_data{
 	PCLIENT ActiveClients;
 	PCLIENT ClosedClients;
 	CRITICALSECTION csNetwork;
+	// Serializes the peer_thread_info chain (root_thread/parent_peer/child_peer) in
+	// AddThreadEvent.  Separate from csNetwork so it cannot interact with the close
+	// paths' lock order; nothing taken while holding this needs csNetwork.
+	CRITICALSECTION csPeerChain;
+	// gethostbyname2 hands back static storage; serialize resolution (see network_addresses.c)
+	CRITICALSECTION csResolve;
 	volatile uint32_t uNetworkPauseTimer;
 	uint32_t uPendingTimer;
 #ifndef __LINUX__

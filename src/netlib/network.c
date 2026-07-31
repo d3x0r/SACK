@@ -127,8 +127,11 @@ static void LowLevelNetworkInit( void )
 	if( !global_network_data ) {
 		SimpleRegisterAndCreateGlobal( global_network_data );
 	}
-	if( !globalNetworkData.ClientSlabs )
+	if( !globalNetworkData.ClientSlabs ) {
 		InitializeCriticalSec( &globalNetworkData.csNetwork );
+		InitializeCriticalSec( &globalNetworkData.csPeerChain );
+		InitializeCriticalSec( &globalNetworkData.csResolve );
+	}
 }
 
 PRIORITY_PRELOAD( InitNetworkGlobal, CONFIG_SCRIPT_PRELOAD_PRIORITY - 1 )

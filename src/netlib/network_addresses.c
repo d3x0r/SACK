@@ -1604,6 +1604,15 @@ SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddres
 #  else
 			int found = 0;
 			int try_again;
+			// gethostbyname2 returns a pointer to static per-process storage, so it is
+			// not thread safe - concurrent resolvers overwrite each other's hostent and
+			// the memcpy below reads a replaced h_addr/h_length.  This crashed inside
+			// libc under the async http client, which spawns a request thread each call
+			// and resolves from all of them at once.  Serialize the call AND the copy of
+			// its result.  (Better long-term: getaddrinfo, which is thread safe and is
+			// already what the WIN32 branch of this function uses - a lock here also
+			// serializes genuinely slow DNS for distinct hosts.)
+			EnterCriticalSec( &globalNetworkData.csResolve );
 			do {
 				try_again = 0;
 				if( !( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 )
@@ -1634,6 +1643,7 @@ SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddres
 					}
 				}
 			} while( try_again && !found );
+			LeaveCriticalSec( &globalNetworkData.csResolve );
 			if( !found )
 			{
 				// could not find the name in the host file.

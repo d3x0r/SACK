@@ -145,6 +145,16 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		lprintf( "Add thread event %p %d %08x  %s", pc, broadcast?pc->SocketBroadcast:pc->Socket, pc->dwFlags, broadcast?"broadcast":"direct" );
 #endif
 	if( !broadcast ) {
+		// The whole select-a-peer / create-a-peer sequence has to be serialized, not
+		// just the relink at the end.  Two threads that both decide to add a peer to
+		// the same parent each call ThreadTo, and then BOTH new threads assign
+		// peer_thread->child_peer, so the chain is already corrupt before the relink
+		// runs - and one thread's `peer->child_peer = NULL` below lands while the
+		// other is between its spin and its own store, which is the observed NULL
+		// dereference.  The new NetworkThreadProc sets child_peer without taking any
+		// lock (network.c, and it only touches csNetwork on exit), so holding this
+		// across the spin cannot deadlock against the thread being waited for.
+		EnterCriticalSec( &globalNetworkData.csPeerChain );
 		for( ; peer; peer = peer->child_peer ) {
 			if( !peer->child_peer ) {
 #ifdef LOG_NOTICES
@@ -210,6 +220,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 			else
 				peer = peer->child_peer;
 		}
+		LeaveCriticalSec( &globalNetworkData.csPeerChain );
 	} else {
 		peer = pc->this_thread; // add broadcast to the same event as the original.
 	}
