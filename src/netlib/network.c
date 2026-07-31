@@ -130,7 +130,6 @@ static void LowLevelNetworkInit( void )
 	if( !globalNetworkData.ClientSlabs ) {
 		InitializeCriticalSec( &globalNetworkData.csNetwork );
 		InitializeCriticalSec( &globalNetworkData.csPeerChain );
-		InitializeCriticalSec( &globalNetworkData.csResolve );
 	}
 }
 

@@ -20,6 +20,12 @@ typedef struct web_socket_input_state *WebSocketInputState;
 
 struct web_socket_input_state
 {
+	// The socket this input state is reading, so protocol-level failures detected in
+	// the common parser (which is handed only the input state) can be reported with
+	// the peer identity attached - web_socket_error takes a PCLIENT, and an
+	// application reacting to an abusive peer needs its address.  NULL for pipe
+	// sockets, which have no PCLIENT.
+	PCLIENT pc;
 	struct web_socket_common_flags
 	{
 		BIT_FIELD closed : 1;

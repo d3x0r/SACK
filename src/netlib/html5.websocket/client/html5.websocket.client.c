@@ -308,6 +308,7 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 		{
 			SetNetworkLong( websock->pc, 0, (uintptr_t)websock );
 			SetNetworkLong( websock->pc, 1, (uintptr_t)&websock->input_state );
+			websock->input_state.pc = websock->pc; // so the common parser can report errors against this peer
 			SetTCPNoDelay( websock->pc, TRUE );
 #ifndef NO_SSL
 			if( StrCaseCmp( websock->url->protocol, "wss" ) == 0 )

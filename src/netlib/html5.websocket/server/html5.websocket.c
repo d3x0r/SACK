@@ -664,6 +664,8 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 	socket->input_state.close_code = 1006;
 	socket->input_state.close_reason = StrDup( "Because I don't Like You?");
 	socket->input_state.psvSender = (uintptr_t)pc_new;
+	// after the clone above, which would otherwise overwrite it with the listener's
+	socket->input_state.pc = pc_new;
 
 	// assume secure, when the handshake fails, it demotes to insecure
 	socket->input_state.flags.use_ssl = 1;

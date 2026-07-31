@@ -328,6 +328,30 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 			if( websock->fragment_collection_avail < ( websock->fragment_collection_length + websock->frame_length ) )
 			{
 				uint8_t* new_fragbuf;
+				// frame_length comes off the wire - a 64-bit length frame can claim up
+				// to 2^63 - and fragments accumulate across continuation frames, so
+				// without a ceiling a peer can drive this Allocate without bound and
+				// exhaust memory.  Refuse the message instead, and report it so the
+				// application can decide what to do about the peer (rate limit, ban,
+				// firewall rule); a bare disconnect gives it nothing to act on.
+				if( ( websock->fragment_collection_length + websock->frame_length )
+				    > WEBSOCKET_MAX_MESSAGE_SIZE )
+				{
+					lprintf( "websocket message of %" _size_f " bytes exceeds the %" _size_f " byte limit; refusing"
+					       , (size_t)( websock->fragment_collection_length + websock->frame_length )
+					       , (size_t)WEBSOCKET_MAX_MESSAGE_SIZE );
+					if( websock->on_error )
+						websock->on_error( websock->pc, websock->psv_on
+						                 , SACK_NETWORK_ERROR_WS_MESSAGE_TOO_BIG );
+					else if( websock->pc )
+						TriggerNetworkErrorCallback( websock->pc, SACK_NETWORK_ERROR_WS_MESSAGE_TOO_BIG );
+					ResetInputState( websock );
+					if( websock->pc )
+						RemoveClient( websock->pc );
+					else if( websock->do_close )
+						websock->do_close( websock->psvCloser );
+					return;
+				}
 				websock->fragment_collection_avail += websock->frame_length;
 				if( websock->fragment_collection_avail > websock->fragment_collection_buffer_size ) {
 					new_fragbuf = (uint8_t*)Allocate( websock->fragment_collection_avail * 2 );

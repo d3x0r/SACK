@@ -1602,48 +1602,63 @@ SOCKADDR *CreateRemoteV2( CTEXTSTR lpName, uint16_t nHisPort, enum NetworkAddres
 				      , phe->h_length);
 			}
 #  else
+			// getaddrinfo instead of gethostbyname2: the latter returns a pointer to
+			// static per-process storage, so concurrent resolvers overwrite each
+			// other's hostent and the copy below reads a replaced h_addr/h_length.
+			// That crashed inside libc under the async http client, which spawns a
+			// request thread per call and resolves from all of them at once.
+			// getaddrinfo is thread safe and hands back a caller-owned list (freed
+			// with freeaddrinfo), so no lock is needed - which also means genuinely
+			// slow DNS for distinct hosts still runs in parallel.  This is what the
+			// WIN32 branch of this same function already does.
 			int found = 0;
-			int try_again;
-			// gethostbyname2 returns a pointer to static per-process storage, so it is
-			// not thread safe - concurrent resolvers overwrite each other's hostent and
-			// the memcpy below reads a replaced h_addr/h_length.  This crashed inside
-			// libc under the async http client, which spawns a request thread each call
-			// and resolves from all of them at once.  Serialize the call AND the copy of
-			// its result.  (Better long-term: getaddrinfo, which is thread safe and is
-			// already what the WIN32 branch of this function uses - a lock here also
-			// serializes genuinely slow DNS for distinct hosts.)
-			EnterCriticalSec( &globalNetworkData.csResolve );
-			do {
-				try_again = 0;
-				if( !( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 )
-				    && ( phe = gethostbyname2( lpName, AF_INET6 ) ) ) {
-					found = 1;
-					SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
-					lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
-					//lprintf( "This copy:%d", phe->h_length );
-					memcpy( ( (struct sockaddr_in6*)lpsaAddr )->sin6_addr.s6_addr           // save IP address from host entry.
-						, phe->h_addr
-						, phe->h_length );
+			{
+				struct addrinfo hints;
+				struct addrinfo *result = NULL;
+				struct addrinfo *ai;
+				int families[2];
+				int nFamilies;
+				int n;
 
-				}
-				if( !found 
-				    && !( flags & NETWORK_ADDRESS_FLAG_PREFER_V6 )
-				    && ( phe = gethostbyname2( lpName, AF_INET ) ) ) {
-					found = 1;
-					//lprintf( "Strange, gethostbyname failed, but AF_INET worked... %s", tmp );
-					SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
-					lpsaAddr->sin_family = AF_INET;
-					memcpy( &lpsaAddr->sin_addr.S_un.S_addr           // save IP address from host entry.
-						, phe->h_addr
-						, phe->h_length );
+				// preserve the previous preference order exactly:
+				//   PREFER_V4   -> v4, then fall back to v6
+				//   PREFER_V6   -> v6 only (the old loop never fell back to v4)
+				//   PREFER_NONE -> v6, then v4
+				if( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 ) {
+					families[0] = AF_INET; families[1] = AF_INET6; nFamilies = 2;
+				} else if( flags & NETWORK_ADDRESS_FLAG_PREFER_V6 ) {
+					families[0] = AF_INET6; nFamilies = 1;
 				} else {
-					if( flags & NETWORK_ADDRESS_FLAG_PREFER_V4 ) {
-						flags = NETWORK_ADDRESS_FLAG_PREFER_V6;
-						try_again = 1;
-					}
+					families[0] = AF_INET6; families[1] = AF_INET; nFamilies = 2;
 				}
-			} while( try_again && !found );
-			LeaveCriticalSec( &globalNetworkData.csResolve );
+
+				MemSet( &hints, 0, sizeof( hints ) );
+				hints.ai_family = AF_UNSPEC;
+				hints.ai_socktype = SOCK_STREAM;
+				if( getaddrinfo( lpName, NULL, &hints, &result ) == 0 ) {
+					for( n = 0; n < nFamilies && !found; n++ ) {
+						for( ai = result; ai; ai = ai->ai_next ) {
+							if( ai->ai_family != families[n] ) continue;
+							if( families[n] == AF_INET6 ) {
+								SET_SOCKADDR_LENGTH( lpsaAddr, IN6_SOCKADDR_LENGTH );
+								lpsaAddr->sin_family = AF_INET6;         // InetAddress Type.
+								memcpy( ( (struct sockaddr_in6*)lpsaAddr )->sin6_addr.s6_addr
+									, &( (struct sockaddr_in6*)ai->ai_addr )->sin6_addr
+									, sizeof( struct in6_addr ) );
+							} else {
+								SET_SOCKADDR_LENGTH( lpsaAddr, IN_SOCKADDR_LENGTH );
+								lpsaAddr->sin_family = AF_INET;
+								memcpy( &lpsaAddr->sin_addr.S_un.S_addr
+									, &( (struct sockaddr_in*)ai->ai_addr )->sin_addr
+									, sizeof( struct in_addr ) );
+							}
+							found = 1;
+							break;
+						}
+					}
+					freeaddrinfo( result );
+				}
+			}
 			if( !found )
 			{
 				// could not find the name in the host file.
