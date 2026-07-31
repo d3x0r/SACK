@@ -227,7 +227,23 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	//HTML5WebSocket socket = (HTML5WebSocket)GetNetworkLong( pc_client, 0 );
 	if( !socket ) return;
 	if( socket->input_state.flags.in_open_event ) {
+		// not a destroy yet - deferred until the open event finishes; leave Magic alone.
 		socket->flags.closed = 1;
+		return;
+	}
+	// Two threads reach here for the same socket: the JS end() thread via
+	// RemoveClient -> ssl_CloseSession (which closes synchronously), and a network
+	// thread via InternalRemoveClientExx.  A plain "is it still valid" test is a
+	// TOCTOU - both read a valid Magic, both proceed, and the loser then reads fields
+	// the winner has already torn down.  The observed fault read close_reason as
+	// 0xFACEBEAD... (FREE_MEMORY_TAG = never allocated, as opposed to
+	// CLEAR_MEMORY_TAG 0xDEADBEEF... which marks released), so the loser was reading
+	// memory that is not a live allocation at all, and handing it to Release.
+	// Claim the teardown atomically: only the thread that takes the valid Magic away
+	// runs it, everyone else returns immediately.
+	uint32_t magic = LockedExchange( &socket->Magic, 0 );
+	if( magic != 0x20130912 && magic != 0x20240310 ) {
+		//lprintf( "destroyHttpState: socket %p already claimed by another thread", socket );
 		return;
 	}
 	//lprintf( "destoyHttpState %p %p", socket, pc_client );
@@ -235,7 +251,7 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 		SetNetworkLong( pc_client, 0, 0 );
 		SetNetworkLong( pc_client, 1, 0 );
 	}
-	else if( socket->Magic == 0x20130912 && socket->pc ) {
+	else if( magic == 0x20130912 && socket->pc ) { // Magic was zeroed by the claim above
 		// freeing without a close event (deferred destroy); the client must not
 		// be able to reach this socket after it is freed, or a later close
 		// event reads freed memory.
@@ -266,6 +282,7 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 #endif
 	Deallocate( uint8_t*, socket->input_state.fragment_collection );
 	DestroyHttpState( socket->http_state );
+	socket->http_state = NULL;
 	Deallocate( POINTER, socket->buffer );
 #ifdef DEBUG_WEBSOCKET_CLOSE
 	lprintf( "WSS destroy socket %p pc %p/%p", socket, pc_client, socket->pc ); // TRACE close-path debugging

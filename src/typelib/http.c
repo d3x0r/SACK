@@ -771,8 +771,15 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 					}
 					else if( StrCaseStr( GetText( field->value ), "close" ) ) {
 						// the close defines the length of content...
-						if( !pHttpState->content_length ) // might have length already specified...
-							pHttpState->flags.no_content_length = 1;
+						// ... but only when reading a RESPONSE.  On a request this
+						// clobbers the no_content_length=0 that the GET/PUT request-line
+						// parse just set, so the dispatch gate below never fires and the
+						// request is never delivered - the server sits waiting for a body
+						// that a GET/PUT is never going to send.  (node's http client sends
+						// 'Connection: close' whenever it isn't using a keep-alive agent.)
+						if( pHttpState->response_version )
+							if( !pHttpState->content_length ) // might have length already specified...
+								pHttpState->flags.no_content_length = 1;
 					}
 				}
 				else if( TextLike( field->name, "Transfer-Encoding" ) )
@@ -933,18 +940,18 @@ void EndHttp( struct HttpState *pHttpState )
 
 PTEXT GetHttpContent( struct HttpState *pHttpState )
 {
+	PTEXT result = NULL;
 	lockHttp( pHttpState );
 	if( pHttpState->read_chunks )
 	{
 		/* did a timeout happen? */
 		if( pHttpState->content_length == pHttpState->read_chunk_total_length )
-			return pHttpState->content;
-		return NULL;
+			result = pHttpState->content;
 	}
+	else if( pHttpState->content_length )
+		result = pHttpState->content;
 	unlockHttp( pHttpState );
-	if( pHttpState->content_length )
-		return pHttpState->content;
-	return NULL;
+	return result;
 }
 
 void ProcessHttpFields( struct HttpState *pHttpState, void (CPROC*f)( uintptr_t psv, PTEXT name, PTEXT value ), uintptr_t psv )
@@ -977,15 +984,18 @@ PTEXT GetHttpField( struct HttpState *pHttpState, CTEXTSTR name )
 {
 	INDEX idx;
 	struct HttpField *field;
+	PTEXT result = NULL;
 	lockHttp( pHttpState );
 	if( pHttpState->fields )
 		LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 		{
-			if( StrCaseCmp( GetText( field->name ), name ) == 0 )
-				return field->value;
+			if( StrCaseCmp( GetText( field->name ), name ) == 0 ) {
+				result = field->value;
+				break;
+			}
 		}
 	unlockHttp( pHttpState );
-	return NULL;
+	return result;
 }
 
 PTEXT GetHttpResponse( struct HttpState *pHttpState )
@@ -1810,12 +1820,19 @@ PTEXT GetHTTPField( struct HttpState *pHttpState, CTEXTSTR name )
 {
 	INDEX idx;
 	struct HttpField *field;
+	PTEXT result = NULL;
+	// the field list is emptied by EndHttp on the JS end() thread; walking it
+	// unlocked can trip over LineRelease'd names/values mid-iteration.
+	lockHttp( pHttpState );
 	LIST_FORALL( pHttpState->fields, idx, struct HttpField *, field )
 	{
-		if( TextLike( field->name, name ) )
-			return field->value;
+		if( TextLike( field->name, name ) ) {
+			result = field->value;
+			break;
+		}
 	}
-	return NULL;
+	unlockHttp( pHttpState );
+	return result;
 }
 
 PNVLIST GetHttpHeaderFields( HTTPState pHttpState )

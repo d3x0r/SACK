@@ -1514,7 +1514,7 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
 			shutdown( lpClient->Socket, SHUT_WR );
 		} else {
-			lprintf( "linger and still pending write data..." );
+			//lprintf( "linger and still pending write data..." ); // normal path; noisy under load
 			lpClient->dwFlags |= CF_TOCLOSE;
 		}
 		lpClient->dwFlags |= CF_WANTCLOSE;
