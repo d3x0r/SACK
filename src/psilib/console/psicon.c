@@ -213,6 +213,7 @@ static int OnDrawCommon( "PSI Console" )( PSI_CONTROL pc )
 		return 0;
 	}
 	console->psicon.image = GetFrameSurface( pc );
+	lprintf( "WTX: OnDrawCommon img=%p size=%dx%d nWH=%dx%d fontH=%d direct=%d", console->psicon.image, console->psicon.image?console->psicon.image->width:-1, console->psicon.image?console->psicon.image->height:-1, (int)console->nWidth, (int)console->nHeight, (int)console->nFontHeight, console->flags.bDirect );
 	//ClearImage( console->psicon.image );
 	BlatColor( console->psicon.image, 0, 0, console->psicon.image->width, console->psicon.image->height, AColor( 5, 5, 5, 64 ) );
 
@@ -797,6 +798,7 @@ static void CPROC DrawString( PCONSOLE_INFO console, int x, int y, int height, R
 		, (*r).left, (*r).right, (*r).top, (*r).bottom
 		, nShow, nShow, s + nShown, console->psicon.crText, console->psicon.crBack );
 #endif 
+	lprintf( "WTX: DrawString img=%p xy(%d,%d) h=%d len=%d text[%.*s] fg=%08x bg=%08x", console->psicon.image, x, y, height, nShow, nShow, s + nShown, console->psicon.crText, console->psicon.crBack );
 	PutStringFontEx( console->psicon.image, x, y
 	               , height
 						, console->psicon.crText, console->psicon.crBack

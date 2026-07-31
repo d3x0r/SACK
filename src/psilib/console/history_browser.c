@@ -909,7 +909,11 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 		LOGICAL overflowed;
 		int start;
 		int firstline = 1;
-		uint32_t nShown; // total length of all segs shown on a line... 
+		// set when the current-page (display) build stops at a clear-screen/page-break
+		// anchor.  Used to top-anchor a fresh page so its first row (e.g. the prompt
+		// after a full-screen clear) is not pushed off the top of the bottom-up view.
+		LOGICAL bPageBroke = FALSE;
+		uint32_t nShown; // total length of all segs shown on a line...
 		PDISPLAYED_LINE pLastSetLine = NULL;
 		PTEXTLINE pLastLine = GetAHistoryLine( NULL, phbr, 0, FALSE );
 		PDISPLAYED_LINE pdlLeadin = (PDISPLAYED_LINE)(leadin?GetDataItem( &leadin->DisplayLineInfo, 0 ):NULL);
@@ -938,6 +942,7 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					if( !phbr->flags.bNoPageBreak && !phbr->flags.bOwnPageBreak )
 					{
 						//DebugBreak();
+						bPageBroke = TRUE; // reached the clear-screen/page anchor; page is bounded here.
 						break; // done!
 					}
 					if( phbr->flags.bNoPageBreak && !phbr->flags.bOwnPageBreak )
@@ -1235,6 +1240,42 @@ void BuildDisplayInfoLines( PHISTORY_BROWSER phbr, PHISTORY_BROWSER leadin, SFTF
 					}
 				}
 			}
+		// Reveal content clipped off the top of a fresh page by reclaiming blank rows at the
+		// bottom of the view.  After a full-screen clear+home (bPageBroke marks that anchor),
+		// a shell paints its prompt on the top row and leaves the rest of the fixed-size
+		// viewport blank; laid out bottom-up, that pushes the prompt above the top of the
+		// window (negative nLineTop) while the newest rows are empty.  Slide the whole page
+		// down to bring the topmost content into view, bounded by the empty space at the
+		// bottom so nothing real is pushed off.  When output later fills past the anchor there
+		// are no trailing blanks to reclaim and normal bottom-up scrolling resumes.
+		if( *CurrentLineInfo && (*CurrentLineInfo)->Cnt ) {
+			int i;
+			int nCount = (int)(*CurrentLineInfo)->Cnt;
+			int contentTop = 0x7FFFFFFF; // smallest nLineTop that actually has text
+			int blankBottomPx = 0;       // contiguous empty rows up from the newest (bottom)
+			LOGICAL stillBlank = TRUE;
+			for( i = 0; i < nCount; i++ ) { // index 0 == newest == bottom-most row
+				PDISPLAYED_LINE pdl = (PDISPLAYED_LINE)GetDataItem( CurrentLineInfo, i );
+				if( !pdl || !pdl->nLineHeight ) continue;
+				if( pdl->start && pdl->nToShow ) {
+					stillBlank = FALSE;
+					if( pdl->nLineTop < contentTop )
+						contentTop = pdl->nLineTop;
+				}
+				else if( stillBlank )
+					blankBottomPx += pdl->nLineHeight;
+			}
+			if( contentTop != 0x7FFFFFFF && contentTop < 0 && blankBottomPx > 0 ) {
+				int delta = -contentTop; // shift down so topmost content reaches y=0
+				if( delta > blankBottomPx ) delta = blankBottomPx;
+				lprintf( "WTX: top-anchor page shift delta=%d contentTop=%d blankBottomPx=%d pageBroke=%d", delta, contentTop, blankBottomPx, bPageBroke );
+				for( i = 0; i < nCount; i++ ) {
+					PDISPLAYED_LINE pdl = (PDISPLAYED_LINE)GetDataItem( CurrentLineInfo, i );
+					if( pdl && pdl->nLineHeight )
+						pdl->nLineTop += delta;
+				}
+			}
+		}
 		if( !nLinesShown && nLineTop > 0 ) {
 			uint32_t h = phbr->nLineHeight;
 			DISPLAYED_LINE dl;

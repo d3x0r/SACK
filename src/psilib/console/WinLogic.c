@@ -660,8 +660,11 @@ void PSI_WinLogicCalculateHistory( PCONSOLE_INFO pdp, SFTFont font )
 {
 	// there's some other related set of values to set here....
 	//lprintf( "Calculate history! %d %d", pdp->nColumns, pdp->nLines );
-	if( !pdp->nFontHeight )
+	if( !pdp->nFontHeight ) {
+		lprintf( "WTX: CalculateHistory BAIL nFontHeight==0 (w=%d h=%d)", (int)pdp->nWidth, (int)pdp->nHeight );
 		return;
+	}
+	lprintf( "WTX: CalculateHistory nFontHeight=%d w=%d h=%d cols=%d lines=%d", (int)pdp->nFontHeight, (int)pdp->nWidth, (int)pdp->nHeight, (int)pdp->nColumns, (int)pdp->nLines );
 
 	SetCursorHeight( pdp->pCursor, pdp->nHeight - pdp->nYPad*2 );
 	SetCursorWidth( pdp->pCursor, pdp->nWidth - pdp->nXPad * 2 );
@@ -770,6 +773,7 @@ void PSI_RenderConsole( PCONSOLE_INFO pdp, SFTFont font )
 	MemSet( &upd.cs, 0, sizeof( upd.cs ) );
 	EnterCriticalSec( &pdp->Lock );
 	pdp->lockCount++;
+	lprintf( "WTX: RenderConsole dynStart=%d cmdStart=%d histStart=%d nHeight=%d direct=%d fontH=%d", pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart, pdp->nHistoryLineStart, (int)pdp->nHeight, pdp->flags.bDirect, (int)pdp->nFontHeight );
 	/*
 	lprintf( "Render Console... %d  %d %d  %d"
 			, pdp->nDisplayLineStartDynamic, pdp->nCommandLineStart
@@ -946,6 +950,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 				if( pLine->format.position.coords.y != -16384 )
 					cursory = /*pmdp->nLines*/ -pLine->format.position.coords.y;
 				SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
+				PSI_MaybeClearRepositionLine( pmdp->pCursor ); // option-gated clear-on-reposition
 				pLine->format.position.offset.spaces = 0;
 				pLine->format.position.offset.tabs = 0;
 				pLine->flags &= ~TF_FORMATABS;
@@ -957,6 +962,7 @@ PSI_Console_Phrase PSI_WinLogicWriteEx( PCONSOLE_INFO pmdp
 				cursorx += pLine->format.position.coords.x;
 				cursory += pLine->format.position.coords.y;
 				SetHistoryCursorPos( pmdp->pCursor, cursorx, cursory );
+				PSI_MaybeClearRepositionLine( pmdp->pCursor ); // option-gated clear-on-reposition
 				pLine->format.position.offset.spaces = 0;
 				pLine->format.position.offset.tabs = 0;
 				pLine->flags &= ~TF_FORMATREL;
@@ -1263,6 +1269,8 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 		r.right = pCurrentLine->nPixelEnd;
 		r.top = pCurrentLine->nLineTop;
 		r.bottom = r.top + pCurrentLine->nLineHeight;
+		if( pCurrentLine->start )
+			lprintf( "WTX:   line[%d] top=%d toShow=%d text[%.20s]", (int)nLine, (int)pCurrentLine->nLineTop, (int)pCurrentLine->nToShow, GetText( pCurrentLine->start ) );
 		//lprintf( "display line to draw: %d  %d %d %d", nLine, r.bottom, r.top, r.bottom - r.top );
 		RenderTextLine( pdp, pCurrentLine, &r
 			, (int)nLine, nFirst, nFirstLine - nStartLineOffset, nMinLine
@@ -1273,6 +1281,7 @@ void DoRenderHistory( PCONSOLE_INFO pdp, int bHistoryStart, int nBottomLineOffse
 			nFirst = -1;
 		nLine++;
 	}
+	lprintf( "WTX: DoRenderHistory histStart=%d rendered %d display lines (nFirstLine=%d nMinLine=%d)", bHistoryStart, (int)nLine, nFirstLine, nMinLine );
 	//lprintf( "r.bottom nMin %d %d", r.bottom, nMinLine );
 	if( ( r.bottom - nStartLineOffset ) > nMinLine )
 	{

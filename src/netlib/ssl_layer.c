@@ -1440,7 +1440,7 @@ struct ssl_hostContext* ssl_setupHost( struct ssl_session* ses, CTEXTSTR hosts, 
 		}
 		*/
 		if( certStruc && certStruc->chain ) {
-			lprintf( "checking cert because chain was made?");
+			//lprintf( "checking cert because chain was made?");
 			r = SSL_CTX_use_certificate( ctx->ctx, sk_X509_value( certStruc->chain, 0 ) );
 			if( r <= 0 ) {
 				ERR_print_errors_cb( logerr, (void*)__LINE__ );

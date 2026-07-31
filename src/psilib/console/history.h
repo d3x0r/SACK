@@ -34,6 +34,7 @@ CORECON_PROC( void, PSI_DestroyHistoryCursor )( PHISTORY_LINE_CURSOR );
 CORECON_PROC( void, PSI_DestroyHistoryBrowser )( PHISTORY_BROWSER );
 
 CORECON_PROC( PSI_Console_Phrase, PSI_EnqueDisplayHistory )( PHISTORY_LINE_CURSOR phc, PTEXT pLine );
+CORECON_PROC( void, PSI_MaybeClearRepositionLine )( PHISTORY_LINE_CURSOR phc );
 CORECON_PROC( int, PSI_GetLastLineLength )( PHISTORY_REGION pht );
 CORECON_PROC( void, PSI_InitHistory )( PHISTORY_REGION pht, PTEXT name );
 
