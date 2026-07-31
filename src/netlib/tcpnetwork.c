@@ -98,8 +98,7 @@ static inline void scheduleSocket( PCLIENT pc, struct peer_thread_info *this_thr
 	// else: on another network event thread (accept path).  Must not block
 	// here - the root thread's close sweep (RemoveThreadEvent) can be waiting
 	// for THIS thread to reach its wait state while we would be waiting for
-	// root to drain the schedule: livelock.  The enqueue+wake above is enough;
-	// checkStuckConnects covers any loss.
+	// root to drain the schedule: livelock.  The enqueue+wake above is enough.
 #endif
 #ifdef __LINUX__
 	{

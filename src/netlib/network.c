@@ -620,29 +620,16 @@ void TriggerNetworkErrorCallback( PCLIENT pc, enum SackNetworkErrorIdentifier er
 
 //----------------------------------------------------------------------------
 
-#ifdef _WIN32
-static void CPROC checkStuckConnects( uintptr_t psv )
-{
-	PCLIENT pc;
-	uint32_t now = timeGetTime();
-	EnterCriticalSec( &globalNetworkData.csNetwork );
-	for( pc = globalNetworkData.ActiveClients; pc; pc = pc->next ) {
-		if( ( pc->dwFlags & CF_CONNECTING ) && !( pc->dwFlags & ( CF_CONNECTED | CF_CONNECTERROR ) )
-		  && pc->this_thread && IsValid( pc->Socket )
-		  && ( now - pc->LastEvent ) > 1500 ) {
-			// rarely (under heavy socket churn) a connecting socket's event
-			// association never delivers FD_CONNECT and the socket sits
-			// CF_CONNECTING forever with its request queued.  Re-select; a
-			// socket that is already writable re-posts FD_WRITE, which now
-			// completes the connect from the event handler.
-			lprintf( "Connect stuck without events %p; re-selecting socket:%p event:%p", pc, (POINTER)(uintptr_t)pc->Socket, pc->event );
-			WSAEventSelect( pc->Socket, pc->event, FD_CONNECT | FD_READ | FD_WRITE | FD_CLOSE );
-			pc->LastEvent = now; // don't re-poke every tick
-		}
-	}
-	LeaveCriticalSec( &globalNetworkData.csNetwork );
-}
-#endif
+/* checkStuckConnects used to live here: a 1s timer that re-selected any socket
+   sitting CF_CONNECTING without events.  It was a safety net for a winsock case
+   where FD_CONNECT was never delivered even though the connection had been
+   established - but that is handled properly at the source now, in the
+   network_win32.c FD_WRITE handler, which completes the connect when the socket
+   turns out to be writable while still CF_CONNECTING.  Re-selecting adds nothing
+   on top of that: if the socket really is connected, FD_WRITE already heals it;
+   if it is not (no service on the port, or the traffic is being dropped) there is
+   no event to recover and the re-select just logged once a second forever.  That
+   false positive is all it produced in practice, so it is gone. */
 
 uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 {
@@ -656,8 +643,6 @@ uintptr_t CPROC NetworkThreadProc( PTHREAD thread )
 		globalNetworkData.uNetworkPauseTimer = AddTimerEx( 1, 1000, NetworkPauseTimer, 0 );
 		if( !globalNetworkData.client_schedule )
 			globalNetworkData.client_schedule = CreateLinkQueue();
-		// watchdog for connects whose events were never delivered
-		AddTimerEx( 1000, 1000, checkStuckConnects, 0 );
 #endif
 #ifdef __LINUX__
 		globalNetworkData.flags.bNetworkReady = TRUE;
