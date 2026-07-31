@@ -587,6 +587,14 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 	if( globalNetworkData.flags.bLogNotices )
 		lprintf( "Add thread event %p %p %08x", pc, pc->event, pc->dwFlags );
 #endif
+	// Same serialization as the linux build: the select-a-peer / create-a-peer
+	// sequence has to be atomic, not just the relink.  Two threads that both pick
+	// the same parent each call ThreadTo, and then BOTH new threads assign
+	// peer_thread->child_peer, corrupting the chain before the relink runs; and one
+	// thread's `peer->child_peer = NULL` below lands while the other sits between
+	// its spin and its own store.  NetworkThreadProc sets child_peer without taking
+	// any lock, so holding this across the spin cannot deadlock against it.
+	EnterCriticalSec( &globalNetworkData.csPeerChain );
 	for( ; peer; peer = peer->child_peer ) {
 		if( !peer->child_peer ) {
 #ifdef LOG_NOTICES
@@ -647,6 +655,7 @@ void AddThreadEvent( PCLIENT pc, int broadcsat )
 		else
 			peer = peer->child_peer;
 	}
+	LeaveCriticalSec( &globalNetworkData.csPeerChain );
 
 	// make sure to only add this handle when the first peer will also be added.
 	// this means the list can be 61 and at this time no more.
