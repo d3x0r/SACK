@@ -814,12 +814,20 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 	unlockHttp( pHttpState );
 
 	if( pHttpState->final &&
-		( !pHttpState->read_chunks ) && 
-		( ( pHttpState->content_length
-			&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
-				||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) )
-			|| ( !pHttpState->content_length && !pHttpState->flags.no_content_length )
-			) )
+		( ( ( !pHttpState->read_chunks ) &&
+			( ( pHttpState->content_length
+				&& ( ( GetTextSize( pHttpState->partial ) >= pHttpState->content_length )
+					||( GetTextSize( pHttpState->content ) >= pHttpState->content_length ) ) )
+				|| ( !pHttpState->content_length && !pHttpState->flags.no_content_length )
+				) )
+		// A chunked response never satisfied the length tests above (its length is
+		// only known after de-chunking), so this gate could not fire for it and
+		// returned_status was never set - the blocking client in GetHttpsQueryEx then
+		// waited out its ENTIRE timeout budget on every chunked response, and the
+		// reader never woke it.  flags.success is set exactly when the terminating
+		// zero-length chunk is consumed, so that is the chunked completion signal.
+		|| ( pHttpState->read_chunks && pHttpState->flags.success )
+		) )
 	{
 		pHttpState->returned_status = 1;
 		//lprintf( "return http %d l:%d nl:%d",pHttpState->numeric_code, pHttpState->content_length, pHttpState->flags.no_content_length );
