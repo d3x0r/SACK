@@ -1564,7 +1564,13 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 					return TRUE;
 				}
 				if( dwError == EPIPE ) {
-					//_lprintf(DBG_RELAY)( "EPIPE on send() to socket...");
+					// This drops response data that was already handed to the network
+					// layer, so it must not be silent - and it has to survive the
+					// release log filter (lprintf defaults to LOG_LEVEL_DEBUG, which
+					// is filtered at the release level of 1000).
+					xlprintf( LOG_ERROR )( "EPIPE on send(); %" _size_f " bytes discarded unsent. %s"
+					                     , pc->lpFirstPending->dwAvail
+					                     , NetworkExpandFlags( pc ) );
 					pc->dwFlags |= CF_TOCLOSE;
 					return FALSE;
 				}
@@ -1836,13 +1842,12 @@ static LOGICAL deliverPendingWrite( struct PendingWrite *pending, PTHREAD thread
 			Release( pending->buffer );
 		return TRUE;
 	}
-	if( pending->pc->dwFlags & CF_TOCLOSE ) {
-		lprintf( "Socket is intended to close already... %08x %p", pending->pc->dwFlags, pending->pc );
-		LockedDecrement( &pending->pc->nWritesPended );
-		if( !pending->bLong && pending->buffer )
-			Release( pending->buffer );
-		return TRUE;
-	}
+	// CF_TOCLOSE is NOT a reason to drop this write.  Now that the close path
+	// counts nWritesPended as outstanding data, the flag means "close once these
+	// have flushed" - a close requested after this write was queued.  Discarding
+	// here would throw away exactly the response the close is waiting on; the
+	// socket is still ACTIVE and not CLOSED, so deliver it and let the drain
+	// check below finish the close.
 	if( !NetworkLockEx( pending->pc, 0 DBG_SRC ) ) {
 		// still contended; make sure the lock owner wakes this thread on unlock.
 		pending->pc->wakeOnUnlock = thread;
@@ -1858,10 +1863,33 @@ static LOGICAL deliverPendingWrite( struct PendingWrite *pending, PTHREAD thread
 	// has to pend); long buffers belong to the caller in all cases.
 	if( !pending->bLong && pending->buffer )
 		Release( pending->buffer );
-	LockedDecrement( &pending->pc->nWritesPended );
-	if( !pending->pc->nWritesPended )
-		pending->pc->wakeOnUnlock = NULL;
-	NetworkUnlockEx( pending->pc, 0|0x10 DBG_SRC );
+	{
+		PCLIENT pc = pending->pc;
+		uint32_t serial = pc->serial;
+		LOGICAL finishClose;
+		LockedDecrement( &pc->nWritesPended );
+		if( !pc->nWritesPended )
+			pc->wakeOnUnlock = NULL;
+		// A close that was deferred because this write was outstanding has nothing
+		// else to retrigger it when the write goes straight out: the deferred-close
+		// machinery keys off lpFirstPending draining on a write-ready event, and a
+		// pdqPendingWrites entry never produces one.  (If doTCPWriteV2 did have to
+		// pend it, lpFirstPending is set and that machinery still owns the close.)
+		// bInUse means the application still holds the socket; ClearNetWork closes
+		// it on release, as the event threads do.
+		finishClose = ( !pc->nWritesPended && !pc->lpFirstPending
+		             && ( pc->dwFlags & CF_TOCLOSE ) && !pc->flags.bInUse );
+		if( finishClose )
+			pc->dwFlags &= ~CF_TOCLOSE;
+		NetworkUnlockEx( pc, 0|0x10 DBG_SRC );
+		// Deliberately the public graceful close, after the unlock and re-validated
+		// against the serial: it takes its own locks and now sees nothing pending,
+		// so it does the same shutdown(SHUT_WR) an undeferred response would have,
+		// and the normal event teardown follows.  Tearing the client down inline
+		// here instead recycles it underneath the unlock above.
+		if( finishClose && NetworkClientValid( pc, serial ) )
+			RemoveClientEx( pc, FALSE, TRUE );
+	}
 	return TRUE;
 }
 
@@ -1973,6 +2001,14 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 //#endif
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
+
+	// A zero length write has nothing to deliver, and letting one through is
+	// actively harmful: it reaches send() with a 0 length, whose 0 return is
+	// read as "peer closed" and sets CF_TOCLOSE on a healthy connection.  It
+	// would also count against nWritesPended and hold a graceful close open
+	// for a write that can never move any bytes.
+	if( !nInLen )
+		return TRUE;
 
 	// nWritesPended gates the direct path: while any older write for this client
 	// is still in the deferred queue/stall list, this write has to follow it

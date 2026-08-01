@@ -1364,7 +1364,12 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #endif
 			return;
 		}
-		if( bLinger && ( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
+		// nWritesPended counts writes parked on the global pdqPendingWrites queue
+		// (and the stall list).  Those set neither lpFirstPending nor
+		// CF_WRITEPENDING, so without it a graceful close reads "nothing pending"
+		// and tears down a socket whose response has not been written yet.
+		if( bLinger && ( lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING )
+		               || lpClient->nWritesPended ) ) {
 #ifdef LOG_DEBUG_CLOSING
 			lprintf( "GRACEFUL CLOSE WHILE WAITING FOR WRITE TO FINISH... %p", lpClient );
 #endif
@@ -1498,7 +1503,11 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 			}
 		}
 #endif
-		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING ) ) ) {
+		// see InternalRemoveClientExx: a write deferred to pdqPendingWrites shows up
+		// only in nWritesPended, and shutting down here discards it (send() then
+		// fails EPIPE and the peer gets a clean FIN with no response).
+		if( !bLinger || !(lpClient->lpFirstPending || ( lpClient->dwFlags & CF_WRITEPENDING )
+		               || lpClient->nWritesPended ) ) {
 			shutdown( lpClient->Socket, SHUT_WR );
 		} else {
 			//lprintf( "linger and still pending write data..." ); // normal path; noisy under load
