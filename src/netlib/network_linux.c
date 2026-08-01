@@ -176,7 +176,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 				// spreads one socket per peer thread, which makes the close-path races
 				// reproduce roughly 3 runs in 4 instead of 1 in 26.  Useful for verifying
 				// a fix; not a behaviour change to ship.
-				if( peer->nEvents > 0 ) { // TESTING amplifier: revert to > globalNetworkData.nPeers
+				if( peer->nEvents > globalNetworkData.nPeers ) {
 #ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( "global peers is %d, this has %d", globalNetworkData.nPeers, peer->nEvents );
