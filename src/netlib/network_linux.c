@@ -110,6 +110,16 @@ void RemoveThreadEvent( PCLIENT pc ) {
 #    ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "peer %p now has %d events", thread, thread->nEvents );
 #    endif
+	// This bubble-sort mutates the SAME peer chain that AddThreadEvent serializes
+	// with csPeerChain, and used to do it unlocked - so a concurrent add could
+	// corrupt the parent_peer links and leave a cycle, and then this `while` never
+	// terminates.  That wedges the whole process, because RemoveThreadEvent is
+	// called from TerminateClosedClientEx with globalNetworkData.csNetwork HELD:
+	// observed as one thread spinning here while 321 request threads sat in
+	// GetFreeNetworkClientEx waiting for csNetwork.
+	// Lock order is csNetwork -> csPeerChain; AddThreadEvent never takes csNetwork
+	// inside its csPeerChain region, so there is no inversion.
+	EnterCriticalSec( &globalNetworkData.csPeerChain );
 	// don't bubble sort root thread
 	if( thread->parent_peer )
 		while( (thread->nEvents < thread->parent_peer->nEvents) && thread->parent_peer->parent_peer ) {
@@ -125,6 +135,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			tmp->parent_peer = thread;
 			thread->child_peer = tmp;
 		}
+	LeaveCriticalSec( &globalNetworkData.csPeerChain );
 }
 
 struct event_data {
@@ -165,7 +176,7 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 				// spreads one socket per peer thread, which makes the close-path races
 				// reproduce roughly 3 runs in 4 instead of 1 in 26.  Useful for verifying
 				// a fix; not a behaviour change to ship.
-				if( peer->nEvents > globalNetworkData.nPeers ) {
+				if( peer->nEvents > 0 ) { // TESTING amplifier: revert to > globalNetworkData.nPeers
 #ifdef LOG_NOTICES
 					if( globalNetworkData.flags.bLogNotices )
 						lprintf( "global peers is %d, this has %d", globalNetworkData.nPeers, peer->nEvents );

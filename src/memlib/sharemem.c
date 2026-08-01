@@ -370,8 +370,8 @@ static void MemTrace( POINTER block DBG_PASS, uint32_t op ) {
 	uint32_t n = LockedIncrement( &memTrace.next ) - 1;
 	struct mem_trace_entry *e = memTrace.entries + ( n % MEM_TRACE_ENTRIES );
 	e->block = block;
-	e->file = file;
-	e->line = line;
+	e->file = pFile; // DBG_PASS names its parameters pFile/nLine
+	e->line = nLine;
 	e->op = op;
 }
 #else
