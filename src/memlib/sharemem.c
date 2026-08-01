@@ -345,8 +345,14 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
      end
 
    Costs ~1.2MB of static storage and one atomic increment plus three stores per
-   release; define NO_MEM_TRACE to compile it out entirely.                     */
-#ifndef NO_MEM_TRACE
+   release; define NO_MEM_TRACE to compile it out entirely.                     
+
+requires DBG_AVIAILABLE (_DEBUG(Debug/RelWithDebInfo) or _DEBUG_INFO (RelWithDebInfo), 
+otherwise no lines could be tracked.
+
+*/
+
+#if DBG_AVAILABLE && !defined( NO_MEM_TRACE )
 #  define MEM_TRACE_ENTRIES 50000
 enum { MEM_TRACE_RELEASE = 1, MEM_TRACE_DOUBLE = 2 };
 struct mem_trace_entry {
@@ -360,7 +366,7 @@ static struct {
 	volatile uint32_t next; // ever-increasing; newest slot is (next-1) % MEM_TRACE_ENTRIES
 } memTrace;
 
-static void MemTrace( POINTER block, CTEXTSTR file, uint32_t line, uint32_t op ) {
+static void MemTrace( POINTER block DBG_PASS, uint32_t op ) {
 	uint32_t n = LockedIncrement( &memTrace.next ) - 1;
 	struct mem_trace_entry *e = memTrace.entries + ( n % MEM_TRACE_ENTRIES );
 	e->block = block;
@@ -369,7 +375,7 @@ static void MemTrace( POINTER block, CTEXTSTR file, uint32_t line, uint32_t op )
 	e->op = op;
 }
 #else
-#  define MemTrace(block,file,line,op)
+#  define MemTrace(a,...)
 #endif
 
 #ifndef _WIN32
@@ -2345,7 +2351,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	}
 	if( pData )
 	{
-		MemTrace( pData, pFile, nLine, MEM_TRACE_RELEASE );
+		MemTrace( pData DBG_RELAY, MEM_TRACE_RELEASE );
 #ifndef __NO_MMAP__
 		// how to figure if it's a CHUNK or a HEAP_CHUNK?
 		if( !( ((uintptr_t)pData) & 0x3FF ) )
@@ -2490,7 +2496,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 #endif
 					// tag it in the ring as well, so a core shows this release next to
 					// the earlier release(s) of the same block
-					MemTrace( pData, pFile, nLine, MEM_TRACE_DOUBLE );
+					MemTrace( pData DBG_RELAY, MEM_TRACE_DOUBLE );
 					DebugBreak();
 					DropMem( pMem );
 					return pData;
