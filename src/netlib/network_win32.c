@@ -562,6 +562,15 @@ void RemoveThreadEvent( PCLIENT pc ) {
 		lprintf( "peer %p now has %d events", thread, thread->nEvents );
 #endif
 	}
+	// Same as the linux build: this bubble-sort mutates the peer chain that
+	// AddThreadEvent serializes with csPeerChain, and doing it unlocked lets a
+	// concurrent add corrupt the parent_peer links - a cycle makes this `while`
+	// never terminate, and RemoveThreadEvent runs from TerminateClosedClientEx with
+	// globalNetworkData.csNetwork HELD, so the whole process wedges behind it (on
+	// linux: one thread spinning here, 321 request threads stuck in
+	// GetFreeNetworkClientEx waiting for csNetwork).  Order is csNetwork ->
+	// csPeerChain; AddThreadEvent never takes csNetwork inside its region.
+	EnterCriticalSec( &globalNetworkData.csPeerChain );
 	if( thread->parent_peer )  // don't bubble sort root thread
 		while( ( thread->nEvents < thread->parent_peer->nEvents ) && thread->parent_peer->parent_peer ) {
 #ifdef LOG_NETWORK_EVENT_THREAD
@@ -576,6 +585,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 			tmp->parent_peer = thread;
 			thread->child_peer = tmp;
 		}
+	LeaveCriticalSec( &globalNetworkData.csPeerChain );
 }
 
 // unused parameter broadcsat on windows; not needed.
