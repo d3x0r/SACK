@@ -322,6 +322,56 @@ struct global_memory_tag global_memory_data = { 0x10000 * 0x08, 1/* disable debu
 #define BLOCK_FILE(pc) (*(CTEXTSTR*)((pc)->byData + (pc)->dwSize - MAGIC_SIZE*2))
 #define BLOCK_LINE(pc) (*(int*)((pc)->byData + (pc)->dwSize - MAGIC_SIZE))
 
+/* --- release trace ring -------------------------------------------------------
+   When the allocator catches a double release it can say WHERE it was noticed
+   but not who released the block first; BLOCK_FILE/BLOCK_LINE only carry that in
+   _DEBUG builds, and turning on full allocator debug is so slow that it changes
+   the timing of the very race being hunted (it stops reproducing).  This keeps
+   the last MEM_TRACE_ENTRIES release events in a fixed ring instead: two stores
+   and one atomic increment, no I/O and no formatting, so it is cheap enough to
+   leave on while a race reproduces at full speed.  The ring is then read out of a
+   CORE DUMP - two entries for the same block are the double release, with both
+   call sites.  A ring that overwrites its oldest entry gives the same "last N
+   events" property as trimming a queue, without the bookkeeping.
+
+   From gdb on a core:
+     p memTrace.next
+     set $i=0
+     while $i < 50000
+       if memTrace.entries[$i].block == (POINTER)0xADDRESS
+         p memTrace.entries[$i]
+       end
+       set $i=$i+1
+     end
+
+   Costs ~1.2MB of static storage and one atomic increment plus three stores per
+   release; define NO_MEM_TRACE to compile it out entirely.                     */
+#ifndef NO_MEM_TRACE
+#  define MEM_TRACE_ENTRIES 50000
+enum { MEM_TRACE_RELEASE = 1, MEM_TRACE_DOUBLE = 2 };
+struct mem_trace_entry {
+	POINTER block;
+	CTEXTSTR file;
+	uint32_t line;
+	uint32_t op;
+};
+static struct {
+	struct mem_trace_entry entries[MEM_TRACE_ENTRIES];
+	volatile uint32_t next; // ever-increasing; newest slot is (next-1) % MEM_TRACE_ENTRIES
+} memTrace;
+
+static void MemTrace( POINTER block, CTEXTSTR file, uint32_t line, uint32_t op ) {
+	uint32_t n = LockedIncrement( &memTrace.next ) - 1;
+	struct mem_trace_entry *e = memTrace.entries + ( n % MEM_TRACE_ENTRIES );
+	e->block = block;
+	e->file = file;
+	e->line = line;
+	e->op = op;
+}
+#else
+#  define MemTrace(block,file,line,op)
+#endif
+
 #ifndef _WIN32
 #include <errno.h>
 #endif
@@ -2295,6 +2345,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 	}
 	if( pData )
 	{
+		MemTrace( pData, pFile, nLine, MEM_TRACE_RELEASE );
 #ifndef __NO_MMAP__
 		// how to figure if it's a CHUNK or a HEAP_CHUNK?
 		if( !( ((uintptr_t)pData) & 0x3FF ) )
@@ -2437,6 +2488,9 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 						// CRITICAL ERROR!
 						_xlprintf( 2 DBG_RELAY)( "Block is already Free! %p ", pc );
 #endif
+					// tag it in the ring as well, so a core shows this release next to
+					// the earlier release(s) of the same block
+					MemTrace( pData, pFile, nLine, MEM_TRACE_DOUBLE );
 					DebugBreak();
 					DropMem( pMem );
 					return pData;

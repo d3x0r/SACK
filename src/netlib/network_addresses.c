@@ -148,16 +148,29 @@ static struct mac_data {
 // Never held across a sleep; nesting would be safe (sack critical sections
 // are owner-reentrant) but none of the call paths nest it.
 static CRITICALSECTION macLock;
+// serializes networkAddressBufferSet; see the note at its declaration below
+static CRITICALSECTION csAddressPool;
 
 PRELOAD( InitMacAddressLock ) {
 	// windows requires explicit initialization; linux/mac accept the zeroed static
 	InitializeCriticalSec( &macLock );
+	InitializeCriticalSec( &csAddressPool );
 }
 
 typedef uint8_t NETWORK_ADDRESS_BUFFER[MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t )];
 #define MAXNETWORK_ADDRESS_BUFFERSPERSET 256
 DeclareSet( NETWORK_ADDRESS_BUFFER );
 static PNETWORK_ADDRESS_BUFFERSET networkAddressBufferSet;
+/* SETs are not thread safe - sets.c contains no locking at all, yet it walks and
+   mutates a shared chain of set blocks (next/nBias/used bitmask) and allocates new
+   ones.  This pool is hit by AllocAddr on every address created and ReleaseAddress
+   on every address freed, concurrently from every network thread AND every request
+   thread, so the free list gets corrupted: blocks handed out twice, or a release
+   walking into a neighbouring block.  Observed as ClearClient -> ReleaseAddress
+   freeing a block that was actually an HTTP PTEXT segment (proved with the release
+   trace ring), i.e. the pointers were fine and the pool was not.  Serialize just
+   this pool; nothing is called while holding it, so it cannot invert with the
+   network locks (csAddressPool, declared above with macLock). */
 
 //----------------------------------------------------------------------------
 
@@ -1317,7 +1330,10 @@ void SetAddrName( SOCKADDR *addr, const char *name )
 
 SOCKADDR *AllocAddrEx( DBG_VOIDPASS )
 {
-	SOCKADDR *lpsaAddr=(SOCKADDR*)GetFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet );//(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
+	SOCKADDR *lpsaAddr;
+	EnterCriticalSec( &csAddressPool );
+	lpsaAddr = (SOCKADDR*)GetFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet );//(SOCKADDR*)AllocateEx( MAGIC_SOCKADDR_LENGTH + 2 * sizeof( uintptr_t ) DBG_RELAY );
+	LeaveCriticalSec( &csAddressPool );
 #ifdef DEBUG_ADDRESSES	
 	lprintf( "New Length: %d", MAGIC_SOCKADDR_LENGTH);
 #endif	
@@ -2104,7 +2120,9 @@ void ReleaseAddress(SOCKADDR *lpsaAddr)
 	if( lpsaAddr )
 	{
 		ReleaseEx( ((POINTER*)( ( (uintptr_t)lpsaAddr ) - sizeof(uintptr_t) ))[0] DBG_SRC );
+		EnterCriticalSec( &csAddressPool );
 		DeleteFromSet( NETWORK_ADDRESS_BUFFER, &networkAddressBufferSet, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
+		LeaveCriticalSec( &csAddressPool );
 		//Deallocate(POINTER, (POINTER)( ( (uintptr_t)lpsaAddr ) - 2 * sizeof(uintptr_t) ));
 	}
 }

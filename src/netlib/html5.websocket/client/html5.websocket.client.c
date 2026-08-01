@@ -404,6 +404,20 @@ void WebSocketPipeClose( struct html5_web_socket* wss, int code, const char* rea
 
 static void WebSocketEnableAutoPing_( WebSocketInputState input , uint32_t delay )
 {
+		// This never actually pings.  WebSocketTimer walks wsc_local.clients, and
+		// nothing anywhere adds to that list, so its body never runs for any socket -
+		// ping_delay, last_reception and sent_ping are read only from inside that
+		// unreachable loop.  Left in place rather than silently removed so existing
+		// callers keep linking, but say so, because a caller here believes it has a
+		// keep-alive and does not.
+		// A control-frame ping is the wrong layer for this regardless: a browser's
+		// WebSocket API gives script no access to ping/pong frames, so the server
+		// learning that a peer is gone never reaches a browser client.  Put the
+		// heartbeat in the protocol layer instead - see the server/client protocol
+		// modules under apps/http-ws, which exchange it as an ordinary message.
+		lprintf( "WebSocketEnableAutoPing: not implemented - no pings will be sent."
+		         "  Use a protocol-level heartbeat (apps/http-ws protocol modules);"
+		         " browsers cannot observe websocket ping/pong control frames." );
 		if( !wsc_local.timer )
 			wsc_local.timer = AddTimer( 2000, WebSocketTimer, 0 );
 		input->ping_delay = delay;
