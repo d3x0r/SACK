@@ -336,9 +336,11 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	PCLIENT next;
 	PCLIENT *me;
 	SOCKADDR *sa_rel;
-	CRITICALSECTION csr;
-	CRITICALSECTION csw;
 	uint32_t serial;
+	// Everything from here to the end of the struct is scrubbed; the two
+	// CRITICALSECTIONs deliberately sit in front of it and are never touched.
+	static const size_t clear_offset = offsetof( struct NetworkClient, csLockWrite )
+	                                 + sizeof( ( (PCLIENT)0 )->csLockWrite );
 	// keep the closing flag until it's really been closed. (getfreeclient will try to nab it)
 	int /*enum NetworkConnectionFlags*/  dwFlags = pc->dwFlags & (CF_STATEFLAGS | CF_CLOSING | CF_CONNECT_WAITING | CF_CONNECT_CLOSED);
 #ifdef VERBOSE_DEBUG
@@ -348,8 +350,6 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	next = pc->next;
 	// these states are saved to be restored.
 	pbtemp = pc->lpUserData;
-	csr = pc->csLockRead;
-	csw = pc->csLockWrite;
 	serial = pc->serial; // generation continues across reuse; only close bumps it
 	lockNetWorkList();
 	DeleteListEx( &pc->psvInUse DBG_SRC );
@@ -369,10 +369,12 @@ static void ClearClient( PCLIENT pc DBG_PASS )
 	}
 #endif
 
-	MemSet( pc, 0, sizeof( CLIENT ) ); // clear all information...
+	// clear all information... but start after the two CRITICALSECTIONs at the head
+	// of the struct.  They must never be written here: other threads spin on them in
+	// EnterCriticalSecNoWaitEx with no global lock held, so zeroing and restoring
+	// them resurrects stale owners/counts (clients left permanently read-locked).
+	MemSet( (uint8_t*)pc + clear_offset, 0, sizeof( CLIENT ) - clear_offset );
 	pc->Socket = INVALID_SOCKET;
-	pc->csLockRead = csr;
-	pc->csLockWrite = csw;
 	pc->serial = serial;
 	pc->lpUserData = pbtemp;
 	if( pc->lpUserData )

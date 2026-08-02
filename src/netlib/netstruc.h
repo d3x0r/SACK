@@ -81,6 +81,13 @@ SACK_NETWORK_NAMESPACE
 // not sure if this is used anywhere....
 #define HOSTNAME_LEN 50      // maximum length of a host's text name...
 
+// epoll/kqueue carry this as their data.ptr to get back to the client; it lives
+// in the PCLIENT so it costs no allocation and stays valid for the client's life.
+struct event_data {
+	PCLIENT pc;
+	int broadcast;
+};
+
 typedef struct PendingWrite {
 	PCLIENT pc;
 	POINTER buffer;
@@ -285,6 +292,20 @@ struct ssl_session {
 
 struct NetworkClient
 {
+	// These MUST stay the first members.  ClearClient() scrubs a recycled client
+	// with a single MemSet that starts *after* them, so the lock words are never
+	// written by anything except Enter/LeaveCriticalSec.  Previously ClearClient
+	// snapshotted these, memset the whole struct, and restored the snapshot - but
+	// NetworkLockEx takes the client lock with no global lock held (see
+	// LOCK_GLOBAL_WHEN_LOCKING_CLIENT, commented out in network.c), so other event
+	// threads are concurrently updating dwUpdating/dwThreadWaiting/dwLocks the
+	// whole time.  The memset let a spinner acquire a zeroed section, and the
+	// restore then resurrected the previous owner and count on top of it - leaving
+	// clients permanently read-locked by a thread that had long since moved on.
+	// Nothing depends on member order here; the struct is module-local and opaque.
+	CRITICALSECTION csLockRead;    // per client lock.
+	CRITICALSECTION csLockWrite;   // per client lock.
+
 	SOCKADDR *saClient;  //Dest Address
 	SOCKADDR *saSource;  //Local Address of this port ...
 	SOCKADDR *saLastClient; // use this for UDP recvfrom
@@ -345,8 +366,7 @@ struct NetworkClient
 #if defined( USE_WSA_EVENTS )
 	WSAEVENT event;
 #endif
-	CRITICALSECTION csLockRead;    // per client lock.
-	CRITICALSECTION csLockWrite;   // per client lock.
+	// csLockRead/csLockWrite moved to the head of the struct - see the note there.
 	PTHREAD pWaiting; // Thread which is waiting for a result...
 	PendingBuffer RecvPending, FirstWritePending; // current incoming buffer
 	PendingBuffer prefixData; // the next recv should use this first and then recv()...
@@ -384,6 +404,14 @@ struct NetworkClient
 	// this is set to what the thread that's waiting for this event is.
 	struct peer_thread_info * volatile this_thread;
 	//int tcp_delay_count;
+#ifdef __LINUX__
+	// epoll_ctl(ADD) needs a stable data.ptr carrying (pc,broadcast).  It used to
+	// be allocated fresh on every add and never released - EPOLL_CTL_DEL cannot
+	// hand the pointer back - so every accepted connection leaked one.  Carried
+	// inline with the client instead: no allocation at all, valid for the
+	// client's life.  [0] is the direct socket, [1] the broadcast socket.
+	struct event_data epoll_event_data[2];
+#endif
 #ifndef NO_SSL
 	struct ssl_session *ssl_session;
 #endif
@@ -523,6 +551,8 @@ PCLIENT AddActive( PCLIENT pClient );
 
 void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
+#ifdef __LINUX__
+#endif
 LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS );
 
 //------------- 

@@ -1404,15 +1404,15 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		}
 		if( !(lpClient->dwFlags & CF_ACTIVE ) )
 		{
-#ifdef REQUIRE_READ_LOCK
+			// The relock above is NOT under REQUIRE_READ_LOCK, so its release must not
+			// be either - REQUIRE_READ_LOCK is defined nowhere in the tree, so every
+			// blocking read used to leak one csLockRead recursion, and the client then
+			// went back to the free pool still held.
 			NetworkUnlockEx( lpClient, 1 DBG_SRC );
-#endif
 			return -1;
 		}
  		lpClient->dwFlags &= ~CF_READWAITING;
-#ifdef REQUIRE_READ_LOCK
 		NetworkUnlockEx( lpClient, 1 DBG_SRC);
-#endif
 		if( timeout )
 			return 0;
 		else

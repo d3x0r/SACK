@@ -20,7 +20,7 @@ SaneWinMain( argc, argv )
 		TEXTCHAR buf[256];
 		size_t buflen = 256;
 		if( argv[argn+1][0] ) {
-			SACK_GetPrivateProfileStringExxx(NULL, argv[argn + 2], argv[argn + 3], "", &buf, buflen, argv[argn + 1], FALSE DBG_SRC);
+			SACK_GetPrivateProfileStringExxx(NULL, argv[argn + 2], argv[argn + 3], "", buf, buflen, argv[argn + 1], FALSE DBG_SRC);
 			printf("%.*s", buf, buflen);
 		} else {
 			TEXTCHAR *buf;

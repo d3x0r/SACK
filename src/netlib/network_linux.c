@@ -138,10 +138,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 	LeaveCriticalSec( &globalNetworkData.csPeerChain );
 }
 
-struct event_data {
-	PCLIENT pc;
-	int broadcast;
-};
+// struct event_data now lives in netstruc.h, carried inline by the PCLIENT.
 
 void AddThreadEvent( PCLIENT pc, int broadcast )
 {
@@ -243,7 +240,8 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 	{
 		int r;
 		struct epoll_event ev;
-		ev.data.ptr = New( struct event_data );
+		// the client carries its own event_data; nothing to allocate or release.
+		ev.data.ptr = &pc->epoll_event_data[broadcast?1:0];
 		((struct event_data*)ev.data.ptr)->pc = pc;
 		((struct event_data*)ev.data.ptr)->broadcast = broadcast;
 		if( pc->dwFlags & CF_LISTEN )
