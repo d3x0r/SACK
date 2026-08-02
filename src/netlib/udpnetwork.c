@@ -91,7 +91,7 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 #ifdef LOG_SOCKET_CREATION
 	lprintf( "Created UDP %p(%d)", pc, pc->Socket );
 #endif
-	pc->dwFlags |= CF_UDP;
+	SetClientFlags( pc, CF_UDP );
 
 	if( pAddr? pc->saSource = DuplicateAddress( pAddr ),1:0 )
 	{
@@ -131,7 +131,7 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 	pc->close.CloseCallback = Close;
 	pc->psvClose = psvClose;
 	if( bCPP )
-		pc->dwFlags |= (CF_CPPREAD|CF_CPPCLOSE );
+		SetClientFlags( pc, (CF_CPPREAD|CF_CPPCLOSE ) );
 #ifdef __LINUX__
 	AddThreadEvent( pc, 0 );
 #endif
@@ -168,7 +168,7 @@ PCLIENT ServeUDPAddrEx( SOCKADDR *pAddr
 {
 	PCLIENT result = CPPServeUDPAddrEx( pAddr, pReadComplete, 0, Close, 0, FALSE DBG_RELAY );
 	if( result )
-		result->dwFlags &= ~(CF_CPPREAD|CF_CPPCLOSE);
+		ClearClientFlags( result, (CF_CPPREAD|CF_CPPCLOSE) );
 	return result;
 }
 
@@ -316,7 +316,7 @@ PCLIENT CPPConnectUDPAddrEx( SOCKADDR *sa
 	pc->psvRead = psvRead;
 	pc->close.CloseCallback = Close;
 	pc->psvClose = psvClose;
-	pc->dwFlags |= (CF_CPPREAD|CF_CPPCLOSE );
+	SetClientFlags( pc, (CF_CPPREAD|CF_CPPCLOSE ) );
 
 	if( pReadComplete )
 		pReadComplete( pc, NULL, 0, NULL ); // allow server to start a read method...
@@ -342,7 +342,7 @@ PCLIENT ConnectUDPAddrEx( SOCKADDR *sa
 {
 	PCLIENT result = CPPConnectUDPAddrEx( sa, saTo, pReadComplete, 0, Close, 0 DBG_RELAY );
 	if( result )
-		result->dwFlags &= ~( CF_CPPREAD|CF_CPPCLOSE );
+		ClearClientFlags( result, ( CF_CPPREAD|CF_CPPCLOSE ) );
 	return result;
 }
 
@@ -378,13 +378,13 @@ static PCLIENT CPPConnectUDPExx( CTEXTSTR pFromAddr, uint16_t wFromPort
 	pc->psvClose = psvClose;
 	if( bCPP )
 	{
-		pc->dwFlags |= (CF_CPPREAD|CF_CPPCLOSE );
+		SetClientFlags( pc, (CF_CPPREAD|CF_CPPCLOSE ) );
 		if( pReadComplete )
 			pc->read.CPPReadCompleteEx( psvRead, NULL, 0, NULL ); // allow server to start a read method...
 	}
 	else
 	{
-		pc->dwFlags &= ~( CF_CPPREAD|CF_CPPCLOSE );
+		ClearClientFlags( pc, ( CF_CPPREAD|CF_CPPCLOSE ) );
 		if( pReadComplete )
 			pReadComplete( pc, NULL, 0, NULL ); // allow server to start a read method...
 	}
@@ -479,7 +479,7 @@ NETWORK_PROC( int, doUDPRead )( PCLIENT pc, POINTER lpBuffer, int nBytes )
 	pc->RecvPending.dwUsed = 0;
 	pc->RecvPending.buffer.p = lpBuffer;
 	{
-		pc->dwFlags |= CF_READPENDING;
+		SetClientFlags( pc, CF_READPENDING );
 		// we are now able to read, so schedule the socket.
 	}
 #if 0
@@ -538,7 +538,7 @@ int FinishUDPRead( PCLIENT pc, int broadcastEvent )
 		{
 		case WSAEWOULDBLOCK: // NO data returned....
 			//lprintf( "got EWOULDBLOCK(EAGAIN)..." );
-			pc->dwFlags |= CF_READPENDING;
+			SetClientFlags( pc, CF_READPENDING );
 			return TRUE;
 #ifdef _WIN32
 		// this happens on WIN2K/XP - ICMP Port Unreachable (nothing listening there)
@@ -567,7 +567,7 @@ int FinishUDPRead( PCLIENT pc, int broadcastEvent )
 		LogBinary( (uint8_t*)pc->RecvPending.buffer.p +
 					 pc->RecvPending.dwUsed, nReturn );
 	}
-	pc->dwFlags &= ~CF_READPENDING;
+	ClearClientFlags( pc, CF_READPENDING );
 	pc->RecvPending.dwAvail = 0;  // allow further reads...
 	pc->RecvPending.dwUsed += nReturn;
 

@@ -334,6 +334,9 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 				if( events[n].events & EPOLLIN )
 				{
 					int locked;
+#  ifdef DEBUG_CLIENT_LOCK_TRACE
+					int spins = 0;
+#  endif
 					locked = 1;
 					// ------- Large complicated lock ---------------
 					while( !NetworkLock( event_data->pc, 1 ) ) {
@@ -348,6 +351,17 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							locked = 0;
 							break;
 						}
+#  ifdef DEBUG_CLIENT_LOCK_TRACE
+						// DEBUG PROBE: this spin IS the hang.  Give up rather than
+						// yielding forever (which pegs every core and hides the state)
+						// and dump the client's whole lock history - the unbalanced
+						// acquire for this lifetime is somewhere in it.
+						if( ++spins > 3 ) {
+							sack_dbg_dumpClientLockTrace( event_data->pc, "spin-giveup" );
+							locked = 0;
+							break;
+						}
+#  endif
 						Relinquish();
 					}
 					// ------- End Large complicated lock ---------------
@@ -387,7 +401,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						LeaveCriticalSec( &globalNetworkData.csNetwork );
 
 						// section will be blank after termination...(correction, we keep the section state now)
-						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+						ClearClientFlags( pClient, CF_CLOSING ); // it's no longer closing.  (was set during the course of closure)
 					} else if( !(event_data->pc->dwFlags & (CF_ACTIVE) ) ) {
 						lprintf( "Event on socket no longer active..." );
 						// change to inactive status by the time we got here...
@@ -425,7 +439,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							// EPOLLET delivered the peer hangup (EPOLLRDHUP/EPOLLHUP) but no read
 							// was queued to consume it; the edge is never re-signaled, so the FIN
 							// is lost and the socket strands in CLOSE_WAIT.  Drive the close here.
-							event_data->pc->dwFlags |= CF_TOCLOSE;
+							SetClientFlags( event_data->pc, CF_TOCLOSE );
 							read = ( !event_data->pc->lpFirstPending ) ? (size_t)-1 : 0;
 						}
 						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !event_data->pc->flags.bInUse )
@@ -535,7 +549,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							}
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
-							event_data->pc->dwFlags |= CF_READREADY;
+							SetClientFlags( event_data->pc, CF_READREADY );
 					}
 					else
 					{
@@ -543,7 +557,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "TCP Set read ready..." );
 #endif
-						event_data->pc->dwFlags |= CF_READREADY;
+						SetClientFlags( event_data->pc, CF_READREADY );
 					}
 					if( locked )
 						NetworkUnlock( event_data->pc, 1 );
@@ -585,8 +599,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							//if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connected!" );
 #endif
-							event_data->pc->dwFlags |= CF_CONNECTED;
-							event_data->pc->dwFlags &= ~CF_CONNECTING;
+							SetClientFlags( event_data->pc, CF_CONNECTED );
+							ClearClientFlags( event_data->pc, CF_CONNECTING );
 
 							{
 #ifdef __LINUX__
@@ -629,10 +643,10 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									WakeThread( event_data->pc->pWaiting );
 								}
 								if( error ) {
-									event_data->pc->dwFlags |= CF_CONNECTERROR;
+									SetClientFlags( event_data->pc, CF_CONNECTERROR );
 								}
 								// have to allow SSL to clear this... so set it before calling the connect callback.
-								event_data->pc->dwFlags |= CF_CONNECT_ISSUED;
+								SetClientFlags( event_data->pc, CF_CONNECT_ISSUED );
 								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
 									if( event_data->pc->connect.CPPThisConnected )
 										event_data->pc->connect.CPPThisConnected( event_data->pc->psvConnect, error );
@@ -668,12 +682,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										NetworkUnlock( event_data->pc, 1 );
 									} else {
 										//lprintf( "No data pending on a connecting socket; setting write ready" );
-										pc->dwFlags |= CF_WRITEREADY;
+										SetClientFlags( pc, CF_WRITEREADY );
 									}
 									if( !pc->lpFirstPending ) {
 										if( ( pc->dwFlags & CF_TOCLOSE ) && !pc->flags.bInUse )
 										{
-											pc->dwFlags &= ~CF_TOCLOSE;
+											ClearClientFlags( pc, CF_TOCLOSE );
 											lprintf( "Pending write completed - and wants to close. %s", NetworkExpandFlags( pc ) );
 											EnterCriticalSec( &globalNetworkData.csNetwork );
 											InternalRemoveClientEx( pc, FALSE, TRUE );
@@ -705,7 +719,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									// this is the normal large packet auto write....
 									TCPWrite( pc );
 								}else {
-									pc->dwFlags |= CF_WRITEREADY;
+									SetClientFlags( pc, CF_WRITEREADY );
 								}
 								// the response that deferred a close (peer already sent
 								// FIN, so we owe the close) may have just drained here;
@@ -719,7 +733,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 										&& ( pc->dwFlags & CF_TOCLOSE )
 										&& !pc->flags.bInUse )
 								{
-									pc->dwFlags &= ~CF_TOCLOSE;
+									ClearClientFlags( pc, CF_TOCLOSE );
 									//lprintf( "Pending write completed - and wants to close. %s", NetworkExpandFlags( pc ) );
 									EnterCriticalSec( &globalNetworkData.csNetwork );
 									InternalRemoveClientEx( pc, FALSE, TRUE );

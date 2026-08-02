@@ -13,6 +13,16 @@
 #include <wincrypt.h>
 #endif
 
+// DEBUG PROBE (temporary, not for shipping): per-client ring of every csLockRead /
+// csLockWrite acquire and release, with the caller's file:line and the resulting
+// lock count.  Stores only, no I/O, so the race is left intact; the ring lives past
+// the lock words in the struct so ClearClient scrubs it and each ring covers exactly
+// ONE client lifetime - which is the window the leaked +1 was narrowed to.
+// Left in place but OFF: the spin-giveup that dumps this ring abandons the event,
+// which changes behaviour and distorts hang-rate comparisons.  Enable only when
+// reading lock histories, never when measuring a fix.
+//#define DEBUG_CLIENT_LOCK_TRACE
+
 #ifndef OPENSSL_API_COMPAT
 #  define OPENSSL_API_COMPAT 10101
 #endif
@@ -111,6 +121,12 @@ typedef struct PendingBuffer
 	} buffer;
    struct PendingBuffer *lpNext; // Next Pending Message to be handled
 }PendingBuffer;
+
+// dwFlags is written by the JS thread and by every network thread, so a plain
+// `dwFlags |= X` / `&= ~X` is a read-modify-write that can silently drop another
+// thread's concurrent bit change.  Always go through these.
+#define SetClientFlags(pc,bits)   LockedOr( (volatile uint32_t*)&(pc)->dwFlags, (uint32_t)(bits) )
+#define ClearClientFlags(pc,bits) LockedAnd( (volatile uint32_t*)&(pc)->dwFlags, (uint32_t)~(uint32_t)(bits) )
 
 enum NetworkConnectionFlags {
 	CF_UDP               = 0x00000001
@@ -290,8 +306,28 @@ struct ssl_session {
 };
 #endif
 
+#ifdef DEBUG_CLIENT_LOCK_TRACE
+#define CLIENT_LOCK_TRACE_DEPTH 32
+struct client_lock_trace {
+	CTEXTSTR  file;
+	uint32_t  line;
+	THREAD_ID thread;
+	uint32_t  locksAfter;  // dwLocks for that channel immediately after the op
+	uint8_t   channel;     // 0 = csLockWrite, 1 = csLockRead
+	uint8_t   op;          // 1 = acquired, 0 = released
+};
+#endif
+
 struct NetworkClient
 {
+#ifdef DEBUG_CLIENT_LOCK_TRACE
+	// Deliberately placed BEFORE the lock words, i.e. inside the region ClearClient
+	// preserves, so the ring survives recycling and spans lifetimes.  The leaked +1
+	// is carried IN to GetFreeNetworkClient (seen as ch1 ->2 on the very first op of
+	// a fresh lifetime), so the unbalanced acquire is in the PREVIOUS life.
+	struct client_lock_trace lockTrace[CLIENT_LOCK_TRACE_DEPTH];
+	volatile uint32_t lockTraceIdx;
+#endif
 	// These MUST stay the first members.  ClearClient() scrubs a recycled client
 	// with a single MemSet that starts *after* them, so the lock words are never
 	// written by anything except Enter/LeaveCriticalSec.  Previously ClearClient
@@ -375,21 +411,37 @@ struct NetworkClient
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcServer; // server this listen socket came from - because connect callback has to be delayed until after handshake of TLS.
 	PCLIENT pcOther; // listeners opened(was deprecated since most connections to v4 can be seen on v6) with port only have two connections, one IPV4 one IPV6
+	// These were `BIT_FIELD x : 1` - and BIT_FIELD is `unsigned int`, so all eight
+	// shared ONE 32-bit storage unit and setting any single bit was a
+	// read-modify-write of the whole word.  These are written from different
+	// threads, so two threads touching different bits could drop one of the writes
+	// outright.  bWriteOnUnlock is the sharp case: it exists precisely so a writer
+	// that could NOT get the lock can ask the lock holder to do the write, so it is
+	// set by one thread while NetworkUnlockEx clears it on another - and a lost set
+	// means a write that simply never happens.
+	// One byte each: independently addressable, so a store to one cannot disturb its
+	// neighbours.  Costs 4 bytes per client.  (Byte granularity is enough here; for
+	// anything needing true atomicity use the Locked* primitives.)
 	volatile struct network_client_flags {
-		BIT_FIELD bAddedToEvents : 1;
-		BIT_FIELD bRemoveFromEvents : 1;
-		BIT_FIELD bSecure : 1;
-		BIT_FIELD bAllowDowngrade : 1;
-		BIT_FIELD bWaiting : 1; // waiting is a accept() flag to prevent accepting sockets before really setup.
-		BIT_FIELD bWriteOnUnlock : 1; // write event failed to get lock, so if the locked holder would please write...
-		BIT_FIELD bInUse : 1; // has work outstanding; wait for close until release
-		BIT_FIELD bAggregateOutput : 1;
+		uint8_t bAddedToEvents;
+		uint8_t bRemoveFromEvents;
+		uint8_t bSecure;
+		uint8_t bAllowDowngrade;
+		uint8_t bWaiting; // waiting is a accept() flag to prevent accepting sockets before really setup.
+		uint8_t bWriteOnUnlock; // write event failed to get lock, so if the locked holder would please write...
+		uint8_t bInUse; // has work outstanding; wait for close until release
+		uint8_t bAggregateOutput;
 	} flags;
 	PTHREAD wakeOnUnlock;
 	// count of writes for this client held in the deferred write queue/stall list
 	// (tcpnetwork.c); while nonzero, new writes must also be deferred so writes
 	// stay in the order they were issued.  Cleared with the rest of the client
 	// state when the client is recycled.
+	// Set when a close wanted to recycle this client but a channel was still
+	// locked; the final NetworkUnlockEx completes the recycle.  A plain word, not a
+	// bit in `flags`, so setting it cannot lose a concurrent read-modify-write of
+	// the neighbouring bits.  Cleared by ClearClient as part of the recycle.
+	volatile uint32_t recyclePending;
 	volatile uint32_t nWritesPended;
 	// connection generation; bumps when the client closes, and survives the
 	// client being cleared for reuse.  Application code that holds a PCLIENT
@@ -551,6 +603,10 @@ PCLIENT AddActive( PCLIENT pClient );
 
 void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
+#ifdef DEBUG_CLIENT_LOCK_TRACE
+void sack_dbg_traceClientLock( PCLIENT pc, int channel, int op, CTEXTSTR file, uint32_t line );
+void sack_dbg_dumpClientLockTrace( PCLIENT pc, const char *why );
+#endif
 #ifdef __LINUX__
 #endif
 LOGICAL TryNetworkGlobalLock( DBG_VOIDPASS );

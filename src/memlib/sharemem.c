@@ -483,6 +483,26 @@ uint32_t LockedDecrement( volatile uint32_t* p ) {
 #endif
 }
 
+// Both of these return the value PRIOR to the operation, which is what
+// InterlockedOr/InterlockedAnd and __atomic_fetch_or/and naturally give, so the
+// two platforms agree without extra work.
+uint32_t LockedOr( volatile uint32_t* p, uint32_t bits ) {
+#ifdef _WIN32
+	return (uint32_t)InterlockedOr( (volatile LONG *)p, (LONG)bits );
+#endif
+#ifdef __LINUX__
+	return __atomic_fetch_or( p, bits, __ATOMIC_RELAXED );
+#endif
+}
+uint32_t LockedAnd( volatile uint32_t* p, uint32_t mask ) {
+#ifdef _WIN32
+	return (uint32_t)InterlockedAnd( (volatile LONG *)p, (LONG)mask );
+#endif
+#ifdef __LINUX__
+	return __atomic_fetch_and( p, mask, __ATOMIC_RELAXED );
+#endif
+}
+
 uint64_t  LockedExchange64( volatile uint64_t* p, uint64_t val )
 {
 	// Windows only available - for linux platforms please consult

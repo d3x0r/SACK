@@ -741,6 +741,24 @@ MEM_PROC  uint32_t MEM_API  LockedIncrement ( volatile uint32_t* p );
    Parameters
    p :  pointer to a 32 bit value to decrement.         */
 MEM_PROC  uint32_t MEM_API  LockedDecrement ( volatile uint32_t* p );
+/* Multi-processor safe bitwise OR into a variable.  Use this instead of
+   `flags |= bits` for any flag word written from more than one thread - a plain
+   |= is a read-modify-write, so two threads setting different bits can lose one
+   of them entirely.
+   Parameters
+   p :     pointer to a 32 bit value to OR into.
+   bits :  bits to set.
+   Returns
+   The value *before* the OR (matching InterlockedOr / __atomic_fetch_or).  */
+MEM_PROC  uint32_t MEM_API  LockedOr ( volatile uint32_t* p, uint32_t bits );
+/* Multi-processor safe bitwise AND into a variable.  Use this instead of
+   `flags &= ~bits`; see LockedOr for why.  Pass the mask already inverted.
+   Parameters
+   p :     pointer to a 32 bit value to AND into.
+   mask :  mask to AND with (i.e. ~bits to clear those bits).
+   Returns
+   The value *before* the AND.                                              */
+MEM_PROC  uint32_t MEM_API  LockedAnd ( volatile uint32_t* p, uint32_t mask );
 
 #ifdef __cplusplus
 // like also __if_assembly__

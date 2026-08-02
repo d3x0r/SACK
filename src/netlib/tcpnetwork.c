@@ -197,7 +197,7 @@ void AcceptClient(PCLIENT pListen)
 	pNewClient->psvClose                = pListen->psvClose;
 	pNewClient->write.WriteComplete     = pListen->write.WriteComplete;
 	pNewClient->psvWrite                = pListen->psvWrite;
-	pNewClient->dwFlags                |= CF_CONNECTED | ( pListen->dwFlags & CF_CALLBACKTYPES );
+	SetClientFlags( pNewClient, CF_CONNECTED | ( pListen->dwFlags & CF_CALLBACKTYPES ) );
 	if( IsValid(pNewClient->Socket) )
 	{ // and we get one from the accept...
 #ifdef _WIN32
@@ -214,7 +214,7 @@ void AcceptClient(PCLIENT pListen)
 			//lprintf( "Accepted and notifying..." );
 			if( pListen->connect.ClientConnected )
 			{
-				pNewClient->dwFlags |= CF_CONNECT_ISSUED;
+				SetClientFlags( pNewClient, CF_CONNECT_ISSUED );
 				// SSL layer(if hooked) will clear CONNECT_ISSUED, and track that state itself.
 				if( pListen->dwFlags & CF_CPPCONNECT )
 					pListen->connect.CPPClientConnected( pListen->psvConnect, pNewClient );
@@ -226,7 +226,19 @@ void AcceptClient(PCLIENT pListen)
 			//lprintf(" Initial notifications...");
 			if( pNewClient->read.ReadComplete )
 			{
-				pNewClient->dwFlags |= CF_READREADY; // may be... at least we can fail sooner...
+				// CF_READREADY is deliberately NOT preset here.  With it set, the
+				// initial callback's doReadExx2 takes its catch-up FinishPendingRead
+				// branch and performs the recv - and the whole dispatch (parse ->
+				// onrequest -> res.end) then runs inline on the LISTENER's thread,
+				// out of the thread that will own this socket.  For a
+				// Connection: close request that also sets CF_TOCLOSE inside that
+				// call, so FinishPendingRead returns -1 and the caller takes the
+				// "reset connection" branch, which recycles the client while the
+				// accept path still holds its locks.
+				// Without it, this callback only arms the recv buffer; the read
+				// happens on the owning peer thread after scheduleSocket registers
+				// the socket.  Nothing is lost if data already arrived - epoll_ctl
+				// (ADD) reports an already-ready socket, so the edge still fires.
 				if( pNewClient->dwFlags & CF_CPPREAD )
 					pNewClient->read.CPPReadComplete( pNewClient->psvRead, NULL, 0 );  // process read to get data already pending...
 				else
@@ -425,12 +437,12 @@ PCLIENT CPPOpenTCPListenerAddr_v3d( SOCKADDR *pAddr
 		return NULL;
 	}
 	// openSocket also schedules it for event handling... so setup what events.
-	pListen->dwFlags &= ~CF_UDP; // make sure this flag is clear!
-	pListen->dwFlags |= CF_LISTEN;
+	ClearClientFlags( pListen, CF_UDP ); // make sure this flag is clear!
+	SetClientFlags( pListen, CF_LISTEN );
 	pListen->flags.bWaiting = waitForReady;
 	pListen->connect.CPPClientConnected = NotifyCallback;
 	pListen->psvConnect = psvConnect;
-	pListen->dwFlags |= CF_CPPCONNECT;
+	SetClientFlags( pListen, CF_CPPCONNECT );
 
 	// this does the bind part of the socket also... (if any)
 	openSocket( pListen, pAddr, pAddr, autoSocket /*second parameter just selects link protocol, and stream */ );
@@ -490,8 +502,8 @@ PCLIENT OpenTCPListenerAddr_v2d( SOCKADDR *pAddr
 {
 	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, waitForReady DBG_RELAY );
 	if( result ) {
-		result->dwFlags &= ~CF_CPPCONNECT;
-		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+		ClearClientFlags( result, CF_CPPCONNECT );
+		if( result->pcOther ) ClearClientFlags( result->pcOther, CF_CPPCONNECT );
 	}
 	return result;
 }
@@ -503,8 +515,8 @@ PCLIENT OpenTCPListenerAddrExx( SOCKADDR *pAddr
 {
 	PCLIENT result = CPPOpenTCPListenerAddr_v2d( pAddr, (cppNotifyCallback)NotifyCallback, 0, FALSE DBG_RELAY );
 	if( result ) {
-		result->dwFlags &= ~CF_CPPCONNECT;
-		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+		ClearClientFlags( result, CF_CPPCONNECT );
+		if( result->pcOther ) ClearClientFlags( result->pcOther, CF_CPPCONNECT );
 	}
 	return result;
 }
@@ -529,8 +541,8 @@ PCLIENT OpenTCPListenerExx(uint16_t wPort, cNotifyCallback NotifyCallback DBG_PA
 {
 	PCLIENT result = CPPOpenTCPListenerExx( wPort, (cppNotifyCallback)NotifyCallback, 0 DBG_RELAY );
 	if( result ) {
-		result->dwFlags &= ~CF_CPPCONNECT;
-		if( result->pcOther ) result->pcOther->dwFlags &= ~CF_CPPCONNECT;
+		ClearClientFlags( result, CF_CPPCONNECT );
+		if( result->pcOther ) ClearClientFlags( result->pcOther, CF_CPPCONNECT );
 	}
 	return result;
 }
@@ -549,7 +561,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 		Relinquish();
 	}
 
-	pc->dwFlags |= CF_CONNECTING;
+	SetClientFlags( pc, CF_CONNECTING );
 
 	while( 1 ) {
 		if( (err = connect( pc->Socket, pc->saClient
@@ -608,7 +620,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 				// is a union, either is valid to test
 				if( pc->connect.CPPThisConnected ) {
 					//lprintf( "connect callback dispatch... %p", pc->saClient );
-					pc->dwFlags |= CF_CONNECT_ISSUED;
+					SetClientFlags( pc, CF_CONNECT_ISSUED );
 					if( pc->dwFlags & CF_CPPCONNECT )
 						pc->connect.CPPThisConnected( pc->psvConnect, dwError );
 					else
@@ -632,8 +644,8 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 		{
 			// if FD_CONNECT isn't selected, then this section is called
 			// otherwise this is mostly dead code in this block.
-			pc->dwFlags &= ~CF_CONNECTING;
-			pc->dwFlags |= CF_CONNECTED;
+			ClearClientFlags( pc, CF_CONNECTING );
+			SetClientFlags( pc, CF_CONNECTED );
 
 			if( !pc->saSource ) {
 #ifdef __LINUX__
@@ -656,7 +668,7 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 
 			if( pc->connect.CPPThisConnected ) {
 				//lprintf( "connect callback dispatch... %p", pc->saClient );
-				pc->dwFlags |= CF_CONNECT_ISSUED;
+				SetClientFlags( pc, CF_CONNECT_ISSUED );
 				if( pc->dwFlags & CF_CPPCONNECT )
 					pc->connect.CPPThisConnected( pc->psvConnect, 0 );
 				else
@@ -760,7 +772,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			pResult->write.CPPWriteComplete    = WriteComplete;
 			pResult->psvWrite                  = psvWrite;
 			if( bCPP )
-				pResult->dwFlags |= ( CF_CALLBACKTYPES );
+				SetClientFlags( pResult, ( CF_CALLBACKTYPES ) );
 
 			AddActive( pResult );
 			NetworkUnlockEx(pResult, 1 DBG_SRC);
@@ -783,7 +795,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					int bProcessing = 0;
 
 					// should trigger a rebuild (if it's the root thread)
-					pResult->dwFlags |= CF_CONNECT_WAITING;
+					SetClientFlags( pResult, CF_CONNECT_WAITING );
 					// caller was expecting connect to block....
 					while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
 							( ( timeGetTime64() - Start ) < globalNetworkData.dwConnectTimeout ) )
@@ -839,7 +851,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 						EnterCriticalSec( &globalNetworkData.csNetwork );
 						InternalRemoveClientEx( pResult, TRUE, FALSE );
 						LeaveCriticalSec( &globalNetworkData.csNetwork );
-						pResult->dwFlags &= ~CF_CONNECT_WAITING;
+						ClearClientFlags( pResult, CF_CONNECT_WAITING );
 						return pResult = NULL;
 					}
 					{
@@ -858,7 +870,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 						}
 					}
 					//lprintf( "Connect did complete... returning to application");
-					pResult->dwFlags &= ~CF_CONNECT_WAITING;
+					ClearClientFlags( pResult, CF_CONNECT_WAITING );
 				}
 #ifdef VERBOSE_DEBUG
 				else
@@ -1077,7 +1089,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 			//lpClient->dwFlags |= CF_READREADY; // read ready is set if FinishPendingRead returns 0; and it's from the core read...
 			if( lpClient->dwFlags & CF_WANTCLOSE ) {
 				// the application didn't queue a buffer to read into, have to force accepting a close.
-				lpClient->dwFlags |= CF_TOCLOSE;
+				SetClientFlags( lpClient, CF_TOCLOSE );
 				return -1;   // return pending finished...
 			}
 #ifdef DEBUG_SOCK_IO
@@ -1128,7 +1140,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				case WSAEWOULDBLOCK: // no data avail yet...
 					//lprintf( "Pending Receive would block..." );
 					goto dispatch_ReadEvent;
-					lpClient->dwFlags &= ~CF_READREADY;
+					ClearClientFlags( lpClient, CF_READREADY );
 					
 					return (int)lpClient->RecvPending.dwUsed;
 #ifdef __LINUX__
@@ -1154,7 +1166,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 							  lpClient->RecvPending.dwUsed );
 						lprintf("LOG:ERROR FinishPending discovered unhandled error (closing connection) %" _32f "", dwError );
 					}
-					lpClient->dwFlags |= CF_TOCLOSE;
+					SetClientFlags( lpClient, CF_TOCLOSE );
 					return -1;   // return pending finished...
 				}
 			}
@@ -1164,7 +1176,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				lprintf( "Received (0) %d", nRecv );
 #endif
 				//_lprintf( DBG_RELAY )( "Closing closed socket... Hope there's also an event... ");
-				lpClient->dwFlags |= CF_TOCLOSE;
+				SetClientFlags( lpClient, CF_TOCLOSE );
 				break; // while dwAvail... try read...
 				//return -1;
 			}
@@ -1184,7 +1196,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					         + lpClient->RecvPending.dwUsed, nRecv );
 				}
 				if( lpClient->RecvPending.s.bStream )
-					lpClient->dwFlags &= ~CF_READREADY;
+					ClearClientFlags( lpClient, CF_READREADY );
 				lpClient->RecvPending.dwLastRead = nRecv;
 				lpClient->RecvPending.dwAvail -= nRecv;
 				//lprintf( "Receive pending is now %d after %d", lpClient->RecvPending.dwAvail, nRecv );
@@ -1213,7 +1225,7 @@ dispatch_ReadEvent:
 #ifdef LOG_PENDING
 				//lprintf( "Sending completed read to application" );
 #endif
-				lpClient->dwFlags &= ~CF_READPENDING;
+				ClearClientFlags( lpClient, CF_READPENDING );
 				if( lpClient->read.ReadComplete )  // and there's a read complete callback available
 				{
 					// need to clear dwUsed...
@@ -1259,7 +1271,7 @@ dispatch_ReadEvent:
 			{
 				// this like never happens... so maybe remove this sort of wake logic
 				//lprintf( "Wake waiting thread... clearing pending read flag." );
-				lpClient->dwFlags &= ~CF_READPENDING;
+				ClearClientFlags( lpClient, CF_READPENDING );
 				if( lpClient->pWaiting )
 					WakeThread( lpClient->pWaiting );
 			}
@@ -1331,14 +1343,14 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		// if the pending finishes it will call the ReadComplete Callback.
 		// otherwise there will be more data to read...
 		//lprintf( "Ok ... buffers set up - now we can handle read events" );
-		lpClient->dwFlags |= CF_READPENDING;
+		SetClientFlags( lpClient, CF_READPENDING );
 #ifdef LOG_PENDING
 		lprintf( "Setup read pending %p %08x", lpClient, lpClient->dwFlags );
 #endif
 		if( bWait )
 		{
 			//lprintf( "setting read waiting so we get awoken... and callback dispatch does not happen." );
-			lpClient->dwFlags |= CF_READWAITING;
+			SetClientFlags( lpClient, CF_READWAITING );
 		}
 		//else
 		//   lprintf( "No read waiting... allow forward going..." );
@@ -1364,7 +1376,7 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 		}
 		else
 		{
-			lpClient->dwFlags &= ~CF_READWAITING;
+			ClearClientFlags( lpClient, CF_READWAITING );
  		}
 	}
 	if( bWait )
@@ -1411,7 +1423,7 @@ size_t doReadExx2(PCLIENT lpClient,POINTER lpBuffer,size_t nBytes, LOGICAL bIsSt
 			NetworkUnlockEx( lpClient, 1 DBG_SRC );
 			return -1;
 		}
- 		lpClient->dwFlags &= ~CF_READWAITING;
+ 		ClearClientFlags( lpClient, CF_READWAITING );
 		NetworkUnlockEx( lpClient, 1 DBG_SRC);
 		if( timeout )
 			return 0;
@@ -1559,8 +1571,8 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 #ifdef VERBOSE_DEBUG
 					lprintf( "Pending write...(EBLOCK) %p %zd", pc, pc->lpFirstPending->dwAvail );
 #endif
-					pc->dwFlags &= ~CF_WRITEREADY;
-					pc->dwFlags |= CF_WRITEPENDING;
+					ClearClientFlags( pc, CF_WRITEREADY );
+					SetClientFlags( pc, CF_WRITEPENDING );
 					return TRUE;
 				}
 				if( dwError == EPIPE ) {
@@ -1571,26 +1583,26 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 					xlprintf( LOG_ERROR )( "EPIPE on send(); %" _size_f " bytes discarded unsent. %s"
 					                     , pc->lpFirstPending->dwAvail
 					                     , NetworkExpandFlags( pc ) );
-					pc->dwFlags |= CF_TOCLOSE;
+					SetClientFlags( pc, CF_TOCLOSE );
 					return FALSE;
 				}
 				if( dwError == ECONNREFUSED ) {
 					_lprintf(DBG_RELAY)( "ECONNREFUSED on send() to socket...");
-					pc->dwFlags |= CF_TOCLOSE;
+					SetClientFlags( pc, CF_TOCLOSE );
 					return FALSE;
 				}
 #ifdef _WIN32
 				// especially websockets that try to gracefully cloose
 				if( dwError == WSAESHUTDOWN) {
 					if( pc->dwFlags & CF_WANTCLOSE )
-						pc->dwFlags |= CF_TOCLOSE;
+						SetClientFlags( pc, CF_TOCLOSE );
 					else
 						_lprintf(DBG_RELAY)( "WSAESHUTDOWN on send() to socket...");
-					pc->dwFlags |= CF_TOCLOSE;
+					SetClientFlags( pc, CF_TOCLOSE );
 					return FALSE;
 				}
 				if( dwError == WSAECONNABORTED ) {
-					pc->dwFlags |= CF_TOCLOSE;
+					SetClientFlags( pc, CF_TOCLOSE );
 					return FALSE;
 				}
 #endif
@@ -1608,25 +1620,25 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 #endif
 					  )
 					{
-						pc->dwFlags |= CF_TOCLOSE;
+						SetClientFlags( pc, CF_TOCLOSE );
 					}
 					return FALSE; // get out of here! (say we sent whatever was pending...; don't repend long buffers)
 				}
 			} else if (!nSent) { // other side closed.
 				//lprintf( "sent zero bytes - assume it was closed - and HOPE there's an event..." );
 				// this is more likely to show up as an EPIPE
-				pc->dwFlags |= CF_TOCLOSE;
+				SetClientFlags( pc, CF_TOCLOSE );
 				// if this happened - don't return TRUE result which would
 				// result in queuing a pending buffer...
 				return FALSE;  // no sence processing the rest of this.
 			} else if( pc->lpFirstPending && ( nSent < (int)pc->lpFirstPending->dwAvail ) ) {
-				pc->dwFlags &= ~CF_WRITEREADY;
-				pc->dwFlags |= CF_WRITEPENDING;
+				ClearClientFlags( pc, CF_WRITEREADY );
+				SetClientFlags( pc, CF_WRITEPENDING );
 			}
 #ifdef _WIN32
 			// windows only gives a FD_WRITE when a send gets an ewouldblock...
 			else
-				pc->dwFlags |= CF_WRITEREADY;
+				SetClientFlags( pc, CF_WRITEREADY );
 #endif
 		}
 		else {
@@ -1686,7 +1698,7 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 						pc->bWriteComplete = FALSE;
 					}
 					if( !pc->lpFirstPending ) {
-						pc->dwFlags &= ~CF_WRITEPENDING;
+						ClearClientFlags( pc, CF_WRITEPENDING );
 						//lprintf( "nothing left pending.... %p", pc );
 					}
 				}
@@ -1697,7 +1709,7 @@ setsockopt(pc->fd, IPPROTO_TCP, TCP_CORK, &state, sizeof(state));
 					if( !(pc->dwFlags & CF_WRITEPENDING) )
 					{
 						//lprintf( "And set writepending again?  Do a scheduled timer?" );
-						pc->dwFlags |= CF_WRITEPENDING;
+						SetClientFlags( pc, CF_WRITEPENDING );
 					}
 					return TRUE;
 				}
@@ -1880,7 +1892,7 @@ static LOGICAL deliverPendingWrite( struct PendingWrite *pending, PTHREAD thread
 		finishClose = ( !pc->nWritesPended && !pc->lpFirstPending
 		             && ( pc->dwFlags & CF_TOCLOSE ) && !pc->flags.bInUse );
 		if( finishClose )
-			pc->dwFlags &= ~CF_TOCLOSE;
+			ClearClientFlags( pc, CF_TOCLOSE );
 		NetworkUnlockEx( pc, 0|0x10 DBG_SRC );
 		// Deliberately the public graceful close, after the unlock and re-validated
 		// against the serial: it takes its own locks and now sees nothing pending,
@@ -2097,7 +2109,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 				_lprintf( DBG_RELAY )( "Write with aggregate... (timer?)%d", lpClient->writeTimer );
 #endif				
 			}
-			lpClient->dwFlags |= CF_WRITEPENDING; // shouldn't have to do this - this there is a race condition somewhere...
+			SetClientFlags( lpClient, CF_WRITEPENDING ); // shouldn't have to do this - this there is a race condition somewhere...
 			//TCPWriteEx( lpClient DBG_SRC ); // make sure we don't lose a write event during the queuing...
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;
@@ -2142,7 +2154,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 #ifdef LOG_WRITE_AGGREGATION
 			_lprintf(DBG_RELAY)("Write with aggregate (firstpending forced)... %d %d %d %p", bLongBuffer, nInLen, lpClient->writeTimer, lpClient);
 #endif			
-			lpClient->dwFlags |= CF_WRITEPENDING;
+			SetClientFlags( lpClient, CF_WRITEPENDING );
 			//lprintf( "First Write with aggregate... %d %d %d %p", nInLen, lpClient->writeTimer, wasTimer, lpClient );
 			NetworkUnlockEx( lpClient, 0 DBG_SRC );
 			return TRUE;

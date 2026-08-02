@@ -528,7 +528,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 						// clients use the same read callback.  They only get the initial read complete
 						// no callbacks to setup.
 						//lprintf( "### Sent connect...");
-						pc->dwFlags |= CF_CONNECT_ISSUED;
+						SetClientFlags( pc, CF_CONNECT_ISSUED );
 						if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 							pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 						else
@@ -1012,7 +1012,7 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	struct ssl_session *ses;
 	ses = New( struct ssl_session );
 	MemSet( ses, 0, sizeof( struct ssl_session ) );
-	pcNew->dwFlags &= ~CF_CONNECT_ISSUED;
+	ClearClientFlags( pcNew, CF_CONNECT_ISSUED );
 	ses->ssl = SSL_new( pcServer->ssl_session->ctx );
 	if( !ses->ssl ) {
 		lprintf( "Failed to allcoate a new ssl session" );
@@ -1061,9 +1061,9 @@ static void ssl_ClientConnected( PCLIENT pcServer, PCLIENT pcNew ) {
 	ses->recv_callback = ssl_layer_recver;
 	ses->psvSendRecv = (uintptr_t)pcNew;
 	pcNew->read.ReadComplete = ssl_ReadComplete;
-	pcNew->dwFlags &= ~CF_CPPREAD;
+	ClearClientFlags( pcNew, CF_CPPREAD );
 	pcNew->close.CloseCallback = ssl_CloseCallback;
-	pcNew->dwFlags &= ~CF_CPPCLOSE;
+	ClearClientFlags( pcNew, CF_CPPCLOSE );
 
 }
 
@@ -1538,9 +1538,9 @@ LOGICAL ssl_BeginServer_v2( PCLIENT pc, CPOINTER cert, size_t certlen
 			ses_o->cpp_user_connected = pc->pcOther->connect.CPPClientConnected;
 		}
 		pc->connect.ClientConnected = ssl_ClientConnected;
-		pc->dwFlags &= ~CF_CPPCONNECT;
+		ClearClientFlags( pc, CF_CPPCONNECT );
 		if( pc->pcOther ) {
-			pc->pcOther->dwFlags &= ~CF_CPPCONNECT;
+			ClearClientFlags( pc->pcOther, CF_CPPCONNECT );
 			pc->pcOther->connect.ClientConnected = ssl_ClientConnected;
 		}
 
@@ -1751,7 +1751,7 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	ses->psvSendRecv = (uintptr_t)pc;
 
 	pc->read.ReadComplete = ssl_ReadComplete;
-	pc->dwFlags &= ~CF_CPPREAD;
+	ClearClientFlags( pc, CF_CPPREAD );
 
 	ses->errorCallback = pc->errorCallback;
 	ses->psvErrorCallback = pc->psvErrorCallback;
@@ -1861,7 +1861,7 @@ void ssl_EndSecure(PCLIENT pc, POINTER buffer, size_t length ) {
 #if defined( DEBUG_SSL_FALLBACK )			
 			lprintf( "is ssl_session gone(yes)? %p %p %d %d %p", pc, pc->ssl_session, pc->ssl_session?pc->ssl_session->deleteInUse:-1, pc->ssl_session?pc->ssl_session->inUse:-1, pc->read.CPPReadComplete );
 #endif		
-			pc->dwFlags |= CF_CONNECT_ISSUED;
+			SetClientFlags( pc, CF_CONNECT_ISSUED );
 			if( pc->pcServer->ssl_session->dwOriginalFlags & CF_CPPCONNECT )
 				pc->pcServer->ssl_session->cpp_user_connected( pc->pcServer->psvConnect, pc );
 			else
