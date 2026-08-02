@@ -419,7 +419,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							closed = 1;
 						}
 						// section will be blank after termination...(correction, we keep the section state now)
-						pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+						ClearClientFlags( pClient, CF_CLOSING ); // it's no longer closing.  (was set during the course of closure)
 					} else if( !(event_data->pc->dwFlags & (CF_ACTIVE) ) ) {
 						lprintf( "Event on socket no longer active..." );
 						// change to inactive status by the time we got here...
@@ -476,7 +476,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							closed = 1;
 						}
 						else if( !event_data->pc->RecvPending.s.bStream )
-							event_data->pc->dwFlags |= CF_READREADY;
+							SetClientFlags( event_data->pc, CF_READREADY );
 					}
 					else
 					{
@@ -484,7 +484,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "TCP Set read ready..." );
 #endif
-						event_data->pc->dwFlags |= CF_READREADY;
+						SetClientFlags( event_data->pc, CF_READREADY );
 					}
 					if( locked )
 						LeaveCriticalSec( &event_data->pc->csLockRead );
@@ -525,8 +525,8 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connected!" );
 #endif
-							event_data->pc->dwFlags |= CF_CONNECTED;
-							event_data->pc->dwFlags &= ~CF_CONNECTING;
+							SetClientFlags( event_data->pc, CF_CONNECTED );
+							ClearClientFlags( event_data->pc, CF_CONNECTING );
 
 							{
 								PCLIENT pc = event_data->pc;
@@ -563,7 +563,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 #endif
 									WakeThread( event_data->pc->pWaiting );
 								}
-								event_data->pc->dwFlags |= CF_CONNECT_ISSUED;
+								SetClientFlags( event_data->pc, CF_CONNECT_ISSUED );
 								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
 									if( event_data->pc->connect.CPPThisConnected )
 										event_data->pc->connect.CPPThisConnected( event_data->pc->psvConnect, error );
@@ -591,7 +591,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t unu
 										TCPWrite( event_data->pc );
 									}
 								} else {
-									event_data->pc->dwFlags |= CF_CONNECTERROR;
+									SetClientFlags( event_data->pc, CF_CONNECTERROR );
 								}
 							}
 						} else if( event_data->pc->dwFlags & CF_UDP ) {
