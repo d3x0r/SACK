@@ -174,7 +174,7 @@ static void HandleEvent( PCLIENT pClient )
 		return;
 	}
 
-	pClient->dwFlags |= CF_PROCESSING;
+	SetClientFlags( pClient, CF_PROCESSING );
 #ifdef LOG_NETWORK_EVENT_THREAD
 	//if( globalNetworkData.flags.bLogNotices )
 	//	lprintf( "Client event on %p", pClient );
@@ -221,14 +221,14 @@ static void HandleEvent( PCLIENT pClient )
 							lprintf( "FD_CONNECT on %p", pClient );
 #endif
 						if( !wError )
-							pClient->dwFlags |= CF_CONNECTED;
+							SetClientFlags( pClient, CF_CONNECTED );
 						else
 						{
 #if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 							if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connect error: %d", wError );
 #endif
-							pClient->dwFlags |= CF_CONNECTERROR;
+							SetClientFlags( pClient, CF_CONNECTERROR );
 						}
 						if( !( pClient->dwFlags & CF_CONNECTERROR ) )
 						{
@@ -240,7 +240,7 @@ static void HandleEvent( PCLIENT pClient )
 							// with events, we get a FD_WRITE also... which calls tcpwrite.
 							//TCPWrite( pClient );
 						}
-						pClient->dwFlags &= ~CF_CONNECTING;
+						ClearClientFlags( pClient, CF_CONNECTING );
 						if( pClient->connect.ThisConnected )
 						{
 							if( !wError && !pClient->saSource ) {
@@ -266,7 +266,7 @@ static void HandleEvent( PCLIENT pClient )
 								lprintf( "Post connect to application %p  error:%d", pClient, wError );
 #endif
 							// have to allow SSL to clear this... so set it before calling the connect callback.
-							pClient->dwFlags |= CF_CONNECT_ISSUED;
+							SetClientFlags( pClient, CF_CONNECT_ISSUED );
 							if( pClient->dwFlags & CF_CPPCONNECT )
 								pClient->connect.CPPThisConnected( pClient->psvConnect, wError );
 							else
@@ -323,7 +323,7 @@ static void HandleEvent( PCLIENT pClient )
 							//lprintf( "FD_READ on %p (finishpendingread)", pClient );
 							if( FinishPendingRead( pClient DBG_SRC ) == 0 )
 							{
-								pClient->dwFlags |= CF_READREADY;
+								SetClientFlags( pClient, CF_READREADY );
 							}
 							if( pClient->dwFlags & CF_TOCLOSE )
 							{
@@ -357,8 +357,8 @@ static void HandleEvent( PCLIENT pClient )
 							// never signaled - complete the connect from here so the
 							// socket doesn't sit CF_CONNECTING forever.
 							lprintf( "FD_WRITE is completing a connect that never received FD_CONNECT %p", pClient );
-							pClient->dwFlags |= CF_CONNECTED;
-							pClient->dwFlags &= ~CF_CONNECTING;
+							SetClientFlags( pClient, CF_CONNECTED );
+							ClearClientFlags( pClient, CF_CONNECTING );
 							if( !pClient->saSource ) {
 								int nLen = MAGIC_SOCKADDR_LENGTH;
 								pClient->saSource = AllocAddr();
@@ -372,7 +372,7 @@ static void HandleEvent( PCLIENT pClient )
 							}
 							if( pClient->connect.ThisConnected )
 							{
-								pClient->dwFlags |= CF_CONNECT_ISSUED;
+								SetClientFlags( pClient, CF_CONNECT_ISSUED );
 								if( pClient->dwFlags & CF_CPPCONNECT )
 									pClient->connect.CPPThisConnected( pClient->psvConnect, 0 );
 								else
@@ -398,12 +398,12 @@ static void HandleEvent( PCLIENT pClient )
 #endif
 							TCPWrite(pClient);
 						} else {
-							pClient->dwFlags |= CF_WRITEREADY;
+							SetClientFlags( pClient, CF_WRITEREADY );
 						}
 						if( !pClient->lpFirstPending ) {
 							if( ( pClient->dwFlags & CF_TOCLOSE ) && !pClient->flags.bInUse )
 							{
-								pClient->dwFlags &= ~CF_TOCLOSE;
+								ClearClientFlags( pClient, CF_TOCLOSE );
 								//lprintf( "Pending read failed - and wants to close." );
 								EnterCriticalSec( &globalNetworkData.csNetwork );
 								// remote shutdown triggered this... and somehow this shouldn't be the same as a graceful close.
@@ -457,7 +457,7 @@ static void HandleEvent( PCLIENT pClient )
 						{
 							// application holds work on this socket; mark the close so
 							// ClearNetWork completes it when the work releases.
-							pClient->dwFlags |= CF_TOCLOSE;
+							SetClientFlags( pClient, CF_TOCLOSE );
 							deferred = TRUE;
 						}
 						unlockNetWorkList();
@@ -468,7 +468,7 @@ static void HandleEvent( PCLIENT pClient )
 							InternalRemoveClientEx( pClient, FALSE, TRUE );
 							TerminateClosedClient( pClient );
 							LeaveCriticalSec( &globalNetworkData.csNetwork );
-							pClient->dwFlags &= ~CF_CLOSING; // it's no longer closing.  (was set during the course of closure)
+							ClearClientFlags( pClient, CF_CLOSING ); // it's no longer closing.  (was set during the course of closure)
 						}
 					}
 					// section will be blank after termination...(correction, we keep the section state now)
@@ -497,7 +497,7 @@ static void HandleEvent( PCLIENT pClient )
 		else
 			lprintf( "Event enum failed... do what? close socket? %p %" _32f, pClient, dwError );
 	}
-	pClient->dwFlags &= ~CF_PROCESSING;
+	ClearClientFlags( pClient, CF_PROCESSING );
 }
 
 //----------------------------------------------------------------------------
