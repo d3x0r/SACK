@@ -18,10 +18,16 @@
 // lock count.  Stores only, no I/O, so the race is left intact; the ring lives past
 // the lock words in the struct so ClearClient scrubs it and each ring covers exactly
 // ONE client lifetime - which is the window the leaked +1 was narrowed to.
-// Left in place but OFF: the spin-giveup that dumps this ring abandons the event,
-// which changes behaviour and distorts hang-rate comparisons.  Enable only when
-// reading lock histories, never when measuring a fix.
+// Per-client ring of lock + lifecycle events.  Stores only, no I/O and no
+// allocation, so it does not perturb the timing the way lprintf probes did (which
+// demonstrably masked this class of bug).  Read it out of a core dump.
 //#define DEBUG_CLIENT_LOCK_TRACE
+
+// SEPARATE, and normally OFF: the spin-giveup probe abandons the event when a
+// lock can't be taken.  That is a real behaviour change - it distorts hang rates
+// and must never be on while measuring a fix.  The ring above is passive; this is
+// not.  Enable only to catch a live lock convoy.
+//#define DEBUG_LOCK_SPIN_GIVEUP
 
 #ifndef OPENSSL_API_COMPAT
 #  define OPENSSL_API_COMPAT 10101
@@ -308,13 +314,25 @@ struct ssl_session {
 
 #ifdef DEBUG_CLIENT_LOCK_TRACE
 #define CLIENT_LOCK_TRACE_DEPTH 32
+// event kinds recorded in the per-client ring
+#define CLTRACE_UNLOCK    0
+#define CLTRACE_LOCK      1
+#define CLTRACE_ADDNET    2   // AddNetWork   - request handed toward JS, bInUse=1
+#define CLTRACE_CLEARNET  3   // ClearNetWork - JS released it
+// The discriminator for the remaining lost-dispatch hang: EVIN is recorded for
+// EVERY epoll delivery, before any handler decision; EVSKIP when the handler
+// declines a delivered event.  A hung socket whose ring has no EVIN at all means
+// the kernel never reported the edge; EVIN followed by EVSKIP means the event was
+// delivered and dropped - and being edge-triggered, it never comes back.
+#define CLTRACE_EVIN      4   // a = events[n].events mask
+#define CLTRACE_EVSKIP    5   // a = dwFlags at the moment it was declined
 struct client_lock_trace {
 	CTEXTSTR  file;
 	uint32_t  line;
 	THREAD_ID thread;
-	uint32_t  locksAfter;  // dwLocks for that channel immediately after the op
-	uint8_t   channel;     // 0 = csLockWrite, 1 = csLockRead
-	uint8_t   op;          // 1 = acquired, 0 = released
+	uint32_t  a;           // LOCK/UNLOCK: resulting dwLocks.  ADDNET/CLEARNET: psvInUse count
+	uint8_t   ev;          // CLTRACE_*
+	uint8_t   channel;     // LOCK/UNLOCK only: 0 = csLockWrite, 1 = csLockRead
 };
 #endif
 
@@ -604,7 +622,7 @@ PCLIENT AddActive( PCLIENT pClient );
 void RemoveThreadEvent( PCLIENT pc );
 void AddThreadEvent( PCLIENT pc, int broadcast );
 #ifdef DEBUG_CLIENT_LOCK_TRACE
-void sack_dbg_traceClientLock( PCLIENT pc, int channel, int op, CTEXTSTR file, uint32_t line );
+void sack_dbg_traceClient( PCLIENT pc, int ev, int channel, uint32_t a, CTEXTSTR file, uint32_t line );
 void sack_dbg_dumpClientLockTrace( PCLIENT pc, const char *why );
 #endif
 #ifdef __LINUX__

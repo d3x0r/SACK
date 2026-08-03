@@ -209,18 +209,18 @@ PCLIENT GrabClientEx( PCLIENT pClient DBG_PASS )
 
 #ifdef DEBUG_CLIENT_LOCK_TRACE
 // One atomic increment plus a few stores - cheap enough to leave the race intact.
-void sack_dbg_traceClientLock( PCLIENT pc, int channel, int op, CTEXTSTR file, uint32_t line ) {
+void sack_dbg_traceClient( PCLIENT pc, int ev, int channel, uint32_t a, CTEXTSTR file, uint32_t line ) {
 	struct client_lock_trace *t;
 	uint32_t i;
 	if( !pc ) return;
 	i = (uint32_t)LockedIncrement( &pc->lockTraceIdx ) - 1;
 	t = pc->lockTrace + ( i % CLIENT_LOCK_TRACE_DEPTH );
-	t->file       = file;
-	t->line       = line;
-	t->thread     = GetThisThreadID();
-	t->locksAfter = channel ? pc->csLockRead.dwLocks : pc->csLockWrite.dwLocks;
-	t->channel    = (uint8_t)( channel ? 1 : 0 );
-	t->op         = (uint8_t)( op ? 1 : 0 );
+	t->file    = file;
+	t->line    = line;
+	t->thread  = GetThisThreadID();
+	t->a       = a;
+	t->ev      = (uint8_t)ev;
+	t->channel = (uint8_t)( channel ? 1 : 0 );
 }
 
 // Dump one client's whole lock history, oldest first.  Capped globally so a storm
@@ -238,10 +238,16 @@ void sack_dbg_dumpClientLockTrace( PCLIENT pc, const char *why ) {
 	       , pc->csLockWrite.dwLocks, (unsigned long long)pc->csLockWrite.dwThreadID );
 	for( n = first; n < total; n++ ) {
 		struct client_lock_trace *t = pc->lockTrace + ( n % CLIENT_LOCK_TRACE_DEPTH );
-		fprintf( stderr, "   [%3u] %-6s ch%d ->%u  thr=%llx  %s(%u)\n"
-		       , n, t->op ? "LOCK" : "UNLOCK", t->channel, t->locksAfter
-		       , (unsigned long long)t->thread
-		       , t->file ? t->file : "?", t->line );
+		static const char *evname[] = { "UNLOCK", "LOCK", "ADDNET", "CLEARNET", "EVIN", "EVSKIP" };
+		const char *nm = ( t->ev < 6 ) ? evname[t->ev] : "?";
+		if( t->ev <= CLTRACE_LOCK )
+			fprintf( stderr, "   [%3u] %-8s ch%d ->%u  thr=%llx  %s(%u)\n"
+			       , n, nm, t->channel, t->a, (unsigned long long)t->thread
+			       , t->file ? t->file : "?", t->line );
+		else
+			fprintf( stderr, "   [%3u] %-8s inUseCount=%u  thr=%llx  %s(%u)\n"
+			       , n, nm, t->a, (unsigned long long)t->thread
+			       , t->file ? t->file : "?", t->line );
 	}
 }
 #endif
@@ -1109,8 +1115,8 @@ get_client:
 		// Both channels were taken directly above, before ClearClient scrubbed the
 		// ring - so seed the fresh ring with them or the lifetime starts unbalanced
 		// on paper.  Order matches the acquisition order (read then write).
-		sack_dbg_traceClientLock( pClient, 1, 1, pFile, nLine );
-		sack_dbg_traceClientLock( pClient, 0, 1, pFile, nLine );
+		sack_dbg_traceClient( pClient, CLTRACE_LOCK, 1, pClient->csLockRead.dwLocks, pFile, nLine );
+		sack_dbg_traceClient( pClient, CLTRACE_LOCK, 0, pClient->csLockWrite.dwLocks, pFile, nLine );
 #endif
 		//Log1( "New network client %p", client );
 	}
@@ -1284,7 +1290,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 			LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
 #ifdef DEBUG_CLIENT_LOCK_TRACE
-		sack_dbg_traceClientLock( lpClient, readWrite, 0, pFile, nLine );
+		sack_dbg_traceClient( lpClient, CLTRACE_UNLOCK, readWrite, readWrite ? lpClient->csLockRead.dwLocks : lpClient->csLockWrite.dwLocks, pFile, nLine );
 #endif
 //#ifdef LOG_NETWORK_LOCKING
 			_lprintf( DBG_RELAY )( "Failed lock: %p  %08x %08x inactive, cannot lock.", lpClient, lpClient->dwFlags, CF_ACTIVE );
@@ -1297,7 +1303,7 @@ NETWORK_PROC( PCLIENT, NetworkLockEx)( PCLIENT lpClient, int readWrite DBG_PASS 
 	_lprintf( DBG_RELAY )( "Got private lock %p %d", lpClient, readWrite );
 #endif
 #ifdef DEBUG_CLIENT_LOCK_TRACE
-	sack_dbg_traceClientLock( lpClient, readWrite, 1, pFile, nLine );
+	sack_dbg_traceClient( lpClient, CLTRACE_LOCK, readWrite, readWrite ? lpClient->csLockRead.dwLocks : lpClient->csLockWrite.dwLocks, pFile, nLine );
 #endif
 	return lpClient;
 }
@@ -1331,7 +1337,7 @@ NETWORK_PROC( void, NetworkUnlockEx)( PCLIENT lpClient, int readWrite DBG_PASS )
 		LeaveCriticalSecEx( readWrite?&lpClient->csLockRead:&lpClient->csLockWrite DBG_RELAY );
 #endif
 #ifdef DEBUG_CLIENT_LOCK_TRACE
-		sack_dbg_traceClientLock( lpClient, readWrite, 0, pFile, nLine );
+		sack_dbg_traceClient( lpClient, CLTRACE_UNLOCK, readWrite, readWrite ? lpClient->csLockRead.dwLocks : lpClient->csLockWrite.dwLocks, pFile, nLine );
 #endif
 		// Deferred recycle: a close that ran while this client was locked left the
 		// job to whoever drops the last lock.  Doing it here, after the leave, is
@@ -1629,6 +1635,14 @@ void AddNetWork( PCLIENT lpClient, uintptr_t psv ) {
 	lockNetWorkList();
 	AddLink( &lpClient->psvInUse, (POINTER)psv );
 	lpClient->flags.bInUse = 1;
+#ifdef DEBUG_CLIENT_LOCK_TRACE
+	// This is the marker that a request was handed toward JS: on the request path
+	// the only caller is webSockHttpRequest (sack.vfs), which then queues a
+	// WS_EVENT_REQUEST and uv_async_send()s it.  A client found hung with bInUse=1
+	// and no matching CLEARNET got that far and the JS callback never ran.
+	sack_dbg_traceClient( lpClient, CLTRACE_ADDNET, 0
+	                    , (uint32_t)GetLinkCount( lpClient->psvInUse ) DBG_SRC );
+#endif
 	unlockNetWorkList();
 }
 
@@ -1645,6 +1659,10 @@ void ClearNetWork( PCLIENT lpClient, uintptr_t psv ) {
 			lpClient->flags.bInUse = 0;
 			emptied = TRUE;
 		}
+#ifdef DEBUG_CLIENT_LOCK_TRACE
+		sack_dbg_traceClient( lpClient, CLTRACE_CLEARNET, 0
+		                    , (uint32_t)GetLinkCount( lpClient->psvInUse ) DBG_SRC );
+#endif
 	}
 	unlockNetWorkList();
 	if( !emptied )

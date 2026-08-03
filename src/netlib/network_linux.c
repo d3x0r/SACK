@@ -331,10 +331,15 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 					return 1;
 				}
 
+#  ifdef DEBUG_CLIENT_LOCK_TRACE
+				// Every delivery for this client, before any handler decision.
+				sack_dbg_traceClient( event_data->pc, CLTRACE_EVIN, 0
+				                    , (uint32_t)events[n].events DBG_SRC );
+#  endif
 				if( events[n].events & EPOLLIN )
 				{
 					int locked;
-#  ifdef DEBUG_CLIENT_LOCK_TRACE
+#  ifdef DEBUG_LOCK_SPIN_GIVEUP
 					int spins = 0;
 #  endif
 					locked = 1;
@@ -345,13 +350,23 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							lprintf( "failed lock dwFlags : %8x", event_data->pc->dwFlags );
 #  endif
 							locked = 0;
+#  ifdef DEBUG_CLIENT_LOCK_TRACE
+							// These two bails record nothing otherwise, so a declined
+							// event is indistinguishable from one that never arrived.
+							sack_dbg_traceClient( event_data->pc, CLTRACE_EVSKIP, 0
+							                    , (uint32_t)event_data->pc->dwFlags DBG_SRC );
+#  endif
 							break;
 						}
 						if( event_data->pc->dwFlags & CF_AVAILABLE ) {
 							locked = 0;
+#  ifdef DEBUG_CLIENT_LOCK_TRACE
+							sack_dbg_traceClient( event_data->pc, CLTRACE_EVSKIP, 0
+							                    , (uint32_t)event_data->pc->dwFlags DBG_SRC );
+#  endif
 							break;
 						}
-#  ifdef DEBUG_CLIENT_LOCK_TRACE
+#  ifdef DEBUG_LOCK_SPIN_GIVEUP
 						// DEBUG PROBE: this spin IS the hang.  Give up rather than
 						// yielding forever (which pegs every core and hides the state)
 						// and dump the client's whole lock history - the unbalanced
