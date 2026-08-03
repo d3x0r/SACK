@@ -29,6 +29,14 @@
 // not.  Enable only to catch a live lock convoy.
 //#define DEBUG_LOCK_SPIN_GIVEUP
 
+// Which peer thread did each accepted socket land on, and is that peer still
+// delivering events?  Writes one buffered line per accept to
+// SACK_PEERMAP (default /tmp/chunk-lock-smoke/peermap.log), plus a snapshot of
+// every peer's wait/event counters every DBG_PEERMAP_SNAP accepts.  Correlate
+// the client ports against tcpdump's hang list (hangfilter.awk) to test whether
+// the periodic hangs all belong to one peer.
+//#define DEBUG_PEER_ASSIGN
+
 #ifndef OPENSSL_API_COMPAT
 #  define OPENSSL_API_COMPAT 10101
 #endif
@@ -251,6 +259,13 @@ struct peer_thread_info
 		BIT_FIELD bProcessing : 1;
 		BIT_FIELD bBuildingList : 1;
 	} flags;
+#ifdef DEBUG_PEER_ASSIGN
+	// written only by the peer's own thread, read by the snapshot; a torn read
+	// costs one misprinted sample and nothing else.
+	volatile uint32_t dbgWaits;   // epoll_wait returns with cnt > 0
+	volatile uint32_t dbgEvents;  // events delivered to this peer
+	volatile uint32_t dbgAdds;    // sockets assigned to this peer
+#endif
 };
 
 typedef struct {
@@ -269,6 +284,10 @@ struct ssl_session {
 	LOGICAL firstPacket;
 	LOGICAL noHost;
 	LOGICAL closed;
+	// Graceful-close intent carried across a deferred close.  ssl_CloseSession can
+	// be asked to close while the session is inUse; it defers via deleteInUse and
+	// the read path replays it later, by which time the caller's bLinger is gone.
+	LOGICAL closeLinger;
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
@@ -658,7 +677,11 @@ char *NetworkExpandFlags( PCLIENT pc );
 
 //----------------------------
 // ssl_close - redirected removeClient from network..
-void ssl_CloseSession( PCLIENT pc );
+// bLinger is the caller's graceful-close intent, forwarded from RemoveClientExx.
+// Dropping it here is what left TLS responses truncated: the terminal RemoveClient
+// below re-enters RemoveClientExx with bLinger FALSE, which short-circuits the
+// pending-write test and shutdown()s on top of queued ciphertext.
+void ssl_CloseSession( PCLIENT pc, LOGICAL bLinger );
 LOGICAL ssl_IsClosed( PCLIENT pc );
 
 //---------------------------

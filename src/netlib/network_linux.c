@@ -77,7 +77,34 @@
 
 SACK_NETWORK_NAMESPACE
 
+#ifdef DEBUG_PEER_ASSIGN
+// ---- peer-assignment map (temporary probe) --------------------------------
+// One buffered line per accepted socket saying which peer thread owns it, plus
+// a periodic snapshot of every peer's epoll counters.  Buffered to a plain file
+// (not stderr, which is unbuffered and would put a write() on the accept path);
+// flushed every DBG_PEERMAP_SNAP records so a kill -9 loses at most that many.
+// also the flush interval - a kill -9 loses at most this many ADD records
+#  define DBG_PEERMAP_SNAP 128
+static FILE *dbg_peermap;
+static volatile uint32_t dbg_peermapOrder;
 
+static void dbg_peermapOpen( void ) {
+	const char *fn = getenv( "SACK_PEERMAP" );
+	if( !fn ) fn = "/tmp/chunk-lock-smoke/peermap.log";
+	dbg_peermap = fopen( fn, "w" );
+	if( dbg_peermap ) setvbuf( dbg_peermap, NULL, _IOFBF, 1 << 20 );
+}
+
+// snapshot the whole peer chain; caller must hold csPeerChain.
+static void dbg_peermapSnapshot( uint32_t order ) {
+	struct peer_thread_info *p;
+	int idx = 0;
+	for( p = globalNetworkData.root_thread; p; p = p->child_peer, idx++ )
+		fprintf( dbg_peermap, "PEER at=%u idx=%d peer=%p epfd=%d nEvents=%u adds=%u waits=%u events=%u\n"
+		       , order, idx, (void*)p, p->epoll_fd, p->nEvents, p->dbgAdds, p->dbgWaits, p->dbgEvents );
+	fflush( dbg_peermap );
+}
+#endif
 
 void RemoveThreadEvent( PCLIENT pc ) {
 	struct peer_thread_info *thread = pc->this_thread;
@@ -228,6 +255,11 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 			else
 				peer = peer->child_peer;
 		}
+#ifdef DEBUG_PEER_ASSIGN
+		if( !dbg_peermap ) dbg_peermapOpen();
+		if( dbg_peermap && !( dbg_peermapOrder % DBG_PEERMAP_SNAP ) )
+			dbg_peermapSnapshot( dbg_peermapOrder );
+#endif
 		LeaveCriticalSec( &globalNetworkData.csPeerChain );
 	} else {
 		peer = pc->this_thread; // add broadcast to the same event as the original.
@@ -265,6 +297,17 @@ void AddThreadEvent( PCLIENT pc, int broadcast )
 		pc->this_thread = peer;
 		pc->flags.bAddedToEvents = 1;
 	}
+#ifdef DEBUG_PEER_ASSIGN
+	if( dbg_peermap && !broadcast && !( pc->dwFlags & CF_LISTEN ) ) {
+		// sin_port sits at the same offset in sockaddr_in and sockaddr_in6.
+		uint16_t port = pc->saClient ? ntohs( ((struct sockaddr_in*)pc->saClient)->sin_port ) : 0;
+		uint32_t order = LockedIncrement( &dbg_peermapOrder );
+		LockedIncrement( &peer->dbgAdds );
+		fprintf( dbg_peermap, "ADD n=%u port=%u sock=%d pc=%p peer=%p epfd=%d nEvents=%u\n"
+		       , order, port, pc->Socket, (void*)pc, (void*)pc->this_thread
+		       , pc->this_thread->epoll_fd, pc->this_thread->nEvents );
+	}
+#endif
 #ifdef LOG_NETWORK_EVENT_THREAD
 	lprintf( "peer %p now has %d events", peer, peer->nEvents );
 #endif
@@ -306,6 +349,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 		{
 			int closed;
 			int n;
+#ifdef DEBUG_PEER_ASSIGN
+			// only this peer's own thread writes these; read-then-store keeps
+			// C++20 from warning about a compound assignment on a volatile.
+			thread->dbgWaits = thread->dbgWaits + 1;
+			thread->dbgEvents = thread->dbgEvents + cnt;
+#endif
 			struct event_data *event_data;
 			THREAD_ID prior = 0;
 			PCLIENT next;

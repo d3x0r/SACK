@@ -61,7 +61,7 @@ CTEXTSTR ssl_GetRequestedHostName( PCLIENT pc ) {
 	return NULL;
 }
 
-void ssl_CloseSession( PCLIENT pc ) {
+void ssl_CloseSession( PCLIENT pc, LOGICAL bLinger ) {
    return;
 }
 
@@ -300,10 +300,11 @@ void ssl_ClosePipeSession( struct ssl_session** ssl_session )
 	}
 }
 
-void ssl_CloseSession( PCLIENT pc ) {
+void ssl_CloseSession( PCLIENT pc, LOGICAL bLinger ) {
 	struct ssl_session *ses = pc->ssl_session;
 	// mark that this should be closed down to the socket.
 	ses->closed = TRUE;
+	ses->closeLinger = bLinger;  // survives the deleteInUse deferral below
 	if( ses->inUse ) {
 #ifdef DEBUG_NO_HOST_AND_FALLBACK
 		lprintf( "Setting close session for later" );
@@ -327,10 +328,14 @@ void ssl_CloseSession( PCLIENT pc ) {
 #ifdef DEBUG_NO_HOST_AND_FALLBACK
 		lprintf( "RemoveClient (Again?) %s", NetworkExpandFlags( pc ));
 #endif
+		// Forward the caller's linger.  RemoveClient() is the abortive default
+		// (bLinger FALSE), and using it here threw away the graceful intent that
+		// httpObject::end passed in - so this second pass took the !bLinger branch
+		// and shutdown(SHUT_WR)'d while the response ciphertext was still queued.
 		if( pc->dwFlags & CF_CONNECT_ISSUED )
-			RemoveClient( pc );
+			RemoveClientEx( pc, FALSE, bLinger );
 		else
-			RemoveClientEx( pc, TRUE, FALSE );
+			RemoveClientEx( pc, TRUE, bLinger );
 	}
 }
 
@@ -753,7 +758,7 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				LeaveCriticalSec( &ses[0]->csReadWrite );
 				if( ses[0]->deleteInUse ){
 					lprintf( "Pending close... was in-use when closed. (DO CLOSE!)");
-					ssl_CloseSession( pc );
+					ssl_CloseSession( pc, ses[0]->closeLinger );
 				}
 			}
 		}

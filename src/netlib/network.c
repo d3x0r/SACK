@@ -1592,7 +1592,10 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 			if( !ssl_IsClosed( lpClient ) ) {
 				// let client notify_close actually close this...
 				//lprintf( "secure client, not closed, just close session... (no shutdown?)");
-				ssl_CloseSession( lpClient );
+				// bLinger MUST go with it: this returns before the pending-write
+				// test below, and ssl_CloseSession's terminal RemoveClient comes
+				// back through here to make that decision.
+				ssl_CloseSession( lpClient, bLinger );
 				return;
 			}
 		}
