@@ -999,6 +999,16 @@ NETWORK_PROC( void, AddNetWork )( PCLIENT lpClient, uintptr_t psv );
 // to close, then a oustanding close operation will be performed when the last work is cleared.
 // 
 NETWORK_PROC( void, ClearNetWork )( PCLIENT lpClient, uintptr_t psv );
+/*
+   Get the reference of the list of oustanding work on this client.
+   Someone put it there, they might want to know it... it holds a lock
+   for the list until the list is dropped.
+*/
+NETWORK_PROC( PLIST*, GetNetWork )( PCLIENT lpClient );
+/*
+   drops the lock held on the NetWork list returned.
+*/
+NETWORK_PROC( void, DropNetWork )( PCLIENT lpClient );
 
 
 NETWORK_PROC( void, RemoveClientExx )(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS );

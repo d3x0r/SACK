@@ -311,8 +311,7 @@ INDEX GetMemberIndex(GENERICSET **ppSet, POINTER unit, int unitsize, int max )
 #define GetMemberIndex(name,set,member) GetMemberIndex( (GENERICSET**)set, member, sizeof( name ), MAX##name##SPERSET )
 
 //----------------------------------------------------------------------------
-#undef MemberValidInSet
-int MemberValidInSet( GENERICSET *pSet, void *unit, int unitsize, int max )
+int MemberValidInSetEx( GENERICSET *pSet, void *unit, int unitsize, int max )
 {
 	uintptr_t nUnit = (uintptr_t)unit;
 	int ofs = ( ( max + (FLAGSET_MIN_SIZE-1) ) / FLAGSET_MIN_SIZE) * (FLAGSET_MIN_SIZE/8);

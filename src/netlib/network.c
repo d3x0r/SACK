@@ -1631,6 +1631,15 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 	}
 }
 
+PLIST* GetNetWork( PCLIENT lpClient ) {
+	lockNetWorkList();
+	return &lpClient->psvInUse;
+}
+// should we validate that the psv is in the list?  or just clear it?
+void DropNetWork( PCLIENT lpClient ) {
+	unlockNetWorkList();
+}
+
 void AddNetWork( PCLIENT lpClient, uintptr_t psv ) {
 	lockNetWorkList();
 	AddLink( &lpClient->psvInUse, (POINTER)psv );
