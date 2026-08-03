@@ -1133,6 +1133,73 @@ void SendHttpMessage ( struct HttpState *pHttpState, PCLIENT pc, PTEXT body )
 
 //---------- CLIENT --------------------------------------------
 
+// Write the request already formatted into state->pvtOut, plus any content, and
+// consume the vartext.  There are two moments this can happen and they used to be
+// two copies of this code: plain sockets send inline right after NetworkConnectTCP,
+// while TLS has to wait for the handshake and sends from HttpReader's initial-read
+// callback (which is why pvtOut has to outlive the plain-path send).  Both call this
+// now, which is also what lets a second request go out on a connection already up.
+// The content paths differ deliberately: SendTCPLong hands the buffer to the network
+// layer (writeComplete fires when it drains) while ssl_Send copies, so the TLS path
+// has to signal writeComplete itself.
+// httpOpenSocket wires up all four socket callbacks, and they are all defined
+// further down this file, so they need declaring here.
+static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size );
+static void CPROC HttpReaderClose( uintptr_t psv );
+static void httpConnected( uintptr_t psv, int error );
+static void writeComplete( uintptr_t psv, CPOINTER buffer, size_t length );
+
+// Create the socket for an HTTP conversation and attach the state to it.  The
+// connect is deliberately deferred (OPEN_TCP_FLAG_DELAY_CONNECT) so the caller can
+// format the first request - and for TLS begin the session - before the handshake
+// starts; HttpReader's initial-read callback is what sends it on the TLS path.
+// Returns NULL if the socket could not be created; the caller still owns state.
+static PCLIENT httpOpenSocket( PTEXT address, struct HttpState *state, struct HTTPRequestOptions *options ) {
+	PCLIENT pc;
+	SOCKADDR *addr = CreateSockAddressV2( GetText( address ), options->ssl?443:80, options->addrFlags );
+	options->connectError = 0; // clear any previous error.
+	pc = CPPOpenTCPClientAddrExxx( addr, HttpReader, (uintptr_t)state, HttpReaderClose, (uintptr_t)state
+			, writeComplete, (uintptr_t)state, httpConnected, (uintptr_t)state, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
+	SetTCPNoDelay( pc, TRUE );
+	state->request_socket = pc;
+	ReleaseAddress( addr );
+	if( pc ) {
+		state->last_read_tick = timeGetTime();
+		state->waiter = MakeThread();
+		SetNetworkLong( pc, 0, (uintptr_t)state );
+		state->ssl = options->ssl;
+	}
+	return pc;
+}
+
+static LOGICAL httpSendRequest( struct HttpState *state, struct HTTPRequestOptions *options ) {
+	PCLIENT pc = state->request_socket;
+	PTEXT send;
+	if( !pc || !state->pvtOut ) return FALSE;
+	send = VarTextGet( state->pvtOut );  // consumes the accumulated text
+	if( !send ) return FALSE;
+	if( l.flags.bLogReceived ) {
+		lprintf( "Sending %s...", options ? options->method : "request" );
+		LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
+	}
+	if( state->ssl ) {
+		ssl_Send( pc, GetText( send ), GetTextSize( send ) );
+		if( options && options->content && options->contentLen ) {
+			ssl_Send( pc, options->content, options->contentLen );
+			if( options->writeComplete ) {
+				options->writeComplete( options->userData );
+				options->writeComplete = NULL;
+			}
+		}
+	} else {
+		SendTCP( pc, GetText( send ), GetTextSize( send ) );
+		if( options && options->content && options->contentLen )
+			SendTCPLong( pc, options->content, options->contentLen );
+	}
+	LineRelease( send );
+	return TRUE;
+}
+
 static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 {
 	struct HttpState *state = (struct HttpState *)psv;
@@ -1143,25 +1210,10 @@ static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 #ifndef NO_SSL
 		if( state && state->ssl )
 		{
-			PTEXT send = VarTextGet( state->pvtOut );
-			if( l.flags.bLogReceived )
-			{
-				lprintf( "Sending Request..." );
-				LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
-			}
 			// had to wait for handshake, so NULL event
 			// on secure has already had time to build the send
 			// but had to wait until now to do that.
-			ssl_Send( pc, GetText( send ), GetTextSize( send ) );
-			if( state->options && state->options->content && state->options->contentLen ) {
-				ssl_Send( pc, state->options->content, state->options->contentLen );
-				if( state->options->writeComplete ) {
-					state->options->writeComplete( state->options->userData );
-					state->options->writeComplete = NULL;
-				}
-			}
-
-			LineRelease( send );
+			httpSendRequest( state, state->options );
 		}
 		else
 #endif
@@ -1429,6 +1481,66 @@ static void writeComplete( uintptr_t psv, CPOINTER buffer, size_t length ) {
 		data->options->writeComplete( data->options->userData );
 }
 
+// Format one request into state->pvtOut: request line, Host, the caller's headers
+// (noting Connection/User-Agent/Content-Length as they go by so the defaults below
+// do not duplicate them), then the defaults and the terminating blank line.
+// This is the only part of issuing a request that is not connection state, which is
+// what makes it reusable for sending several requests on one connection.
+static void httpBuildRequest( struct HttpState *state, PTEXT address, PTEXT url
+                            , struct HTTPRequestOptions *options ) {
+	char* header;
+	LOGICAL skipLength = FALSE;
+	INDEX idx;
+	LOGICAL hadUserAgent = FALSE;
+	LOGICAL hadConnection = FALSE;
+	const char* resource = GetText( url );
+	if( !resource ) resource = "/";
+	if( !state->pvtOut ) state->pvtOut = VarTextCreate();
+
+	vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.1" );
+
+	// Host must carry a nonstandard port; the caller decides that by setting
+	// options->hostname (NULL falls back to the "host:port" address text).
+	{
+		const char* targetHost = options->hostname ? options->hostname : GetText( address );
+		vtprintf( state->pvtOut, "Host:%s\r\n", targetHost );
+	}
+
+	LIST_FORALL( options->headers, idx, char*, header ) {
+		if( !hadConnection && ( StrCaseCmpEx( header, "connection", 10 ) == 0 ) ) {
+			hadConnection = TRUE;
+			int spaces = 0;
+			while( header[11+spaces] == ' ' || header[11+spaces] == ':' ) spaces++;
+			if( StrCaseCmpEx( header+11+spaces, "keep-alive", 9 ) == 0 ) {
+				state->flags.keep_alive = 1;
+			} else if( StrCaseCmpEx( header+11+spaces, "close", 5 ) == 0 ) {
+				state->flags.close = 1;
+			}
+		}
+		if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
+		if( !skipLength   && ( StrCaseCmpEx( header, "Content-Length", 15 ) == 0 ) ) {
+			skipLength = TRUE;
+			if( header[15] == '~' ) // force content length to get hidden; should be ':' to be valid
+				continue;
+		}
+		vtprintf( state->pvtOut, "%s\r\n", header );
+	}
+
+	if( !hadConnection ) {
+		if( !options->httpVersion || strcmp( options->httpVersion, "1.1" ) == 0 || strcmp( options->httpVersion, "2.0" ) == 0) {
+			vtprintf( state->pvtOut, "Connection: Keep-Alive\r\n" );
+			state->flags.keep_alive = 1;
+		}
+	}
+
+	if( !skipLength ) {
+		vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
+	}
+	if( !hadUserAgent )
+		vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK/1.3" );
+	vtprintf( state->pvtOut, "\r\n" ); // send blank header
+}
+
 HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, struct HTTPRequestOptions* options )
 {
 	static struct HTTPRequestOptions defaultOpts = {
@@ -1453,89 +1565,14 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 	for( retries = 0; retries < options->retries; retries++ )
 	{
 		PCLIENT pc;
-		SOCKADDR *addr = CreateSockAddressV2( GetText( address ), options->ssl?443:80, options->addrFlags );
-		//struct pendingConnect *connect = New( struct pendingConnect );
 		struct HttpState *state = CreateHttpState(NULL);
 		state->options = options;
 		state->closed = FALSE;
-		//connect->pc = NULL;
-		//connect->state = state;
-		//lprintf( "adding pending3: %p", connect );
-		//AddLink( &l.pendingConnects, connect );
-		//lprintf( "added pending3" );
-		//DumpAddr( "Http Address:", addr );
-		options->connectError = 0; // clear any previous error.
-		pc = CPPOpenTCPClientAddrExxx( addr, HttpReader, (uintptr_t)state, HttpReaderClose, (uintptr_t)state
-				, writeComplete, (uintptr_t)state, httpConnected, (uintptr_t)state, OPEN_TCP_FLAG_DELAY_CONNECT DBG_SRC );
-		SetTCPNoDelay( pc, TRUE );   
-		state->request_socket = pc;
-		//connect->pc = pc;
-		//lprintf( "setting pending3: %p", connect->pc );
-		ReleaseAddress( addr );
+		pc = httpOpenSocket( address, state, options );
 		if( pc )
 		{
-			char* header;
-			LOGICAL skipLength = FALSE;
-			INDEX idx;
-			LOGICAL hadUserAgent = FALSE;
-			LOGICAL hadConnection = FALSE;
-			const char* resource = GetText( url );
-			if( !resource ) resource = "/";
-			state->last_read_tick = timeGetTime();
-			state->waiter = MakeThread();
-			SetNetworkLong( pc, 0, (uintptr_t)state );
-
-			//SetNetworkConn
-			state->ssl = options->ssl;
 			state->pvtOut = VarTextCreate();
-			// 1.0 expects close after request - this is a one shot synchronous process so...
-			vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.1" );
-			// 1.1 would need this sort of header....
-
-			// Define your host/authority string safely (including port if non-standard)
-			const char* targetHost = options->hostname ? options->hostname : GetText(address);
-			// Note: Ensure targetHost includes ":port" if it's something like "mysite.com:8080"
-			{
-				// --- HTTP/1.1 HEADERS ---
-				// Format line: GET /path HTTP/1.1
-				//vtprintf(state->pvtOut, "%s %s HTTP/1.1\r\n", options->method, resource);
-				vtprintf(state->pvtOut, "Host:%s\r\n", targetHost);
-			}
-
-			
-			LIST_FORALL( options->headers, idx, char*, header ) {
-				if( !hadConnection && ( StrCaseCmpEx( header, "connection", 10 ) == 0 ) ) {
-					hadConnection = TRUE;
-					int spaces = 0; 
-					while( header[11+spaces] == ' ' || header[11+spaces] == ':' ) spaces++;
-					if( StrCaseCmpEx( header+11+spaces, "keep-alive", 9 ) == 0 ) {
-						state->flags.keep_alive = 1;
-					} else if( StrCaseCmpEx( header+11+spaces, "close", 5 ) == 0 ) {
-						state->flags.close = 1;
-					}
-				}
-				if( !hadUserAgent && ( StrCaseCmpEx( header, "user-agent", 10 ) == 0 ) ) hadUserAgent = TRUE;
-				if( !skipLength   && ( StrCaseCmpEx( header, "Content-Length", 15 ) == 0 ) ) {
-					skipLength = TRUE;
-					if( header[15] == '~' ) // force content length to get hidden; should be ':' to be valid
-						continue;
-				}				
-				vtprintf( state->pvtOut, "%s\r\n", header );
-			}
-
-			if( !hadConnection ) {
-				if( !options->httpVersion || strcmp( options->httpVersion, "1.1" ) == 0 || strcmp( options->httpVersion, "2.0" ) == 0) {
-					vtprintf( state->pvtOut, "Connection: Keep-Alive\r\n" );
-					state->flags.keep_alive = 1;
-				}
-			}
-
-			if( !skipLength ) {
-				vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
-			}
-			if( !hadUserAgent )
-				vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK/1.3" );
-			vtprintf( state->pvtOut, "\r\n" ); // send blank header
+			httpBuildRequest( state, address, url, options );
 #ifndef NO_SSL
 			if( options->ssl ) {
 				if( ssl_BeginClientSession( pc, NULL, 0, NULL, 0, options->certChain?options->certChain:certChain, certChain
@@ -1555,22 +1592,14 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 
 			if( pc ) {
 				state->waiter = MakeThread();
-				PTEXT send = VarTextPeek( state->pvtOut );
 				if( NetworkConnectTCP( pc ) < 0 ) {
 					DestroyHttpState( state );
 					return NULL;
 				}
-
-				if( l.flags.bLogReceived ) 
-				{
-					lprintf( "Sending %s...", options->method );
-					LogBinary( (uint8_t*)GetText( send ), GetTextSize( send ) );
-				}
-				SendTCP( pc, GetText( send ), GetTextSize( send ) );
-				if( options->content && options->contentLen )
-					SendTCPLong( pc, options->content, options->contentLen );
-				// if it was SSL enabled, then SSL will do the destroy later, it
-            // still needs the vartext to send.
+				// Plain sockets can send as soon as connect returns.  The TLS branch
+				// above deliberately does not: pvtOut is left for HttpReader to send
+				// once the handshake completes.
+				httpSendRequest( state, options );
 				VarTextDestroy( &state->pvtOut );
 			}
 
