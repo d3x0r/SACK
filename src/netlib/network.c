@@ -258,18 +258,15 @@ static PCLIENT AddAvailable( PCLIENT pClient )
 	{
 		SetClientFlags( pClient, CF_AVAILABLE );
 		pClient->LastEvent = timeGetTime();
-		PCLIENT lastClient = globalNetworkData.AvailableClients;
-		while( lastClient && lastClient->next ) lastClient = lastClient->next;
-		if( lastClient ) {
-			lastClient->next = pClient;
-			pClient->me = &lastClient->next;
-			pClient->next = NULL;
-		} else {
-			pClient->me = &globalNetworkData.AvailableClients;
-			if( ( pClient->next = globalNetworkData.AvailableClients ) )
-				globalNetworkData.AvailableClients->me = &pClient->next;
-			globalNetworkData.AvailableClients = pClient;
-		}
+		// Head insert, same as AddActive.  This used to walk to the tail so the pool
+		// behaved LRU - that was a probe to expose ClearClient leakage by preventing
+		// immediate reuse, not intended behaviour, and it is O(available) on every
+		// recycle while holding csNetwork.  Worse at the slab pre-fill (AddClients
+		// calls this 256 times in a row), which made pool growth O(n^2).
+		pClient->me = &globalNetworkData.AvailableClients;
+		if( ( pClient->next = globalNetworkData.AvailableClients ) )
+			globalNetworkData.AvailableClients->me = &pClient->next;
+		globalNetworkData.AvailableClients = pClient;
 	}
 	return pClient;
 }
