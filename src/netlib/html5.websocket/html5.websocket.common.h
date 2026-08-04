@@ -84,8 +84,8 @@ struct web_socket_input_state
 	web_socket_completion on_fragment_done;
 	uintptr_t psv_on;
 	uintptr_t psv_open; // result of the open, to pass to read
-	int close_code;
-	char *close_reason;
+	//int close_code;
+	//char *close_reason;
 	//struct html5_web_socket* socket;
 
 	uint32_t ping_delay; // when set by enable auto_ping is the delay between packets to generate a ping

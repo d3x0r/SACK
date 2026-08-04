@@ -263,15 +263,13 @@ static void CPROC destroyHttpState( HTML5WebSocket socket, PCLIENT pc_client ) {
 	if( pc_client && socket->input_state.on_close && socket->input_state.psv_open  ) {
 		web_socket_closed close = socket->input_state.on_close;
 		socket->input_state.on_close = NULL;
-		close( pc_client, socket->input_state.psv_open, socket->input_state.close_code, socket->input_state.close_reason );
+		close( pc_client, socket->input_state.psv_open, 1006, "HTTP State Destroyed" );
 	}
 	else if( pc_client && socket->input_state.on_http_close ) {
 		web_socket_http_close close = socket->input_state.on_http_close;
 		socket->input_state.on_http_close = NULL;
 		close( pc_client, socket->input_state.psv_on );
 	}
-	if( socket->input_state.close_reason )
-		Deallocate( char*, socket->input_state.close_reason );
 #ifndef __NO_WEBSOCK_COMPRESSION__
 	if( socket->input_state.flags.deflate ) {
 		deflateEnd( &socket->input_state.deflater );
@@ -661,8 +659,8 @@ static void CPROC connected( PCLIENT pc_server, PCLIENT pc_new )
 #endif	
 	SetTCPNoDelay( pc_new, TRUE );   
 
-	socket->input_state.close_code = 1006;
-	socket->input_state.close_reason = StrDup( "Because I don't Like You?");
+	//socket->input_state.close_code = 1006;
+	//socket->input_state.close_reason = "Because I don't Like You?";
 	socket->input_state.psvSender = (uintptr_t)pc_new;
 	// after the clone above, which would otherwise overwrite it with the listener's
 	socket->input_state.pc = pc_new;
@@ -698,7 +696,7 @@ PCLIENT WebSocketCreate_v2( CTEXTSTR hosturl
 	socket->input_state.on_close = on_closed;
 	socket->input_state.on_error = on_error;
 	socket->input_state.psv_on = psv;
-	socket->input_state.close_code = 1006;
+	//socket->input_state.close_code = 1006;
 
 	struct url_data *url = SACK_URLParse( hosturl );
 	socket->pc = OpenTCPListenerAddr_v2( CreateSockAddress( url->host, url->port?url->port:url->default_port )
@@ -787,7 +785,7 @@ HTML5WebSocket WebSocketCreateServerPipe( web_socket_opened on_open
 	socket->input_state.on_http_close = ws_http_close;
 	socket->input_state.on_fragment_done = ws_completion;
 	socket->input_state.psv_on = psv;
-	socket->input_state.close_code = 1006;
+	//socket->input_state.close_code = 1006;
 	socket->input_state.flags.use_ssl = 0;
 	// an accepted socket should have an http state - the listener itself doesn't use one.
 	socket->http_state = NULL; // CreateHttpState( &socket->pc ); // start a new http state collector

@@ -478,38 +478,49 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 					if( !websock->flags.closed )
 					{
 						//lprintf( "reply close with same payload." );
-						SendWebSocketMessage( websock, 0x08, 1, websock->flags.expect_masking, websock->fragment_collection, websock->frame_length );
+						if( websock->frame_length == 1 ) {
+							// RFC 6455 7.4.1: a Close frame with a 1-byte body is malformed.
+							// The spec says to treat it as a protocol error (1002) and close
+							// the connection.  The code below was sending the same 1-byte
+							// body back, which is not a valid Close frame, so the peer would
+							// have to ignore it and close anyway.  
+							// send a proper Close frame with a 1002 code and a reason string instead.
+							static const uint8_t _1002[] = { 0x03, 0xea // 1002 in network byte order
+										, 'P','r','o','t','o','c','o','l',' ','E','r','r','o','r',',',' '
+										,'s','h','o','r','t',' ','c','l','o','s','e',' ','c','o','d','e','.'}; 
+							websock->frame_length = 0;
+							SendWebSocketMessage( websock, 0x08, 1, websock->flags.expect_masking, _1002, sizeof(_1002) );
+						}else
+							SendWebSocketMessage( websock, 0x08, 1, websock->flags.expect_masking, websock->fragment_collection, websock->frame_length );
 						websock->flags.closed = 1;
 					}
 					if( websock->on_close ) {
 						int code;
 						char buf[128];
 						if( websock->frame_length > 2 ) {
-							// assume the buffer is longer by 1 so the NUL terminator gets put after the string
+							// assume the buffer is longer by 1 so the NUL terminator gets 
+							// put after the string (By strncpy which MUST put NUL)
 							StrCpyEx( buf, (char*)(websock->fragment_collection + 2), websock->frame_length - 1 );
 							//buf[websock->frame_length - 2] = 0;
 							code = ((int)websock->fragment_collection[0] << 8) + websock->fragment_collection[1];
 						}
-						else if( websock->frame_length ) {
+						else {
 							// frame_length == 1: a body that cannot carry the 2-byte status
 							// code, so the frame is malformed.  Reading fragment_collection[1]
 							// here was a 1-byte overread synthesising a code out of 1.5 bytes.
 							// Report "no code" instead.  (RFC 6455 7.4.1 would treat this as a
 							// protocol error, 1002 -- available if strictness is ever wanted.)
-							code = 0;
-							buf[0] = 0;
-						}
-						else {
-							// No body at all means no status code: 5.5.1 puts the code INSIDE
+
+							// frame_length == 0: No body at all means no status code: 5.5.1 puts the code INSIDE
 							// the body, so absent body == absent code.  0 is the internal
 							// "none" sentinel; the JS binding maps it to 1005 "No Status Rcvd".
 							// Reporting 1000 here was a fabrication -- it told the local
 							// handler "normal closure, explicitly stated" while the echo on the
 							// wire correctly said nothing at all.  Two stories, one close.
-							code = 0;
+							code = 1;
 							buf[0] = 0;
 						}
-						websock->close_code = code;
+						//websock->close_code = code;
 						// frame_length is size_t: a Close frame with an EMPTY payload gives
 						// 0 - 2 = SIZE_MAX-1 here (and 1 - 2 = SIZE_MAX), which either
 						// allocates absurdly or overflows length+1 to a tiny block and then
@@ -519,8 +530,14 @@ void ProcessWebSockProtocol( WebSocketInputState websock, const uint8_t* msg, si
 						// body), and is what WebSocket.close() with no code sends, so any
 						// conformant peer can trigger it with one packet.  Browsers always
 						// send a 2-byte code, which is why this was never seen in production.
-						websock->close_reason = DupCStrLen( buf, websock->frame_length > 2 ? websock->frame_length - 2 : 0 );
-						websock->on_close( (PCLIENT)websock->psvSender, websock->psv_open, code, buf );
+						//websock->close_reason = NULL;
+						// comes from the wire; last message - saved state
+						// clears the callback, so even the close() event won't re-use this close_reason
+						websock->on_close( (PCLIENT)websock->psvSender, websock->psv_open
+						                 , code == 0 ? 1005 : code == 1 ? 1002 : code
+						                 , code == 0 ?"Close with no body; no code, no reason."
+						                 : code == 1 ?"Remote close with incomplete numeric code."
+						                 : buf );
 						websock->on_close = NULL;
 					}
 					websock->fragment_collection_length = 0;

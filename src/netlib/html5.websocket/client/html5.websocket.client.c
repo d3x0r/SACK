@@ -196,14 +196,9 @@ static void CPROC WebSocketClientClosed( PCLIENT pc )
 	{
 		//lprintf( "Send close to application." );
 		if( websock->input_state.on_close ) {
-			if( websock->flags.connected )
-				websock->input_state.on_close( pc, websock->input_state.psv_on, websock->input_state.close_code, websock->input_state.close_reason );
-			else
-				websock->input_state.on_close( pc, websock->input_state.psv_on, 1006, "Connection Failed" );
+			websock->input_state.on_close( pc, websock->input_state.psv_on, 1006, "Connection Failed" );
 			websock->input_state.on_close = NULL;
 		}
-		if( websock->input_state.close_reason )
-			Deallocate( char*, websock->input_state.close_reason );
 		Deallocate( uint8_t*, websock->input_state.fragment_collection );
 		Release( websock->buffer );
 		DestroyHttpState( websock->pHttpState );
@@ -279,8 +274,8 @@ PCLIENT WebSocketOpen( CTEXTSTR url_address
 	websock->protocols = protocols;
 
 	websock->input_state.flags.expect_masking = 1; // client to server is MUST mask because of proxy handling in that direction
-	websock->input_state.close_code = 1006;
-	websock->input_state.close_reason = StrDup( "Socket Close" );
+	//websock->input_state.close_code = 1006;
+	//websock->input_state.close_reason = NULL;
 
 	websock->url = SACK_URLParse( url_address );
 	if( !websock->url->host ) {
