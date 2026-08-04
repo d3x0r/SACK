@@ -65,10 +65,41 @@ struct HttpState {
 		BIT_FIELD ws_upgrade : 1;
 		BIT_FIELD ssl : 1; // prevent issuing network reads... ssl pushes data from internal buffers
 		BIT_FIELD success : 1;
+		// this state is a streaming connection (several requests on one socket)
+		// rather than the one-shot GetHttpsQueryEx conversation.
+		BIT_FIELD connection_mode : 1;
+		// connected (and for TLS, handshaken); queued requests may be written.
+		BIT_FIELD connection_ready : 1;
+		// the opened callback has already been told; it only fires once.
+		BIT_FIELD connection_opened : 1;
 	}flags;
 	CRITICALSECTION lock;
 	struct HTTPRequestOptions* options;
+
+	// --- streaming connection bookkeeping; all NULL/0 for a one-shot request ---
+	PLINKQUEUE pending;   // struct httpConnectionRequest*, queued but not yet written
+	PLINKQUEUE inflight;  // written, awaiting their response; oldest first
+	int inflightCount;
+	int pipelineDepth;    // how many requests may be on the wire at once
+	PTEXT connectionAddress; // host[:port], reused for Host: on every request
+	const char *connectionCertChain;
+	httpConnectionOpened openedCallback;
+	httpConnectionResponse responseCallback;
+	httpConnectionClosed closedCallback;
+	uintptr_t psvConnection;
+	// options of the request currently being written; writeComplete belongs to
+	// this one, not to the connection's own options.
+	struct HTTPRequestOptions* requestOptions;
 };
+
+// One queued request on a streaming connection.  options is the caller's and is
+// handed back to the response callback so it can match the reply to the request.
+struct httpConnectionRequest {
+	PTEXT url;
+	struct HTTPRequestOptions *options;
+};
+// defined with the rest of the connection code, below the client section
+static void httpReleaseConnectionRequest( struct httpConnectionRequest *req );
 
 struct HttpServer {
 	PCLIENT server;
@@ -296,7 +327,18 @@ void GatherHttpData( struct HttpState *pHttpState )
 			pMergedLine = SegConcat( NULL, pNewLine, 0, GetTextSize( pHttpState->partial ) + GetTextSize( pInput ) );
 			LineRelease( pNewLine );
 			pHttpState->partial = pMergedLine;
-			if( !pHttpState->flags.no_content_length ) {
+			// Reaching here means a length is known and it is zero.  Taking
+			// "however much has arrived" as the body is a RESPONSE rule - it is
+			// for a peer that never said how long the content was - and applying
+			// it to a REQUEST is what broke pipelining: GET and PUT request lines
+			// set no_content_length=0 ("GET will never have a body?"), so every
+			// GET swallowed whatever was still buffered as its own body.  With one
+			// request per read that is an empty no-op, which is why it went
+			// unnoticed; with requests coalesced into one read it eats the ones
+			// behind it, and EndHttp's LineRelease( content ) then frees them.
+			// Responses (including the 101 upgrade, whose trailing bytes belong to
+			// the upgraded protocol) keep the old behaviour exactly.
+			if( !pHttpState->flags.no_content_length && pHttpState->response_version ) {
 				pHttpState->content = pHttpState->partial;
 				pHttpState->content_length = GetTextSize( pHttpState->content );
 				pHttpState->partial = NULL;
@@ -906,11 +948,20 @@ void EndHttp( struct HttpState *pHttpState )
 	LineRelease( pHttpState->content );
 	LineRelease( pHttpState->resource );
 	pHttpState->resource = NULL;
-	if( pHttpState->partial != pHttpState->content )
-	{
-		LineRelease( pHttpState->partial );
-	}
-	pHttpState->partial = NULL;
+	// Whatever is left in 'partial' once the content has been split out of it is
+	// the beginning of the NEXT message - the peer coalesced it into the same
+	// read.  This used to be released here, which is what made pipelining lose
+	// requests: a client that packs several requests into one segment got only
+	// the first one answered and the rest silently dropped (measurable as the
+	// server jumping from request 0 straight to request 4).  Keeping it is what
+	// makes the ProcessHttp re-parse loops after EndHttp able to find anything;
+	// the next ProcessHttp merges new input onto the end of it.
+	// GatherHttpData SegGrab'd it off the content chain, so it is independent of
+	// the LineRelease( content ) above.
+	// DestroyHttpStateEx releases it explicitly, since there is no 'next message'
+	// at teardown.
+	if( pHttpState->partial == pHttpState->content )
+		pHttpState->partial = NULL;
 	pHttpState->content = NULL;
 
 	LineRelease( pHttpState->response_status );
@@ -1056,6 +1107,10 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 
 	//_lprintf(DBG_RELAY)( "Destroy http state... (should clear content too? %p", pHttpState );
 	EndHttp( pHttpState ); // empties variables
+	// EndHttp deliberately keeps any bytes of a following message; at teardown
+	// there is no following message.
+	LineRelease( pHttpState->partial );
+	pHttpState->partial = NULL;
 	//lprintf( "Fields should have been emptied already?" );
 	DeleteList( &pHttpState->fields );
 	DeleteList( &pHttpState->cgi_fields );
@@ -1064,6 +1119,17 @@ void DestroyHttpStateEx( struct HttpState *pHttpState DBG_PASS )
 	VarTextDestroy( &pHttpState->pvt_chunk );
 	if( pHttpState->buffer )
 		Release( pHttpState->buffer );
+	if( pHttpState->flags.connection_mode ) {
+		struct httpConnectionRequest *req;
+		while( ( req = (struct httpConnectionRequest*)DequeLink( &pHttpState->inflight ) ) )
+			httpReleaseConnectionRequest( req );
+		while( ( req = (struct httpConnectionRequest*)DequeLink( &pHttpState->pending ) ) )
+			httpReleaseConnectionRequest( req );
+		DeleteLinkQueue( &pHttpState->inflight );
+		DeleteLinkQueue( &pHttpState->pending );
+		LineRelease( pHttpState->connectionAddress );
+		pHttpState->connectionAddress = NULL;
+	}
 	unlockHttp( pHttpState );
 	DeleteCriticalSec( &pHttpState->lock );
 	Release( pHttpState );
@@ -1148,6 +1214,10 @@ static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size );
 static void CPROC HttpReaderClose( uintptr_t psv );
 static void httpConnected( uintptr_t psv, int error );
 static void writeComplete( uintptr_t psv, CPOINTER buffer, size_t length );
+// defined with the request formatting, down by GetHttpsQueryEx; the connection
+// code up here needs it to format requests 2..N.
+static void httpBuildRequest( struct HttpState *state, PTEXT address, PTEXT url
+                            , struct HTTPRequestOptions *options );
 
 // Create the socket for an HTTP conversation and attach the state to it.  The
 // connect is deliberately deferred (OPEN_TCP_FLAG_DELAY_CONNECT) so the caller can
@@ -1200,6 +1270,90 @@ static LOGICAL httpSendRequest( struct HttpState *state, struct HTTPRequestOptio
 	return TRUE;
 }
 
+//---------- streaming connections ------------------------------
+// A streaming connection is one HttpState whose parse state is reused for reply
+// after reply, with the requests it is answering kept in two queues: 'pending'
+// (queued, not written) and 'inflight' (written, waiting).  HTTP/1.1 gives no
+// way to correlate a reply with a request other than order, so the head of
+// 'inflight' is by definition whose reply just arrived.
+
+static void httpReleaseConnectionRequest( struct httpConnectionRequest *req ) {
+	if( !req ) return;
+	LineRelease( req->url );
+	Release( req );
+}
+
+// Write as many queued requests as the pipeline depth allows.  Called when the
+// connection comes up, when a new request is queued, and after each reply.
+static void httpFlushRequests( struct HttpState *state ) {
+	if( !state->flags.connection_ready ) return;
+	while( state->request_socket && !state->closed
+	     && state->inflightCount < state->pipelineDepth ) {
+		struct httpConnectionRequest *req = (struct httpConnectionRequest*)DequeLink( &state->pending );
+		if( !req ) break;
+		state->requestOptions = req->options;
+		httpBuildRequest( state, state->connectionAddress, req->url, req->options );
+		if( !httpSendRequest( state, req->options ) ) {
+			// socket went away between the check and the write; put it back so
+			// the close path reports it like any other outstanding request.
+			VarTextDestroy( &state->pvtOut );
+			PrequeLink( &state->inflight, req );
+			state->inflightCount++;
+			break;
+		}
+		VarTextDestroy( &state->pvtOut );
+		EnqueLink( &state->inflight, req );
+		state->inflightCount++;
+	}
+}
+
+// The connection is up (TLS: handshake done) - tell the owner once, then let
+// anything queued while we were connecting go out.
+static void httpConnectionReady( struct HttpState *state ) {
+	state->flags.connection_ready = 1;
+	if( !state->flags.connection_opened ) {
+		state->flags.connection_opened = 1;
+		if( state->openedCallback )
+			state->openedCallback( state->psvConnection, state, 0 );
+	}
+	httpFlushRequests( state );
+}
+
+// Hand the reply sitting in the parse state to the owner, then reset the state
+// for the next one.  EndHttp keeps any bytes of a following reply that arrived
+// in the same read, which is what lets the caller loop for another one.
+static void httpDeliverResponse( struct HttpState *state ) {
+	struct httpConnectionRequest *req = (struct httpConnectionRequest*)DequeLink( &state->inflight );
+	if( state->inflightCount ) state->inflightCount--;
+	state->requestOptions = NULL;
+	if( state->responseCallback )
+		state->responseCallback( state->psvConnection, state, req ? req->options : NULL );
+	httpReleaseConnectionRequest( req );
+
+	EndHttp( state );
+	// EndHttp resets the parse, but not the 'a reply was returned' latch that
+	// ProcessHttp checks before returning another one.
+	state->returned_status = 0;
+}
+
+// Everything queued or unanswered is reported with the parse state empty (so
+// GetHttpResponseCode reads 0), which is how the owner learns those requests
+// will never be answered.
+static void httpFailOutstanding( struct HttpState *state ) {
+	struct httpConnectionRequest *req;
+	while( ( req = (struct httpConnectionRequest*)DequeLink( &state->inflight ) ) ) {
+		if( state->responseCallback )
+			state->responseCallback( state->psvConnection, state, req->options );
+		httpReleaseConnectionRequest( req );
+	}
+	while( ( req = (struct httpConnectionRequest*)DequeLink( &state->pending ) ) ) {
+		if( state->responseCallback )
+			state->responseCallback( state->psvConnection, state, req->options );
+		httpReleaseConnectionRequest( req );
+	}
+	state->inflightCount = 0;
+}
+
 static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 {
 	struct HttpState *state = (struct HttpState *)psv;
@@ -1213,13 +1367,21 @@ static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 			// had to wait for handshake, so NULL event
 			// on secure has already had time to build the send
 			// but had to wait until now to do that.
-			httpSendRequest( state, state->options );
+			if( state->flags.connection_mode )
+				httpConnectionReady( state );
+			else
+				httpSendRequest( state, state->options );
 		}
 		else
 #endif
 		if( state ) {
 			state->buffer = Allocate( 4096 );
 			ReadTCP( pc, state->buffer, 4096 );
+			// a plain socket is writable as soon as it is connected, but this
+			// is the point the read side is armed, so it is the same signal for
+			// both transports and keeps the connection paths symmetric.
+			if( state->flags.connection_mode )
+				httpConnectionReady( state );
 		} else {
 			lprintf( "Initial read on http with no state set?" );
 		}
@@ -1238,7 +1400,22 @@ static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 			
 		} else if( AddHttpData( state, buffer, size ) ) {
 			enum ProcessHttpResult r;
-			if( ( r = ProcessHttp( state, NULL, 0 ) ) ) // this shouldn't cause any auto send?
+			if( state->flags.connection_mode ) {
+				// A single read can carry more than one reply, so keep parsing
+				// until the buffered bytes stop completing one.
+				while( ( r = ProcessHttp( state, NULL, 0 ) ) ) {
+					LOGICAL closing = state->flags.close || !state->flags.keep_alive;
+					httpDeliverResponse( state );
+					if( closing ) {
+						// peer is done with this connection; whatever is still
+						// queued gets failed by the close callback.
+						RemoveClient( state->pc[0] );
+						return;
+					}
+				}
+				httpFlushRequests( state );
+			}
+			else if( ( r = ProcessHttp( state, NULL, 0 ) ) ) // this shouldn't cause any auto send?
 			{
 				//lprintf( "this is where we should close and not end...%d %d %d",r, state->flags.close , !state->flags.keep_alive );
 				if( state->flags.close || !state->flags.keep_alive) {
@@ -1252,7 +1429,7 @@ static void CPROC HttpReader( uintptr_t psv, POINTER buffer, size_t size )
 						WakeThread( state->waiter );
 					//EndHttp( state );
 					if( state->flags.keep_alive ) {
-						
+
 					}
 				}
 			}
@@ -1286,6 +1463,26 @@ static void CPROC HttpReaderClose( uintptr_t psv )
 	if( ppc )
 		ppc[0] = NULL;
 	data->closed = TRUE;
+	data->flags.connection_ready = 0;
+	if( data->flags.connection_mode ) {
+		// a reply with no content-length is only complete at the close; the
+		// gather above finished it, so hand it over before failing the rest.
+		if( data->returned_status && data->inflightCount )
+			httpDeliverResponse( data );
+		if( !data->flags.connection_opened ) {
+			// never got up in the first place - report the connect failure
+			// through the same callback a successful open would have used.
+			data->flags.connection_opened = 1;
+			if( data->openedCallback )
+				data->openedCallback( data->psvConnection, data
+				                    , data->options && data->options->connectError
+				                      ? data->options->connectError : -1 );
+		}
+		httpFailOutstanding( data );
+		if( data->closedCallback )
+			data->closedCallback( data->psvConnection, data );
+		return;
+	}
 	if( data->waiter ) {
 		//lprintf( "(on close) Waking waiting to return with result." );
 		WakeThread( data->waiter );
@@ -1477,8 +1674,11 @@ HTTPState GetHttpsQuery( PTEXT address, PTEXT url, const char* certChain )
 
 static void writeComplete( uintptr_t psv, CPOINTER buffer, size_t length ) {
 	struct HttpState* data = (struct HttpState*)psv;//GetNetworkLong( pc, 0 );
-	if( data && data->options && data->options->writeComplete )
-		data->options->writeComplete( data->options->userData );
+	// on a streaming connection the content that just drained belongs to the
+	// request being written, not to the connection's own options.
+	struct HTTPRequestOptions *options = data ? ( data->requestOptions ? data->requestOptions : data->options ) : NULL;
+	if( options && options->writeComplete )
+		options->writeComplete( options->userData );
 }
 
 // Format one request into state->pvtOut: request line, Host, the caller's headers
@@ -1647,6 +1847,99 @@ HTTPState GetHttpsQueryEx( PTEXT address, PTEXT url, const char* certChain, stru
 		}
 	}
 	return NULL;
+}
+
+//---------- streaming connection API ---------------------------
+// Same five phases GetHttpsQueryEx runs through, minus its wait loop, and with
+// the two per-request phases (format, write) moved out to
+// SendHttpConnectionRequest so they can happen more than once.
+
+HTTPState OpenHttpConnection( PTEXT address, const char *certChain
+                            , struct HTTPRequestOptions *options
+                            , httpConnectionOpened opened
+                            , httpConnectionResponse response
+                            , httpConnectionClosed closed
+                            , uintptr_t psv ) {
+	PCLIENT pc;
+	struct HttpState *state;
+	if( !address || !options ) return NULL;
+	state = CreateHttpState( NULL );
+	state->options = options;
+	state->closed = FALSE;
+	state->flags.connection_mode = 1;
+	state->pipelineDepth = 1;
+	state->connectionAddress = SegDuplicate( address );
+	state->connectionCertChain = options->certChain ? options->certChain : certChain;
+	state->openedCallback = opened;
+	state->responseCallback = response;
+	state->closedCallback = closed;
+	state->psvConnection = psv;
+
+	pc = httpOpenSocket( address, state, options );
+	if( !pc ) {
+		DestroyHttpState( state );
+		return NULL;
+	}
+	// no waiter thread: nothing about this API blocks.
+	state->waiter = NULL;
+#ifndef NO_SSL
+	if( options->ssl ) {
+		if( !ssl_BeginClientSession( pc, NULL, 0, NULL, 0, state->connectionCertChain, state->connectionCertChain
+		                           ? strlen( state->connectionCertChain ) : 0 ) ) {
+			RemoveClient( pc );
+			DestroyHttpState( state );
+			return NULL;
+		}
+		SetNetworkErrorCallback( pc, httpSSLError, (uintptr_t)state );
+		if( !options->rejectUnauthorized )
+			ssl_SetIgnoreVerification( pc );
+	}
+#endif
+	if( NetworkConnectTCP( pc ) < 0 ) {
+		DestroyHttpState( state );
+		return NULL;
+	}
+	state->last_read_tick = timeGetTime();
+	return state;
+}
+
+LOGICAL SendHttpConnectionRequest( HTTPState connection, PTEXT url, struct HTTPRequestOptions *options ) {
+	struct httpConnectionRequest *req;
+	if( !connection || !connection->flags.connection_mode ) return FALSE;
+	if( connection->closed || !connection->request_socket ) return FALSE;
+	req = New( struct httpConnectionRequest );
+	req->url = url ? SegDuplicate( url ) : NULL;
+	req->options = options;
+	lockHttp( connection );
+	EnqueLink( &connection->pending, req );
+	unlockHttp( connection );
+	// before the connection is up this just queues; httpConnectionReady flushes.
+	httpFlushRequests( connection );
+	return TRUE;
+}
+
+void SetHttpConnectionPipeline( HTTPState connection, int depth ) {
+	if( !connection ) return;
+	connection->pipelineDepth = depth > 0 ? depth : 1;
+	httpFlushRequests( connection );
+}
+
+int GetHttpConnectionPending( HTTPState connection ) {
+	if( !connection ) return 0;
+	return connection->inflightCount + (int)GetQueueLength( connection->pending );
+}
+
+void CloseHttpConnection( HTTPState connection ) {
+	if( !connection ) return;
+	connection->flags.connection_ready = 0;
+	if( connection->request_socket )
+		RemoveClient( connection->request_socket );
+	else if( connection->closedCallback && !connection->closed ) {
+		// never had a socket to close; still owes the owner a close.
+		connection->closed = TRUE;
+		httpFailOutstanding( connection );
+		connection->closedCallback( connection->psvConnection, connection );
+	}
 }
 
 PTEXT GetHttp( PTEXT address, PTEXT url, LOGICAL secure )
