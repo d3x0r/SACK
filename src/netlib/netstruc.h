@@ -355,6 +355,30 @@ struct client_lock_trace {
 };
 #endif
 
+// Cache-line separation for the per-client locks.  csLockRead and csLockWrite are
+// 24-byte CRITICALSECTIONs and were adjacent, so both locks AND saClient/saSource
+// shared one 64-byte line - every atomic RMW on either channel invalidated the
+// line for any core merely READING the address pointers on the data path.
+// PMU counters on the http-ws server (xperf -Pmc, see test-harness/hotpath) put
+// the peer threads at IPC ~0.39 with ~18 L3 references per 1000 instructions and
+// a 94% L3 hit rate: heavy coherence traffic, almost no DRAM traffic, which is
+// the false-sharing signature rather than a memory-bound one.
+//
+// Aligning the MEMBERS does three jobs at once: each lock lands on its own line,
+// the struct's own alignment becomes 64, and sizeof(CLIENT) is rounded to a
+// multiple of 64 so the slab's array stride keeps every client aligned.  The one
+// thing the compiler cannot do is make the heap block itself aligned - AddClients
+// must use HeapAllocateAligned or the declared alignment is a lie the optimizer
+// is entitled to believe.
+#define SACK_CACHE_LINE 64
+#ifdef __cplusplus
+#  define SACK_ALIGN(n) alignas(n)
+#  define SACK_STATIC_ASSERT(c,m) static_assert(c,m)
+#else
+#  define SACK_ALIGN(n) _Alignas(n)
+#  define SACK_STATIC_ASSERT(c,m) _Static_assert(c,m)
+#endif
+
 struct NetworkClient
 {
 #ifdef DEBUG_CLIENT_LOCK_TRACE
@@ -376,10 +400,15 @@ struct NetworkClient
 	// restore then resurrected the previous owner and count on top of it - leaving
 	// clients permanently read-locked by a thread that had long since moved on.
 	// Nothing depends on member order here; the struct is module-local and opaque.
-	CRITICALSECTION csLockRead;    // per client lock.
-	CRITICALSECTION csLockWrite;   // per client lock.
+	// One cache line each; see the SACK_CACHE_LINE note above.  With
+	// DEBUG_CLIENT_LOCK_TRACE on, the ring ahead of these still leaves them line
+	// aligned - alignas pads to reach it - so the probe and the fix coexist.
+	SACK_ALIGN( SACK_CACHE_LINE ) CRITICALSECTION csLockRead;    // per client lock.
+	SACK_ALIGN( SACK_CACHE_LINE ) CRITICALSECTION csLockWrite;   // per client lock.
 
-	SOCKADDR *saClient;  //Dest Address
+	// Also aligned, so csLockWrite owns its line outright instead of sharing the
+	// back half of it with two pointers that every network operation reads.
+	SACK_ALIGN( SACK_CACHE_LINE ) SOCKADDR *saClient;  //Dest Address
 	SOCKADDR *saSource;  //Local Address of this port ...
 	SOCKADDR *saLastClient; // use this for UDP recvfrom
 	//uint8_t     hwClient[6];

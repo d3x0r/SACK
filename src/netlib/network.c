@@ -932,6 +932,14 @@ LOGICAL NetworkAlive( void )
 
 //----------------------------------------------------------------------------
 
+// The slab packs clients back to back at sizeof(CLIENT) stride, so aligning
+// client[0] only helps if the stride is a whole number of cache lines - otherwise
+// every client after the first drifts and its lock words share a line with the
+// previous client's tail.  The alignas in netstruc.h guarantees this; assert it
+// so a later struct edit cannot silently undo the fix.
+SACK_STATIC_ASSERT( ( sizeof( CLIENT ) % SACK_CACHE_LINE ) == 0
+                  , "sizeof(CLIENT) must be a multiple of SACK_CACHE_LINE or the slab stride breaks lock alignment" );
+
 static void AddClients( void ) {
 	PCLIENT_SLAB pClientSlab;
 
@@ -941,7 +949,20 @@ static void AddClients( void ) {
 	{
 		size_t n;
 		//Log1( "Creating %d Client Resources", MAX_NETCLIENTS );
-		pClientSlab = NewPlus( CLIENT_SLAB, (MAX_NETCLIENTS - 1 )* sizeof( CLIENT ) );
+		// Must be HeapAllocateAligned, not NewPlus: struct NetworkClient declares
+		// SACK_CACHE_LINE alignment for its lock words, and only the allocator can
+		// honour that for a heap block.  The compiler's part (client[] at a 64
+		// multiple, sizeof(CLIENT) a 64 multiple so the stride holds) comes from the
+		// alignas in netstruc.h.  NewPlus is HeapAllocate(0,...) and does not zero,
+		// and every CLIENT_SLAB field is initialised below, so this is a like-for-like
+		// swap apart from the alignment.
+		pClientSlab = (PCLIENT_SLAB)HeapAllocateAligned( 0
+		                                               , sizeof( CLIENT_SLAB ) + (MAX_NETCLIENTS - 1 ) * sizeof( CLIENT )
+		                                               , SACK_CACHE_LINE );
+		if( ( (uintptr_t)pClientSlab->client ) & ( SACK_CACHE_LINE - 1 ) )
+			lprintf( "WARNING: client slab is not cache-line aligned (%p); the false-sharing"
+			         " separation of csLockRead/csLockWrite is NOT in effect."
+			       , pClientSlab->client );
 		pClientSlab->pUserData = NewArray( uintptr_t, MAX_NETCLIENTS * globalNetworkData.nUserData );
 		MemSet( pClientSlab->client, 0, (MAX_NETCLIENTS) * sizeof( CLIENT ) ); // can't clear the lpUserData Address!!!
 		MemSet( pClientSlab->pUserData, 0, (MAX_NETCLIENTS) * globalNetworkData.nUserData * sizeof( uintptr_t ) );
