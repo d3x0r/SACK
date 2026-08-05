@@ -3,28 +3,43 @@ import {sack} from "sack.vfs"
 
 // path is always absolute...
 sack.HTTPS.get( { hostname:"sqlite.org", path:"/download.html", onReply(res) {
-		console.log( "good?", res );
-
-		const filePath = findSqliteAmalgamation( res.content, "/" );
-		sack.HTTPS.get( {hostname:"sqlite.org", path:filePath.relativeUrl, onReply(res) {
-			if( res.statusCode === 200 ) {
-				const fne = filePath.relativeUrl.split('/' );
-				const fn = fne[fne.length-1].split( '.' );
- 				sack.Volume().write( "sqlite.zip", res.bytes );				
-				//sack.Volume().write( "sqlite-name.txt", fn[0] );
-				if( process.platform === "win32" ) {
-					sack.Task( { bin:"pkzip25.exe", args:["-ext","-dir","sqlite.zip"]
-						, end() {
-							console.log( "unzipped..." );
-							sack.Task( { bin:"node.exe", args:["apply-table-alias.mjs",fn[0]]
-								, end() {
-									console.log( "updated:" );
-								} } );
-
-					} } );
+		if( res.statusCode === 200 ) {
+			const filePath = findSqliteAmalgamation( res.content, "/" );
+			sack.HTTPS.get( {hostname:"sqlite.org", path:filePath.relativeUrl, onReply(res) {
+				if( res.statusCode === 200 ) {
+					const fne = filePath.relativeUrl.split('/' );
+					const fn = fne[fne.length-1].split( '.' );
+					if (res.bytes?.length && Number(filePath.sizeBytes) !== res.bytes.length) {
+					  console.log("size mismatch:", res.bytes.length, "expected", filePath.sizeBytes);
+					  return;
+					}
+ 	 				sack.Volume().write( "sqlite.zip", res.bytes );				
+					//sack.Volume().write( "sqlite-name.txt", fn[0] );
+					if( process.platform === "win32" ) {
+						sack.Task( { bin:"pkzip25.exe", args:["-ext","-dir","sqlite.zip"]
+							, end() {
+								console.log( "unzipped..." );
+								sack.Task( { bin:"node.exe", args:["apply-table-alias.mjs",fn[0]]
+									, end() {
+										console.log( "updated:" );
+									} } );
+   
+						} } );
+					} else {
+						console.log( "attmempting unzip (untested, non win32)" );
+						sack.Task( { bin:"unzip", args:["sqlite.zip"]
+							, end() {
+								console.log( "unzipped..." );
+								sack.Task( { bin:"node", args:["apply-table-alias.mjs",fn[0]]
+									, end() {
+										console.log( "updated:" );
+									} } );
+   
+						} } );
+					}
 				}
-			}
-		} } )
+			} } )
+		}
 	} } );
 
 function findSqliteAmalgamation(html, baseUrl = "https://www.sqlite.org/") {
