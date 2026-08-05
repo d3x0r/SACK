@@ -2195,7 +2195,7 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 
 void SetTCPNoDelay( PCLIENT pClient, int bEnable )
 {
-	if( !pClient || IsInvalid( lpClient->Socket ) ) return;
+	if( !pClient || IsInvalid( pClient->Socket ) ) return;
 	if( setsockopt( pClient->Socket, IPPROTO_TCP,
 						TCP_NODELAY,
 						(const char *)&bEnable, sizeof(bEnable) ) == SOCKET_ERROR )
@@ -2209,6 +2209,7 @@ void SetTCPNoDelay( PCLIENT pClient, int bEnable )
 
 void SetClientKeepAlive( PCLIENT pClient, int bEnable )
 {
+	if( !pClient || IsInvalid( pClient->Socket ) ) return;
 	if( setsockopt( pClient->Socket, SOL_SOCKET,
 						SO_KEEPALIVE,
 						(const char *)&bEnable, sizeof(bEnable) ) == SOCKET_ERROR )
