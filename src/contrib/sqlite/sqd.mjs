@@ -13,6 +13,11 @@ sack.HTTPS.get( { hostname:"sqlite.org", path:"/download.html", onReply(res) {
 					  console.log("size mismatch:", res.bytes.length, "expected", filePath.sizeBytes);
 					  return;
 					}
+					const hash = sha3_256(res.bytes);
+					if (filePath.sha3 && hash !== filePath.sha3) {
+					  console.log("sha3 mismatch:", hash, "expected", filePath.sha3);
+					  return;
+					}
  	 				sack.Volume().write( "sqlite.zip", res.bytes );				
 					//sack.Volume().write( "sqlite-name.txt", fn[0] );
 					if( process.platform === "win32" ) {
@@ -27,7 +32,7 @@ sack.HTTPS.get( { hostname:"sqlite.org", path:"/download.html", onReply(res) {
    
 						} } );
 					} else {
-						console.log( "attmempting unzip (untested, non win32)" );
+						console.log( "attempting unzip (untested, non win32)" );
 						sack.Task( { bin:"unzip", args:["sqlite.zip"]
 							, end() {
 								console.log( "unzipped..." );
@@ -78,6 +83,13 @@ function findSqliteAmalgamation(html, baseUrl = "https://www.sqlite.org/") {
   }
 
   throw new Error("SQLite amalgamation zip not found");
+}
+
+
+import { createHash } from "node:crypto";
+
+function sha3_256(bytes) {
+  return createHash("sha3-256").update(Buffer.from(bytes)).digest("hex");
 }
 
 
