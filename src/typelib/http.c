@@ -1713,16 +1713,37 @@ static void httpBuildRequest( struct HttpState *state, PTEXT address, PTEXT url
 	LOGICAL hadUserAgent = FALSE;
 	LOGICAL hadConnection = FALSE;
 	const char* resource = GetText( url );
-	if( !resource ) resource = "/";
+	// An origin-form request target has to start with '/' (RFC 9112 3.2.1), and a
+	// caller that passes a bare "download.html" would otherwise put
+	// `GET download.html HTTP/1.1` on the wire.  Servers do not merely refuse that:
+	// althttpd (which serves sqlite.org) counts a target that does not start with
+	// '/' as a hack attempt and shuns the source IP - 300 seconds per offense, and
+	// every retry of the request adds another one.  Prepend the slash instead.
+	// The two legal targets that do not begin with '/' are absolute-form
+	// ("http://host/path", used when talking to a proxy) and asterisk-form
+	// ("OPTIONS *"), so leave those alone.
+	const char* leadin = "";
+	if( !resource || !resource[0] )
+		resource = "/";
+	else if( resource[0] != '/' && resource[0] != '*'
+	      && StrCaseCmpEx( resource, "http://", 7 ) != 0
+	      && StrCaseCmpEx( resource, "https://", 8 ) != 0 )
+		leadin = "/";
 	if( !state->pvtOut ) state->pvtOut = VarTextCreate();
 
-	vtprintf( state->pvtOut, "%s %s HTTP/%s\r\n", options->method, resource, options->httpVersion?options->httpVersion:"1.1" );
+	vtprintf( state->pvtOut, "%s %s%s HTTP/%s\r\n", options->method, leadin, resource, options->httpVersion?options->httpVersion:"1.1" );
 
 	// Host must carry a nonstandard port; the caller decides that by setting
 	// options->hostname (NULL falls back to the "host:port" address text).
+	// The space after the colon is optional per RFC 9110 (field-line is
+	// name ":" OWS value OWS) but not everyone parses that way: althttpd splits
+	// header lines on whitespace and compares the first token against "Host:",
+	// so "Host:example.com" is one token that matches nothing, the host is lost,
+	// and the request 404s with "Missing HOST: parameter".  Every other client
+	// sends the space; so do we.
 	{
 		const char* targetHost = options->hostname ? options->hostname : GetText( address );
-		vtprintf( state->pvtOut, "Host:%s\r\n", targetHost );
+		vtprintf( state->pvtOut, "Host: %s\r\n", targetHost );
 	}
 
 	LIST_FORALL( options->headers, idx, char*, header ) {
@@ -1753,10 +1774,10 @@ static void httpBuildRequest( struct HttpState *state, PTEXT address, PTEXT url
 	}
 
 	if( !skipLength ) {
-		vtprintf( state->pvtOut, "Content-Length:%d\r\n", options->contentLen);
+		vtprintf( state->pvtOut, "Content-Length: %d\r\n", options->contentLen);
 	}
 	if( !hadUserAgent )
-		vtprintf( state->pvtOut, "User-Agent:%s\r\n", options->agent?options->agent:"SACK/1.3" );
+		vtprintf( state->pvtOut, "User-Agent: %s\r\n", options->agent?options->agent:"SACK/1.3" );
 	vtprintf( state->pvtOut, "\r\n" ); // send blank header
 }
 
