@@ -143750,10 +143750,10 @@ static const sqlite3_api_routines sqlite3Apis = {
 #else
   0,
   0
-#endif,
+#endif
   /* Version 3.53.0 and later */
-  sqlite3_column_table_alias,
-  sqlite3_column_table_alias16
+  ,sqlite3_column_table_alias
+  ,sqlite3_column_table_alias16
 };
 
 /* True if x is the directory separator character

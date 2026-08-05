@@ -155,8 +155,8 @@ hunk( "sqlite3Apis entries", [ "sqlite3.c" ], {
 	find: /(static const sqlite3_api_routines sqlite3Apis = \{[\s\S]*?)(\n\};)/g,
 	count: 1,
 	apply: ( s, f ) => s.replace( f.find, ( m, body, close ) => {
-		if( !/,\s*$/.test( body ) ) body += ",";
-		return body + "\n  /* Version 3.53.0 and later */\n  sqlite3_column_table_alias,\n  sqlite3_column_table_alias16" + close;
+		//if( !/,\s*$/.test( body ) ) body += ",";
+		return body + "\n  /* Version 3.53.0 and later */\n  ,sqlite3_column_table_alias\n  ,sqlite3_column_table_alias16" + close;
 	} ),
 } );
 
