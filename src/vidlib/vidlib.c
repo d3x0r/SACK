@@ -3007,8 +3007,10 @@ WM_DROPFILES
 			else if( ( (l.mouse_b & (MK_LBUTTON|MK_RBUTTON|MK_MBUTTON)) == 0 ) )
 			{
 				//lprintf( "Auto release mouse from surface which had the mouse unclicked." );
-				if( !l.hCaptured )
+				if( !l.hCaptured ) {
+					ClipCursor( NULL );
 					ReleaseCapture();
+				}
 			}
 		}
 
@@ -3020,7 +3022,7 @@ WM_DROPFILES
 			if( l.flags.bLogMouseEvents )
 				lprintf( "Mouse position %d,%d", p.x, p.y );
 #endif
-			p.x -= (dx =(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.x);
+			p.x -= (dx=(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.x);
 			p.y -= (dy=(l.hCaptured?l.hCaptured:hVideo)->cursor_bias.y);
 #ifdef LOG_MOUSE_EVENTS
 			if( l.flags.bLogMouseEvents )
@@ -3035,6 +3037,11 @@ WM_DROPFILES
 			if( l.flags.bLogMouseEvents )
 				lprintf( "Mouse position results %d,%d %d,%d", dx, dy, p.x, p.y );
 #endif
+			if (l.mouse_x == p.x && l.mouse_y == p.y)
+			{
+				lprintf("Filter duplicated event.");
+				return 0;
+			}
 			l.mouse_x = p.x;
 			l.mouse_y = p.y;
 			// save now, so idle timer can hide cursor.
@@ -3094,7 +3101,21 @@ WM_DROPFILES
 			{
 				hVideo->pMouseCallback (hVideo->dwMouseData,
 												l.mouse_x, l.mouse_y, l.mouse_b);
+				lprintf("Sent mouse event: %d, %d, %08x", l.mouse_x, l.mouse_y, l.mouse_b);
 			}
+			if (l.hCaptured)
+			{
+#ifdef LOG_MOUSE_EVENTS
+				if (l.flags.bLogMouseEvents)
+					lprintf("Captured mouse already - don't do anything?");
+#endif
+				SetCursorPos(l.mouse_x = hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2
+						, l.mouse_y = hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2);
+				l.mouse_x = hVideo->cursor_bias.x + hVideo->pWindowPos.cx / 2;
+				l.mouse_y = hVideo->cursor_bias.y + hVideo->pWindowPos.cy / 2;
+				lprintf("Re-set cursor position to center of screen. %d %d", l.mouse_x, l.mouse_y);
+			}
+
 			if( l.new_cursor )
 			{
 				SetCursor (LoadCursor (NULL, l.new_cursor) );
@@ -3108,6 +3129,7 @@ WM_DROPFILES
 			// continues to generate scroll clicks.
 			l.mouse_b &= ~( MK_SCROLL_UP|MK_SCROLL_DOWN);
 			l._mouse_b = l.mouse_b;
+
 		}
 		Return 0;			// don't allow windows to think about this...
 	case WM_SHOWWINDOW:
@@ -3277,6 +3299,12 @@ WM_DROPFILES
 		if (wParam) {
 			SetForegroundWindow(hWnd);
 			SetActiveWindow(hWnd);
+			//GetWindowRect(hWnd, (RECT*)&(hVideo->pWindowPos.x));
+			{
+				hVideo = (PVIDEO)GetWindowLongPtr(hWnd, WD_HVIDEO);
+				RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+				ClipCursor(&r);
+			}
 			if (!(SetCapture(hWnd))) {
 				DWORD dwErr = GetLastError();
 				lprintf("capture : %d", dwErr);
@@ -3285,6 +3313,7 @@ WM_DROPFILES
 				lprintf("Captured OK.");
 		}
 		else {
+			ClipCursor(NULL);
 			ReleaseCapture();
 		}
 
@@ -3926,7 +3955,7 @@ static void HandleMessage (MSG Msg)
 		UINT dwSize;
 		WPARAM wParam = Msg.wParam;
 		LPARAM lParam = Msg.lParam;
-		lprintf( "Raw Input!" );
+		//lprintf( "Raw Input!" );
 		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize,
 							 sizeof(RAWINPUTHEADER));
 		{
@@ -5739,8 +5768,6 @@ RENDER_PROC (void, OwnMouseEx) (PVIDEO hVideo, uint32_t own DBG_PASS)
 	{
 		if( l.hCaptured == hVideo )
 		{
-			//lprintf( "No more capture." );
-			//ReleaseCapture ();
 			PostMessage(hVideo->hWndOutput, WM_USER_MOUSE_CAPTURE, 0, 0);
 			hVideo->flags.bCaptured = 0;
 			l.hCapturedPrior = NULL;
