@@ -29,6 +29,13 @@ struct HttpState {
 	PLIST cgi_fields; // list of HttpField *, taken in from the URL or content (get or post)
 	PLIST anchor_fields; // parsed anchor (err... doesn't actually get this?)
 	int bLine;
+	// how many bytes at the front of 'partial' the header scanner has already
+	// looked at.  A read can end anywhere - including exactly on a line ending -
+	// and everything that has not been recognized as a complete line yet stays in
+	// 'partial'; the next ProcessHttp merges the new bytes onto the end of it and
+	// has to resume where it stopped instead of re-scanning from 0 (re-scanning
+	// re-counts the CR/LF that bLine already counted).
+	size_t scanned;
 
 	size_t content_length;
 	PTEXT content; // content of the message, POST,PUT,PATCH and replies have this.
@@ -509,11 +516,15 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 			if( pHttpState->bLine < 4 )
 			{
 				//start = 0; // new packet and still collecting header....
-				for( pos = 0; ( pos < size ) && !pHttpState->final; pos++ )
+				// Resume where the previous read stopped.  Everything before 'scanned'
+				// has already been counted into bLine (and any complete line before it
+				// was split off), so re-examining it would count its CR/LF twice - which
+				// is what used to swallow the status line whenever a read ended exactly
+				// after its CRLF (sqlite.org's 503 arrives that way).
+				pos = ( pHttpState->scanned <= size ) ? pHttpState->scanned : size;
+				for( ; ( pos < size ) && !pHttpState->final; pos++ )
 				{
-					if( ((int)pos - (int)start - (int)pHttpState->bLine) < 0 )
-						continue;
-					if( c[pos] == '\r' ) 
+					if( c[pos] == '\r' )
 						if( !(pHttpState->bLine & 1 ) )
 							pHttpState->bLine++;
 						else
@@ -767,6 +778,11 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 					pHttpState->final = 1;
 					goto FinalCheck;
 				}
+				// what is left in 'partial' after the split below is [start,pos); that
+				// much has been scanned, and the next read continues from its end.
+				// (when the header ended, start==pos and this is 0 - what follows is
+				// body, which this loop does not scan.)
+				pHttpState->scanned = pos - start;
 			}
 			//else
 			//	len += size;
@@ -937,6 +953,9 @@ void EndHttp( struct HttpState *pHttpState )
 	//lprintf( "Ending HTTP %p", pHttpState );
 	lockHttp( pHttpState );
 	pHttpState->bLine = 0;
+	// whatever is left in 'partial' is the start of the NEXT message (see below),
+	// and none of it has been scanned as header yet.
+	pHttpState->scanned = 0;
 	pHttpState->final = 0;
 	pHttpState->response_version = 0;
 	pHttpState->request_version = 0;
