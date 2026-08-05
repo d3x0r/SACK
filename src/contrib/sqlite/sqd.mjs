@@ -21,7 +21,8 @@ sack.HTTPS.get( { hostname:"sqlite.org", path:"/download.html", onReply(res) {
 								console.log( "unzipped..." );
 								sack.Task( { bin:"node.exe", args:["apply-table-alias.mjs",fn[0]]
 									, end() {
-										console.log( "updated:" );
+										console.log( "updated." );
+										sack.Volume().rm( "sqlite.zip" );
 									} } );
    
 						} } );
@@ -32,7 +33,8 @@ sack.HTTPS.get( { hostname:"sqlite.org", path:"/download.html", onReply(res) {
 								console.log( "unzipped..." );
 								sack.Task( { bin:"node", args:["apply-table-alias.mjs",fn[0]]
 									, end() {
-										console.log( "updated:" );
+										console.log( "updated." );
+										sack.Volume().rm( "sqlite.zip" );
 									} } );
    
 						} } );
