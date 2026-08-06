@@ -2979,8 +2979,6 @@ WM_DROPFILES
 	case WM_MOUSEMOVE:
 			l.mouse_b = ( l.mouse_b & ~(MK_LBUTTON|MK_RBUTTON|MK_MBUTTON) ) | (int)wParam;
 		}
-
-		//hWndLastFocus = hWnd;
 		hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
 		if (!hVideo)
 		{
@@ -2992,6 +2990,7 @@ WM_DROPFILES
 			if( l.flags.bLogMouseEvents )
 				lprintf( "Captured mouse already - don't do anything?" );
 #endif
+
 		}
 		else
 		{
@@ -3037,13 +3036,15 @@ WM_DROPFILES
 			if( l.flags.bLogMouseEvents )
 				lprintf( "Mouse position results %d,%d %d,%d", dx, dy, p.x, p.y );
 #endif
-			if (l.mouse_x == p.x && l.mouse_y == p.y)
+			if (l.mouse_x == p.x && l.mouse_y == p.y && l.mouse_b == l._mouse_b )
 			{
 				lprintf("Filter duplicated event.");
 				return 0;
 			}
 			l.mouse_x = p.x;
 			l.mouse_y = p.y;
+	//		l.mouse_x += hVideo->pWindowPos.x;
+		//	l.mouse_y += hVideo->pWindowPos.y;
 			// save now, so idle timer can hide cursor.
 		}
 		if( l.last_mouse_update )
@@ -3101,7 +3102,7 @@ WM_DROPFILES
 			{
 				hVideo->pMouseCallback (hVideo->dwMouseData,
 												l.mouse_x, l.mouse_y, l.mouse_b);
-				lprintf("Sent mouse event: %d, %d, %08x", l.mouse_x, l.mouse_y, l.mouse_b);
+				//lprintf("Sent mouse event: %d, %d, %08x", l.mouse_x, l.mouse_y, l.mouse_b);/
 			}
 			if (l.hCaptured)
 			{
@@ -3109,11 +3110,15 @@ WM_DROPFILES
 				if (l.flags.bLogMouseEvents)
 					lprintf("Captured mouse already - don't do anything?");
 #endif
-				SetCursorPos(l.mouse_x = hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2
-						, l.mouse_y = hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2);
-				l.mouse_x = hVideo->cursor_bias.x + hVideo->pWindowPos.cx / 2;
-				l.mouse_y = hVideo->cursor_bias.y + hVideo->pWindowPos.cy / 2;
-				lprintf("Re-set cursor position to center of screen. %d %d", l.mouse_x, l.mouse_y);
+				// this should be like captured + hidden....
+				// 
+				//SetCursorPos( hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2
+				//	, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2);
+				//l.mouse_x = hVideo->pWindowPos.cx / 2;
+				//l.mouse_y = hVideo->pWindowPos.cy / 2;
+				//lprintf("Would like the cursor to be centered... %d %d", hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2);
+				//lprintf("Re-set cursor position to center of screen. %d %d", l.mouse_x, l.mouse_y);
+
 			}
 
 			if( l.new_cursor )
@@ -3303,6 +3308,11 @@ WM_DROPFILES
 			{
 				hVideo = (PVIDEO)GetWindowLongPtr(hWnd, WD_HVIDEO);
 				RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+				//SetCursorPos(hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2
+				//	, hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2);
+				hVideo->cursor_bias.x = hVideo->pWindowPos.x;
+				hVideo->cursor_bias.y = hVideo->pWindowPos.y;
+				//lprintf("So, what, after rect %d,%d %d,%d  the mouse position is no longer right?", r.left, r.top, r.right, r.bottom);
 				ClipCursor(&r);
 			}
 			if (!(SetCapture(hWnd))) {
@@ -4980,6 +4990,10 @@ RENDER_PROC (void, SizeDisplay) (PVIDEO hVideo, uint32_t w, uint32_t h)
 					, hVideo->flags.bFull ?h:(h + l.WindowBorder_Y)
 						 , SWP_NOMOVE|SWP_NOACTIVATE);
 	}
+	if (l.hCaptured == hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
+	}
 }
 
 
@@ -5006,6 +5020,10 @@ RENDER_PROC (void, SizeDisplayRel) (PVIDEO hVideo, int32_t delw, int32_t delh)
 		hVideo->flags.bForceSurfaceUpdate = 1;
 		SetWindowPos (hVideo->hWndOutput, NULL, 0, 0, cx, cy,
 						  SWP_NOZORDER | SWP_NOMOVE);
+	}
+	if (l.hCaptured == hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
 	}
 }
 
@@ -5037,6 +5055,10 @@ RENDER_PROC (void, MoveDisplay) (PVIDEO hVideo, int32_t x, int32_t y)
 		SetWindowPos (hVideo->hWndOutput, hVideo->pWindowPos.hwndInsertAfter, x, y, 0, 0,
 						  SWP_NOZORDER | SWP_NOSIZE);
 	}
+	if (l.hCaptured== hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -5058,6 +5080,10 @@ RENDER_PROC (void, MoveDisplayRel) (PVIDEO hVideo, int32_t x, int32_t y)
 		            , hVideo->pWindowPos.y
 		            , 0, 0
 		            , SWP_NOZORDER | SWP_NOSIZE);
+	}
+	if (l.hCaptured == hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
 	}
 }
 
@@ -5105,6 +5131,10 @@ RENDER_PROC (void, MoveSizeDisplay) (PVIDEO hVideo, int32_t x, int32_t y, int32_
 	{
 		Redraw( hVideo );
 	}
+	if (l.hCaptured == hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -5139,6 +5169,10 @@ RENDER_PROC (void, MoveSizeDisplayRel) (PVIDEO hVideo, int32_t delx, int32_t del
 	if( hVideo->flags.bLayeredWindow && !(moveflags & SWP_NOSIZE ) )
 	{
 		SendApplicationDraw( hVideo );
+	}
+	if (l.hCaptured == hVideo) {
+		RECT r = { hVideo->pWindowPos.x, hVideo->pWindowPos.y, hVideo->pWindowPos.x + hVideo->pWindowPos.cx, hVideo->pWindowPos.y + hVideo->pWindowPos.cy };
+		ClipCursor(&r);
 	}
 }
 
