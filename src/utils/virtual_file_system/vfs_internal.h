@@ -26,7 +26,6 @@
 #define BAT_BLOCK_SIZE      4096
 #define NAME_BLOCK_SIZE     4096
 #define KEY_SIZE            1024 
-#define TIME_BLOCK_SIZE     4096
 #define ROLLBACK_BLOCK_SIZE 4096
 #define FILE_NAME_MAXLEN    4096
 
@@ -131,10 +130,6 @@ enum block_cache_entries
 	, BC(DATAKEY)
 	, BC(FILE)
 	, BC(FILE_LAST) = BC(FILE) + 32
-#ifdef VIRTUAL_OBJECT_STORE
-	, BC( TIMELINE )
-	, BC( TIMELINE_LAST ) = BC( TIMELINE ) + 48
-#endif
 #if defined( VIRTUAL_OBJECT_STORE )
 	// really shouldn't need more than one of these...
 	// record
@@ -151,28 +146,12 @@ enum block_cache_entries
 	, BC( ROLLBACK )
 	, BC( ROLLBACK_LAST ) = BC( ROLLBACK ) + 6
 #endif
-#if defined( VIRTUAL_OBJECT_STORE ) && defined( DEBUG_VALIDATE_TREE )
-	// debug timeline, keep a mirror for comparisons, when links were lost, etc...
-	// can be factored out at some point.
-	, BC( TIMELINE_RO )
-	, BC( TIMELINE_RO_LAST ) = BC( TIMELINE_RO ) + 48
-#endif
 	, BC(COUNT)
 };
 
 // could effecitvely be fewer than this
 // 82 dirents * 512 byte names = 40000
 #define DIRENT_NAME_OFFSET_OFFSET             0x0001FFFF
-// (sealant length / 4)  (mulitply by 4 to get real length)
-#define DIRENT_NAME_OFFSET_FLAG_SEALANT       0x003E0000
-#define DIRENT_NAME_OFFSET_FLAG_SEALANT_SHIFT 17
-#define DIRENT_NAME_OFFSET_FLAG_OWNED         0x00400000
-#define DIRENT_NAME_OFFSET_FLAG_READ_KEYED    0x00800000
-// unused flag; previous indicated versioning.
-#define DIRENT_NAME_OFFSET_UNUSED_0         0x01000000
-#define DIRENT_NAME_OFFSET_VERSION_SHIFT      25
-#define DIRENT_NAME_OFFSET_VERSIONS           0x1E000000
-
 #define DIRENT_NAME_OFFSET_UNUSED             0xFE000000
 
 
@@ -186,7 +165,7 @@ PREFIX_PACKED struct directory_entry
 	BLOCKINDEX first_block;  // first block of data of the file
 	VFS_DISK_DATATYPE filesize;  // how big the file is
 #ifdef VIRTUAL_OBJECT_STORE
-	uint64_t timelineEntry;  // when the file was created/last written
+	uint64_t update_time;  // UTC update/create time in milliseconds
 #endif
 } PACKED;
 #  ifdef _MSC_VER
@@ -343,16 +322,6 @@ struct sack_vfs_volume {
 	BLOCKINDEX lastBlock;
 	PDATALIST pdl_BAT_information;
 	PLIST pending_rollback;
-	//PDATASTACK pdsCTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
-	//PDATASTACK pdsWTimeStack;// = CreateDataStack( sizeof( struct memoryTimelineNode ) );
-
-	struct storageTimeline *timeline; // timeline root
-	enum block_cache_entries timelineCache;
-
-	struct storageTimeline *timelineKey; // timeline root key
-	struct sack_vfs_os_file *timeline_file;
-	struct sack_vfs_os_file* timeline_index_file;
-	//struct storageTimelineCursor *timeline_cache;
 	MASKSET_( seglock, BC( COUNT ), 4 );  // segment is locked into cache.
 	unsigned int sector_size[BC( COUNT )];
 #endif
@@ -361,7 +330,6 @@ struct sack_vfs_volume {
 #ifdef VIRTUAL_OBJECT_STORE
 	uint8_t dirHashCacheAge[BC(DIRECTORY_LAST) - BC(DIRECTORY)];
 	uint8_t batHashCacheAge[BC(BAT_LAST) - BC(BAT)];
-	uint8_t timelineCacheAge[BC( TIMELINE_LAST ) - BC( TIMELINE )];
 	uint8_t rollbackCacheAge[BC( ROLLBACK_LAST ) - BC( ROLLBACK )];
 #endif
 	uint8_t nameCacheAge[BC(NAMES_LAST) - BC(NAMES)];
@@ -430,13 +398,6 @@ struct sack_vfs_file
 	FPI entry_fpi;  // where to write the directory entry update to
 #    ifdef VIRTUAL_OBJECT_STORE
 	enum block_cache_entries cache;
-	struct memoryTimelineNode *timeline;
-	uint8_t *seal;
-	uint8_t *sealant;
-	uint8_t *readKey;
-	uint16_t readKeyLen;
-	uint8_t sealantLen;
-	uint8_t sealed; // boolean, on read, validates seal.  Defaults to FALSE.
 	char *filename;
 #    endif
 	struct directory_entry _entry;  // has file size within
@@ -486,5 +447,3 @@ struct sack_vfs_file
 using namespace sack::SACK_VFS;
 #   endif
 #  endif
-
-
