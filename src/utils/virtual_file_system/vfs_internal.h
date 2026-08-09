@@ -165,7 +165,8 @@ PREFIX_PACKED struct directory_entry
 	BLOCKINDEX first_block;  // first block of data of the file
 	VFS_DISK_DATATYPE filesize;  // how big the file is
 #ifdef VIRTUAL_OBJECT_STORE
-	uint64_t update_time;  // UTC update/create time in milliseconds
+	uint64_t update_time;  // UTC update/create time in nanoseconds; no timezone is
+	                       // stored, conversion to local time is the UI's business.
 #endif
 } PACKED;
 #  ifdef _MSC_VER

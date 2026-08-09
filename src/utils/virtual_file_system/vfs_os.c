@@ -343,12 +343,18 @@ static uint64_t _os_PackLocalTime( uint64_t unix_msec, int8_t tz ) {
 	return ( unix_msec << 8 ) | (uint8_t)tz;
 }
 
+// entry->update_time is nanoseconds since the UNIX epoch, UTC.  There is only one
+// 'now'; rendering it in a local zone is the presentation layer's business, so no
+// timezone is stored alongside it.
 static uint64_t _os_GetCurrentTime( void ) {
-	return timeGetTime64ns() / 1000000;
+	return timeGetTime64ns();
 }
 
-static uint64_t _os_GetLocalTime( uint64_t utc_msec ) {
-	return _os_PackLocalTime( utc_msec, _os_GetPackedTimeZone() );
+// the legacy packed view (56 bits of milliseconds, 8 of timezone) that the generic
+// filesystem info interface and SOSFSFIO_GET_TIME still hand out.  Sub-millisecond
+// precision is only reachable through sack_vfs_os_get_times().
+static uint64_t _os_GetLocalTime( uint64_t utc_nsec ) {
+	return _os_PackLocalTime( utc_nsec / 1000000, _os_GetPackedTimeZone() );
 }
 
 
@@ -4119,13 +4125,16 @@ LOGICAL sack_vfs_os_get_times( struct sack_vfs_os_file* file, uint64_t** timeArr
 	timeArray[0][0] = file->entry->update_time;
 	if( tzArray ) {
 		tzArray[0] = NewArray( int8_t, 1 );
-		tzArray[0][0] = _os_GetPackedTimeZone();
+		// stored times are UTC nanoseconds; this used to report the *reading* machine's
+		// zone, which said nothing about the writer.  Zero is the only honest answer.
+		tzArray[0][0] = 0;
 	}
 	if( timeCount ) timeCount[0] = 1;
 	return TRUE;
 
 }
 
+// timeVal is nanoseconds since the UNIX epoch, UTC; tz is vestigial and ignored.
 LOGICAL sack_vfs_os_set_time( struct sack_vfs_os_file* file, uint64_t timeVal, int8_t tz ) {
 	(void)tz;
 	file->entry->update_time = timeVal;

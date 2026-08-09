@@ -155,6 +155,11 @@ static int64_t AbsoluteSeconds( PCHAT_TIME message_time )
 {
 	int now_day = G2J( message_time->yr, message_time->mo, message_time->dy );
 	int yr;
+	// BROKEN for negative offsets that have a minute part: zhr is signed but zmn is a
+	// magnitude, so the minutes cancel against the hours instead of extending them and
+	// the result is off by 2*zmn.  -03:30 comes out as 2.5 hours.  ConvertTimeToTick()
+	// gets it right by normalizing first: sign * ( (sign*zhr*60) + zmn ).
+	// Not fixed -- this widget was a mockup and the chat bubbles became a web app.
 	int msg_tick = message_time->hr * ( 60 * 60)
 		 + message_time->mn * ( 60 )
 		 + message_time->sc

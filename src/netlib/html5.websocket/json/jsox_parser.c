@@ -1224,6 +1224,25 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->status = FALSE;
 					return -1;
 				}
+				// A bare word that is a prefix of a keyword -- 'fal', 'tru', 'nul',
+				// 'Na', 'In', 'undefine' ... -- reaches the end of input still
+				// mid-match, with no following character to trigger the usual
+				// recovery, so it never becomes the string it plainly is.  Recover it
+				// here exactly as a delimiter would have; JSOX's own parser gained
+				// the same step in 1.2.123.
+				if( state->val.value_type == JSOX_VALUE_UNSET
+				 && state->word != JSOX_WORD_POS_RESET ) {
+					// the buffer that carried the input was already retired when it was
+					// consumed (nothing was pending in it), so take a fresh one for the
+					// recovered text to live in; val.string will point into it.  The
+					// longest partial keyword is 8 characters ("undefine", "-Infinit").
+					output = (struct jsox_output_buffer*)GetFromSet( JSOX_PARSE_BUFFER, &state->parseBuffers );
+					output->pos = output->buf = NewArray( char, 16 );
+					output->size = 16;
+					recoverIdent( state, output, 32/*' '*/ ); // space is not appended
+					output->pos[0] = 0;
+					PushLink( state->outBuffers, output );
+				}
 				if( state->val.value_type || state->word != JSOX_WORD_POS_RESET ) {
 					state->completed = 1;
 				}
@@ -1647,6 +1666,13 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					// empty comma , field,field... woudlbe ,,,, '
 				}
 				else if( state->parse_context == JSOX_CONTEXT_IN_ARRAY ) {
+					// A partial keyword ended by this comma -- [fal,1] -- is a string,
+					// the same as it is in a field value below.  It has to be recovered
+					// before the EMPTY default claims the slot, or the word is dropped
+					// and the element silently becomes an elided one instead.
+					if( state->word > JSOX_WORD_POS_END
+					 && state->word < JSOX_WORD_POS_FIELD )
+						recoverIdent( state, output, c );
 					if( state->val.value_type == JSOX_VALUE_UNSET )
 						state->val.value_type = JSOX_VALUE_EMPTY; // in an array, elements after a comma should init as undefined...
 																 // undefined allows [,,,] to be 4 values and [1,2,3,] to be 4 values with an undefined at end.

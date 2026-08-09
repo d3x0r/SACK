@@ -719,6 +719,15 @@ int GetTimeZone( void ){
 	}
 }
 
+// The timezone is split so that zhr carries the sign and zmn is always a magnitude
+// (0-59); consumers must normalize before combining them -- see ConvertTimeToTick(),
+// and scrollable_chat_list.c AbsoluteSeconds() for what happens if you don't.
+//
+// Consequence: a negative offset of less than an hour cannot be represented, because
+// the sign has nowhere to live once zhr rounds to 0 -- -00:30 stores as zhr 0/zmn 30
+// and reads back as +00:30.  Unreachable with any zone in current use (the last was
+// Liberia's -00:44:30, dropped in 1972).  Giving zmn the sign too would fix that and
+// the AbsoluteSeconds() case both, at the cost of every consumer that prints it.
 void ConvertTickToTime( int64_t tick, PSACK_TIME st ) {
 	int8_t tz = (int8_t)tick;
 	int sign = (tz < 0) ? -1 : 1;
