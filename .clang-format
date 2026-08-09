@@ -38,6 +38,29 @@ BreakBeforeBinaryOperators: All
 PointerAlignment: Right
 BreakConstructorInitializers: BeforeComma
 #BreakBeforeComma: true
+
+# Argument and parameter lists: all-or-nothing.  If the list has to wrap at all, every
+# item goes on its own line, aligned under the open paren.  Without these five, they
+# inherit BasedOnStyle: LLVM's defaults, which bin-pack -- fill each line to ColumnLimit
+# -- and that is what produced grouped runs like `int a, int b,\n float c, float d,`.
+# (BinPackParameters became an enum in clang 21+; there it is `OnePerLine`, not `false`.)
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AlignAfterOpenBracket: Align
+
+# LLVM's default penalty (60) makes orphaning the return type on its own line cheaper
+# than wrapping the parameters, so a long declaration became `static void\npushValue(
+# ..all params on one line.. )`.  Wrapping the parameters is the point; make that win.
+PenaltyReturnTypeOnItsOwnLine: 1000
+
+# NOTE: short if/loop bodies are unset, so they inherit LLVM's Never/false -- which
+# SPLITS every `if( x ) y;` onto two lines (~12.4k of those in src/).  The opposite,
+# AllowShortIfStatementsOnASingleLine: AllIfsAndElse + AllowShortLoopsOnASingleLine: true,
+# preserves those but JOINS the ~29.4k ifs whose body is on the next line.  clang-format
+# has no "leave as written" for this, so it is a real fork -- pick deliberately before
+# running this over existing files.
 ---
 Language: JavaScript
 RemoveParentheses: MultipleParentheses
