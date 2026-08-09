@@ -3849,7 +3849,13 @@ uint8_t *DecodeBase64Ex( const char* buf, size_t length, size_t *outsize, const 
 			(*outsize) = (((length + 3) / 4) * 3) - 2;
 		else if( length % 4 == 3 )
 			(*outsize) = (((length + 3) / 4) * 3) - 1;
-		else if( buf[length - 1] == '=' ) {
+		// An empty input has length % 4 == 0, so without this it falls through to the
+		// padding check and reads buf[-1] -- and buf is NULL when there was no payload
+		// at all, which is a hard crash rather than a stray byte.  Decoding nothing
+		// yields nothing: the else below computes ((0+3)/4)*3 == 0 correctly.
+		// (length % 4 == 0 and length > 0 implies length >= 4, so buf[length-2] below
+		// is in bounds once zero is excluded.)
+		else if( length && buf[length - 1] == '=' ) {
 			if( buf[length - 2] == '=' ) {
 				(*outsize) = (((length + 3) / 4) * 3) - 2;
 			}
