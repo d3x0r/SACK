@@ -125,6 +125,7 @@ enum jsox_parse_object_context_modes {
 	state->val.string = NULL;                \
 	state->val.className = NULL;             \
 	state->completedString = FALSE;          \
+	state->signPending = FALSE;              \
 	state->negative = FALSE; }
 
 struct jsox_input_buffer {
@@ -217,6 +218,10 @@ struct jsox_parse_state {
 	enum jsox_word_char_states word;
 	LOGICAL status;
 	LOGICAL negative;
+	// A '+' or '-' has been consumed and its number has not started yet.  The sign
+	// belongs to the literal, so nothing may come between them -- "+ 8" is a sign
+	// with no number followed by a second value, which is an expression, not JSOX.
+	LOGICAL signPending;
 	LOGICAL literalString;
 
 	PLINKSTACK *context_stack;
