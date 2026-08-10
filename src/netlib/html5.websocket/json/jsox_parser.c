@@ -734,8 +734,40 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 #  pragma warning( default: 6001 )
 #endif
 
+// The only legal adjacency between two values is a class tag -- `Tag{...}`, `Tag[...]` or
+// `Tag"..."` -- where the tag is an identifier or a quoted string, and the thing carrying it
+// is a container or a string.  Any other held value (a keyword, a number, a closed
+// container) can neither name a class nor carry one.  JSOX_VALUE_EMPTY is the `[,,]`
+// placeholder, not a value being held.
+static LOGICAL valueCanTagOrBeTagged( enum jsox_value_types value_type ) {
+	return value_type == JSOX_VALUE_UNSET
+	    || value_type == JSOX_VALUE_STRING
+	    || value_type == JSOX_VALUE_EMPTY;
+}
+
+static LOGICAL twoValuesNoSeparator( struct jsox_parse_state *state );
+
+// Characters that end a value without beginning another one; everything else arriving where
+// a value is already complete starts a second value.
+static LOGICAL isValueTerminator( int cInt ) {
+	return cInt == ' ' || cInt == '\t' || cInt == '\r' || cInt == '\n'
+	    || cInt == 160/*nbsp*/ || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029
+	    || cInt == ',' || cInt == '}' || cInt == ']' || cInt == ':';
+}
+
 int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* output, int cInt ) {
 	if( state->word == JSOX_WORD_POS_FIELD && cInt == ':' ) return 0;
+	// A keyword completed and whitespace stepped `word` back to reset, so this character
+	// begins a second value -- and a keyword can neither be a class tag nor take one.
+	// Without this the value below simply replaced the one already held, silently:
+	// `[true false]` came out as the *string* "false", `[8 true]` as ["8\0true"], and
+	// `[{} true]` as ["true"].  `word != RESET` is left alone: there the token is still
+	// being collected, which is how `[truefalse]` recovers as one identifier.
+	if( state->word == JSOX_WORD_POS_RESET
+	   && !valueCanTagOrBeTagged( state->val.value_type )
+	   && cInt >= 0 && !isValueTerminator( cInt ) ) {
+		if( twoValuesNoSeparator( state ) ) return 0;
+	}
 	if( state->word != JSOX_WORD_POS_RESET ) {
 		if( !state->val.string ) {
 #ifdef DEBUG_PARSINGs
@@ -1057,8 +1089,9 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 
 // Two values with nothing between them.  The only legal adjacency is a class tag --
 // `Tag{...}`, `Tag[...]`, `Tag"..."` -- where the leading part is an identifier or quoted
-// string.  A number can be neither: it cannot name a class, and it cannot carry one.  So a
-// number touching another value, on either side, is always a syntax error.
+// string.  A number or a keyword can be neither: neither can name a class, and neither can
+// carry one.  So one of those touching another value, on either side, is always a syntax
+// error.  See valueCanTagOrBeTagged() above.
 //
 // Without this the second value simply overwrote the first, which is silent and wrong in
 // both directions: `[1,2 3]` parsed as [1,3] (the 2 replaced), `[8 8]` as [8] (the second
@@ -1427,14 +1460,15 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				if( !state->comment ) state->comment = 1;
 				break;
 			case '{':
-				// `Tag{...}` is legal; `8{...}` is not -- a number cannot name a class
-				if( state->val.value_type == JSOX_VALUE_NUMBER )
+				// `Tag{...}` is legal; `8{...}` and `true{...}` are not -- neither a number
+				// nor a keyword can name a class
+				if( !valueCanTagOrBeTagged( state->val.value_type ) )
 					if( twoValuesNoSeparator( state ) ) break;
 				openObject( state, output, c );
 				break;
 
 			case '[':
-				if( state->val.value_type == JSOX_VALUE_NUMBER )
+				if( !valueCanTagOrBeTagged( state->val.value_type ) )
 					if( twoValuesNoSeparator( state ) ) break;
 				recoverIdent(state,output,c);  // gather any preceeding string.
 				//openArray( state, output, c );
@@ -1985,8 +2019,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				case '"':
 				case '\'':
 					// a preceding STRING is promoted to a class name just below -- that is
-					// the `Tag"..."` form -- but a preceding number can only be a run-on
-					if( state->val.value_type == JSOX_VALUE_NUMBER )
+					// the `Tag"..."` form -- but a preceding number or keyword can only be
+					// a run-on
+					if( !valueCanTagOrBeTagged( state->val.value_type ) )
 						if( twoValuesNoSeparator( state ) ) break;
 					// Promote a preceding word or string to a class name: this is the
 					// `Tag"..."` form, which the built-in RegExp and Symbol emitters use
