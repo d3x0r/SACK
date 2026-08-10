@@ -1388,7 +1388,17 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 			// A sign only reaches the next character; whatever that is either starts
 			// the number it belongs to or ends its claim on one.  Captured and cleared
 			// here so exactly one character sees it.
-			const LOGICAL sawSignPending = state->signPending;
+			//
+			// Declared and assigned separately, deliberately: `goto continueNumber`
+			// above jumps from outside this loop into the middle of its body, and C++
+			// forbids a jump that bypasses an *initialization* -- gcc rejects the whole
+			// translation unit ("crosses initialization of sawSignPending"), MSVC only
+			// warns.  A bare declaration is nothing to bypass.  (It cannot be const for
+			// the same reason: a const needs its initializer.)  The goto path skips the
+			// one read below along with the assignment, and every ordinary iteration
+			// assigns before reading.
+			LOGICAL sawSignPending;
+			sawSignPending = state->signPending;
 			state->signPending = FALSE;
 
 			state->col++;
