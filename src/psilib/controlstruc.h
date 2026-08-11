@@ -163,7 +163,7 @@ typedef void (CPROC*_HoverEventCallback)           ( struct psi_common_control_f
 // until 'processed'
 #define InvokeDrawMethod(pc,name,args)  if( (pc) && (pc)->name ) { int n; for( n = 0; (pc) && n < (pc)->n##name; n++ ) if( (pc)->name[n] ) /*if(*/(pc)->draw_result |= (pc)->name[n]args /*)*/ /*break*/; }
 #define InvokeMethod(pc,name,args)  if( (pc) && (pc)->name ) { int n; for( n = 0; (pc) && n < (pc)->n##name; n++ ) if( (pc)->name[n] ) /*if(*/(pc)->name[n]args /*)*/ /*break*/; }
-#define InvokeResultingMethod(result,pc,name,args)  if( (pc) && (pc)->name ) { int n; for( n = 0; (pc) && n < (pc)->n##name; n++ ) if( (pc)->name[n] ) if( (result)=(pc)->name[n]args ) break; }
+#define InvokeResultingMethod(result,pc,name,args)  if( (pc) && (pc)->name ) { int n; for( n = 0; (pc) && n < (pc)->n##name; n++ ) if( (pc)->name[n] ) if(((result)=(pc)->name[n]args)) break; }
 #define InvokeSingleMethod(pc,name,args)  if( (pc)->name ) { (pc)->name args; }
 
 void InvokeControlHidden( PSI_CONTROL pc );

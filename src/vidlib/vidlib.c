@@ -3038,7 +3038,7 @@ WM_DROPFILES
 #endif
 			if (l.mouse_x == p.x && l.mouse_y == p.y && l.mouse_b == l._mouse_b )
 			{
-				lprintf("Filter duplicated event.");
+				//lprintf("Filter duplicated event.");
 				return 0;
 			}
 			l.mouse_x = p.x;
