@@ -294,12 +294,6 @@ struct ssl_session {
 	// cannot carry this - it flips back on a WANT_READ retry, which is why a
 	// genuine first-packet failure can surface as _2.
 	LOGICAL priorPacketConsumed;
-	// Sticky: this connection has already consumed at least one packet into the
-	// SSL layer, so the bytes handed to any later handshake failure are only the
-	// last chunk and a fallback would re-feed a truncated stream.  firstPacket
-	// cannot carry this - it flips back on a WANT_READ retry, which is why a
-	// genuine first-packet failure can surface as _2.
-	LOGICAL priorPacketConsumed;
 	LOGICAL noHost;
 	LOGICAL closed;
 	// Graceful-close intent carried across a deferred close.  ssl_CloseSession can

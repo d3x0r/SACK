@@ -495,10 +495,6 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session** ses, POINTER buf
 				// handshake failure cannot be re-fed as http, because the earlier
 				// bytes are already inside the SSL layer and unavailable.
 				ses[0]->priorPacketConsumed = TRUE;
-				// about to consume this packet and ask for another; from here on a
-				// handshake failure cannot be re-fed as http, because the earlier
-				// bytes are already inside the SSL layer and unavailable.
-				ses[0]->priorPacketConsumed = TRUE;
 				ses[0]->inUse--;
 				LeaveCriticalSec( &ses[0]->csReadWrite );
 				// read more...
