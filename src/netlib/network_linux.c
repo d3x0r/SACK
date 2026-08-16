@@ -494,7 +494,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "TCP Read Event... %p", event_data->pc );
 #endif
-						if( event_data->pc->dwFlags & CF_READPENDING ) {
+						// capture which arm was taken: FinishPendingRead can clear
+						// CF_READPENDING, so the flag cannot be re-tested afterwards.
+						LOGICAL hangup = !( event_data->pc->dwFlags & CF_READPENDING );
+						LOGICAL deferred = FALSE;
+						if( !hangup ) {
 							// packet oriented things may probably be reading only
 							// partial messages at a time...
 							read = FinishPendingRead( event_data->pc DBG_SRC );
@@ -503,10 +507,21 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							// EPOLLET delivered the peer hangup (EPOLLRDHUP/EPOLLHUP) but no read
 							// was queued to consume it; the edge is never re-signaled, so the FIN
 							// is lost and the socket strands in CLOSE_WAIT.  Drive the close here.
-							SetClientFlags( event_data->pc, CF_TOCLOSE );
 							read = ( !event_data->pc->lpFirstPending ) ? (size_t)-1 : 0;
 						}
-						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !event_data->pc->flags.bInUse )
+						// Mark and test under the same lock AddNetWork/ClearNetWork mutate
+						// bInUse under - network_win32.c's FD_CLOSE path already does this:
+						// "the defer decision must not race ClearNetWork releasing the work,
+						// or both sides believe the other performs the close and the socket
+						// strands in CLOSE_WAIT."  Unlocked, the two orderings give a missed
+						// close and a double close respectively.
+						lockNetWorkList();
+						if( hangup )
+							SetClientFlags( event_data->pc, CF_TOCLOSE );
+						if( event_data->pc->flags.bInUse )
+							deferred = TRUE;   // ClearNetWork completes it on release
+						unlockNetWorkList();
+						if( ( read == -1 ) && ( event_data->pc->dwFlags & CF_TOCLOSE ) && !deferred )
 						{
 							int locked;
 							locked = 1;

@@ -337,6 +337,11 @@ struct ssl_session {
 	verify_mydata_t verify_data;
 	uint32_t inUse;
 	uint32_t deleteInUse;
+	// Teardown decision, published under csReadWrite.  Set only by a closer that
+	// found inUse == 0 while holding the lock; once set, acquirers refuse.  This is
+	// what makes the close a claim rather than a check - reading inUse unlocked and
+	// then freeing is the race this replaces.
+	volatile uint32_t dying;
 	PCLIENT pc; // for the rare case that we only have session and no socket.
 	//CRITICALSECTION csReadWrite;
 	//CRITICALSECTION csWrite;
@@ -543,7 +548,11 @@ struct NetworkClient
 	struct event_data epoll_event_data[2];
 #endif
 #ifndef NO_SSL
-	struct ssl_session *ssl_session;
+	// volatile: this slot is cleared by other threads (and by ClearClient's memset,
+	// which takes no lock at all), so every read must actually go to memory.  Without
+	// it the optimiser may cache ses[0] and turn a prompt fault into a use of memory
+	// that has already gone away.
+	struct ssl_session * volatile ssl_session;
 #endif
 };
 typedef struct NetworkClient CLIENT;
