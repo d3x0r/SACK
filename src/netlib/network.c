@@ -1400,7 +1400,8 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #endif
 	if( lpClient && IsValid(lpClient->Socket) )
 	{
-		if( !bLinger )
+		// an abortive request cannot override a graceful one already latched
+		if( !bLinger && !( lpClient->dwFlags & CF_LINGERCLOSE ) )
 		{
 #ifdef LOG_DEBUG_CLOSING
 			lprintf( "Setting quick close?!" );
@@ -1444,9 +1445,14 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 		}
 		else {
 			struct linger lingerSet;
-			// linger ON causes delay on close... otherwise close returns immediately
-			lingerSet.l_onoff = 1; // on , with no time = off.
-			lingerSet.l_linger = 2;
+			// SO_LINGER ON makes close() BLOCK until the peer ACKs or the timeout
+			// expires - on an event thread that stalls every other socket it owns,
+			// and backs the accept queue up into ECONNREFUSED.  Off is the correct
+			// graceful close for a non-blocking server: close() returns at once and
+			// the kernel still flushes, retransmits and FINs, which is all that was
+			// needed to stop the response being discarded.
+			lingerSet.l_onoff = 0;
+			lingerSet.l_linger = 0;
 			// set server to allow reuse of socket port
 			if( setsockopt( lpClient->Socket, SOL_SOCKET, SO_LINGER,
 				(char*)&lingerSet, sizeof( lingerSet ) ) <0 )
@@ -1599,6 +1605,11 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 #  define SHUT_WR SD_SEND
 #endif
 	if( !lpClient ) return;
+	// Latch before anything else: the SSL path returns early via ssl_CloseSession,
+	// and the terminal close for this client comes back through the event loop with
+	// bLinger hard-coded FALSE.
+	if( bLinger )
+		SetClientFlags( lpClient, CF_LINGERCLOSE );
 	//_lprintf(DBG_RELAY)( "RemoveClient: %p %d %d", lpClient, bBlockNotify, bLinger );
 	if( !( lpClient->dwFlags & ( CF_UDP | CF_CLOSING ) ) 
 		&& ( lpClient->dwFlags & ( CF_CONNECTED ) )

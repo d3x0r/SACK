@@ -162,6 +162,12 @@ enum NetworkConnectionFlags {
 	, CF_CONNECT_WAITING = 0x00400000
 	, CF_CONNECT_CLOSED  = 0x00100000
 	, CF_CONNECT_ISSUED  = 0x00800000  // connection to socket callback for server connect was issued.
+	// A graceful close was requested for this client.  Latched, because a later
+	// close can arrive with bLinger FALSE - the read-error branch in the event
+	// loops hard-codes it - and that would swap in SO_LINGER{1,0}, resetting the
+	// connection and discarding a response that is sent but not yet ACKed.
+	// CF_WANTCLOSE cannot serve as this marker: it is set on both paths.
+	, CF_LINGERCLOSE     = 0x00200000
 	, CF_TOCLOSE         = 0x00000100  // wants to close at the next opportunity.
 	, CF_WANTCLOSE       = 0x00000200  // this flag is unused at this time
 	, CF_CLOSING         = 0x00000400
