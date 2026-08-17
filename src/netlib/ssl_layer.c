@@ -240,64 +240,117 @@ LOGICAL ssl_IsPipeClosed( struct ssl_session*ssl_session ) {
 	return TRUE;
 }
 
-void ssl_ClosePipeSession( struct ssl_session * volatile * ssl_session )
-{
-#if defined( DEBUG_SSL_FALLBACK )			
-	lprintf( "Close generic session %p", ssl_session );
-#endif	
-	// Take the session out of the slot atomically.  ssl_ClosePipe claims this same
-	// slot from the network thread; reading it here and then freeing races that -
-	// both threads capture the same pointer and both call Release, which the
-	// allocator's block check caught as a double free (SIGTRAP in DropMemEx).
-	struct ssl_session *ses = (struct ssl_session*)(uintptr_t)LockedExchangePtrSzVal( ssl_session, 0 );
-	if( ses )
-	{
-		struct ssl_hostContext* hostctx;
-		INDEX idx;
-		PTEXT seg;
-		// The shutdown has to be inside this test, not before it: SSL_shutdown sends a
-		// close_notify alert, and on a session whose handshake never completed the
-		// TLS1.3 record layer has no wire_write callback yet - libressl then calls
-		// through a NULL pointer (tls13_record_send with wire_write=0x0) and the
-		// process dies.  A connection torn down mid-handshake has no session to
-		// notify anyway, so there is nothing to send.
-		if( SSL_is_init_finished( ses->ssl ) ) {
-#if defined( DEBUG_SSL_FALLBACK )
-			lprintf( "SSL Shutdown... but this should only be done if handshake complete..." );
-#endif
-			SSL_shutdown( ses->ssl );
-			ssl_handlePendingControlwrites( ses );
-		}
+/* ------------------------------------------------------------------------- *
+ * Close taxonomy.  Two independent questions: is the socket ours to close, and
+ * do we owe the peer a close_notify?
+ *   FALLBACK - stream was never TLS (disableSSL).  Socket lives on as plain HTTP;
+ *              drop the SSL objects and write NOTHING back, the pipe is not SSL.
+ *   REJECT   - our socket, and finalize gracefully: close_notify if a handshake
+ *              actually completed.
+ *   KILL     - our socket, abortive: drop, say nothing.
+ * ------------------------------------------------------------------------- */
+enum ssl_close_mode { SSL_CLOSE_FALLBACK = 0, SSL_CLOSE_REJECT = 1, SSL_CLOSE_KILL = 2 };
 
-		// usually this isn't released... the server socket (LISTENER) 
-		// is very rarely closed (like never actually).
-		LIST_FORALL( ses->hosts, idx, struct ssl_hostContext*, hostctx ) {
-			Release( hostctx->host );
-			SSL_CTX_free( hostctx->ctx );
+/* THE single destructor.  Every teardown path ends here, so the two closers can no
+ * longer own divergent halves of it - they used to, and whichever won the claim,
+ * the other half leaked (measured at 116 of 118 teardowns skipping SSL_free). */
+static void ssl_DestroySession( struct ssl_session *session, uint32_t mode ) {
+	struct ssl_hostContext* hostctx;
+	INDEX idx;
+	PTEXT seg;
+	if( !session ) return;
 
+	if( session->pc )
+		ClearNetWork( session->pc, (uintptr_t)session );
+
+	/* Only REJECT owes the peer an alert.  The guard is not optional: on a session
+	 * whose handshake never completed the TLS1.3 record layer has no wire_write
+	 * callback yet, and libressl calls through NULL (tls13_record_send). */
+	if( mode == SSL_CLOSE_REJECT && session->ssl && SSL_is_init_finished( session->ssl ) ) {
+		SSL_shutdown( session->ssl );
+		ssl_handlePendingControlwrites( session );
+	}
+
+	/* The LISTENER aliases its own handles into this list - ses->ctx is ctx->ctx, and
+	 * ses->cert is the same certStruc stored as ctx->certToUse - so drop the alias as
+	 * we go, or the tail below double-frees. */
+	LIST_FORALL( session->hosts, idx, struct ssl_hostContext*, hostctx ) {
+		if( session->ctx == hostctx->ctx ) session->ctx = NULL;
+		if( session->cert == hostctx->certToUse ) session->cert = NULL;
+		Release( hostctx->host );
+		SSL_CTX_free( hostctx->ctx );
+		if( hostctx->certToUse ) {   /* NULL for the anonymous no-cert host */
 			X509_free( hostctx->certToUse->x509 );
 			EVP_PKEY_free( hostctx->certToUse->pkey );
 			sk_X509_free( hostctx->certToUse->chain );
-	
-			Release( hostctx );
 		}
-		DeleteList( &ses->hosts );
-		// accepting is another listener structure; usually NULL.
-		DeleteList( &ses->accepting );
-		
-		LIST_FORALL( ses->protocols, idx, PTEXT, seg ) {
-			LineRelease( seg );
-		}
-		DeleteList( &ses->protocols );
-		if( ses->hostname ) {
-			Release( ses->hostname );
-			ses->hostname = NULL;
-		}
-		/* this should probably have a do_close action event too like send/recv */
-		Release( ses ); // slot was already cleared by the claim above
-	} else {
-		//lprintf( "Session already closed" );
+		Release( hostctx );
 	}
+	DeleteList( &session->hosts );
+
+	LIST_FORALL( session->protocols, idx, PTEXT, seg ) LineRelease( seg );
+	DeleteList( &session->protocols );
+	if( session->hostname ) { Release( session->hostname ); session->hostname = NULL; }
+
+	Release( session->dbuffer );
+	Release( session->ibuffer );
+	Release( session->obuffer );
+	if( session->cert ) {
+		EVP_PKEY_free( session->cert->pkey );
+		X509_free( session->cert->x509 );
+		Release( session->cert );
+	}
+	session->rbio = NULL;
+	session->wbio = NULL;
+	SSL_free( session->ssl );
+	/* ssl_global.ctx is SHARED across every client session that supplied no root
+	 * cert - freeing it here would underflow its refcount. */
+	if( session->ctx && session->ctx != ssl_global.ctx )
+		SSL_CTX_free( session->ctx );
+	DeleteCriticalSec( &session->csReadWrite );
+	Release( session );
+}
+
+/* RETIRE: take the session out of the live slot so no new reader can arrive, and
+ * park it on the client.  Does NOT free - that is what ssl_finalize does, at a
+ * point where no dispatch can be in flight.  The exchange must stay atomic: the JS
+ * end() thread (ssl_CloseSession) and a network thread (ssl_CloseCallback) both
+ * reach here for one connection, and the loser used to double-free ->ssl / ->ctx. */
+static void ssl_RetireSession( struct ssl_session * volatile * slot, uint32_t mode ) {
+	struct ssl_session *ses;
+	if( !slot || !slot[0] ) return;
+	ses = (struct ssl_session*)(uintptr_t)LockedExchangePtrSzVal( slot, 0 );
+	if( !ses ) return;              /* another closer won; it owns the teardown */
+	ses->dying = 1;
+	ses->closed = TRUE;
+	if( ses->pc ) {
+		ses->pc->ssl_close_mode = mode;
+		/* park it; finalize runs from TerminateClosedClientEx under both locks */
+		if( LockedExchangePtrSzVal( &ses->pc->ssl_session_closed, (uintptr_t)ses ) )
+			lprintf( "SSL: parked session overwritten - previous one leaked" );
+		return;
+	}
+	/* No client (pipe session): no socket teardown to wait for and no dispatch to
+	 * race, so finalize immediately. */
+	ssl_DestroySession( ses, mode );
+}
+
+/* Called from TerminateClosedClientEx with both channel locks held. */
+void ssl_finalize( struct NetworkClient *pc ) {
+	struct ssl_session *ses;
+	if( !pc ) return;
+	ses = (struct ssl_session*)(uintptr_t)LockedExchangePtrSzVal( &pc->ssl_session_closed, 0 );
+	if( !ses ) return;
+	ssl_DestroySession( ses, pc->ssl_close_mode );
+}
+
+void ssl_ClosePipeSession( struct ssl_session * volatile * ssl_session )
+{
+#if defined( DEBUG_SSL_FALLBACK )
+	lprintf( "Close generic session %p", ssl_session );
+#endif
+	/* reached from ssl_CloseSession - our socket, graceful */
+	ssl_RetireSession( ssl_session, SSL_CLOSE_REJECT );
 }
 
 void ssl_CloseSession( PCLIENT pc, LOGICAL bLinger ) {
@@ -508,11 +561,18 @@ static void ssl_ReadComplete_( PCLIENT pc, struct ssl_session * volatile * ses, 
 			// &pc->ssl_session, which a closing thread stores NULL into, and the
 			// short-write branch below used to fault on a cached copy's inUse--
 			// while another thread tore the session down.
-			if( !ses[0] ) return;   // already detached by a closing thread
-			EnterCriticalSec( &ses[0]->csReadWrite );
-			// refuse once a closer has claimed this session
-			if( ses[0]->dying ) { LeaveCriticalSec( &ses[0]->csReadWrite ); return; }
-			ses[0]->inUse++;
+			{	/* Capture once.  A closer may NULL this slot at any moment, but it
+				 * only RETIRES the session now - the object stays alive until
+				 * ssl_finalize runs under both channel locks, which cannot happen
+				 * while this dispatch is executing.  Re-reading ses[0] is what
+				 * faulted: it went NULL between the test and the deref. */
+				struct ssl_session *s0_ = ses[0];
+				if( !s0_ ) return;
+				EnterCriticalSec( &s0_->csReadWrite );
+				if( ses[0] != s0_ ) { LeaveCriticalSec( &s0_->csReadWrite ); return; }
+				if( s0_->dying ) { LeaveCriticalSec( &s0_->csReadWrite ); return; }
+				s0_->inUse++;
+			}
 			len = BIO_write( ses[0]->rbio, buffer, (int)length );
 #ifdef DEBUG_SSL_IO_VERBOSE
 			lprintf( "Wrote %zd", len );
@@ -975,55 +1035,9 @@ static void ssl_InitSession( struct ssl_session *ses ) {
 
 
 void ssl_ClosePipe( struct ssl_session * volatile * ses ) {
-	struct ssl_session *session;
-	if (!ses[0]) {
-		//lprintf("(ClosePipe)already closed?");
-		return;
-	}
-	//lprintf( "Close Pipe called...");
-	// same claim as ssl_CloseSession's gate.  This one was never observed losing the
-	// race, but it is the identical unlocked read, and the window (a reader that
-	// increments after our load) is invisible to that measurement by construction -
-	// so absence of evidence was never evidence here.
-	{
-		struct ssl_session *gate_ = ses[0];
-		if( !gate_ ) return;
-		EnterCriticalSec( &gate_->csReadWrite );
-		if( gate_->inUse ) {
-			gate_->deleteInUse++;
-			LeaveCriticalSec( &gate_->csReadWrite );
-			return;
-		}
-		gate_->dying = 1;
-		LeaveCriticalSec( &gate_->csReadWrite );
-	}
-	// Take the session away atomically before tearing it down.  The JS end() thread
-	// (RemoveClient -> ssl_CloseSession) and a network thread (InternalRemoveClientExx
-	// -> close.CloseCallback -> ssl_CloseCallback) both reach here for the same
-	// connection; the !ses[0] test above is a TOCTOU that lets both through, and the
-	// loser then double-frees ->ssl / ->ctx (crash was in SSL_CTX_free).  Only the
-	// thread that takes the pointer runs the teardown.
-	session = (struct ssl_session*)(uintptr_t)LockedExchangePtrSzVal( ses, 0 );
-	if( !session ) return;
-
-	DeleteCriticalSec( &session->csReadWrite );
-	//DeleteCriticalSec( &ses->csWrite );
-	Release( session->dbuffer );
-	Release( session->ibuffer );
-	Release( session->obuffer );
-
-	if( session->cert ) {
-		EVP_PKEY_free( session->cert->pkey );
-		X509_free( session->cert->x509 );
-		Release( session->cert );
-	}
-	SSL_free( session->ssl );
-	SSL_CTX_free( session->ctx );
-	// these are closed... with the ssl connection.
-	//BIO_free( ses->rbio );
-	//BIO_free( ses->wbio );
-
-	Release( session );
+	/* reached from ssl_CloseCallback (socket already going) and from ssl_EndSecure
+	 * (fallback - must not write to a pipe that is not SSL): drop, say nothing. */
+	ssl_RetireSession( ses, SSL_CLOSE_KILL );
 }
 
 // this is from network layer, so it will be a PCLIENT

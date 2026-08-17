@@ -374,6 +374,12 @@ static PCLIENT AddClosed( PCLIENT pClient )
 
 static void ClearClient( PCLIENT pc DBG_PASS )
 {
+#ifndef NO_SSL
+	// everything past clear_offset is about to be scrubbed; a session still parked
+	// here would be lost outright.  Every path reaching this should already have
+	// passed ssl_finalize() in TerminateClosedClientEx.
+	if( pc->ssl_session_closed ) ssl_finalize( pc );
+#endif
 	uintptr_t* pbtemp;
 	PCLIENT next;
 	PCLIENT *me;
@@ -482,6 +488,12 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS )
 #endif
 #if !defined( SHUT_WR ) && defined( _WIN32 )
 #  define SHUT_WR SD_SEND
+#endif
+#ifndef NO_SSL
+			// Final TLS cleanup, here and nowhere else: both channel locks are held at
+			// this point, so no read dispatch for this socket can be executing and the
+			// session retired by ssl_ClosePipe / ssl_ClosePipeSession is safe to release.
+			ssl_finalize( pc );
 #endif
 			shutdown( pc->Socket, SHUT_WR );
 #if defined( _WIN32 )

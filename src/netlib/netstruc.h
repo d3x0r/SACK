@@ -553,9 +553,26 @@ struct NetworkClient
 	// it the optimiser may cache ses[0] and turn a prompt fault into a use of memory
 	// that has already gone away.
 	struct ssl_session * volatile ssl_session;
+	// RETIRE / FINALIZE.  A closer atomically takes the session out of the live slot
+	// above - so no new reader can arrive - and parks it here WITHOUT releasing it.
+	// The objects are freed later by ssl_finalize(), called from
+	// TerminateClosedClientEx while both channel locks are held, which is the only
+	// point at which no read dispatch for this socket can be executing.  A reader
+	// that already captured the pointer therefore keeps a VALID object for its whole
+	// dispatch - that is what makes capture-once correct here rather than a
+	// use-after-free, which is what it was while the free happened at retire time.
+	struct ssl_session * volatile ssl_session_closed;
+	volatile uint32_t ssl_close_mode;  // enum ssl_close_mode, set by the retiring closer
 #endif
 };
 typedef struct NetworkClient CLIENT;
+
+#ifndef NO_SSL
+/* Release a session retired into ssl_session_closed.  Valid ONLY where no read
+ * dispatch can be running for this socket - i.e. under both channel locks. */
+void ssl_finalize( struct NetworkClient *pc );
+#endif
+
 
 #ifdef MAIN_PROGRAM
 #define LOCATION
