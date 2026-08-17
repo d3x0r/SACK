@@ -1814,7 +1814,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 #ifdef ENABLE_CRITICALSEC_LOGGING
 	BIT_FIELD bLock = globalTimerData.flags.bLogCriticalSections;
 #endif
-	uint32_t newtick;
+	uint64_t newtick;
 
 	if( globalTimerData.flags.bExited )
 		return -1;
