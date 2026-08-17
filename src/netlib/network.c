@@ -97,6 +97,13 @@
 
 SACK_NETWORK_NAMESPACE
 
+/* PROBE: how often does RemoveClientExx have to skip TerminateClosedClient because a
+ * channel was locked?  That is the case that leaves a client on ClosedClients with no
+ * marker for the unlock path to find, and it is what the win32 timer sweep cleans up.
+ * If this never fires under the existing tests, the sweep is uncovered by them. */
+static volatile uint32_t strandedTerminates;
+
+
 PRELOAD( InitNetworkGlobalOptions )
 {
 	if( !globalNetworkData.flags.bOptionsRead ) {
@@ -1670,6 +1677,8 @@ void RemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLinger DBG
 		else if( n ) {
 			NetworkUnlock( lpClient, 0 );
 			SetClientFlags( lpClient, CF_TOCLOSE );
+			fprintf( stderr, "STRANDED: RemoveClientExx skipped TerminateClosedClient (channel locked); count=%u\n",
+			         (unsigned)LockedIncrement( &strandedTerminates ) );
 		}
 		LeaveCriticalSec( &globalNetworkData.csNetwork );
 	}

@@ -56,6 +56,21 @@
 #endif
 
 SACK_NETWORK_NAMESPACE
+
+// Read-dispatch nesting depth, per thread.  A read callback that re-enters the
+// message pump - Idle() is the way that happens - can dispatch another read on this
+// same thread, underneath one already in progress.  Everything that reasons about
+// "no dispatch is in flight" (the ssl_finalize precondition, the win32 ClosedClients
+// sweep) is only true at depth 0, so the depth has to be observable before it can be
+// relied on.  Counting only for now: the high-water mark is reported when it rises,
+// so a run that never nests says depth 1 exactly once and then goes quiet.
+DeclareThreadLocal uint32_t readStackLevel;
+// Starts at 1 so the ordinary un-nested case never logs: this only speaks when a
+// read dispatch actually nests, which needs a read callback to re-enter the pump
+// (Idle()).  Expected to stay silent for a long time - sack.vfs does not do it; only
+// some very old applications can.
+DeclareThreadLocal uint32_t readStackHigh = 1;
+
 	extern int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t quick_check );
 
 _TCP_NAMESPACE
@@ -1235,6 +1250,10 @@ dispatch_ReadEvent:
 #ifdef LOG_PENDING
 					//lprintf( "Send to application...." );
 #endif
+					if( ++readStackLevel > readStackHigh ) {
+						readStackHigh = readStackLevel;
+						fprintf( stderr, "READSTACK: read dispatch depth now %u\n", (unsigned)readStackLevel );
+					}
 					if( lpClient->dwFlags & CF_CPPREAD )
 					{
 						lpClient->read.CPPReadComplete( lpClient->psvRead
@@ -1247,6 +1266,8 @@ dispatch_ReadEvent:
 															 lpClient->RecvPending.buffer.p,
 															 length );
 					}
+					// decrement BEFORE the early return below, or that path leaks a level
+					readStackLevel--;
 					if( !IsValid( lpClient->Socket ) ) // closed
 						return -1;
 #ifdef LOG_PENDING

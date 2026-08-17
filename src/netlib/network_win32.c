@@ -703,6 +703,19 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				next = pc->next;
 				if( +GetTickCount() > (pc->LastEvent + 1000) )
 				{
+					/* Kept deliberately.  Each hit is a close that ONLY completed because
+					 * of this timer sweep - a client no further FD_ event would have
+					 * rescued, since FD_WRITE re-arms only after WSAEWOULDBLOCK and
+					 * FD_CLOSE is one-shot.  Believed to be zero on current code (the
+					 * FD_WRITE expectation was fixed, SSL shutdown is graceful now, and
+					 * the blocking waits that held channel locks are gone), so if this
+					 * ever prints, the sweep is still load-bearing and the deferred
+					 * terminate wants completing at unlock instead. */
+					{
+						static volatile uint32_t reaped;
+						xlprintf( LOG_ERROR )( "Delayed-close sweep terminated a client that nothing else would have; count=%u"
+						                     , (unsigned)LockedIncrement( &reaped ) );
+					}
 					//lprintf( "Remove thread event on closed thread (should be terminate here..)" );
 					// also does the remove.
 					TerminateClosedClient( pc );
