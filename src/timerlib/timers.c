@@ -2169,6 +2169,10 @@ uint32_t  AddTimerEx( uint32_t start, uint32_t frequency, void (CPROC*callback)(
 	return AddTimerExx( start, frequency, callback, user DBG_SRC );
 }
 
+
+#define AddTimerEx( s,f,c,u ) AddTimerExx( (s),(f),(c),(u) DBG_SRC )
+#define AddTimer( f, c, u ) AddTimerExx( (f), (f), (c), (u) DBG_SRC)
+
 //--------------------------------------------------------------------------
 
 void  RemoveTimerEx( uint32_t ID DBG_PASS )
