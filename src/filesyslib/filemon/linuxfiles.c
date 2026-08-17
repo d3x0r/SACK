@@ -190,7 +190,8 @@ void CPROC NewScanTimer( uintptr_t unused )
 					 //for( cur = Monitors; cur; cur = cur->next )
    while( 1 )
 	{
-		static uint8_t buf[4096];
+		// this is a thread per monitor fdMon; static buffer here is bad news.
+		uint8_t buf[4096];
 		struct inotify_event *event;
 		int len;
       int used;
