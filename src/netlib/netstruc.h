@@ -303,7 +303,6 @@ struct ssl_session {
 	BIO *rbio;
 	BIO *wbio;
 	//EVP_PKEY *privkey;
-	PLIST          accepting; // sockets being accepted so we can find the proper SSL*
 	TEXTSTR	       hostname;  // accepted client's hostname request (NULL if none)
 	PLIST          protocols; // protocol select from TLS
 	SSL*           ssl;
