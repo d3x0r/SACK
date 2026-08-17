@@ -428,7 +428,7 @@ PRIORITY_ATEXIT( StopTimers, ATEXIT_PRIORITY_TIMERS )
 
 static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 {
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	int prior;
 	prior = ClearAllocateLogging( FALSE );
 #endif
@@ -515,7 +515,7 @@ static void InitWakeup( PTHREAD thread, CTEXTSTR event_name )
 	//thread->semaphore = -1;
 #endif
 #endif
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	ResetAllocateLogging( prior );
 #endif
 
@@ -555,7 +555,7 @@ static PTHREAD FindWakeup( CTEXTSTR name )
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread_name, (uintptr_t)name );
 	if( !check )
 	{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
 #endif
 		check = GetFromSet( THREAD, &globalTimerData.threadset );
@@ -611,7 +611,7 @@ static PTHREAD FindThreadWakeup( CTEXTSTR name, THREAD_ID thread )
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread_name_and_id, (uintptr_t)&params );
 	if( !check )
 	{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
 #endif
 		check = GetFromSet( THREAD, &globalTimerData.threadset );
@@ -659,7 +659,7 @@ static PTHREAD FindThread( THREAD_ID thread )
 	check = (PTHREAD)ForAllInSet( THREAD, globalTimerData.threadset, check_thread, (uintptr_t)&thread );
 	if( !check )
 	{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		//lprintf( DBG_FILELINEFMT "Failed to find the thread - so let's add it" );
 #endif
 		check = GetFromSet( THREAD, &globalTimerData.threadset );
@@ -1894,7 +1894,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 			SetCriticalLogging( bLock );
 #endif
 #ifdef LOG_LATENCY
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 			_xlprintf( 1, timer->pFile, timer->nLine )( "Tick: %u Last: %u  delta: %u Timerdelta: %u"
 																	, globalTimerData.this_tick, globalTimerData.last_tick, globalTimerData.this_tick-globalTimerData.last_tick, timer->delta );
 #else
@@ -1933,7 +1933,7 @@ static int CPROC ProcessTimers( uintptr_t psvForce )
 					if( globalTimerData.flags.bLogTimerDispatch )
 					{
 						level++;
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 						lprintf( "%d Dispatching timer %" _32fs " freq %" _32fs " %s(%d)", level, timer->ID, timer->frequency
 						       , timer->pFile, timer->nLine );
 #else
@@ -2132,7 +2132,7 @@ uint32_t  AddTimerExx( uint32_t start, uint32_t frequency, TimerCallbackProc cal
 	} while( thisTimer == 0 );
 	timer->ID        = thisTimer;
 	timer->userdata  = user;
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	timer->pFile = pFile;
 	timer->nLine = nLine;
 #endif
@@ -2381,7 +2381,7 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	int d;
 	THREAD_ID prior = 0;
 #ifdef LOG_DEBUG_CRITICAL_SECTIONS
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	if( global_timer_structure && globalTimerData.flags.bLogCriticalSections )
 		_lprintf( DBG_RELAY )( "Enter critical section %p (owner) %" _64fx, pcs, pcs->dwThreadID );
 #endif
@@ -2408,11 +2408,11 @@ LOGICAL  EnterCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 {
 	THREAD_ID dwCurProc;
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	uint64_t curtick;
 #endif
 	while( 1 ) {
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		curtick = timeGetTime64();
 #endif
 #ifdef ENABLE_CRITICALSEC_LOGGING
@@ -2420,7 +2420,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			_xlprintf( LOG_NOISE DBG_RELAY )( "Begin leave critical section %p %" _64fx, pcs, pcs->dwThreadWaiting );
 #endif
 		while( LockedExchange( &pcs->dwUpdating, 1 )
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 			//GetTickCount() )
 			&& ( ( curtick + 2000 ) > timeGetTime64() )
 #endif
@@ -2432,7 +2432,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 			Relinquish();
 		}
 		dwCurProc = GetThisThreadID();
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		//GetTickCount() )
 		if( ( curtick + 2000 ) <= timeGetTime64() ) {
 #ifdef DEBUG_CRITICAL_SECTIONS
@@ -2466,7 +2466,7 @@ LOGICAL  LeaveCriticalSecEx( PCRITICALSECTION pcs DBG_PASS )
 	if( pcs->dwThreadID == dwCurProc )
 	{
 #ifdef DEBUG_CRITICAL_SECTIONS
-#  ifdef _DEBUG
+#  if defined( _DEBUG ) || defined( _DEBUG_INFO )
 		pcs->pFile[pcs->nPrior] = pFile;
 		pcs->nLine[pcs->nPrior] = nLine;
 #  else
