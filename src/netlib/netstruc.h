@@ -490,6 +490,16 @@ struct NetworkClient
 	PendingBuffer prefixData; // the next recv should use this first and then recv()...
 	PendingBuffer *volatile lpFirstPending, *volatile lpLastPending; // outgoing buffers
 	uint32_t    LastEvent; // GetTickCount() of last event...
+#if DBG_AVAILABLE
+	// Site that called InternalRemoveClientEx for this close, relayed through to
+	// AddClosed.  AddClosed is what puts a client on ClosedClients, and callers
+	// that do not follow it with TerminateClosedClient leave it there for the
+	// win32 delayed-close sweep to finish - which reports these, so a reaped
+	// client names the site that abandoned it.  Cleared on recycle (both live
+	// past clear_offset, so ClearClient's memset zeroes them).
+	CTEXTSTR    closedFile;
+	uint32_t    closedLine;
+#endif
 	DeclareLink( struct NetworkClient );
 	PCLIENT pcServer; // server this listen socket came from - because connect callback has to be delayed until after handshake of TLS.
 	PCLIENT pcOther; // listeners opened(was deprecated since most connections to v4 can be seen on v6) with port only have two connections, one IPV4 one IPV6

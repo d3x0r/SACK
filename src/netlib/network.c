@@ -361,10 +361,15 @@ void unlockNetWorkList( void ) {
 
 //----------------------------------------------------------------------------
 
-static PCLIENT AddClosed( PCLIENT pClient )
+static PCLIENT AddClosed( PCLIENT pClient DBG_PASS )
 {
 	if( pClient )
 	{
+#if DBG_AVAILABLE
+		// blame the caller of InternalRemoveClientEx, not this line - see netstruc.h
+		pClient->closedFile = pFile;
+		pClient->closedLine = nLine;
+#endif
 		// leaving active life; invalidate handles captured against this connection.
 		LockedIncrement( &pClient->serial );
 		SetClientFlags( pClient, CF_CLOSED );
@@ -1493,7 +1498,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #ifdef LOG_DEBUG_CLOSING
 				lprintf( "Client was NOT already closed?!?!" );
 #endif
-				AddClosed( GrabClient( lpClient ) );
+				AddClosed( GrabClient( lpClient ) DBG_RELAY );
 			}
 #ifdef LOG_DEBUG_CLOSING
 			else
@@ -1601,7 +1606,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #ifdef LOG_DEBUG_CLOSING
 		lprintf( "Adding current client to closed clients." );
 #endif
-		AddClosed( GrabClient( lpClient ) );
+		AddClosed( GrabClient( lpClient ) DBG_RELAY );
 #ifdef LOG_DEBUG_CLOSING
 		lprintf( "Leaving client critical section" );
 #endif

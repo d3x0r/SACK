@@ -713,8 +713,29 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 					 * terminate wants completing at unlock instead. */
 					{
 						static volatile uint32_t reaped;
+#if DBG_AVAILABLE
+						// name the site that put this on ClosedClients and walked away
+						// recyclePending=1 here means TerminateClosedClientEx deferred (network.c
+						// ~550) and NetworkUnlockEx's completion hook (~1389) never saw both
+						// channels free with the flag set - i.e. the sweep is finishing a
+						// deferred RECYCLE, not rescuing an unclosed socket.
+						xlprintf( LOG_ERROR )( "Delayed-close sweep terminated a client that nothing else would have; count=%u closed by %s(%u) recyclePending=%u rd=%u wr=%u sock=%s"
+						                     , (unsigned)LockedIncrement( &reaped )
+						                     , pc->closedFile ? pc->closedFile : "(unset)"
+						                     , (unsigned)pc->closedLine
+						                     , (unsigned)pc->recyclePending
+						                     , (unsigned)pc->csLockRead.dwLocks
+						                     , (unsigned)pc->csLockWrite.dwLocks
+						                     , IsValid( pc->Socket ) ? "open" : "closed" );
+						// who is still holding it - the sweep's own thread would mean a
+						// reentrant/self hold, any other thread means a leaked recursion.
+						xlprintf( LOG_ERROR )( "   ...write lock owner=%016" _64fx " sweep thread=%016" _64fx
+						                     , (uint64_t)pc->csLockWrite.dwThreadID
+						                     , (uint64_t)GetMyThreadID() );
+#else
 						xlprintf( LOG_ERROR )( "Delayed-close sweep terminated a client that nothing else would have; count=%u"
 						                     , (unsigned)LockedIncrement( &reaped ) );
+#endif
 					}
 					//lprintf( "Remove thread event on closed thread (should be terminate here..)" );
 					// also does the remove.
