@@ -201,7 +201,7 @@ void CPROC NewScanTimer( uintptr_t unused )
 			PFILEMON filemon = NULL;
 			for( used = 0; used < len; used += sizeof( struct inotify_event ) + event->len ) {
 				PCHANGEHANDLER Change;
-				event = (struct inotify_event*)buf;
+				event = (struct inotify_event*)(buf + used);
 				//lprintf( "Events: %d %d %08x (%d)%s", len, used, event->mask, event->len, event->name );
 
 				if( event->len ) {
