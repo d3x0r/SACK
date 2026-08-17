@@ -533,7 +533,7 @@ void InitSyslog( int ignore_options )
 		}
 #else
 
-#  if defined( _DEBUG ) || defined( DEFAULT_OUTPUT_STDERR ) || defined( DEFAULT_OUTPUT_STDOUT )
+#  if ( defined( _DEBUG ) || defined( _DEBUG_INFO ) ) || defined( DEFAULT_OUTPUT_STDERR ) || defined( DEFAULT_OUTPUT_STDOUT )
 		{
 #    if defined( __LINUX__ ) && 0
 			logtype = SYSLOG_SOCKET_SYSLOGD;
@@ -1644,7 +1644,7 @@ void  LogBinaryFL ( const uint8_t* buffer, size_t size FILELINE_PASS )
 #undef LogBinaryEx
  void  LogBinaryEx ( const uint8_t* buffer, size_t size DBG_PASS )
 {
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	LogBinaryFL( buffer,size DBG_RELAY );
 #else
 	LogBinaryFL( buffer,size FILELINE_NULL );
@@ -1793,7 +1793,7 @@ static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 
 static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 {
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	// this can be used to force logging early to stdout
 	struct next_lprint_info *_next_lprintf = GetNextInfo();
 #endif
@@ -1858,7 +1858,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		ofs += StrLen( buffer + ofs );
 #endif
 		{
-#ifdef _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 			CTEXTSTR pFile;
 #ifndef _LOG_FULL_FILE_NAMES
 			CTEXTSTR p;
@@ -1919,7 +1919,7 @@ RealVLogFunction  _vxlprintf ( uint32_t level DBG_PASS )
 	//EnterCriticalSec( &next_lprintf.cs );
 	_next_lprintf = GetNextInfo();
 	next_lprintf.nLevel = level;
-#if _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	next_lprintf.pFile = pFile;
 	next_lprintf.nLine = nLine;
 #endif
@@ -1956,7 +1956,7 @@ RealLogFunction _xlprintf( uint32_t level DBG_PASS )
 		InitSyslog(1);
 #endif
 	_next_lprintf = GetNextInfo();
-#if _DEBUG
+#if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	next_lprintf.pFile = pFile;
 	next_lprintf.nLine = nLine;
 #endif
