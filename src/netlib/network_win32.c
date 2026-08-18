@@ -452,7 +452,9 @@ static void HandleEvent( PCLIENT pClient )
 						// work, or both sides believe the other performs the close and
 						// the socket strands in CLOSE_WAIT.
 						LOGICAL deferred = FALSE;
+						uint8_t dbgInUse;
 						lockNetWorkList();
+						dbgInUse = pClient->flags.bInUse;
 						if( ( pClient->dwFlags & CF_ACTIVE ) && pClient->flags.bInUse )
 						{
 							// application holds work on this socket; mark the close so
@@ -461,6 +463,18 @@ static void HandleEvent( PCLIENT pClient )
 							deferred = TRUE;
 						}
 						unlockNetWorkList();
+						{	// PROBE: which FD_CLOSE decisions run with no work held?
+							// Only the ACTIVE+!deferred case actually closes here; the
+							// inactive ones are no-ops and printing them wedged the server.
+							// ordinal counts every FD_CLOSE decision; at CONC=1 connections are
+							// strictly serial, so ordinal N == request N and can be compared
+							// directly against the client's lost-index list.
+							static volatile uint32_t nDefer, nNowActive, nNowIdle;
+							if( deferred ) LockedIncrement( &nDefer );
+							else if( pClient->dwFlags & CF_ACTIVE )
+								LockedIncrement( &nNowActive );  // silent: question answered, kept as a counter
+							else LockedIncrement( &nNowIdle );
+						}
 						if( !deferred && ( pClient->dwFlags & CF_ACTIVE ) )
 						{
 							// might already be cleared and gone..

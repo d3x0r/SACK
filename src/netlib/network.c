@@ -1734,7 +1734,33 @@ void ClearNetWork( PCLIENT lpClient, uintptr_t psv ) {
 	unlockNetWorkList();
 	if( !emptied )
 		return;
-	if( lpClient->dwFlags & CF_TOCLOSE && (!lpClient->lpFirstPending || !lpClient->lpFirstPending->dwAvail) ) {
+	// nWritesPended counts writes parked on the global pdqPendingWrites queue,
+	// which set neither lpFirstPending nor CF_WRITEPENDING - so without it this
+	// test sees "nothing pending" and closes on top of the response it was
+	// deferring for.  Same counter already added to InternalRemoveClientExx
+	// (~1514) and RemoveClientExx (~1660); this completion path was missed.
+	// deliverPendingWrite finishes the close once the queue drains.
+	if( ( lpClient->dwFlags & CF_TOCLOSE ) && lpClient->nWritesPended ) {
+		// PROBE (silent counter): declining the close while a write is queued is the
+		// NORMAL path - deliverPendingWrite completes it.  Pair with
+		// DELIVER-HANDOFF - the same pc printed by both means neither completed
+		// the close and the client is stranded (win32 has no re-notification to
+		// rescue it, so this is the suspected source of the intermittent stall).
+		static volatile uint32_t nDefer;
+		LockedIncrement( &nDefer );  // silent: DELIVER-HANDOFF is the one that speaks
+	}
+	if( lpClient->dwFlags & CF_TOCLOSE && !lpClient->nWritesPended
+	 && (!lpClient->lpFirstPending || !lpClient->lpFirstPending->dwAvail) ) {
+		{	// PROBE: is a response parked on pdqPendingWrites when we close here?
+			// nWritesPended is checked in InternalRemoveClientExx (~1514) and
+			// RemoveClientExx (~1660) but NOT in this test.
+			static volatile uint32_t nClose, nCloseWithWrites;
+			LockedIncrement( &nClose );
+			if( lpClient->nWritesPended )
+				fprintf( stderr, "CLEARNET-CLOSE-DISCARDS pc=%p flags=%08x nWritesPended=%u n=%u of=%u\n"
+				       , (void*)lpClient, (unsigned)lpClient->dwFlags, (unsigned)lpClient->nWritesPended
+				       , (unsigned)LockedIncrement( &nCloseWithWrites ), (unsigned)nClose );
+		}
 		RemoveClient( lpClient );
 	}
 }

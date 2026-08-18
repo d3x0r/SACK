@@ -153,29 +153,33 @@ enum NetworkConnectionFlags {
 	, CF_READPENDING     = 0x00000008
 	// set if next read to pend should recv also
 	, CF_READREADY       = 0x00000010
-	// set if reading application is waiting in-line for result.
-	, CF_READWAITING     = 0x00008000
 	// set when FD_CONNECT is issued...
 	, CF_CONNECTED       = 0x00000020
 	, CF_CONNECTERROR    = 0x00000040
 	, CF_CONNECTING      = 0x00000080
-	, CF_CONNECT_WAITING = 0x00400000
-	, CF_CONNECT_CLOSED  = 0x00100000
-	, CF_CONNECT_ISSUED  = 0x00800000  // connection to socket callback for server connect was issued.
 	// A graceful close was requested for this client.  Latched, because a later
 	// close can arrive with bLinger FALSE - the read-error branch in the event
 	// loops hard-codes it - and that would swap in SO_LINGER{1,0}, resetting the
 	// connection and discarding a response that is sent but not yet ACKed.
 	// CF_WANTCLOSE cannot serve as this marker: it is set on both paths.
-	, CF_LINGERCLOSE     = 0x00200000
 	, CF_TOCLOSE         = 0x00000100  // wants to close at the next opportunity.
-	, CF_WANTCLOSE       = 0x00000200  // this flag is unused at this time
+	// Set by RemoveClientExx (network.c ~1666) on BOTH of its branches, and set
+	// nowhere else - so CF_WANTCLOSE means exactly "RemoveClientEx has run", i.e.
+	// the close was requested through the API rather than observed on the wire.
+	// That distinction matters: the FD_CLOSE handler sets CF_TOCLOSE by hand to
+	// defer a peer-initiated close while the application still owns the socket,
+	// and in that state the application's response is still to come.  So
+	// CF_TOCLOSE alone != "no more writes"; only the pair does.
+	, CF_WANTCLOSE       = 0x00000200
 	, CF_CLOSING         = 0x00000400
 	, CF_DRAINING        = 0x00000800
 	// closed, handled everything except releasing the socket.
 	, CF_CLOSED          = 0x00001000
 	, CF_ACTIVE          = 0x00002000
 	, CF_AVAILABLE       = 0x00004000
+	, CF_STATEFLAGS      = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
+	// set if reading application is waiting in-line for result.
+	, CF_READWAITING     = 0x00008000
 	, CF_CPPCONNECT      = 0x00010000
 	// server/client is implied in usage....
 	// much like Read, ReadEX are implied in TCP/UDP usage...
@@ -185,13 +189,21 @@ enum NetworkConnectionFlags {
 	, CF_CPPCLOSE        = 0x00040000
 	, CF_CPPWRITE        = 0x00080000
 	, CF_CALLBACKTYPES   = 0x00010000
-                        | 0x00020000
-                        | 0x00040000
-                        | 0x00080000//(CF_CPPCONNECT | CF_CPPREAD | CF_CPPCLOSE | CF_CPPWRITE)
-	, CF_STATEFLAGS      = 0x1000 | 0x2000 | 0x4000  //( CF_ACTIVE | CF_AVAILABLE | CF_CLOSED)
+	                     | 0x00020000
+	                     | 0x00040000
+	                     | 0x00080000//(CF_CPPCONNECT | CF_CPPREAD | CF_CPPCLOSE | CF_CPPWRITE)
+	, CF_CONNECT_CLOSED  = 0x00100000
+	, CF_WRITEREADY      = 0x00200000
+	, CF_CONNECT_WAITING = 0x00400000
+	, CF_CONNECT_ISSUED  = 0x00800000  // connection to socket callback for server connect was issued.
 	//, CF_WANTS_GLOBAL_LOCK = 0x10000000
+	// 0x00200000 COLLIDED with CF_WRITEREADY (below) - same bit, same enum.  Any
+	// write-ready event set it, so InternalRemoveClientExx read "graceful already
+	// latched" and skipped the abortive SO_LINGER{1,0}; and the write path's
+	// ClearClientFlags( CF_WRITEREADY ) wiped a genuine graceful latch, which is
+	// exactly the RST-discards-the-response regression this flag exists to prevent.
+	, CF_LINGERCLOSE     = 0x01000000
 	, CF_PROCESSING      = 0x20000000
-	, CF_WRITEREADY 	= 0x00200000
 };
 
 #ifdef __cplusplus
@@ -497,6 +509,18 @@ struct NetworkClient
 	// win32 delayed-close sweep to finish - which reports these, so a reaped
 	// client names the site that abandoned it.  Cleared on recycle (both live
 	// past clear_offset, so ClearClient's memset zeroes them).
+	// First close mode requested for this client, so a deferred completion replays
+	// what was actually asked for instead of whatever the completing caller passes.
+	// bBlockNotify is not cosmetic: at network.c ~1553 it gates the close callback,
+	// the CF_CLOSING mark and the serial bump (which is what starts failing
+	// NetworkClientValid for deferred handles), and the pWaiting wake.  Replaying
+	// the wrong value either fires a callback the caller suppressed or loses the one
+	// the application was waiting for, so neither direction is safe to override:
+	// first value wins, and a later disagreeing request is logged rather than
+	// silently dropped.  Deliberately plain logicals, not CF_ bits - the flags word
+	// is a cross-thread RMW target and these are per-lifetime bookkeeping.
+	LOGICAL     closeModeSet;      // has a close mode been recorded yet
+	LOGICAL     closeBlockNotify;  // the recorded bBlockNotify
 	CTEXTSTR    closedFile;
 	uint32_t    closedLine;
 #endif

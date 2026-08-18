@@ -1912,6 +1912,16 @@ static LOGICAL deliverPendingWrite( struct PendingWrite *pending, PTHREAD thread
 		// it on release, as the event threads do.
 		finishClose = ( !pc->nWritesPended && !pc->lpFirstPending
 		             && ( pc->dwFlags & CF_TOCLOSE ) && !pc->flags.bInUse );
+		{	// PROBE: this side declining while ClearNetWork also declines is how a
+			// deferred close strands (each believes the other completes it).  Pair
+			// these against CLEARNET-DEFER: the same pc in both is a stranded client.
+			static volatile uint32_t nHandoff, nFinish;
+			if( finishClose ) LockedIncrement( &nFinish );
+			else if( !pc->nWritesPended && ( pc->dwFlags & CF_TOCLOSE ) && pc->flags.bInUse )
+				fprintf( stderr, "DELIVER-HANDOFF pc=%p flags=%08x inUse=1 n=%u finished=%u\n"
+				       , (void*)pc, (unsigned)pc->dwFlags
+				       , (unsigned)LockedIncrement( &nHandoff ), (unsigned)nFinish );
+		}
 		if( finishClose )
 			ClearClientFlags( pc, CF_TOCLOSE );
 		NetworkUnlockEx( pc, 0|0x10 DBG_SRC );
@@ -2032,6 +2042,11 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 //#ifdef VERBOSE_DEBUG
 		_lprintf(DBG_RELAY)( "TCP Write failed - invalid client." );
 //#endif
+		{	static volatile uint32_t nInactive;
+			fprintf( stderr, "WRITEFAIL-INACTIVE pc=%p flags=%08x len=%d n=%u\n"
+			       , (void*)lpClient, lpClient ? (unsigned)lpClient->dwFlags : 0
+			       , (int)nInLen, (unsigned)LockedIncrement( &nInactive ) );
+		}
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
 
@@ -2053,12 +2068,32 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 		if( lpClient->wakeOnUnlock )
 			lprintf( "client is already waiting for wake on unlock? %p  %p", lpClient, lpClient->wakeOnUnlock);
 #endif
-		if( (!(lpClient->dwFlags & CF_ACTIVE )) || (lpClient->dwFlags & CF_TOCLOSE) )
+		// CF_TOCLOSE must NOT fail the send.  Since the deferred-close rework it
+		// means "close once pending writes flush", so a write arriving while it is
+		// set is precisely the response the close is waiting for - refusing it
+		// discards the response and the peer sees a clean FIN with no body.  Same
+		// correction already made in deliverPendingWrite; this was the sibling site.
+		// CF_TOCLOSE ALONE is the peer-FIN deferral: the FD_CLOSE handler sets it by
+		// hand while the app still holds work, so the response is still to come and
+		// must not be refused.  Paired with CF_WANTCLOSE it means RemoveClientExx
+		// actually ran (that is its only setter, on both of its branches), i.e. the
+		// application asked to close - and a write arriving after that is too late.
+		// A client that has gone inactive can never take data.
+		if( !(lpClient->dwFlags & CF_ACTIVE )
+		 || ( ( lpClient->dwFlags & ( CF_TOCLOSE | CF_WANTCLOSE ) )
+		      == ( CF_TOCLOSE | CF_WANTCLOSE ) ) )
 		{
 #ifdef LOG_NETWORK_LOCKING
 			_lprintf(DBG_RELAY)( "Failing send... inactive or closing" );
 			LogBinary( (uint8_t*)pInBuffer, nInLen );
 #endif
+			{	static volatile uint32_t nRefuse;
+				fprintf( stderr, "WRITEFAIL-LOOP pc=%p flags=%08x active=%u toclose=%u len=%d n=%u\n"
+				       , (void*)lpClient, (unsigned)lpClient->dwFlags
+				       , (unsigned)( ( lpClient->dwFlags & CF_ACTIVE ) != 0 )
+				       , (unsigned)( ( lpClient->dwFlags & CF_TOCLOSE ) != 0 )
+				       , (int)nInLen, (unsigned)LockedIncrement( &nRefuse ) );
+			}
 			return FALSE;
 		}
 
