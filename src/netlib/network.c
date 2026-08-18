@@ -1422,6 +1422,26 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 #ifdef LOG_SOCKET_CREATION
 	_lprintf( DBG_RELAY )( "InternalRemoveClient Removing this client %p (%d)", lpClient, lpClient->Socket );
 #endif
+	// Record the first close mode requested and replay it, rather than letting a
+	// deferred completion (ClearNetWork -> RemoveClient) substitute its own defaults.
+	// bBlockNotify is not cosmetic: below it gates the close callback, the CF_CLOSING
+	// mark, the serial bump that starts failing NetworkClientValid for deferred
+	// handles, and the pWaiting wake - so replaying the wrong value either fires a
+	// callback the caller suppressed or loses the one the application was waiting
+	// for.  Neither direction is safe to override: first value wins, and a later
+	// disagreement is logged rather than silently dropped.  linger is deliberately
+	// NOT first-wins - CF_LINGERCLOSE stays a one-way latch, because the read-error
+	// branch hard-codes bLinger=FALSE and firing first would downgrade a later
+	// genuine graceful close.
+	if( lpClient && !lpClient->closeModeSet ) {
+		lpClient->closeModeSet = TRUE;
+		lpClient->closeBlockNotify = bBlockNotify;
+	} else if( lpClient ) {
+		if( ( !lpClient->closeBlockNotify ) != ( !bBlockNotify ) )
+			_xlprintf( LOG_ERROR DBG_RELAY )( "close mode conflict on %p: first bBlockNotify=%d, now %d - replaying the first"
+			                                , lpClient, (int)lpClient->closeBlockNotify, (int)bBlockNotify );
+		bBlockNotify = lpClient->closeBlockNotify;
+	}
 	if( lpClient && IsValid(lpClient->Socket) )
 	{
 		// an abortive request cannot override a graceful one already latched
