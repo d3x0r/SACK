@@ -1433,6 +1433,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 	// NOT first-wins - CF_LINGERCLOSE stays a one-way latch, because the read-error
 	// branch hard-codes bLinger=FALSE and firing first would downgrade a later
 	// genuine graceful close.
+#if DBG_AVAILABLE
 	if( lpClient && !lpClient->closeModeSet ) {
 		lpClient->closeModeSet = TRUE;
 		lpClient->closeBlockNotify = bBlockNotify;
@@ -1442,6 +1443,7 @@ void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNotify, LOGICAL bLi
 			                                , lpClient, (int)lpClient->closeBlockNotify, (int)bBlockNotify );
 		bBlockNotify = lpClient->closeBlockNotify;
 	}
+#endif
 	if( lpClient && IsValid(lpClient->Socket) )
 	{
 		// an abortive request cannot override a graceful one already latched
