@@ -803,18 +803,19 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 				}
 			}
 		}
-		else
+
 		{
-			//lprintf( "Not setting IO handles." );
 			task->si.StartupInfo.dwFlags |= STARTF_USESHOWWINDOW;
 			if( !( flags & LPP_OPTION_DO_NOT_HIDE ) )
 				task->si.StartupInfo.wShowWindow = SW_HIDE;
-			else
-				task->si.StartupInfo.wShowWindow = SW_SHOW;
-			if( flags & LPP_OPTION_MINIMIZED )
-				task->si.StartupInfo.wShowWindow = SW_HIDE;
-			else if( flags & LPP_OPTION_MAXIMIZED )
-				task->si.StartupInfo.wShowWindow = SW_SHOW;
+			else {
+				if( flags & LPP_OPTION_MINIMIZED )
+					task->si.StartupInfo.wShowWindow = SW_SHOWMINNOACTIVE;//SW_SHOWMINIMIZED;
+				else if( flags & LPP_OPTION_MAXIMIZED )
+					task->si.StartupInfo.wShowWindow = SW_SHOWMAXIMIZED;
+				else				
+					task->si.StartupInfo.wShowWindow = SW_SHOWNORMAL;
+			}
 		}
 
 		{
