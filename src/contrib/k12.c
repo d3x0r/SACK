@@ -17,7 +17,7 @@
 #define K12_SUFFIX_SINGLE 0x07 /* '11' : message hop, final node (no leaves)     */
 #define K12_SUFFIX_TREE   0x06 /* '01' : chaining hop, final node                */
 
-#define ROTL64( x, y ) ( ( (uint64_t)( x ) << ( y ) ) | ( (uint64_t)( x ) >> ( 64 - ( y ) ) ) )
+#define K12_ROTL64( x, y ) ( ( (uint64_t)( x ) << ( y ) ) | ( (uint64_t)( x ) >> ( 64 - ( y ) ) ) )
 
 /* the state lanes are stored little endian; on a big endian host they are
    swapped in and out around the permutation. */
@@ -55,7 +55,7 @@ static const unsigned k12_piln[24] = {
 
 #define K12_ROUNDS 12
 
-static void KeccakP1600_Permute_12rounds( KeccakWidth1600_12rounds_SpongeInstance *sponge ) {
+static void k12_permute( KeccakWidth1600_12rounds_SpongeInstance *sponge ) {
 	uint64_t *st = sponge->state.q;
 	uint64_t  bc[5], t;
 	unsigned  r, i, j;
@@ -71,7 +71,7 @@ static void KeccakP1600_Permute_12rounds( KeccakWidth1600_12rounds_SpongeInstanc
 		for( i = 0; i < 5; i++ )
 			bc[i] = st[i] ^ st[i + 5] ^ st[i + 10] ^ st[i + 15] ^ st[i + 20];
 		for( i = 0; i < 5; i++ ) {
-			t = bc[( i + 4 ) % 5] ^ ROTL64( bc[( i + 1 ) % 5], 1 );
+			t = bc[( i + 4 ) % 5] ^ K12_ROTL64( bc[( i + 1 ) % 5], 1 );
 			for( j = 0; j < 25; j += 5 )
 				st[j + i] ^= t;
 		}
@@ -80,7 +80,7 @@ static void KeccakP1600_Permute_12rounds( KeccakWidth1600_12rounds_SpongeInstanc
 		for( i = 0; i < 24; i++ ) {
 			j     = k12_piln[i];
 			bc[0] = st[j];
-			st[j] = ROTL64( t, k12_rotc[i] );
+			st[j] = K12_ROTL64( t, k12_rotc[i] );
 			t     = bc[0];
 		}
 		/* chi */
@@ -129,7 +129,7 @@ static int K12_SpongeAbsorb( KeccakWidth1600_12rounds_SpongeInstance *sponge, co
 		data += take;
 		dataByteLen -= take;
 		if( sponge->byteIOIndex == K12_RATE_BYTES ) {
-			KeccakP1600_Permute_12rounds( sponge );
+			k12_permute( sponge );
 			sponge->byteIOIndex = 0;
 		}
 	}
@@ -147,10 +147,10 @@ static int K12_SpongeAbsorbLastFewBits( KeccakWidth1600_12rounds_SpongeInstance 
 	/* if the first bit of padding is at position rate-1, a whole new block is
 	   needed for the second bit of padding */
 	if( ( delimitedData >= 0x80 ) && ( sponge->byteIOIndex == ( K12_RATE_BYTES - 1 ) ) )
-		KeccakP1600_Permute_12rounds( sponge );
+		k12_permute( sponge );
 	/* second bit of padding */
 	sponge->state.b[K12_RATE_BYTES - 1] ^= 0x80;
-	KeccakP1600_Permute_12rounds( sponge );
+	k12_permute( sponge );
 	sponge->byteIOIndex = 0;
 	sponge->squeezing   = 1;
 	return 0;
@@ -163,7 +163,7 @@ static int K12_SpongeSqueeze( KeccakWidth1600_12rounds_SpongeInstance *sponge, u
 	while( dataByteLen ) {
 		size_t take;
 		if( sponge->byteIOIndex == K12_RATE_BYTES ) {
-			KeccakP1600_Permute_12rounds( sponge );
+			k12_permute( sponge );
 			sponge->byteIOIndex = 0;
 		}
 		take = K12_RATE_BYTES - sponge->byteIOIndex;
@@ -179,7 +179,7 @@ static int K12_SpongeSqueeze( KeccakWidth1600_12rounds_SpongeInstance *sponge, u
 
 /* ---------------------------------------------------------------- */
 
-static unsigned int right_encode( unsigned char *encbuf, size_t value ) {
+static unsigned int k12_right_encode( unsigned char *encbuf, size_t value ) {
 	unsigned int n, i;
 	size_t       v;
 
@@ -278,10 +278,10 @@ int KangarooTwelve_Final( KangarooTwelve_Instance *ktInstance, unsigned char *ou
 	if( ktInstance->phase != ABSORBING )
 		return 1;
 
-	/* absorb customization | right_encode(customLen) */
+	/* absorb customization | k12_right_encode(customLen) */
 	if( ( customLen != 0 ) && ( KangarooTwelve_Update( ktInstance, customization, customLen ) != 0 ) )
 		return 1;
-	if( KangarooTwelve_Update( ktInstance, encbuf, right_encode( encbuf, customLen ) ) != 0 )
+	if( KangarooTwelve_Update( ktInstance, encbuf, k12_right_encode( encbuf, customLen ) ) != 0 )
 		return 1;
 
 	if( ktInstance->blockNumber == 0 ) {
@@ -301,9 +301,9 @@ int KangarooTwelve_Final( KangarooTwelve_Instance *ktInstance, unsigned char *ou
 			if( K12_SpongeAbsorb( &ktInstance->finalNode, intermediate, K12_CAPACITY_BYTES ) != 0 )
 				return 1;
 		}
-		/* absorb right_encode(number of chaining values) || 0xFF || 0xFF */
+		/* absorb k12_right_encode(number of chaining values) || 0xFF || 0xFF */
 		--ktInstance->blockNumber;
-		n          = right_encode( encbuf, ktInstance->blockNumber );
+		n          = k12_right_encode( encbuf, ktInstance->blockNumber );
 		encbuf[n++] = 0xFF;
 		encbuf[n++] = 0xFF;
 		if( K12_SpongeAbsorb( &ktInstance->finalNode, encbuf, n ) != 0 )
