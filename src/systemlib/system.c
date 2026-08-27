@@ -11,7 +11,9 @@
 #ifndef _POSIX_C_SOURCE
 #  define _POSIX_C_SOURCE 2
 #endif
-#define _POSIX_SOURCE
+#ifndef _POSIX_SOURCE
+#  define _POSIX_SOURCE
+#endif
 #include <stdhdrs.h>
 #include <deadstart.h>
 #include <string.h>
