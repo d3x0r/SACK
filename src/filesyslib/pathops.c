@@ -159,8 +159,9 @@ TEXTSTR GetCurrentPath( TEXTSTR path, int len )
 #ifndef _WIN32
 static void convert( uint64_t* outtime, time_t *time )
 {
-#warning convert time function is incomplete.
-	*outtime = *time;
+	// time_t is seconds from 1970; FILETIME is 100ns units from 1601.  EPOCH_DIFF
+	// (stdhdrs.h) is the gap between those two epochs, in seconds.
+	*outtime = ( (uint64_t)*time + EPOCH_DIFF ) * 10000000ULL;
 }
 #endif
 
@@ -173,13 +174,16 @@ uint64_t GetTimeAsFileTime ( void )
 	//struct timezone tz;
 	FILETIME result;
 	gettimeofday( &tmp, NULL );//&tz );
-	result = ( tmp.tv_usec * 10LL ) + ( tmp.tv_sec * 1000LL * 1000LL * 10LL );
+	// 100ns units from 1601, same base as the windows branch below, so values
+	// from the two platforms (and from GetFileWriteTime) are comparable.
+	result = ( ( (uint64_t)tmp.tv_sec + EPOCH_DIFF ) * 10000000ULL ) + ( tmp.tv_usec * 10LL );
 	return result;
 #else
-	SYSTEMTIME st;
+	// UTC, not local: GetFileTime() (and so GetFileWriteTime below) reports UTC,
+	// so a local time here made every now-versus-file comparison wrong by the
+	// zone offset.  GetSystemTimeAsFileTime is already the 1601 base we want.
 	FILETIME result;
-	GetLocalTime( &st );
-	SystemTimeToFileTime( &st, &result );
+	GetSystemTimePreciseAsFileTime( &result );
 	return *(uint64_t*)&result;
 #endif
 }
