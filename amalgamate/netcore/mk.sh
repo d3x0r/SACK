@@ -71,7 +71,7 @@ SRCS="$SRCS   ../../src/contrib/md5lib/md5c.c"
 SRCS="$SRCS   ../../src/contrib/sha1lib/sha1.c"
 SRCS="$SRCS   ../../src/contrib/sha2lib/sha2.c"
 SRCS="$SRCS   ../../src/contrib/sha3lib/sha3.c"
-SRCS="$SRCS   ../../src/contrib/K12/lib/KangarooTwelve.c"
+SRCS="$SRCS   ../../src/contrib/k12.c"
 SRCS="$SRCS   ../../src/salty_random_generator/salty_generator.c"
 SRCS="$SRCS   ../../src/salty_random_generator/crypt_util.c"
 SRCS="$SRCS   ../../src/salty_random_generator/block_shuffle.c"
@@ -84,7 +84,7 @@ CPP_CFLAGS="-DWINFILE_COMMON_SOURCE"
 rm sack_ucb_networking.c
 rm sack_ucb_networking.h
 
-ppc -c -K -once -ssio -sd -I../../include -I../../src/contrib/K12/lib -p -osack_ucb_networking.c -DINCLUDE_LOGGING $SRCS
+ppc -c -K -once -ssio -sd -I../../include -I../../src/contrib -p -osack_ucb_networking.c -DINCLUDE_LOGGING $SRCS
 
 mkdir h
 cp config.ppc.h h\config.ppc

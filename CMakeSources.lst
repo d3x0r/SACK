@@ -26,26 +26,13 @@ set( SHA3_SOURCES
 SET_SOURCE_FILES_PROPERTIES( ${SHA3_SOURCES} PROPERTIES
 				FOLDER "Source Files\\hash\\sha3" )
 
+# self contained KangarooTwelve; replaces the eXtended Keccak Code Package
+# that used to be built from src/contrib/K12 (still there, no longer used).
 set( K12_SOURCES
-  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.c 
-  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.h
-  ${SOURCES_ROOT}src/contrib/K12/lib/brg_endian.h 
+  ${SOURCES_ROOT}src/contrib/k12.c
+  ${SOURCES_ROOT}src/contrib/k12.h
 )
-set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib" )
-if( 0 )
-if( __64__ ) 
-    set( K12_SOURCES ${K12_SOURCES}
-      ${SOURCES_ROOT}src/contrib/K12/lib/Optimized64/KeccakP-1600-opt64.c
-      )
-    set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib -I${SOURCES_ROOT}/src/contrib/K12/lib/Optimized64" )
-else()
-    set( K12_SOURCES ${K12_SOURCES}
-        ${SOURCES_ROOT}src/contrib/K12/lib/Inplace32BI/KeccakP-1600-inplace32BI.c
-    )
-    set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib/K12/lib -I${SOURCES_ROOT}/src/contrib/K12/lib/Inplace32BI" )
-endif()
-
-endif(0)
+set( K12_INCLUDES "-I${SOURCES_ROOT}/src/contrib" )
 SET_SOURCE_FILES_PROPERTIES( ${RANDOM_SOURCES} PROPERTIES COMPILE_FLAGS ${K12_INCLUDES} )
 SET_SOURCE_FILES_PROPERTIES( ${K12_SOURCES} PROPERTIES FOLDER "Source Files\\hash\\K12" )
 

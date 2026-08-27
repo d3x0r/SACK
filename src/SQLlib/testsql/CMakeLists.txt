@@ -16,11 +16,10 @@ install_default_dest( ${project} )
 set( SOURCES_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../ )
 
 set( K12_SOURCES
-  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.c 
-  ${SOURCES_ROOT}src/contrib/K12/lib/KangarooTwelve.h
-  ${SOURCES_ROOT}src/contrib/K12/lib/brg_endian.h 
+  ${SOURCES_ROOT}src/contrib/k12.c
+  ${SOURCES_ROOT}src/contrib/k12.h
 )
-set( K12_INCLUDES ${SOURCES_ROOT}/src/contrib/K12/lib )
+set( K12_INCLUDES ${SOURCES_ROOT}/src/contrib )
 
 
 string( REPLACE ";" " " K12_SOURCES_ARG "${K12_SOURCES}" )

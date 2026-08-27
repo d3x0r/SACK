@@ -7,7 +7,7 @@
 #endif
 #include <sha2.h>
 #include "../contrib/sha3lib/sha3.h"
-#include <KangarooTwelve.h>
+#include "../contrib/k12.h"
 
 
 struct random_context {
