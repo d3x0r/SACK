@@ -1520,7 +1520,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			if( hEvent != NULL ) {
 				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
 				if( !SetEvent( hEvent ) ) {
-					lprintf( "Failed to set event? %lu", GetLastError() );
+					lprintf( "Failed to set event? %d", GetLastError() );
 				}
 				CloseHandle( hEvent );
 			}
@@ -1604,7 +1604,7 @@ uintptr_t TerminateProgramEx( PTASK_INFO task, int options ) {
 					if( hChild != INVALID_HANDLE_VALUE ) {
 						TerminateProcess( hChild, 0xdead );
 						CloseHandle( hChild );
-					} else lprintf( "Failed to open child process handle... %lu", GetLastError() );
+					} else lprintf( "Failed to open child process handle... %d", GetLastError() );
 				}
 				DeleteLinkStack( &stack );
 				DeleteDataList( &pdlProcs );
@@ -1764,10 +1764,10 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 					// if I can't cancel, send something oob to wake up the thread.
 					task->flags.bSentIoTerminator = 1;
 					if( !WriteFile( task->hWriteOut, "\x04", 1, &written, NULL ) )
-						lprintf( "write stdout pipe failed! %lu", GetLastError() );
+						lprintf( "write stdout pipe failed! %d", GetLastError() );
 
 					if( !WriteFile( task->hWriteErr, "\x04", 1, &written, NULL ) )
-						lprintf( "write stderr pip failed! %lu", GetLastError() );
+						lprintf( "write stderr pip failed! %d", GetLastError() );
 				}
 			}
 #endif
@@ -1879,7 +1879,7 @@ void SetDefaultDesktop( void )
 	// these should be const strings, but they're not... add typecast for GCC
 	lngWinSta0 = OpenWindowStation( (LPTSTR)"WinSta0", FALSE, WINSTA_ALL_ACCESS );
 	//lngWinSta0 = OpenWindowStation("msswindowstation", FALSE, WINSTA_ALL_ACCESS );
-	lprintf( "sta = %p %lu", lngWinSta0, GetLastError() );
+	lprintf( "sta = %p %d", lngWinSta0, GetLastError() );
 	if( !SetProcessWindowStation(lngWinSta0) )
 		lprintf( "Failed station set?" );
 
@@ -1975,18 +1975,18 @@ void ImpersonateInteractiveUser( void )
 				if( ImpersonateLoggedOnUser( hToken ) )
 					;
 				else
-					lprintf( "Fail impersonate %lu", GetLastError() );
+					lprintf( "Fail impersonate %d", GetLastError() );
 				CloseHandle( hToken );
 			}
 			else
-				lprintf( "Failed opening token %lu", GetLastError() );
+				lprintf( "Failed opening token %d", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( "Failed open process: %lu", GetLastError() );
+			lprintf( "Failed open process: %d", GetLastError() );
 	}
 	else
-		lprintf( "Failed get explorer process: %lu", GetLastError() );
+		lprintf( "Failed get explorer process: %d", GetLastError() );
 }
 
 HANDLE GetImpersonationToken( void )
@@ -2030,14 +2030,14 @@ HANDLE GetImpersonationToken( void )
 				//CloseHandle( hToken );
 			}
 			else
-				lprintf( "Failed opening token %lu", GetLastError() );
+				lprintf( "Failed opening token %d", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( "Failed open process: %lu", GetLastError() );
+			lprintf( "Failed open process: %d", GetLastError() );
 	}
 	else
-		lprintf( "Failed get explorer process: %lu", GetLastError() );
+		lprintf( "Failed get explorer process: %d", GetLastError() );
 	return hToken;
 }
 
@@ -2134,14 +2134,14 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			//switch( (uintptr_t)execinfo.hInstApp )
 			{
 			//default:
-				lprintf( "Shell exec error : %p (gle:%lu)", execinfo.hInstApp , GetLastError() );
+				lprintf( "Shell exec error : %p (gle:%d)", execinfo.hInstApp , GetLastError() );
 				//break;
 			}
 			return FALSE;
 		}
 	}
 	else
-		lprintf( "Shellexec error %lu", GetLastError() );
+		lprintf( "Shellexec error %d", GetLastError() );
 
 	Deallocate( LPCWSTR, execinfo.lpVerb );
 	if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );

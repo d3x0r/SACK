@@ -1465,8 +1465,8 @@ uintptr_t GetFileSize( int fd )
 									//| FILE_FLAG_DELETE_ON_CLOSE
 									, NULL );
 #ifdef DEBUG_OPEN_SPACE
-			ll_lprintf( "Create file %s result %d", pWhere, hFile );
-			ll_lprintf( "File result is %ld (error %ld)", hFile, GetLastError() );
+			ll_lprintf( "Create file %s result %p", pWhere, hFile );
+			ll_lprintf( "File result is %p (error %d)", hFile, GetLastError() );
 #endif
 			if( hFile == INVALID_HANDLE_VALUE )
 			{

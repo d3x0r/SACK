@@ -168,7 +168,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 	{
 		int32_t MessageLen;
 #ifdef DEBUG_EVENTS
-		lprintf( "Reading eventqueue... my_message_id = %d", g.my_message_id );
+		lprintf( "Reading eventqueue... my_message_id = %" _MsgID_f, g.my_message_id );
 #endif
 			//lprintf( "vvv" );
 		MessageLen = msgrcv( msgq
@@ -300,7 +300,7 @@ int HandleEvents( MSGQ_TYPE msgq, PQMSG MessageEvent, int initial_flags )
 			{
 				uint32_t Msg;
 #ifdef DEBUG_EVENTS
-				lprintf( "Finding handler for %ld-%d %p (from %lx to %lx)"
+				lprintf( "Finding handler for %u-%d %p (from %p to %x)"
 						 , MessageEvent->hdr.msgid
 						 , 0//pHandler->MsgCountEvents
 						 , pHandler->Handler

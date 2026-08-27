@@ -81,7 +81,7 @@ static int GetAMessageEx( MSGQ_TYPE msgq, MSGIDTYPE MsgFilter, CTEXTSTR q, int f
 					}
 					else if( errno == EINVAL )
 					{
-						lprintf( "msgrecv on q %d is invalid! open it. or what is %" _MsgID_f "(%08" _MsgID_f ") or %08d"
+						lprintf( "msgrecv on q %p is invalid! open it. or what is %" _MsgID_f "(%08" _MsgID_f ") or %08d"
 								 , msgq, g.my_message_id, g.my_message_id, flags );
 					}
 					else

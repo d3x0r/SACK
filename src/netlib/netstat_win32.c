@@ -59,7 +59,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 				DATA_FORALL( ppList[0], idx, struct listener_pid_info*, info ) {
 					if( info->port == l.port ) {
 						if( info->pid != l.pid ) {
-							lprintf( "Port in use by multiple processes: %d %d", info->pid, l.pid );
+							lprintf( "Port in use by multiple processes: %llu %llu", info->pid, l.pid );
 							continue;
 						}
 						break;

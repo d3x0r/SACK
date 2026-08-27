@@ -208,7 +208,7 @@ static void FileMonAddThreadEvent( PMONITOR monitor, struct filemon_peer_thread_
 			AddDataItem( &peer->event_list, &monitor->hChange );
 			if( local_filemon.flags.bLog )
 			{
-				lprintf( "Added handle %d on %s", monitor->hChange, monitor->directory );
+				lprintf( "Added handle %p on %s", monitor->hChange, monitor->directory );
 				//LogBinary( event_list->data, (nEvents +1)* sizeof( HANDLE ));
 			}
 			peer->nEvents++;
@@ -223,7 +223,7 @@ static void ReadChanges( PMONITOR monitor )
 	DWORD dwResultSize;
 
 	if( local_filemon.flags.bLog )
-		lprintf( "Begin getting changes on %p (%d)", monitor, monitor->hChange );
+		lprintf( "Begin getting changes on %p (%p)", monitor, monitor->hChange );
 
 	if( ReadDirectoryChangesW( monitor->hChange
 	                        , buffer
@@ -256,7 +256,7 @@ static void ReadChanges( PMONITOR monitor )
 				MemCpy( dupname, pni->FileName, pni->FileNameLength );
 				dupname[pni->FileNameLength/2] = '\0';
 				if( local_filemon.flags.bLog )
-					lprintf( "offset %d, next %d", dwOffset, pni->NextEntryOffset );
+					lprintf( "offset %lu, next %lu", dwOffset, pni->NextEntryOffset );
 				if( !pni->NextEntryOffset )
 					dwOffset = (DWORD)INVALID_INDEX;
 				else
@@ -561,7 +561,7 @@ static uintptr_t CPROC MonitorFileThread( PTHREAD pThread )
 			if( !FindNextChangeNotification( monitor->hChange ) )
 			{
 				DWORD dwError = GetLastError();
-				lprintf( "Find next change failed...%d %s", dwError, monitor->directory );
+				lprintf( "Find next change failed...%lu %s", dwError, monitor->directory );
 				// bad things happened
 				//MessageBox( NULL, "Find change notification failed", "Monitor Failed", MB_OK );
 				if( dwError == ERROR_TOO_MANY_CMDS )
@@ -640,7 +640,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	                                               | FILE_NOTIFY_CHANGE_SECURITY
 	                                              );
 
-	if( local_filemon.flags.bLog ) lprintf( "Opened handle %d on %s", monitor->hChange, monitor->directory );
+	if( local_filemon.flags.bLog ) lprintf( "Opened handle %p on %s", monitor->hChange, monitor->directory );
 	if( monitor->hChange == INVALID_HANDLE_VALUE )
 	{
 		TEXTCHAR msg[128];
@@ -665,7 +665,7 @@ FILEMONITOR_PROC( PMONITOR, MonitorFilesEx )( CTEXTSTR directory, int scan_delay
 	LinkLast( Monitors, PMONITOR, monitor );
 
 	if( local_filemon.flags.bLog )
-		lprintf( "Signal monitor to wake on %d", local_filemon.hMonitorThreadControlEvent );
+		lprintf( "Signal monitor to wake on %p", local_filemon.hMonitorThreadControlEvent );
 	SetEvent( local_filemon.hMonitorThreadControlEvent );
 
 	if( local_filemon.flags.bLog )

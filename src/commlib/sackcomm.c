@@ -190,7 +190,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 		timeout.WriteTotalTimeoutConstant = 1;
 		SetCommTimeouts(hCom, &timeout);
 		if( gbLog )
-			Log2( "Result: %p %lu", hCom, GetLastError() );
+			Log2( "Result: %p %d", hCom, GetLastError() );
 		return (uintptr_t)hCom;
 	}
 }
@@ -897,7 +897,7 @@ void DumpTermios( struct termios *opts )
 #endif
 					{
 #ifdef _WIN32
-						lprintf( "Open: Invalid initialization string %lu", GetLastError() );
+						lprintf( "Open: Invalid initialization string %d", GetLastError() );
 #endif
 						SackCloseComm( (int)iCommId );
 						iCommId = -1;

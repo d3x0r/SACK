@@ -91,7 +91,7 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
 				else
 				{
 					DECLTEXT( msg, "Failed to get privledge lookup...###############" );
-					msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to get privledge lookup...%ld", GetLastError() );
+					msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to get privledge lookup...%d", GetLastError() );
 					EnqueLink( &ps->Command->Output, &msg );
 				GetLastError();
 
@@ -100,7 +100,7 @@ int CPROC SystemShutdown( PSENTIENT ps, PTEXT param )
 			else
 			{
 				DECLTEXT( msg, "Failed to open process token... ################" );
-				msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to open process token...%ld", GetLastError() );
+				msg.data.size = snprintf( msg.data.data, msg.data.size, "Failed to open process token...%d", GetLastError() );
 				EnqueLink( &ps->Command->Output, &msg );
 				GetLastError();
 			}

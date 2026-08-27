@@ -82,7 +82,7 @@ static int NetworkStartup( void )
 		{
 			nError = WSAGetLastError();
 
-			lprintf( "Failed to create a socket - error is %ld", WSAGetLastError() );
+			lprintf( "Failed to create a socket - error is %d", WSAGetLastError() );
 			if( nError == 10106 ) // provvider init fail )
 			{
 				if( ++attempt >= 30 ) return NetworkQuit();
@@ -507,7 +507,7 @@ static void HandleEvent( PCLIENT pClient )
 			// no longer a socket, probably in a closed or closing state.
 		}
 		else
-			lprintf( "Event enum failed... do what? close socket? %p %" _32f, pClient, dwError );
+			lprintf( "Event enum failed... do what? close socket? %p %lu", pClient, dwError );
 	}
 	ClearClientFlags( pClient, CF_PROCESSING );
 }
@@ -559,7 +559,7 @@ void RemoveThreadEvent( PCLIENT pc ) {
 					AddLink( &newList, previous );
 					SetDataItem( &thread->event_list, c++, p );
 				} else {
-					lprintf( "Item %d is not found in events.", idx );
+					lprintf( "Item %zu is not found in events.", idx );
 				}
 			}
 		}
@@ -834,7 +834,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t qui
 				thread->flags.bProcessing = 0;
 				break;
 			}
-			lprintf( "error of wait is %d   %p", dwError, thread );
+			lprintf( "error of wait is %lu   %p", dwError, thread );
 			LogBinary( (const uint8_t*)thread->event_list->data, 64 );
 			thread->flags.bProcessing = 0;
 			break;

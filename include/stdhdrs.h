@@ -196,6 +196,14 @@ __declspec(dllimport) DWORD WINAPI timeGetTime(void);
 // real work.  YieldProcessor() resolves to _mm_pause on x86 and __yield on ARM64.
 #  define SpinHint()         YieldProcessor()
 #  define Relinquish()       do { SpinHint(); Sleep(0); } while( 0 )
+
+// GetLastError() is a DWORD here and (int32_t)errno on posix; make both int32_t so
+// call sites are plain %d on every target and never need a cast.  Signed is the
+// honest type: negative errno is common, and a windows code with the high bit set
+// reads as an HRESULT rather than anything GetLastError() actually returns.
+// The self reference is not re-expanded (C11 6.10.3.4p2), so the real API is still
+// called, exactly once.
+#  define GetLastError() ((int32_t)GetLastError())
 //#pragma pragnoteonly("GetFunctionAddress is lazy and has no library cleanup - needs to be a lib func")
 //#define GetFunctionAddress( lib, proc ) GetProcAddress( LoadLibrary( lib ), (proc) )
 

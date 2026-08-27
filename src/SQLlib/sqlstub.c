@@ -2783,7 +2783,7 @@ int DumpInfoEx( PODBC odbc, PVARTEXT pvt, SQLSMALLINT type, SQLHANDLE *handle, L
 			}
 			else
 			{
-				lprintf( "This is some other error (%5s)[%d]:%s", statecode, native, message );
+				lprintf( "This is some other error (%5s)[%ld]:%s", statecode, native, message );
 				if( StrCmp( statecode, "IM002" ) == 0 )
 					vtprintf( pvt, "(%5s)[%" _32f "]:%s<%s>", statecode, native, message, odbc->info.pDSN?odbc->info.pDSN:"" );
 				else

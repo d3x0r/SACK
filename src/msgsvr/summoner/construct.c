@@ -53,7 +53,7 @@ PRELOAD( Started )
 	{
 		l.init_ran = 1;
 		l.MsgBase = LoadServiceEx( SUMMONER_NAME, HandleSummonerEvents );
-		lprintf( "Message base for service is %d", l.MsgBase );
+		lprintf( "Message base for service is %p", l.MsgBase );
 		if( l.MsgBase )
 		{
 			MSGIDTYPE result;

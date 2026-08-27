@@ -1153,7 +1153,7 @@ static void EnableAudioOutput( struct ffmpeg_file * file )
 	file->audio_converter = ffmpeg.swr_alloc();
 	if( !file->pAudioCodecCtx->ch_layout.nb_channels )
 	{
-		lprintf( "input audio had no channels... %x", file->pAudioCodecCtx->ch_layout.u.mask );
+		lprintf( "input audio had no channels... %llx", file->pAudioCodecCtx->ch_layout.u.mask );
 		//file->pAudioCodecCtx->ch_layout.nb_channels = ffmpeg.av_get_channel_layout_nb_channels( file->pAudioCodecCtx->channel_layout );
 		//lprintf( "Channel found in channel_layout (%d)",file->pAudioCodecCtx->ch_layout.nb_channels );
 		//if( !file->pAudioCodecCtx->ch_layout.nb_channels )
@@ -1353,7 +1353,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 					if( fileout )
 					{
 						int pos = ftell( fileout );
-						lprintf( "file size is now %d (will be %d)", pos, pos + file->ffmpeg_buffer_size );
+						lprintf( "file size is now %d (will be %zu)", pos, pos + file->ffmpeg_buffer_size );
 						fwrite( file->ffmpeg_buffer, 1, file->ffmpeg_buffer_size, fileout );
 						fclose( fileout );
 					}
@@ -1394,7 +1394,7 @@ int CPROC ffmpeg_read_packet(void *opaque, uint8_t *buf, int buf_size)
 				{
 					result_size -= buf_size - ( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
 					buf_size = (int)( file->ffmpeg_buffer_size - file->ffmpeg_buffer_used );
-					lprintf( "adjusted sizes %d %d", result_size, buf_size );
+					lprintf( "adjusted sizes %zu %d", result_size, buf_size );
 				}
 				if( buf_size )
 				{
@@ -1501,16 +1501,16 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 				else
 				{
 					size_t need_blocks = whence==0?offset:whence==2?(file->file_size-offset):whence==1?(file->ffmpeg_buffer_used+offset ):0;
-					lprintf( "only valid if this seek happens during the first block! this size is %d", file->ffmpeg_buffer_size );
+					lprintf( "only valid if this seek happens during the first block! this size is %zu", file->ffmpeg_buffer_size );
 					need_blocks = need_blocks - file->ffmpeg_buffer_size;
 					need_blocks = need_blocks - file->ffmpeg_buffer_used_total;
 					PushBuffer( file );
 
-					lprintf( "buffer used total is %d (%d)", file->ffmpeg_buffer_used_total, file->file_size - (file->ffmpeg_buffer_used_total+need_blocks) );
+					lprintf( "buffer used total is %zu (%zu)", file->ffmpeg_buffer_used_total, file->file_size - (file->ffmpeg_buffer_used_total+need_blocks) );
 
 					do
 					{
-						lprintf( "got buf and size %p %d", file->ffmpeg_buffer, file->ffmpeg_buffer_size );
+						lprintf( "got buf and size %p %zu", file->ffmpeg_buffer, file->ffmpeg_buffer_size );
 						if( !file->ffmpeg_buffer )
 						{
 							if( !file->flags.is_last_block )
@@ -1521,10 +1521,10 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 						{
 							if( need_blocks >= file->ffmpeg_buffer_size )
 							{
-								lprintf( "still need %d ... got another %d ", need_blocks, file->ffmpeg_buffer_size );
+								lprintf( "still need %zu ... got another %zu ", need_blocks, file->ffmpeg_buffer_size );
 								need_blocks -=  file->ffmpeg_buffer_size;
 								PushBuffer( file );
-								lprintf( "buffer used total is %d (%d)", file->ffmpeg_buffer_used_total, file->file_size - (file->ffmpeg_buffer_used_total+need_blocks) );
+								lprintf( "buffer used total is %zu (%zu)", file->ffmpeg_buffer_used_total, file->file_size - (file->ffmpeg_buffer_used_total+need_blocks) );
 							}
 							else
 							{
@@ -1539,7 +1539,7 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 						}
 					}while( !file->ffmpeg_buffer );
 					file->ffmpeg_buffer_used = need_blocks;
-					lprintf( "resulting position is %d (%d) of %d (%d)", file->ffmpeg_buffer_used, file->ffmpeg_buffer_size - file->ffmpeg_buffer_used, file->ffmpeg_buffer_size, file->ffmpeg_buffer_used_total );
+					lprintf( "resulting position is %zu (%zu) of %zu (%zu)", file->ffmpeg_buffer_used, file->ffmpeg_buffer_size - file->ffmpeg_buffer_used, file->ffmpeg_buffer_size, file->ffmpeg_buffer_used_total );
 					lprintf( "... longer seek need read? %zu", file->file_size - ( file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used ) );
 				}
 				lprintf( "result %d should be %zu", 14833013, file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used );

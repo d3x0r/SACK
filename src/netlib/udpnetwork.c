@@ -69,12 +69,6 @@ PCLIENT CPPServeUDPAddrEx( SOCKADDR *pAddr
 		return NULL;
 	}
 #ifdef WIN32
-	if( 0 )
-	{
-		DWORD dwFlags;
-		GetHandleInformation( (HANDLE)pc->Socket, &dwFlags );
-		lprintf( "Natural was %d", dwFlags );
-	}
 	SetHandleInformation( (HANDLE)pc->Socket, HANDLE_FLAG_INHERIT, 0 );
 #else
 	{
@@ -439,10 +433,11 @@ NETWORK_PROC( LOGICAL, SendUDPEx )( PCLIENT pc, CPOINTER pBuf, size_t nSize, SOC
 	{
 #ifdef WIN32
 		DWORD dwError = WSAGetLastError();
+		lprintf("SendUDP: Error (%lu)", dwError);
 #else
 		int dwError = errno;
+		lprintf("SendUDP: Error (%d)", dwError);
 #endif
-		Log1( "SendUDP: Error (%d)", dwError );
 		DumpAddr( "SendTo Socket", (sa) );
 		return FALSE;
 	}

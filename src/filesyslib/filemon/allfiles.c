@@ -49,6 +49,22 @@ using namespace sack::containers::queue;
 #endif
 //-------------------------------------------------------------------------
 
+#ifdef WIN32
+// A FILETIME reads as a date rather than a 64 bit count; this only feeds the
+// change-stats log, where the point is comparing against what the shell shows,
+// so local time it is.  Caller owns the buffer - two of these appear in one call.
+static CTEXTSTR FormatFileTime( FILETIME ft, TEXTCHAR *buf, size_t buflen ) {
+	FILETIME   local;
+	SYSTEMTIME st;
+	if( FileTimeToLocalFileTime( &ft, &local ) && FileTimeToSystemTime( &local, &st ) )
+		tnprintf( buf, buflen, "%04d-%02d-%02d %02d:%02d:%02d.%03d"
+		        , st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
+	else
+		tnprintf( buf, buflen, "(unset)" );
+	return buf;
+}
+#endif
+
 
 static void InitFileMonitor( void )
 {
@@ -277,14 +293,17 @@ uintptr_t CPROC ScanFile( uintptr_t psv, INDEX idx, POINTER *item )
 		}
 #ifdef WIN32
 		// this 
-		if( local_filemon.flags.bLog )
-		lprintf( "File change stats: %s(%s) %lu %lu, %lu %lu, %s"
-				 , filemon->name
-				 , filemon->filename
-				 , dwSize
-				 , filemon->lastknownsize
-		  	 , lastmodified, filemon->lastmodifiedtime
-		  	 , filemon->flags.bToDelete?"delete":"" );
+		if( local_filemon.flags.bLog ) {
+			TEXTCHAR modbuf[32], knownbuf[32];
+			lprintf( "File change stats: %s(%s) %u %llu, %s %s, %s"
+					 , filemon->name
+					 , filemon->filename
+					 , dwSize
+					 , filemon->lastknownsize
+					 , FormatFileTime( lastmodified, modbuf, 32 )
+					 , FormatFileTime( filemon->lastmodifiedtime, knownbuf, 32 )
+					 , filemon->flags.bToDelete?"delete":"" );
+		}
 #endif
 		if( dwSize != filemon->lastknownsize
 			|| (*(uint64_t*)&lastmodified) != (*(uint64_t*)&filemon->lastmodifiedtime)

@@ -1162,9 +1162,15 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 				case ECONNRESET:
 				// sometimes this leaks past connect and read happens?
 				case ECONNREFUSED: 
+#define SOCKET_FORMAT "%d"
 #else
 				case WSAECONNRESET:
 				case WSAECONNABORTED:
+#  ifdef __64__
+#    define SOCKET_FORMAT "%lld"
+#  else
+#    define SOCKET_FORMAT "%ld"
+#  endif
 #endif
 #ifdef LOG_DEBUG_CLOSING
 					lprintf( "Read from reset connection - closing. %p", lpClient );
@@ -1172,7 +1178,7 @@ int FinishPendingRead(PCLIENT lpClient DBG_PASS )  // only time this should be c
 					if(0)
 					{
 					default:
-						lprintf( "Failed reading from %p %d (err:%d) into %p %" _size_f " bytes %" _size_f " read already.",
+						lprintf( "Failed reading from %p " SOCKET_FORMAT " (err:%d) into %p %" _size_f " bytes %" _size_f " read already.",
 							  lpClient,
 							  lpClient->Socket,
 							  WSAGetLastError(),
