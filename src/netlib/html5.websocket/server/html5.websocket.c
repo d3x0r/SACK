@@ -571,6 +571,17 @@ void WebSocketWrite( HTML5WebSocket socket, CPOINTER buffer, size_t length )
 		{
 			if( AddHttpData( socket->http_state, buffer, length ) )
 				read_complete_process_data( socket );
+			else {
+				/* AddHttpData refused the opening byte - this stream is not HTTP
+				 * (a TLS ClientHello on a plain listener is the ordinary case).
+				 * Drop it silently; answering in TLS on a socket that was never
+				 * TLS would be a lie, and there is nothing else to say. */
+				if( socket->pc )
+					RemoveClient( socket->pc );
+				else if( socket->input_state.do_close )
+					socket->input_state.do_close( socket->input_state.psvCloser );
+				return;
+			}
 		}
 		else
 		{

@@ -79,6 +79,9 @@ struct HttpState {
 		BIT_FIELD connection_ready : 1;
 		// the opened callback has already been told; it only fires once.
 		BIT_FIELD connection_opened : 1;
+		// the opening byte of this message has been validated as plausible HTTP.
+		// Cleared by EndHttp so every message on a kept-alive socket is checked.
+		BIT_FIELD first_byte_checked : 1;
 	}flags;
 	CRITICALSECTION lock;
 	struct HTTPRequestOptions* options;
@@ -611,7 +614,17 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 										PTEXT tmp;
 										PTEXT resource_path = NULL;
 										PTEXT next;
-										if( TextSimilar( request, "GET" ) )
+										/* Methods with no request body.  These used to fall off the end of this
+						 * chain leaving numeric_code 0, so the request never completed and the
+						 * connection sat there - a plain OPTIONS preflight was indistinguishable
+						 * from junk.  They only need to reach the app; what it does with CONNECT
+						 * or TRACE is the app's decision, not the parser's. */
+						if( TextSimilar( request, "GET" )
+						 || TextSimilar( request, "HEAD" )
+						 || TextSimilar( request, "OPTIONS" )
+						 || TextSimilar( request, "DELETE" )
+						 || TextSimilar( request, "TRACE" )
+						 || TextSimilar( request, "CONNECT" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
@@ -627,7 +640,9 @@ enum ProcessHttpResult ProcessHttp( struct HttpState *pHttpState, int ( *send )(
 											//GET will never have a body?
 											pHttpState->flags.no_content_length = 0;
 										}
-										else if( TextSimilar( request, "POST" ) )
+										/* may carry a body - same handling POST already had */
+						else if( TextSimilar( request, "POST" )
+						      || TextSimilar( request, "PATCH" ) )
 										{
 											pHttpState->numeric_code = HTTP_STATE_RESULT_CONTENT; // initialize to assume it's incomplete; NOT OK.  (requests should be OK)
 											request = NEXTLINE( request );
@@ -913,6 +928,34 @@ LOGICAL AddHttpData( struct HttpState *pHttpState, CPOINTER buffer, size_t size 
 	lockHttp( pHttpState );
 	//lprintf( "AddHttpData:%d", size );
 	pHttpState->last_read_tick = timeGetTime();
+	/* Is this even HTTP?  Nothing downstream asks: ProcessHttp scans for CR/LF and
+	 * nothing else, so a stream that never produces one - a TLS ClientHello arriving
+	 * on a plain listener is the ordinary case - accumulates in 'partial' forever and
+	 * the connection just hangs until the peer gives up.  A TLS client will not give
+	 * up; it is waiting for a ServerHello.
+	 *
+	 * Every method's first letter, plus 'H' for the HTTP/x.y response line this same
+	 * parser reads on the client side:
+	 *   Connect Delete Get Head Options Post Put Patch Trace  ->  C D G H O P T
+	 * A TLS record starts 0x16, an SSH banner 'S' - both refused.  Returning FALSE
+	 * means "not HTTP, drop the socket"; the callers close without answering, because
+	 * writing a TLS alert back would claim a security layer this socket never had. */
+	if( !pHttpState->flags.first_byte_checked && size ) {
+		const unsigned char *scan = (const unsigned char *)buffer;
+		size_t n;
+		/* RFC 7230 3.5 - tolerate leading CRLF before a request line.  If this read is
+		 * nothing but line endings, stay undecided and check the next one. */
+		for( n = 0; n < size && ( scan[n] == 13 || scan[n] == 10 ); n++ );  /* CR, LF */
+		if( n < size ) {
+			unsigned char c0 = scan[n];
+			pHttpState->flags.first_byte_checked = 1;
+			if( c0 != 'C' && c0 != 'D' && c0 != 'G' && c0 != 'H'
+			 && c0 != 'O' && c0 != 'P' && c0 != 'T' ) {
+				unlockHttp( pHttpState );
+				return FALSE;
+			}
+		}
+	}
 	{
 		//lprintf( "Add HTTP Data:%p %d", pHttpState->pc[0], size );
 		//LogBinary( (uint8_t*)buffer, 256>size?size:256 );
@@ -962,6 +1005,8 @@ void EndHttp( struct HttpState *pHttpState )
 	pHttpState->flags.no_content_length = 1;
 	pHttpState->content_length = 0;
 	pHttpState->flags.success = 0;
+	// next message on this socket gets its own opening-byte check
+	pHttpState->flags.first_byte_checked = 0;
 	LineRelease( pHttpState->method );
 	pHttpState->method = NULL;
 	LineRelease( pHttpState->content );
@@ -2073,7 +2118,11 @@ static void CPROC HandleRequest( PCLIENT pc, POINTER buffer, size_t length )
 #endif
 		//lprintf( "RECEVED HTTP FROM NETWORK." );
 		//LogBinary( buffer, length );
-		AddHttpData( pHttpState, buffer, length );
+		if( !AddHttpData( pHttpState, buffer, length ) ) {
+			// not HTTP - drop it without answering.
+			RemoveClientEx( pc, 0, 1 );
+			return;
+		}
 		while( ( result = ProcessHttp( pHttpState, NULL, 0 ) ) )
 		{
 			int status;
