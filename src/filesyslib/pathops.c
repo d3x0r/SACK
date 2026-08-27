@@ -338,7 +338,7 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 		if( !SetFileTime( hFile, (CONST FILETIME*)&filetime_create, (CONST FILETIME*)&filetime_access, (CONST FILETIME*)&filetime_modify ) )
 		{
 			result = FALSE;
-			lprintf( "Failed to set times:(%s)%d", name, GetLastError() );
+			lprintf( "Failed to set times:(%s)%lu", name, GetLastError() );
 		}
 		CloseHandle( hFile );
 		//realtime = *(uint64_t*)&filetime;
@@ -347,7 +347,7 @@ LOGICAL  SetFileTimes( CTEXTSTR name
 	}
 	else
 	{
-		lprintf( "Failed to open to set time on %s:%d", name, GetLastError() );
+		lprintf( "Failed to open to set time on %s:%lu", name, GetLastError() );
 	}
 	return FALSE;
 #else
@@ -521,7 +521,7 @@ int  SetCurrentPath ( CTEXTSTR path )
 	else
 	{
 		TEXTCHAR tmp[256];
-		lprintf( "Failed to change to [%s](%d) from %s", path, GetLastError(), GetCurrentPath( tmp, sizeof( tmp ) ) );
+		lprintf( "Failed to change to [%s](%lu) from %s", path, GetLastError(), GetCurrentPath( tmp, sizeof( tmp ) ) );
 	}
 #endif
 

@@ -312,6 +312,18 @@ enum system_logging_option_list {
 #  define _lprintf(file_line,...)       _xlprintf(LOG_NOISE file_line,##__VA_ARGS__)
 #  define xlprintf(level)       _xlprintf(level DBG_SRC)
 #  define vxlprintf(level)       _vxlprintf(level DBG_SRC)
+#  if defined( __clang__ )
+// clang honors __format__ on a function declaration, but silently drops it from a
+// function pointer typedef - so calls through what _xlprintf() returns go unchecked
+// (gcc does check them, which is why only gcc builds ever report format mistakes).
+// Name the same arguments once more inside a sizeof(), which is unevaluated: no call,
+// no symbol reference, no generated code, purely so -Wformat gets a look at them.
+// _sack_log_format_check is declared and deliberately never defined anywhere.
+extern int _sack_log_format_check( CTEXTSTR format, ... )
+	__attribute__ ((__format__ (__printf__, 1, 2)));
+#   undef lprintf
+#   define lprintf(...)  ( (void)sizeof( _sack_log_format_check( __VA_ARGS__ ) ), _xlprintf( LOG_NOISE DBG_SRC )( __VA_ARGS__ ) )
+#  endif
 # else
 #  ifdef _MSC_VER
 #   define vlprintf      (1)?(0):

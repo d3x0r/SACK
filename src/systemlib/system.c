@@ -1192,7 +1192,7 @@ static uintptr_t moveTaskWindowThread( PTHREAD thread ) {
 		}
 		if( !success ) {
 			DWORD dwError = GetLastError();
-			lprintf( "Failed to move window? %d Trying again...", dwError );
+			lprintf( "Failed to move window? %lu Trying again...", dwError );
 			continue;
 		} else {
 			break;
@@ -1491,17 +1491,17 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 				BOOL a = AttachConsole( dwKillId );
 				if( !a ) {
 					DWORD dwError = GetLastError();
-					lprintf( "Failed to attachConsole %d %d %d", a, dwError, dwKillId );
+					lprintf( "Failed to attachConsole %d %lu %lu", a, dwError, dwKillId );
 				}
 				if( !task->flags.useCtrlBreak )
 					if( !GenerateConsoleCtrlEvent( CTRL_C_EVENT, dwKillId ) ) {
 						error = GetLastError();
-						lprintf( "Failed to send CTRL_C_EVENT %d %d", dwKillId, error );
+						lprintf( "Failed to send CTRL_C_EVENT %lu %d", dwKillId, error );
 					} else lprintf( "Success sending ctrl C?" );
 				else			
 					if( !GenerateConsoleCtrlEvent( CTRL_BREAK_EVENT, dwKillId ) ) {
 						error = GetLastError();
-						lprintf( "Failed to send CTRL_BREAK_EVENT %d %d", dwKillId, error );
+						lprintf( "Failed to send CTRL_BREAK_EVENT %lu %d", dwKillId, error );
 					} else lprintf( "Success sending ctrl break?" );
 				IgnoreBreakHandler( 0 );
 			} else {
@@ -1520,7 +1520,7 @@ LOGICAL CPROC StopProgram( PTASK_INFO task )
 			if( hEvent != NULL ) {
 				//lprintf( "Opened event:%p %s %d", hEvent, eventName, GetLastError() );
 				if( !SetEvent( hEvent ) ) {
-					lprintf( "Failed to set event? %d", GetLastError() );
+					lprintf( "Failed to set event? %lu", GetLastError() );
 				}
 				CloseHandle( hEvent );
 			}
@@ -1595,7 +1595,7 @@ uintptr_t TerminateProgramEx( PTASK_INFO task, int options ) {
 				PLINKSTACK stack = NULL;
 				ProcIdFromParentProcId( task->pi.dwProcessId, &pdlProcs );
 				DATA_FORALL( pdlProcs, idx, struct process_id_pair*, pair ) {
-					lprintf( "Got Pair: %d %d", pair->parent, pair->child );
+					lprintf( "Got Pair: %lu %lu", pair->parent, pair->child );
 					PushLink( &stack, pair );
 					//dwKillId = pair->child;
 				}
@@ -1604,7 +1604,7 @@ uintptr_t TerminateProgramEx( PTASK_INFO task, int options ) {
 					if( hChild != INVALID_HANDLE_VALUE ) {
 						TerminateProcess( hChild, 0xdead );
 						CloseHandle( hChild );
-					} else lprintf( "Failed to open child process handle...", GetLastError() );
+					} else lprintf( "Failed to open child process handle... %lu", GetLastError() );
 				}
 				DeleteLinkStack( &stack );
 				DeleteDataList( &pdlProcs );
@@ -1738,14 +1738,14 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 					{
 						DWORD dwError = GetLastError();
 						// maybe the read wasn't queued yet....
-						lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdOut.hThread ), dwError );
+						lprintf( "Failed to cancel IO on thread %p %lu", GetThreadHandle( task->hStdOut.hThread ), dwError );
 					}
 				if( task->hStdErr.hThread )
 					if( !MyCancelSynchronousIo( GetThreadHandle( task->hStdErr.hThread ) ) )
 					{
 						DWORD dwError = GetLastError();
 						// maybe the read wasn't queued yet....
-						lprintf( "Failed to cancel IO on thread %d %d", GetThreadHandle( task->hStdErr.hThread ), dwError );
+						lprintf( "Failed to cancel IO on thread %p %lu", GetThreadHandle( task->hStdErr.hThread ), dwError );
 					}
 			}
 			else
@@ -1764,10 +1764,10 @@ uintptr_t CPROC WaitForTaskEnd( PTHREAD pThread )
 					// if I can't cancel, send something oob to wake up the thread.
 					task->flags.bSentIoTerminator = 1;
 					if( !WriteFile( task->hWriteOut, "\x04", 1, &written, NULL ) )
-						lprintf( "write stdout pipe failed! %d", GetLastError() );
+						lprintf( "write stdout pipe failed! %lu", GetLastError() );
 
 					if( !WriteFile( task->hWriteErr, "\x04", 1, &written, NULL ) )
-						lprintf( "write stderr pip failed! %d", GetLastError() );
+						lprintf( "write stderr pip failed! %lu", GetLastError() );
 				}
 			}
 #endif
@@ -1879,7 +1879,7 @@ void SetDefaultDesktop( void )
 	// these should be const strings, but they're not... add typecast for GCC
 	lngWinSta0 = OpenWindowStation( (LPTSTR)"WinSta0", FALSE, WINSTA_ALL_ACCESS );
 	//lngWinSta0 = OpenWindowStation("msswindowstation", FALSE, WINSTA_ALL_ACCESS );
-	lprintf( "sta = %p %d", lngWinSta0, GetLastError() );
+	lprintf( "sta = %p %lu", lngWinSta0, GetLastError() );
 	if( !SetProcessWindowStation(lngWinSta0) )
 		lprintf( "Failed station set?" );
 
@@ -1975,18 +1975,18 @@ void ImpersonateInteractiveUser( void )
 				if( ImpersonateLoggedOnUser( hToken ) )
 					;
 				else
-					lprintf( "Fail impersonate %d", GetLastError() );
+					lprintf( "Fail impersonate %lu", GetLastError() );
 				CloseHandle( hToken );
 			}
 			else
-				lprintf( "Failed opening token %d", GetLastError() );
+				lprintf( "Failed opening token %lu", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( "Failed open process: %d", GetLastError() );
+			lprintf( "Failed open process: %lu", GetLastError() );
 	}
 	else
-		lprintf( "Failed get explorer process: %d", GetLastError() );
+		lprintf( "Failed get explorer process: %lu", GetLastError() );
 }
 
 HANDLE GetImpersonationToken( void )
@@ -2030,14 +2030,14 @@ HANDLE GetImpersonationToken( void )
 				//CloseHandle( hToken );
 			}
 			else
-				lprintf( "Failed opening token %d", GetLastError() );
+				lprintf( "Failed opening token %lu", GetLastError() );
 			CloseHandle( hProcess );
 		}
 		else
-			lprintf( "Failed open process: %d", GetLastError() );
+			lprintf( "Failed open process: %lu", GetLastError() );
 	}
 	else
-		lprintf( "Failed get explorer process: %d", GetLastError() );
+		lprintf( "Failed get explorer process: %lu", GetLastError() );
 	return hToken;
 }
 
@@ -2134,14 +2134,14 @@ int TryShellExecute( PTASK_INFO task, CTEXTSTR path, CTEXTSTR program, PTEXT cmd
 			//switch( (uintptr_t)execinfo.hInstApp )
 			{
 			//default:
-				lprintf( "Shell exec error : %p (gle:%d)", (uintptr_t)execinfo.hInstApp , GetLastError() );
+				lprintf( "Shell exec error : %p (gle:%lu)", execinfo.hInstApp , GetLastError() );
 				//break;
 			}
 			return FALSE;
 		}
 	}
 	else
-		lprintf( "Shellexec error %d", GetLastError() );
+		lprintf( "Shellexec error %lu", GetLastError() );
 
 	Deallocate( LPCWSTR, execinfo.lpVerb );
 	if( execinfo.lpFile ) Deallocate( LPCWSTR, execinfo.lpFile );
@@ -2642,9 +2642,9 @@ SYSTEM_PROC( generic_function, LoadFunctionExx )( CTEXTSTR libname, CTEXTSTR fun
 			//if( l.flags.bLog )
 #  ifdef _DEBUG
 			for( int i = 0; i < 4; i++ )
-				lprintf( "Error LoadLibrary: %5d %ls %d", errors[i].error, errors[i].name, i==0?err1:i==1?err2:i==2?err3:err4 );
+				lprintf( "Error LoadLibrary: %5lu %ls %d", errors[i].error, errors[i].name, i==0?err1:i==1?err2:i==2?err3:err4 );
 #  else
-			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed. %d %d %d %d"
+			_xlprintf( 2 DBG_RELAY )("Attempt to load [%ls][%ls][%ls]%ls(%s) failed. %lu %lu %lu %lu"
 					, library->cur_full_name
 					, library->full_name
 					, library->alt_full_name

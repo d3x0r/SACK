@@ -16,7 +16,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	DWORD dwSize;
 	dwErr = GetExtendedTcpTable( table, &dwSize, FALSE, AF_INET, TCP_TABLE_OWNER_PID_LISTENER, 0 );
 	if( dwErr != ERROR_INSUFFICIENT_BUFFER ) {
-		lprintf( "unexpected error getting listening sockets: %d", dwErr );
+		lprintf( "unexpected error getting listening sockets: %lu", dwErr );
 		return;
 	}
 
@@ -33,7 +33,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 		}
 		Release( table );
 	} else {
-		lprintf( "unexpected error getting listening sockets: %d", dwErr );
+		lprintf( "unexpected error getting listening sockets: %lu", dwErr );
 		return;
 	}
 
@@ -42,7 +42,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	dwSize = 0;
 	dwErr = GetExtendedTcpTable( table6, &dwSize, FALSE, AF_INET6, TCP_TABLE_OWNER_PID_LISTENER, 0 );
 	if( dwErr != ERROR_INSUFFICIENT_BUFFER ) {
-		lprintf( "unexpected error getting listening sockets: %d", dwErr );
+		lprintf( "unexpected error getting listening sockets: %lu", dwErr );
 		return;
 	}
 
@@ -71,7 +71,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 		}
 		Release( table6 );
 	} else {
-		lprintf( "unexpected error getting listening sockets: %d", dwErr );
+		lprintf( "unexpected error getting listening sockets: %lu", dwErr );
 		return;
 	}
 
@@ -100,7 +100,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 			return;
 		}
 	} else {
-		lprintf( "Unhandled initial error - expected size error: %d", dwErr );
+		lprintf( "Unhandled initial error - expected size error: %lu", dwErr );
 		return;
 	}
 	int count = size / sizeof( MIB_TCPTABLE2 );

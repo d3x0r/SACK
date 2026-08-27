@@ -2434,7 +2434,7 @@ void LoadNetworkAddresses( void ) {
 		}
 	}
 	else {
-		lprintf( "GetAdaptersInfo failed with error: %d\n", dwRetVal );
+		lprintf( "GetAdaptersInfo failed with error: %lu\n", dwRetVal );
 	}
 #if 0
 https://msdn.microsoft.com/en-us/library/windows/desktop/aa365915%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396

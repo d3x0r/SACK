@@ -726,12 +726,12 @@ void  WakeThreadEx( PTHREAD thread DBG_PASS )
 				                       , thread->thread_ident );
 #endif
 			if( !SetEvent( thread_event->hEvent ) )
-				lprintf( "Set event FAILED..%d", GetLastError() );
+				lprintf( "Set event FAILED..%lu", GetLastError() );
 			Relinquish(); // may or may not execute other thread before this...
 		}
 		else
 		{
-			lprintf( "Failed to open that event! %d", GetLastError() );
+			lprintf( "Failed to open that event! %lu", GetLastError() );
 			// thread to wake is not ready to be
 			// woken, does not exist, or some other
 			// BAD problem.

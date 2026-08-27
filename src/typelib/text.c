@@ -2381,7 +2381,7 @@ INDEX vvtprintf( PVARTEXT pvt, CTEXTSTR format, va_list args )
 			tries++;
 			if( tries == 100 )
 			{
-				lprintf( "Single buffer expanded more then %d", tries * ( (pvt->expand_by)?pvt->expand_by:(16384+pvt->expand_by) ) );
+				lprintf( "Single buffer expanded more then %zd", tries * ( (pvt->expand_by)?pvt->expand_by:(16384+pvt->expand_by) ) );
 				return 0; // didn't add any
 			}
 			VarTextExpand( pvt, (pvt->expand_by)?pvt->expand_by:(16384)  );

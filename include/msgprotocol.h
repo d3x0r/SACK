@@ -59,11 +59,7 @@ namespace sack {
 // this is the techincal type of SYSV IPC MSGQueues
 #define MSGIDTYPE long
 #ifdef __64__
-#  ifdef __LINUX__
-#    define _MsgID_f  _64fs
-#  else
-#    define _MsgID_f  _32fs
-#  endif
+#  define _MsgID_f  "ld"
 #else
 #  define _MsgID_f  _32fs
 #endif

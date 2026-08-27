@@ -589,7 +589,7 @@ static int ScanForWaiting( PMSGQUEUE pmq, long msg )
 					}
 				}
 				pStoreMsg->msg.ttl = timeGetTime() + pmh->default_ttl;
-				lprintf( "Send Message TTL Expired in queue... %d %d %d", pStoreMsg->msg.ttl, pmh->default_ttl );
+				lprintf( "Send Message TTL Expired in queue... %d %d", pStoreMsg->msg.ttl, pmh->default_ttl );
 				pStoreMsg->msg.real_length = (uint32_t)size;
 				pStoreMsg->msg.length = realsize | (( opts & MSGQUE_WAIT_ID )?MARK_THREAD_WAITING:0 );
 			}
@@ -865,14 +865,14 @@ int DequeMsgEx ( PMSGHANDLE pmh, long *MsgID, POINTER result, size_t size, uint3
 					if( pReadMsg->msg.length & MARK_END_OF_QUE )
 					{
 #ifndef DISABLE_MSGQUE_LOGGING
-						lprintf( "Looking for a message %" _size_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+						lprintf( "Looking for a message %" _MsgID_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #endif
 						SetPos( tmp, 0 );
 					}
 					else
 					{
 #ifndef DISABLE_MSGQUE_LOGGING
-						lprintf( "Looking for a message %" _size_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
+						lprintf( "Looking for a message %" _MsgID_f "...at %" _size_f " haven't found one yet. (%" _size_f ")", *MsgID, tmp, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  ifndef DISABLE_MSGQUE_LOGBINARY
 						LogBinary( (uint8_t*)pReadMsg, (pReadMsg->msg.length + sizeof( MSGCORE )) & ACTUAL_LEN_MASK );
 #  endif 

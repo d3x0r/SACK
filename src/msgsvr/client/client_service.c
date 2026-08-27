@@ -8,7 +8,7 @@ MSGCLIENT_NAMESPACE
 LOGICAL HandleCoreMessage( PQMSG msg, size_t msglen DBG_PASS )
 {
 #ifdef DEBUG_SERVICE_INPUT
-	lprintf( "Read message to %d (%08x)", msglen, msg->hdr.msgid );
+	lprintf( "Read message to %zu (%08x)", msglen, msg->hdr.msgid );
 #endif
 	if( msg->hdr.msgid == IM_TARDY )
 	{
@@ -193,7 +193,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 					// process_id is already matched at this point, or we wouln't have the message
 					// just have to give it to the local service.
 #ifdef DEBUG_DATA_XFER
-					lprintf( "is %d == %d", service->ServiceID, recv->dest.service_id );
+					lprintf( "is %u == %u", (uint32_t)service->ServiceID, (uint32_t)recv->dest.service_id );
 #endif
 					if( service->ServiceID == recv->dest.service_id )
 					{
@@ -205,9 +205,9 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 				{
 					uint32_t msgid = recv->hdr.msgid;
 #ifdef DEBUG_MESSAGE_BASE_ID
-					lprintf( "service base %ld(+%ld) and this is from %s"
-							 , msgid
-                       , service->entries
+					lprintf( "service base %u(+%u) and this is from %s"
+							 , (uint32_t)msgid
+                       , (uint32_t)service->entries
 							 , ( g.my_message_id == recv->hdr.source.process_id )?"myself":"someone else" );
 #endif
 					if( msgid < service->entries )
@@ -217,7 +217,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						if( service->handler_ex )
 						{
 #if defined( LOG_HANDLED_MESSAGES )
-							lprintf( "Got a service message to handler: %08lx length %ld"
+							lprintf( "Got a service message to handler: %08lx length %zu"
 									 , recv->hdr.source.process_id
 									 , length + sizeof(QMSG) );
 #endif
@@ -228,12 +228,12 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																		, msgid
 																		, QMSGDATA(recv), length
 																		, QMSGDATA(result), &result_length ) ;
-                     lprintf( "Output result is %d", result_length );
+                     lprintf( "Output result is %zu", result_length );
 						}
 						if( !handled && service->handler )
 						{
 #if defined( LOG_HANDLED_MESSAGES )
-							lprintf( "Got a service message to handler: %08lx length %ld"
+							lprintf( "Got a service message to handler: %08lx length %zu"
 									 , recv->hdr.source.process_id
 									 , length + sizeof(QMSG) );
 #endif
@@ -244,7 +244,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																	, QMSGDATA(recv), length
 																			, QMSGDATA(result), &result_length ) ;
 #if defined( LOG_HANDLED_MESSAGES )
-							lprintf( "result length to send:%d", result_length );
+							lprintf( "result length to send:%zu", result_length );
 #endif
 						}
 						if( !handled )
@@ -254,7 +254,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 							{
 								//result_length = 4096; // maximum responce buffer...
 #if defined( LOG_HANDLED_MESSAGES )
-								lprintf( "Got a service : (%d)%s from %08lx length %ld"
+								lprintf( "Got a service : (%d)%s from %08lx length %zu"
 										 , msgid
 #ifdef _DEBUG
 										 , service->functions[msgid].name
@@ -271,7 +271,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 																								, length
 																								, QMSGDATA(result)
 																								, &result_length );
-								lprintf( "result length to send:%d", result_length );
+								lprintf( "result length to send:%zu", result_length );
 								switch( msgid )
 								{
 								case MSG_ServiceLoad:
@@ -309,7 +309,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 								default:
 #if defined( LOG_HANDLED_MESSAGES )
 									DebugBreak();
-									lprintf( "didn't have a function for 0x%lx (%ld) or %s"
+									lprintf( "didn't have a function for 0x%x (%d) or %s"
 											 , msgid
 											 , msgid
 #ifdef _DEBUG
@@ -343,7 +343,7 @@ uintptr_t CPROC HandleServiceMessages( PTHREAD thread )
 						{
 #ifdef DEBUG_DATA_XFER
 							DBG_VARSRC;
-							lprintf( "length:%d %d", result_length, sizeof( QMSG ) );
+							lprintf( "length:%zu %zu", result_length, sizeof( QMSG ) );
 #endif
 							msgsnd( g.msgq_in, MSGTYPE result, result_length + (sizeof(QMSG) - sizeof( MSGIDTYPE )), 0 );
 						}

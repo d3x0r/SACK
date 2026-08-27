@@ -452,9 +452,7 @@ static void HandleEvent( PCLIENT pClient )
 						// work, or both sides believe the other performs the close and
 						// the socket strands in CLOSE_WAIT.
 						LOGICAL deferred = FALSE;
-						uint8_t dbgInUse;
 						lockNetWorkList();
-						dbgInUse = pClient->flags.bInUse;
 						if( ( pClient->dwFlags & CF_ACTIVE ) && pClient->flags.bInUse )
 						{
 							// application holds work on this socket; mark the close so

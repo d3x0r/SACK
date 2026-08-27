@@ -190,7 +190,7 @@ uintptr_t OpenComm( CTEXTSTR name, int nInQueue, int nOutQueue )
 		timeout.WriteTotalTimeoutConstant = 1;
 		SetCommTimeouts(hCom, &timeout);
 		if( gbLog )
-			Log2( "Result: %p %d", hCom, GetLastError() );
+			Log2( "Result: %p %lu", hCom, GetLastError() );
 		return (uintptr_t)hCom;
 	}
 }
@@ -880,11 +880,11 @@ void DumpTermios( struct termios *opts )
 #endif
 					pct->dcb.fDtrControl = DTR_CONTROL_ENABLE;
 					pct->flags.bUseCarrierDetect = iCarrier; // try this - remove maybe.
-					lprintf( " pct->dcb.BaudRate is %lu pct->dcb.ByteSize is %lu pct->dcb.Parity is %lu pct->dcb.fRtsControl is %lu "
+					lprintf( " pct->dcb.BaudRate is %lu pct->dcb.ByteSize is %u pct->dcb.Parity is %u pct->dcb.fRtsControl is %u "
 					       , pct->dcb.BaudRate
 					       , pct->dcb.ByteSize
 					       , pct->dcb.Parity
-					       , pct->dcb.fRtsControl
+					       , pct->dcb.fRtsControl // only a couple bits of the DWORD
 					);
 
 				//EscapeCommFunction( (HANDLE)(intptr_t)iCommId, SETDTR );
@@ -897,7 +897,7 @@ void DumpTermios( struct termios *opts )
 #endif
 					{
 #ifdef _WIN32
-						lprintf( "Open: Invalid initialization string %d", GetLastError() );
+						lprintf( "Open: Invalid initialization string %lu", GetLastError() );
 #endif
 						SackCloseComm( (int)iCommId );
 						iCommId = -1;
@@ -1315,16 +1315,6 @@ void DumpTermios( struct termios *opts )
 			tnprintf ( cOut, sizeof( cOut ), "SackCommReadBuffer: read %d chars, error=%d"
                , nCharsRead, nCommError );
 			xlprintf(LOG_NOISE)( "%s", cOut );
-#ifndef __LINUX__
-			lprintf ( "    cs.status=%u,0x%02X  cs.in=%u  cs.out=%u"
-#ifdef BCC_16
-               , pComTrack->cs.status
-#else
-               , *(uint32_t*)&pComTrack->cs
-#endif
-               , pComTrack->cs.cbInQue
-					, pComTrack->cs.cbOutQue );
-#endif
 			iResult = SACKCOMM_ERR_COMM;
 		}
 		else if( GetTickCount() >= pComTrack->current.dwEnd ) // no data, check timeout

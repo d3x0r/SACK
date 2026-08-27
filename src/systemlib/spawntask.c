@@ -111,7 +111,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 								if( PeekNamedPipe( phi->handle, NULL, 0, NULL, &dwAvail, NULL ) ) {
 									if( dwAvail ) {
 										if( task->flags.log_input )
-											lprintf( "More data became available: %d", dwAvail );
+											lprintf( "More data became available: %lu", dwAvail );
 										continue;
 									}
 								}
@@ -121,7 +121,7 @@ static uintptr_t CPROC HandleTaskOutput(PTHREAD thread )
 							break;
 						}
 						if( task->flags.log_input )
-							lprintf( "got read on task's stdout: %d %d", taskParams->stdErr, dwRead );
+							lprintf( "got read on task's stdout: %d %lu", taskParams->stdErr, dwRead );
 						//lprintf( "result %d", dwRead );
 						GetText( pInput )[offset] = 0;
 						pInput->data.size = offset;
@@ -798,7 +798,7 @@ SYSTEM_PROC( PTASK_INFO, LaunchPeerProgram_v2 )( CTEXTSTR program, CTEXTSTR path
 					if( !UpdateProcThreadAttribute( task->si.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
 					                                task->hPty, sizeof( task->hPty ), NULL, NULL ) ) {
 						DWORD dwErr = GetLastError();
-						lprintf( "Error setting attributes on starup info:%d", dwErr );
+						lprintf( "Error setting attributes on starup info:%lu", dwErr );
 					}
 				}
 			}

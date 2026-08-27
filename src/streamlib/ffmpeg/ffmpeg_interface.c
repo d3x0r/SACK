@@ -1540,9 +1540,9 @@ int64_t CPROC ffmpeg_seek(void *opaque, int64_t offset, int whence)
 					}while( !file->ffmpeg_buffer );
 					file->ffmpeg_buffer_used = need_blocks;
 					lprintf( "resulting position is %d (%d) of %d (%d)", file->ffmpeg_buffer_used, file->ffmpeg_buffer_size - file->ffmpeg_buffer_used, file->ffmpeg_buffer_size, file->ffmpeg_buffer_used_total );
-					lprintf( "... longer seek need read? %d", file->file_size - ( file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used ) );
+					lprintf( "... longer seek need read? %zu", file->file_size - ( file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used ) );
 				}
-				lprintf( "result %d should be %d", 14833013, file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used );
+				lprintf( "result %d should be %zu", 14833013, file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used );
 				return file->ffmpeg_buffer_used_total + file->ffmpeg_buffer_used;
 			}
 
@@ -1813,7 +1813,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 		char buf[256];
 		ffmpeg.av_strerror( err, buf, 256 );
 		err = -err;
-		lprintf( "Failed to open file. %08x:%s %4.4s", err, buf, &err );
+		lprintf( "Failed to open file. %08x:%s %4.4s", err, buf, (char*)&err );
 		Deallocate( struct ffmpeg_file *, file );
 		return NULL;
 	}
@@ -1964,7 +1964,7 @@ struct ffmpeg_file * ffmpeg_LoadFile( CTEXTSTR filename
 				//file->frame_del = 1000000LL * ic->r_frame_rate.den / ic->r_frame_rate.num;
 				file->frame_del = 1000000000*ir2d( ic->time_base );
 
-				lprintf( "Setting up time scaling here? %lld %lld", file->frame_del, ic->r_frame_rate.den );
+				lprintf( "Setting up time scaling here? %lld %d", file->frame_del, ic->r_frame_rate.den );
 
 //#if LIBAVFORMAT_BUILD >= CALC_FFMPEG_VERSION(52, 111, 0)
 				if( file->frame_del <= 0 )
@@ -2456,7 +2456,7 @@ static uintptr_t CPROC ProcessAudioFrame( PTHREAD thread )
 			}
 		}
 		if( 0 )
-		lprintf( "audio holding at %lld  %d %d  %s%s%s"
+		lprintf( "audio holding at %lld  %zu %zu  %s%s%s"
 			, file->audioFrame
 			, GetQueueLength( file->al_used_buffer_queue ), GetQueueLength( file->al_free_buffer_queue )
 			, file->flags.need_audio_frame?"audio":""
@@ -3977,7 +3977,7 @@ void audio_PlaybackBuffer( struct audio_device *ad, POINTER data, size_t datalen
 	short *decompress_buffer;
 	if( datalen % 33 )
 	{
-		lprintf( "Invalid bufffer received %d (%d:%d)", datalen, datalen/33, datalen%33 );
+		lprintf( "Invalid bufffer received %zu (%zu:%zu)", datalen, datalen/33, datalen%33 );
 		return;
 	}
 	datalen /= 33;
