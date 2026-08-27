@@ -1782,6 +1782,22 @@ void free_next_info( void ) {
 	
 }
 
+// Logging has to be transparent to the last error.  GetNextInfo() calls
+// TlsGetValue(), which SetLastError(ERROR_SUCCESS) on success, and lprintf()
+// expands to _xlprintf(...)( args ) - the two calls are only indeterminately
+// sequenced (C11 6.5.2.2p10), so an inline lprintf( "...", GetLastError() )
+// could read the error after the log path had already cleared it.  Writing the
+// output can clobber it just as easily, which would catch anything that reads
+// the error after logging it.
+#ifndef WIN32
+#include <errno.h>
+#  define SAVE_LAST_ERROR     int32_t _savedLastError = errno
+#  define RESTORE_LAST_ERROR  errno = _savedLastError
+#else
+#  define SAVE_LAST_ERROR     int32_t _savedLastError = GetLastError()
+#  define RESTORE_LAST_ERROR  SetLastError( (DWORD)_savedLastError )
+#endif
+
 static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 {
    (void)format; // fix unused
@@ -1793,12 +1809,15 @@ static INDEX CPROC _null_vlprintf ( CTEXTSTR format, va_list args )
 
 static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 {
+	SAVE_LAST_ERROR;
 #if defined( _DEBUG ) || defined( _DEBUG_INFO )
 	// this can be used to force logging early to stdout
 	struct next_lprint_info *_next_lprintf = GetNextInfo();
 #endif
-	if( cannot_log )
+	if( cannot_log ) {
+		RESTORE_LAST_ERROR;
 		return 0;
+	}
 	if( logtype != SYSLOG_NONE )
 	{
 		CTEXTSTR logtime = GetLogTime();
@@ -1896,6 +1915,7 @@ static INDEX CPROC _real_vlprintf ( CTEXTSTR format, va_list args )
 		}
 	}
 	//LeaveCriticalSec( &next_lprintf.cs );
+	RESTORE_LAST_ERROR;
 	return 0;
 }
 
@@ -1913,7 +1933,17 @@ static INDEX CPROC _null_lprintf( CTEXTSTR f, ... )
 }
 
 
+static RealVLogFunction _vxlprintf_( uint32_t level DBG_PASS );
+
 RealVLogFunction  _vxlprintf ( uint32_t level DBG_PASS )
+{
+	SAVE_LAST_ERROR;
+	RealVLogFunction result = _vxlprintf_( level DBG_RELAY );
+	RESTORE_LAST_ERROR;
+	return result;
+}
+
+static RealVLogFunction _vxlprintf_( uint32_t level DBG_PASS )
 {
 	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
@@ -1936,7 +1966,17 @@ RealVLogFunction  _vxlprintf ( uint32_t level DBG_PASS )
 	return _null_vlprintf;
 }
 
+static RealLogFunction _xlprintf_( uint32_t level DBG_PASS );
+
 RealLogFunction _xlprintf( uint32_t level DBG_PASS )
+{
+	SAVE_LAST_ERROR;
+	RealLogFunction result = _xlprintf_( level DBG_RELAY );
+	RESTORE_LAST_ERROR;
+	return result;
+}
+
+static RealLogFunction _xlprintf_( uint32_t level DBG_PASS )
 {
 	struct next_lprint_info *_next_lprintf;
 	//EnterCriticalSec( &next_lprintf.cs );
