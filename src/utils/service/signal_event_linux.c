@@ -1,5 +1,9 @@
-#define _POSIX_C_SOURCE  200809L
-#define _POSIX_SOURCE
+#ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE  200809L
+#endif
+#ifndef _POSIX_SOURCE
+#  define _POSIX_SOURCE
+#endif
 #include <unistd.h>
 #include <errno.h>
 
