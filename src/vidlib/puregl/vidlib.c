@@ -649,11 +649,11 @@ LRESULT CALLBACK
 								if( !dispatch_handled )
 								{
 									if( l.flags.bLogKeyEvent )
-										lprintf( "Local Keydefs Dispatch key : %p %08lx", hVideo, key );
+										lprintf( "Local Keydefs Dispatch key : %p %08x", hVideo, key );
 									if( hVideo && hVideo->KeyDefs && !HandleKeyEvents( hVideo->KeyDefs, key ) )
 									{
 										if( l.flags.bLogKeyEvent )
-											lprintf( "Global Keydefs Dispatch key : %08lx", key );
+											lprintf( "Global Keydefs Dispatch key : %08x", key );
 										if( FindLink( &l.pActiveList, hVideo ) == INVALID_INDEX )
 										{
 											if( l.flags.bLogKeyEvent )
@@ -679,7 +679,7 @@ LRESULT CALLBACK
 							}
 							key = (uint32_t)(uintptr_t)DequeLink( &hVideo->pInput );
 							if( l.flags.bLogKeyEvent )
-								lprintf( "key from deque : %p", key );
+								lprintf( "key from deque : %08x", key );
 						} while( key );
 						if( l.flags.bLogKeyEvent )
 							lprintf( "completed..." );
@@ -728,7 +728,7 @@ LRESULT CALLBACK
 						lprintf( "Chained to next hook...(2)" );
 					result = CallNextHookEx ( (HHOOK)GetLink( &l.keyhooks, idx ), code, wParam, lParam);
 					if( l.flags.bLogKeyEvent )
-						lprintf( "and result is %d", result );
+						lprintf( "and result is %zx", result );
 					return result;
 				}
 				//else
@@ -761,8 +761,8 @@ LRESULT CALLBACK
 		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 
 		if( l.flags.bLogKeyEvent )
-			lprintf( "KeyHook2 %d %08lx %d %d %d %d %p"
-					 , code, wParam
+			lprintf( "KeyHook2 %d %08x %d %d %d %d %p"
+					 , code, (uint32_t)wParam
 					 , kbhook->vkCode, kbhook->scanCode, kbhook->flags, kbhook->time, kbhook->dwExtraInfo );
 
       /*

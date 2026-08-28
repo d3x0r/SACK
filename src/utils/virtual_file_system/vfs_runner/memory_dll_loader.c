@@ -240,14 +240,14 @@ void DumpSystemMemory( POINTER p_match )
 				if( dir[IMAGE_DIRECTORY_ENTRY_TLS].Size )
 					lprintf( "has TLS" );
 				VirtualQueryEx( GetCurrentProcess(), real_memory, &info, sizeof( info ) );
-				lprintf( "virtual block at %p %d %s", real_memory, info.RegionSize, dll_name );
+				lprintf( "virtual block at %p %zu %s", real_memory, info.RegionSize, dll_name );
 				LogBinary( real_memory, 16 );
 			}
 		}
 		for( nHeap = 0; nHeap < nHeaps; nHeap++ )
 		{
 			entry.lpData = NULL;
-			lprintf( "Begin New Heap walk... %d(%d) %p", nHeap, nHeaps, pHeaps[nHeap] );
+			lprintf( "Begin New Heap walk... %d(%lu) %p", nHeap, nHeaps, pHeaps[nHeap] );
 			while( HeapWalk( pHeaps[nHeap], &entry ) )
 			{
 				total += entry.cbData;
@@ -256,7 +256,7 @@ void DumpSystemMemory( POINTER p_match )
 					if( entry.lpData && !(entry.wFlags & 2 ) && !IsBadReadPtr( entry.lpData, 16 ) )
 						LogBinary( entry.lpData, 16 );
 					if( entry.lpData )
-						lprintf( "heap chunk %d %d %p %d %d %08x", n++, total
+						lprintf( "heap chunk %p %lu %p %zu %d %08x", n++, total
 									, entry.lpData
 									, entry.cbData
 									, entry.cbOverhead
@@ -466,7 +466,7 @@ maybe it returns the library base... */
 							int mode = ( pb[reloc_entry] >> 12 );
 							// Need to do things with real_offset
 							uintptr_t *real_offset = (uintptr_t *)Seek( real_memory, ibr->VirtualAddress + ( pb[reloc_entry] & 0xFFF ) );
-							uintptr_t source_address = ConvertVirtualToPhysical( (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections ), source_nt_header->FileHeader.NumberOfSections, ibr->VirtualAddress );
+							//uintptr_t source_address = ConvertVirtualToPhysical( (PIMAGE_SECTION_HEADER)Seek( source_memory, FPISections ), source_nt_header->FileHeader.NumberOfSections, ibr->VirtualAddress );
 							//uintptr_t *source_offset = (uintptr_t *)Seek( source_memory, source_address + ( pb[reloc_entry] & 0xFFF ) );
 							switch( mode )
 							{
