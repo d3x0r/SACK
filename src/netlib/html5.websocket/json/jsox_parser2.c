@@ -944,13 +944,17 @@ void process_jsox_state( struct jsox_parse_state *state
 			if( state->comment ) {
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
-					if( c != '/' ) { 
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-						state->status = FALSE;
-					}
-					else state->comment = 2;
-					continue;
+					if( c == '/' ) { state->comment = 2; continue; }
+					// Only '//' and '/*' open a comment.  A solitary '/' is an ordinary
+					// token character, so `www.example.com/file.name` is one unquoted
+					// string rather than a fault.  recoverIdent() carries the same
+					// token-state handling every other text character gets, so the
+					// solidus is appended through it, and the character that followed
+					// it falls through to the dispatch below.  That character is
+					// neither '/' nor '*', so this branch cannot be re-entered --
+					// re-dispatching the solidus itself would spin here.
+					state->comment = 0;
+					recoverIdent( state, output, '/' );
 				}
 				if( state->comment == 2 ) {
 					// a '//' or '#' comment ends at any of the four ECMAScript line
@@ -1062,13 +1066,17 @@ void process_jsox_state( struct jsox_parse_state *state
 			if( state->comment ) {
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
-					if( c != '/' ) { 
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
-						state->status = FALSE;
-					}
-					else state->comment = 2;
-					continue;
+					if( c == '/' ) { state->comment = 2; continue; }
+					// Only '//' and '/*' open a comment.  A solitary '/' is an ordinary
+					// token character, so `www.example.com/file.name` is one unquoted
+					// string rather than a fault.  recoverIdent() carries the same
+					// token-state handling every other text character gets, so the
+					// solidus is appended through it, and the character that followed
+					// it falls through to the dispatch below.  That character is
+					// neither '/' nor '*', so this branch cannot be re-entered --
+					// re-dispatching the solidus itself would spin here.
+					state->comment = 0;
+					recoverIdent( state, output, '/' );
 				}
 				if( state->comment == 2 ) {
 					// a '//' or '#' comment ends at any of the four ECMAScript line
