@@ -769,7 +769,7 @@ static LOGICAL signedTokenCannotBeText( struct jsox_parse_state *state, int cInt
 // a value is already complete starts a second value.
 static LOGICAL isValueTerminator( int cInt ) {
 	return cInt == ' ' || cInt == '\t' || cInt == '\r' || cInt == '\n'
-	    || cInt == 160/*nbsp*/ || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029
+	    || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029
 	    || cInt == ',' || cInt == '}' || cInt == ']' || cInt == ':';
 }
 
@@ -1067,7 +1067,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 #endif
 	} else if( cInt >= 0 ) {
 		// ignore white space.
-		if( cInt == 32/*' '*/ ||cInt==160/*nbsp*/|| cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029 ) {
+		if( cInt == 32/*' '*/ || cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029 ) {
 			state->word = JSOX_WORD_POS_END;
 			if( !state->completedString ) {
 				state->completedString = TRUE;
@@ -1463,7 +1463,11 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					continue;
 				}
 				if( state->comment == 2 ) {
-					if( c == '\n' ) { state->comment = 0; continue; }
+					// a '//' or '#' comment ends at any of the four ECMAScript line
+					// terminators; this state skips the characters that the shared
+					// whitespace test would otherwise see, so it checks them here.
+					if( c == '\n' || c == '\r'
+					 || c == 0x2028 || c == 0x2029 ) { state->comment = 0; continue; }
 					else continue;
 				}
 				if( state->comment == 3 ) {
@@ -1963,7 +1967,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->gatheringStringFirstChar = c;
 						goto gatherStringInput;
 					}
-					if( c == 32/*' '*/ || c == 160/*nbsp*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 0x2028 || c == 0x2029 ) {
+					if( c == 32/*' '*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 0x2028 || c == 0x2029 ) {
 						state->word = JSOX_WORD_POS_AFTER_FIELD;
 						break;
 					}
@@ -2090,7 +2094,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->col = 1;
 						// fall through to normal space handling - just updated line/col position
 					case ' ':
-					case 160 :// case '\xa0': // nbsp
+					//case 160 :// case '\xa0': // nbsp
 					case '\t':
 					case '\r':
 					case 0x2028: // LS (Line separator)
@@ -2229,7 +2233,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					state->col = 1;
 					// FALLTHROUGH
 				case ' ':
-				case 160 :// case '\xa0': // nbsp
+				// U+00A0 is deliberately absent: it joins words rather than separating
+				// them, so it is an ordinary identifier character.  It still ends a
+				// number, which is handled in the number terminator below.
 				case 0x2028: // LS (Line separator)
 				case 0x2029: // PS (paragraph separate)
 				case '\t':
@@ -2534,7 +2540,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								}
 							} else {
 								// in non streaming mode; these would be required to follow
-								if( c == ' ' || c == 160/*'\xa0'*/ || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
+								if( c == ' ' || c == 160/*'\xa0'*/ || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF || c == 0x2028 || c == 0x2029
 									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
 									//lprintf( "Non numeric character received; push the value we have" );
 									(*output->pos) = 0;

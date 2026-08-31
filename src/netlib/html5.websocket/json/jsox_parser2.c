@@ -953,7 +953,11 @@ void process_jsox_state( struct jsox_parse_state *state
 					continue;
 				}
 				if( state->comment == 2 ) {
-					if( c == '\n' ) { state->comment = 0; continue; }
+					// a '//' or '#' comment ends at any of the four ECMAScript line
+					// terminators; this state skips the characters that the shared
+					// whitespace test would otherwise see, so it checks them here.
+					if( c == '\n' || c == '\r'
+					 || c == 0x2028 || c == 0x2029 ) { state->comment = 0; continue; }
 					else continue;
 				}
 				if( state->comment == 3 ) {
@@ -1067,7 +1071,11 @@ void process_jsox_state( struct jsox_parse_state *state
 					continue;
 				}
 				if( state->comment == 2 ) {
-					if( c == '\n' ) { state->comment = 0; continue; }
+					// a '//' or '#' comment ends at any of the four ECMAScript line
+					// terminators; this state skips the characters that the shared
+					// whitespace test would otherwise see, so it checks them here.
+					if( c == '\n' || c == '\r'
+					 || c == 0x2028 || c == 0x2029 ) { state->comment = 0; continue; }
 					else continue;
 				}
 				if( state->comment == 3 ) {
