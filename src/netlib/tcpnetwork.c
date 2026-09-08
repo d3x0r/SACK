@@ -62,6 +62,36 @@ struct tcp_connect_timeout_data {
 	uint32_t serial;
 };
 
+// Close a client whose connect() failed, after the application has been told.
+// The caller holds the client's lock 0 and must NOT hold the global lock.
+// InternalRemoveClientEx needs the global lock and, holding it, spins for the
+// client locks; blocking for the global lock here deadlocked against a
+// RemoveClient() from another thread (global held, spinning on this client) -
+// the application closing the socket from its connect-error callback.  So try
+// the global lock and back off by releasing the client lock, as the
+// network_linux event loop does.
+// Returns TRUE with lock 0 still held; FALSE when the client was closed by that
+// other thread meanwhile - lock 0 is then NOT held and pc must not be touched.
+LOGICAL RemoveFailedConnectEx( PCLIENT pc, uint32_t serial DBG_PASS ) {
+	while( !TryNetworkGlobalLock( DBG_VOIDSRC ) ) {
+		NetworkUnlockEx( pc, 0 DBG_RELAY );
+		Relinquish();
+		while( !NetworkLockEx( pc, 0 DBG_RELAY ) ) {
+			if( !NetworkClientValid( pc, serial ) ) return FALSE;
+			Relinquish();
+		}
+		if( !NetworkClientValid( pc, serial )
+		 || !( pc->dwFlags & CF_ACTIVE )
+		 || ( pc->dwFlags & ( CF_CLOSING | CF_CLOSED | CF_AVAILABLE ) ) ) {
+			NetworkUnlockEx( pc, 0 DBG_RELAY );
+			return FALSE;
+		}
+	}
+	InternalRemoveClientExx( pc, TRUE, FALSE DBG_RELAY );
+	LeaveCriticalSec( &globalNetworkData.csNetwork );
+	return TRUE;
+}
+
 static void CPROC TCPConnectTimeout( uintptr_t psv ) {
 	struct tcp_connect_timeout_data *timeout = (struct tcp_connect_timeout_data *)psv;
 	PCLIENT pc = timeout->pc;
@@ -95,11 +125,9 @@ static void CPROC TCPConnectTimeout( uintptr_t psv ) {
 		else
 			pc->connect.ThisConnected( pc, timeoutError );
 	}
-	if( NetworkClientValid( pc, serial ) ) {
-		EnterCriticalSec( &globalNetworkData.csNetwork );
-		InternalRemoveClientEx( pc, TRUE, FALSE );
-		LeaveCriticalSec( &globalNetworkData.csNetwork );
-	}
+	if( NetworkClientValid( pc, serial ) )
+		if( !RemoveFailedConnect( pc, serial ) )
+			return; // closed from the callback's thread; our lock went with it
 	NetworkUnlockEx( pc, 0 DBG_SRC );
 }
 
@@ -627,10 +655,11 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	}
 
 	SetClientFlags( pc, CF_CONNECTING );
+	const uint32_t serial = pc->serial;
 	if( pc->dwConnectTimeout ) {
 		struct tcp_connect_timeout_data *timeout = New( struct tcp_connect_timeout_data );
 		timeout->pc = pc;
-		timeout->serial = pc->serial;
+		timeout->serial = serial;
 		AddTimerEx( pc->dwConnectTimeout, 0, TCPConnectTimeout, (uintptr_t)timeout );
 	}
 
@@ -698,10 +727,8 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 						pc->connect.ThisConnected( pc, dwError );
 				}
 				//_lprintf( DBG_RELAY )("Connect FAIL: %p %d %d %" _32f, pc->saClient, pc->Socket, err, dwError);
-				EnterCriticalSec( &globalNetworkData.csNetwork );
-				InternalRemoveClientEx( pc, TRUE, FALSE );
-				LeaveCriticalSec( &globalNetworkData.csNetwork );
-				NetworkUnlockEx( pc, 0 DBG_SRC );
+				if( RemoveFailedConnect( pc, serial ) )
+					NetworkUnlockEx( pc, 0 DBG_SRC );
 				pc = NULL;
 				return dwError;
 			}

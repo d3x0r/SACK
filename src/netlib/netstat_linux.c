@@ -37,9 +37,11 @@ static void ProcessProcFD( uintptr_t psv, CTEXTSTR name, enum ScanFileProcessFla
 		while( list ) {
 			struct listener_pid_info_list *next = list->next;
 			//lprintf( "Looking at item %p %lld %lld", list, list->inode, inode );
-			if( list->info.pid == -1 ) {
+			if( !list->info.pdlPids ) {
 				if( list->inode == inode ) {
-					list->info.pid = psv;
+					list->info.pdlPids = CreateDataList( sizeof( uint64_t ) );
+					AddDataItem( &list->info.pdlPids, &psv );
+					//list->info.pid = psv;
 					if( list->next ) 
 						list->next->me = list->me;
 					list->me[0] = list->next;
@@ -126,7 +128,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 				if( state != 10 ) continue;
 				//lprintf( "Add port4: %d %zd", port, inode );
 				link.info.port = port;
-				link.info.pid = -1;
+				link.info.pdlPids = NULL;
 				link.inode = inode;
 				AddDataItem( &pdlNodes, &link );
 			}
@@ -181,7 +183,7 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 				port = strtol( addr+33, NULL, 16 );
 				//lprintf( "Add port6: %s %d %zd", addr+33, port, inode );
 				link.info.port = port;
-				link.info.pid = -1;
+				link.info.pdlPids = NULL;
 				link.inode = inode;
 				AddDataItem( &pdlNodes, &link );
 			}

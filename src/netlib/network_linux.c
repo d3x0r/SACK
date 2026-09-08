@@ -746,6 +746,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									SetClientFlags( event_data->pc, CF_CONNECTERROR );
 								}
 								// have to allow SSL to clear this... so set it before calling the connect callback.
+								const uint32_t serial = event_data->pc->serial;
 								SetClientFlags( event_data->pc, CF_CONNECT_ISSUED );
 								if( event_data->pc->dwFlags & CF_CPPCONNECT ) {
 									if( event_data->pc->connect.CPPThisConnected )
@@ -757,6 +758,25 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 								if( globalNetworkData.flags.bLogNotices )
 									lprintf( "Connect error was: %d", error );
 #endif
+								if( error ) {
+									// a failed connect closes the client here, the same as the
+									// synchronous failure and the connect timeout do; the socket
+									// used to linger in CF_CONNECTERROR until the application
+									// closed it.  Notice is blocked: the error callback was it.
+									if( !locked ) {
+										// `locked` must say whether lock 0 is actually held: the
+										// shared unlock at the end of this block keys off it.
+										while( !( locked = ( NetworkLock( event_data->pc, 0 ) != NULL ) ) ) {
+											if( !NetworkClientValid( event_data->pc, serial ) ) break;
+											Relinquish();
+										}
+									}
+									if( locked && NetworkClientValid( event_data->pc, serial ) ) {
+										// FALSE: closed from the callback's thread, lock is gone.
+										if( !RemoveFailedConnect( event_data->pc, serial ) )
+											locked = 0;
+									}
+								}
 								// if connected okay - issue first read...
 								if( !error ) {
 #ifdef LOG_NOTICES

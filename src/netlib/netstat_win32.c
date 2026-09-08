@@ -26,7 +26,9 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 		for( int i = 0; i < table->dwNumEntries; i++ ) {
 			if( table->table[i].dwState == MIB_TCP_STATE_LISTEN ) {
 				struct listener_pid_info l;
-				l.pid = table->table[i].dwOwningPid;
+				//l.pid = table->table[i].dwOwningPid;
+				l.pdlPids = CreateDataList( sizeof( uint64_t ) );
+				AddDataItem( &l.pdlPids, &table->table[i].dwOwningPid );
 				l.port = ntohs( table->table[i].dwLocalPort );
 				AddDataItem( ppList, &l );
 			}
@@ -54,19 +56,20 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 				struct listener_pid_info l;
 				INDEX idx;
 				struct listener_pid_info* info;
-				l.pid = table6->table[i].dwOwningPid;
+				//l.pid = table->table[i].dwOwningPid;
+				l.pdlPids = NULL;
 				l.port = ntohs( table6->table[i].dwLocalPort );
 				DATA_FORALL( ppList[0], idx, struct listener_pid_info*, info ) {
 					if( info->port == l.port ) {
-						if( info->pid != l.pid ) {
-							lprintf( "Port in use by multiple processes: %llu %llu", info->pid, l.pid );
-							continue;
-						}
+						AddDataItem( &info->pdlPids, &table->table[i].dwOwningPid );
 						break;
 					}
 				}
-				if( !info )
+				if( !info ) {
 					AddDataItem( ppList, &l );
+					l.pdlPids = CreateDataList( sizeof( uint64_t ) );
+					AddDataItem( &l.pdlPids, &table->table[i].dwOwningPid );
+				}
 			}
 		}
 		Release( table6 );

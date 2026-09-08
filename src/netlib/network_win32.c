@@ -290,6 +290,23 @@ static void HandleEvent( PCLIENT pClient )
 						}
 						if( pClient->pWaiting )
 							WakeThread( pClient->pWaiting );
+						if( wError ) {
+							// a failed connect closes the client here, the same as the
+							// synchronous failure and the connect timeout do; the socket used
+							// to linger in CF_CONNECTERROR until the application closed it.
+							// Notice is blocked: the error callback was it.  No client lock
+							// is held on this path, so take lock 0 for RemoveFailedConnect.
+							const uint32_t serial = pClient->serial;
+							LOGICAL locked;
+							while( !( locked = ( NetworkLockEx( pClient, 0 DBG_SRC ) != NULL ) ) ) {
+								if( !NetworkClientValid( pClient, serial ) ) break;
+								Relinquish();
+							}
+							if( locked ) {
+								if( !NetworkClientValid( pClient, serial ) || RemoveFailedConnect( pClient, serial ) )
+									NetworkUnlockEx( pClient, 0 DBG_SRC );
+							}
+						}
 #if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 						if( globalNetworkData.flags.bLogNotices )
 							lprintf( "FD_CONNECT Completed" );

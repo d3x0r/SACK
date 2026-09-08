@@ -734,6 +734,10 @@ void TerminateClosedClientEx( PCLIENT pc DBG_PASS );
 #define TerminateClosedClient(pc) TerminateClosedClientEx(pc DBG_SRC)
 void InternalRemoveClientExx(PCLIENT lpClient, LOGICAL bBlockNofity, LOGICAL bLinger DBG_PASS );
 #define InternalRemoveClientEx(c,b,l) InternalRemoveClientExx(c,b,l DBG_SRC)
+// tcpnetwork.c: close a client after its connect failed, from a caller holding
+// the client lock 0 and not the global lock (see the definition for the rules).
+LOGICAL RemoveFailedConnectEx( PCLIENT pc, uint32_t serial DBG_PASS );
+#define RemoveFailedConnect(c,s) RemoveFailedConnectEx(c,s DBG_SRC)
 #define InternalRemoveClient(c) InternalRemoveClientEx(c, FALSE, FALSE )
 struct peer_thread_info *IsNetworkThread( void );
 
