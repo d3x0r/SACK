@@ -1344,7 +1344,7 @@ NETWORK_PROC( LOGICAL, DoWhois )( CTEXTSTR pHost, CTEXTSTR pServer, PVARTEXT pvt
 
 struct listener_pid_info {
 	uint16_t port;
-	uint64_t pid;
+	PDATALIST pdlPids;//uint64_t pid;
 };
 
 // list is filled with struct listener_pid_info entries
