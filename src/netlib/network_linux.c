@@ -487,7 +487,12 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 						FinishUDPRead( event_data->pc, event_data->broadcast );
 					}
 					else if( ( event_data->pc->dwFlags & CF_READPENDING )
-					       || ( events[n].events & ( EPOLLRDHUP | EPOLLHUP ) ) )
+					       || ( ( events[n].events & ( EPOLLRDHUP | EPOLLHUP ) )
+					          // a refused/failed connect arrives as EPOLLIN|EPOLLERR|EPOLLHUP; the
+					          // connecting branch below reports it through SO_ERROR.  Taking it
+					          // here removed the socket with the close notice blocked, so the
+					          // application never heard the connect fail.
+					          && !( event_data->pc->dwFlags & CF_CONNECTING ) ) )
 					{
 						size_t read;
 #ifdef LOG_NOTICES
@@ -646,7 +651,11 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 					const PCLIENT pc = event_data->pc;
 					int locked;
 					locked = 1;
-					if( events[n].events & EPOLLOUT )
+					// a failed connect may report only EPOLLERR|EPOLLHUP; the connecting
+					// branch must still see it to deliver the error.
+					if( ( events[n].events & EPOLLOUT )
+					  || ( ( event_data->pc->dwFlags & CF_CONNECTING )
+					     && ( events[n].events & ( EPOLLERR | EPOLLHUP ) ) ) )
 					{
 #  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 						lprintf( "EPOLLOUT %s", ( event_data->pc->dwFlags & CF_CONNECTING ) ? "connecting"
@@ -674,6 +683,23 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							//lprintf( "FLAGS IS NOT ACTIVE BUT: %x", event_data->pc->dwFlags );
 							// change to inactive status by the time we got here...
 						} else if( event_data->pc->dwFlags & CF_CONNECTING ) {
+							int error = 0;
+							socklen_t errlen = sizeof( error );
+							struct sockaddr_storage peer;
+							socklen_t peerlen = sizeof( peer );
+							getsockopt( event_data->pc->Socket, SOL_SOCKET, SO_ERROR, &error, &errlen );
+							// The socket is added to epoll (EPOLLOUT|EPOLLET) before connect() is
+							// issued, and an unconnected stream socket reports EPOLLOUT|EPOLLHUP at
+							// once.  SO_ERROR is still 0 while the connect is in flight, so that
+							// edge was reported as a successful connect: every client "connected"
+							// instantly, even to a black hole, and the real completion (or the
+							// connect timeout) was never delivered.  Only a peer address proves
+							// the connect completed; otherwise leave CF_CONNECTING for the real edge.
+							if( !error && getpeername( event_data->pc->Socket, (struct sockaddr*)&peer, &peerlen ) < 0 ) {
+#  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
+								lprintf( "EPOLLOUT on a socket still connecting; waiting for completion" );
+#  endif
+							} else {
 #  if defined( LOG_NETWORK_EVENT_THREAD ) || defined( LOG_WRITE_NOTICES )
 							//if( globalNetworkData.flags.bLogNotices )
 								lprintf( "Connected!" );
@@ -706,11 +732,6 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 							}
 
 							{
-								int error;
-								socklen_t errlen = sizeof( error );
-								getsockopt( event_data->pc->Socket, SOL_SOCKET
-									, SO_ERROR
-									, &error, &errlen );
 								// errors like EHOSTUNREACH/ENETUNREACH happen in connect()
 								// and result immediately so they do not get delayed until here.
 								//lprintf( "Error checking for connect is: %s on %p", strerror( error ), event_data->pc );
@@ -778,6 +799,7 @@ int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t non
 									}
 								}
 							}
+							} // else: connect completed (or failed)
 						} else if( event_data->pc->dwFlags & CF_UDP ) {
 							//lprintf( "UDP WRITE IS NEVER QUEUED." );
 							// udp write event complete....
