@@ -567,6 +567,7 @@ struct NetworkClient
 	// from the connection the holder meant.
 	volatile uint32_t serial;
 	volatile uint32_t writeTimer;
+	uint32_t dwConnectTimeout;
 	PLIST psvInUse; // we have the ability to save outstatnding UID locks...
 
 	// this is set to what the thread that's waiting for this event is.

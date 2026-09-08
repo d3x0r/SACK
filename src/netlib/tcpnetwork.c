@@ -57,6 +57,52 @@
 
 SACK_NETWORK_NAMESPACE
 
+struct tcp_connect_timeout_data {
+	PCLIENT pc;
+	uint32_t serial;
+};
+
+static void CPROC TCPConnectTimeout( uintptr_t psv ) {
+	struct tcp_connect_timeout_data *timeout = (struct tcp_connect_timeout_data *)psv;
+	PCLIENT pc = timeout->pc;
+	uint32_t serial = timeout->serial;
+	Deallocate( struct tcp_connect_timeout_data *, timeout );
+
+	if( !NetworkClientValid( pc, serial ) )
+		return;
+	while( !NetworkLockEx( pc, 0 DBG_SRC ) ) {
+		if( !NetworkClientValid( pc, serial ) )
+			return;
+		Relinquish();
+	}
+	if( !NetworkClientValid( pc, serial )
+	 || !( pc->dwFlags & CF_CONNECTING )
+	 || ( pc->dwFlags & ( CF_CONNECTED | CF_CONNECTERROR | CF_CONNECT_ISSUED ) ) ) {
+		NetworkUnlockEx( pc, 0 DBG_SRC );
+		return;
+	}
+
+	ClearClientFlags( pc, CF_CONNECTING );
+	SetClientFlags( pc, CF_CONNECTERROR | CF_CONNECT_ISSUED );
+#ifdef _WIN32
+	const int timeoutError = WSAETIMEDOUT;
+#else
+	const int timeoutError = ETIMEDOUT;
+#endif
+	if( pc->connect.ThisConnected ) {
+		if( pc->dwFlags & CF_CPPCONNECT )
+			pc->connect.CPPThisConnected( pc->psvConnect, timeoutError );
+		else
+			pc->connect.ThisConnected( pc, timeoutError );
+	}
+	if( NetworkClientValid( pc, serial ) ) {
+		EnterCriticalSec( &globalNetworkData.csNetwork );
+		InternalRemoveClientEx( pc, TRUE, FALSE );
+		LeaveCriticalSec( &globalNetworkData.csNetwork );
+	}
+	NetworkUnlockEx( pc, 0 DBG_SRC );
+}
+
 // Read-dispatch nesting depth, per thread.  A read callback that re-enters the
 // message pump - Idle() is the way that happens - can dispatch another read on this
 // same thread, underneath one already in progress.  Everything that reasons about
@@ -74,6 +120,10 @@ DeclareThreadLocal uint32_t readStackHigh = 1;
 	extern int CPROC ProcessNetworkMessages( struct peer_thread_info *thread, uintptr_t quick_check );
 
 _TCP_NAMESPACE
+
+void SetTCPConnectTimeout( PCLIENT pc, uint32_t milliseconds ) {
+	if( pc ) pc->dwConnectTimeout = milliseconds;
+}
 
 //----------------------------------------------------------------------------
 #if 0 && !DrainSupportDeprecated
@@ -577,6 +627,12 @@ int NetworkConnectTCPEx( PCLIENT pc DBG_PASS ) {
 	}
 
 	SetClientFlags( pc, CF_CONNECTING );
+	if( pc->dwConnectTimeout ) {
+		struct tcp_connect_timeout_data *timeout = New( struct tcp_connect_timeout_data );
+		timeout->pc = pc;
+		timeout->serial = pc->serial;
+		AddTimerEx( pc->dwConnectTimeout, 0, TCPConnectTimeout, (uintptr_t)timeout );
+	}
 
 	while( 1 ) {
 		if( (err = connect( pc->Socket, pc->saClient
@@ -786,6 +842,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 			pResult->psvClose                  = psvClose;
 			pResult->write.CPPWriteComplete    = WriteComplete;
 			pResult->psvWrite                  = psvWrite;
+			pResult->dwConnectTimeout          = globalNetworkData.dwConnectTimeout;
 			if( bCPP )
 				SetClientFlags( pResult, ( CF_CALLBACKTYPES ) );
 
@@ -813,7 +870,7 @@ static PCLIENT InternalTCPClientAddrFromAddrExxx( SOCKADDR *lpAddr, SOCKADDR *pF
 					SetClientFlags( pResult, CF_CONNECT_WAITING );
 					// caller was expecting connect to block....
 					while( !( pResult->dwFlags & (CF_CONNECTED|CF_CONNECTERROR|CF_CONNECT_CLOSED) ) &&
-							( ( timeGetTime64() - Start ) < globalNetworkData.dwConnectTimeout ) )
+							( ( timeGetTime64() - Start ) < pResult->dwConnectTimeout ) )
 					{
 						// may be this thread itself which connects...
 						if( this_thread )

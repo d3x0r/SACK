@@ -214,7 +214,10 @@ static void HandleEvent( PCLIENT pClient )
 #endif
 				if( networkEvents.lNetworkEvents & FD_CONNECT )
 				{
-					{
+					// connect() can complete synchronously even though FD_CONNECT was
+					// selected.  The queued event is stale after the synchronous path
+					// has already notified the application and kicked its first read.
+					if( !( pClient->dwFlags & CF_CONNECT_ISSUED ) ) {
 						uint16_t wError = networkEvents.iErrorCode[FD_CONNECT_BIT];
 #if defined( LOG_NOTICES ) || defined( LOG_WRITE_NOTICES )
 						if( globalNetworkData.flags.bLogNotices )
