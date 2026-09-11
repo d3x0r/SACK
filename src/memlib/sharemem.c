@@ -2440,7 +2440,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				GetHeapMemStatsEx(pc->pRoot, &dwFree,&dwAllocated,&dwBlocks,&dwFreeBlocks DBG_RELAY);
 #endif
 #ifndef NO_LOGGING
-#  ifdef _DEBUG
+#  if defined _DEBUG || defined( _DEBUG_INFO )
 			if( g.bLogAllocate )
 			{
 				if( !g.bDisableDebug )
@@ -2501,7 +2501,6 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 				if( !pc->info.dwOwners )
 				{
 #ifndef NO_LOGGING
-#  ifdef _DEBUG
 					if( !g.bDisableDebug &&
 						!(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
 						_xlprintf( 2
@@ -2510,8 +2509,6 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 									)( "Block is already Free! %p "
 									, pc );
 					else
-#  endif
-						// CRITICAL ERROR!
 						_xlprintf( 2 DBG_RELAY)( "Block is already Free! %p ", pc );
 #endif
 					// tag it in the ring as well, so a core shows this release next to
