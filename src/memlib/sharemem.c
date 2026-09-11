@@ -1030,7 +1030,7 @@ PSPACE FindSpace( POINTER pMem )
 	if( pMem ) // if 0; the block of spaces may be empty and matches 0.
 		for( psp = g.pSpacePool;psp; psp = psp->next) 
 			for( idx = 0; idx < MAX_PER_BLOCK; idx++ ) {
-				//if( g.bLogAllocate)
+				//if( g.bogAllocate)
 				//	lprintf( "Finding space %p %p", pMem, psp->spaces[idx].pMem);
 				if( psp->spaces[idx].pMem == pMem )
 					return psp->spaces + idx;
@@ -1928,7 +1928,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 		pc->info.dwPad = dwAlignPad;
 		pc->dwSize = dwSize;
 #ifndef NO_LOGGING
-#  ifdef _DEBUG
+#  if defined _DEBUG || defined( _DEBUG_INFO )
 		if( g.bLogAllocate )
 		{
 			ll__lprintf(DBG_RELAY)( "alloc %p(%p) %zd", pc, pc->byData, dwSize );
@@ -2145,7 +2145,7 @@ POINTER HeapAllocateAlignedEx( PMEM pHeap, size_t dwSize, uint16_t alignment DBG
 */		
 		//#if DBG_AVAILABLE
 #ifndef NO_LOGGING
-#  ifdef _DEBUG
+#  if defined _DEBUG || defined( _DEBUG_INFO )
 		if( g.bLogAllocate && g.allowLogging )
 		{
 			_xlprintf( 2 DBG_RELAY )("Allocate : %p(%p) - %" _PTRSZVALfs " bytes", pc->byData, pc, pc->dwSize);
@@ -2395,7 +2395,7 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 			{
 				extern int  MemChk ( POINTER p, uintptr_t val, size_t sz );
 #ifndef NO_LOGGING
-#  ifdef _DEBUG
+#  if defined _DEBUG || defined( _DEBUG_INFO )
 				if( g.bLogAllocate )
 				{
 					ll__lprintf(DBG_RELAY)( "Release %p(%p)", pc, pc->byData );
