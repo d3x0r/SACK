@@ -2503,11 +2503,16 @@ POINTER ReleaseEx ( POINTER pData DBG_PASS )
 #ifndef NO_LOGGING
 					if( !g.bDisableDebug &&
 						!(pCurMem->dwFlags & HEAP_FLAG_NO_DEBUG ) )
+#  if DBG_AVAILABLE						
 						_xlprintf( 2
 									, BLOCK_FILE(pc)
 									, BLOCK_LINE(pc)
 									)( "Block is already Free! %p "
 									, pc );
+#  else									
+						_xlprintf( 2 )( "Block is already Free! %p "
+									, pc );
+#  endif									
 					else
 						_xlprintf( 2 DBG_RELAY)( "Block is already Free! %p ", pc );
 #endif
