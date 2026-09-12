@@ -40,6 +40,62 @@ uint32_t thisDel;
 #define logTick(n)
 #endif
 
+// record a parse fault; mirrors the inline pattern used throughout.
+#define JSON6_FAULT( ... ) { state->status = FALSE; \
+	if( !state->pvtError ) state->pvtError = VarTextCreate(); \
+	vtprintf( state->pvtError, __VA_ARGS__ ); }
+
+// ECMAScript WhiteSpace and LineTerminator characters that separate tokens.
+static LOGICAL json6_isWhitespace( TEXTRUNE c ) {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r'
+	    || c == 0x0B/*VT*/ || c == 0x0C/*FF*/ || c == 0xA0/*NBSP*/ || c == 0xFEFF/*ZWNBSP*/
+	    || c == 0x2028/*LS*/ || c == 0x2029/*PS*/;
+}
+
+// A collected number token only contains characters the number gatherer admits
+// (underscores already dropped, radix letter lower-cased, sign handled apart from
+// a leading '+').  This checks it still has a valid shape; "1e", ".5.", "1e+",
+// "0x", "+" and "." do not, and used to convert to 0 or garbage.
+static LOGICAL json6_numberIsValid( CTEXTSTR s ) {
+	int digits = 0;
+	if( *s == '+' || *s == '-' ) s++;
+	if( s[0] == '0' && ( s[1] == 'x' || s[1] == 'o' || s[1] == 'b' ) ) {
+		int base = ( s[1] == 'x' ) ? 16 : ( s[1] == 'o' ) ? 8 : 2;
+		for( s += 2; *s; s++ ) {
+			int d = ( *s >= '0' && *s <= '9' ) ? ( *s - '0' )
+			      : ( *s >= 'a' && *s <= 'f' ) ? ( *s - 'a' + 10 )
+			      : ( *s >= 'A' && *s <= 'F' ) ? ( *s - 'A' + 10 )
+			      : 99;
+			if( d >= base ) return FALSE;
+			digits++;
+		}
+		return digits > 0;
+	}
+	while( *s >= '0' && *s <= '9' ) { s++; digits++; }
+	if( *s == '.' ) { s++; while( *s >= '0' && *s <= '9' ) { s++; digits++; } }
+	if( !digits ) return FALSE;
+	if( *s == 'e' || *s == 'E' ) {
+		int expDigits = 0;
+		s++;
+		if( *s == '+' || *s == '-' ) s++;
+		while( *s >= '0' && *s <= '9' ) { s++; expDigits++; }
+		if( !expDigits ) return FALSE;
+	}
+	return *s == 0;
+}
+
+// A delimiter arrived while a value was still being spelled out: 'tru', or a
+// sign with nothing after it.  ( WORD_POS_END sorts before the keyword states. )
+#define JSON6_PARTIAL_VALUE_PENDING() \
+	( ( state->word > WORD_POS_END && state->word < WORD_POS_FIELD ) \
+	  || ( state->signPending && state->val.value_type == VALUE_UNSET ) )
+#define JSON6_PARTIAL_VALUE_FAULT( where ) \
+	if( state->word > WORD_POS_END && state->word < WORD_POS_FIELD ) { \
+		JSON6_FAULT( "Incomplete keyword " where " at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col ); \
+	} else { \
+		JSON6_FAULT( "Sign with no number following " where " at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col ); \
+	}
+
 char *json6_escape_string_length( const char *string, size_t len, size_t *outlen ) {
 	size_t m = 0;
 	size_t ch;
@@ -125,38 +181,7 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				break;
 			} else ( *mOut++ ) = c; // other else is not valid close quote; just store as content.
 		} else if( state->escape ) {
-			if( state->stringOct ) {
-				if( state->hex_char_len < 3 && c >= 48/*'0'*/ && c <= 57/*'9'*/ ) {
-					state->hex_char *= 8;
-					state->hex_char += c/*.codePointAt(0)*/ - 0x30;
-					state->hex_char_len++;
-					if( state->hex_char_len == 3 ) {
-						mOut += ConvertToUTF8(mOut, state->hex_char);
-						state->stringOct = FALSE;
-						state->escape = FALSE;
-						continue;
-					}
-					continue;
-				} else {
-					if( state->hex_char > 255 ) {
-						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
-							, state->hex_char
-							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
-							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-							, c
-							, ( *msg_input ) + 1
-						);// fault
-						status = -1;
-						break;
-					}
-					mOut += ConvertToUTF8(mOut, state->hex_char);
-					state->stringOct = FALSE;
-					state->escape = FALSE;
-					continue;
-				}
-
-			} else if( state->unicodeWide ) {
+			if( state->unicodeWide ) {
 				if( c == '}' ) {
 					mOut += ConvertToUTF8(mOut, state->hex_char);
 					state->unicodeWide = FALSE;
@@ -255,11 +280,11 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			case 'f':
 				( *mOut++ ) = '\f';
 				break;
-			case '0': case '1': case '2': case '3':
-				state->stringOct = TRUE;
-				state->hex_char = c - 48;
-				state->hex_char_len = 1;
-				continue;
+			case '0':
+				// \0 is NUL.  Legacy octal escapes are not supported: \1..\9 reach the
+				// default below and emit the digit itself, so "\012" is NUL then "12".
+				( *mOut++ ) = 0;
+				break;
 			case 'x':
 				state->stringHex = TRUE;
 				state->hex_char_len = 0;
@@ -276,14 +301,8 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
-						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
-						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-						, c
-						, ( *msg_input ) + 1
-					);// fault
-					status = -1;
+					// any other escaped character is emitted without the backslash ( "\a" is "a" )
+					mOut += ConvertToUTF8(mOut, c);
 				}
 				break;
 			}
@@ -372,6 +391,10 @@ int json6_parse_add_data( struct json_parse_state *state
 			PushLink( state->outBuffers, output );
 			state->gatheringNumber = FALSE;
 			//lprintf( "result with number:%s", state->val.string );
+			if( !json6_numberIsValid( state->val.string ) ) {
+				JSON6_FAULT( "Invalid number '%s' at %" _size_f "  %" _size_f ":%" _size_f, state->val.string, state->n, state->line, state->col );
+				return -1;
+			}
 			if( state->val.float_result )
 			{
 				CTEXTSTR endpos;
@@ -439,7 +462,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					continue;
 				}
 				if( state->comment == 2 ) {
-					if( c == '\n' ) { state->comment = 0; continue; }
+					if( c == '\n' || c == '\r' || c == 0x2028/*LS*/ || c == 0x2029/*PS*/ ) { state->comment = 0; continue; }
 					else continue;
 				}
 				if( state->comment == 3 ) {
@@ -461,6 +484,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
 					vtprintf( state->pvtError, "Fault while parsing; getting field name unexpected '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					state->status = FALSE;
+					break;
+				}
+				if( state->val.value_type != VALUE_UNSET ) {
+					JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 					break;
 				}
 				{
@@ -552,8 +579,18 @@ int json6_parse_add_data( struct json_parse_state *state
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
 				}
+				if( JSON6_PARTIAL_VALUE_PENDING() ) {
+					JSON6_PARTIAL_VALUE_FAULT( "before '}'" );
+					break;
+				}
 				// coming back after pushing an array or sub-object will reset the contxt to FIELD, so an end with a field should still push value.
 				if( (state->parse_context == CONTEXT_OBJECT_FIELD) || (state->parse_context == CONTEXT_OBJECT_FIELD_VALUE) ) {
+					// a field name was collected but no ':' followed it: '{a}', '{a }', '{"a"}'.
+					if( state->parse_context == CONTEXT_OBJECT_FIELD
+					  && ( state->word == WORD_POS_FIELD || state->word == WORD_POS_AFTER_FIELD || state->val.value_type == VALUE_STRING ) ) {
+						JSON6_FAULT( "Object field name with no value; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						break;
+					}
 #ifdef _DEBUG_PARSING
 					lprintf( "close object; empty object %d", state->val.value_type );
 #endif
@@ -599,6 +636,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
 				}
+				if( JSON6_PARTIAL_VALUE_PENDING() ) {
+					JSON6_PARTIAL_VALUE_FAULT( "before ']'" );
+					break;
+				}
 				if( state->parse_context == CONTEXT_IN_ARRAY )
 				{
 #ifdef _DEBUG_PARSING
@@ -638,6 +679,10 @@ int json6_parse_add_data( struct json_parse_state *state
 				if( state->word == WORD_POS_END ) {
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
+				}
+				if( JSON6_PARTIAL_VALUE_PENDING() ) {
+					JSON6_PARTIAL_VALUE_FAULT( "before ','" );
+					break;
 				}
 				if( state->parse_context == CONTEXT_IN_ARRAY )
 				{
@@ -679,7 +724,10 @@ int json6_parse_add_data( struct json_parse_state *state
 			default:
 				if( state->parse_context == CONTEXT_OBJECT_FIELD ) {
 					//lprintf( "gathering object field:%c  %*.*s", c, output->pos-output->buf, output->pos - output->buf, output->buf );
-					if( c < 0xFF ) {
+					if( json6_isWhitespace( c ) ) {
+						// handled by the whitespace cases below; not an identifier character
+					}
+					else if( c < 0xFF ) {
 						if( nonIdentifiers8[c] ) {
 							// invalid start/continue
 							state->status = FALSE;
@@ -736,6 +784,11 @@ int json6_parse_add_data( struct json_parse_state *state
 					case ' ':
 					case '\t':
 					case '\r':
+					case 0x0B: // VT
+					case 0x0C: // FF
+					case 0xA0: // NBSP
+					case 0x2028: // LS
+					case 0x2029: // PS
 					case 0xFEFF: // ZWNBS is WS though
 						if( state->word == WORD_POS_RESET || state->word == WORD_POS_AFTER_FIELD )
 							break;
@@ -809,6 +862,11 @@ int json6_parse_add_data( struct json_parse_state *state
 				case ' ':
 				case '\t':
 				case '\r':
+				case 0x0B: // VT
+				case 0x0C: // FF
+				case 0xA0: // NBSP
+				case 0x2028: // LS
+				case 0x2029: // PS
 				case 0xFEFF:
 					if( state->word == WORD_POS_END ) {
 						state->word = WORD_POS_RESET;
@@ -836,7 +894,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					//----------------------------------------------------------
 					//  catch characters for true/false/null/undefined which are values outside of quotes
 				case 't':
-					if( state->word == WORD_POS_RESET ) state->word = WORD_POS_TRUE_1;
+					if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_TRUE_1; }
 					else if( state->word == WORD_POS_INFINITY_6 ) state->word = WORD_POS_INFINITY_7;
 					else { 
 						state->status = FALSE; 
@@ -857,7 +915,7 @@ int json6_parse_add_data( struct json_parse_state *state
 				case 'u':
 					if( state->word == WORD_POS_TRUE_2 ) state->word = WORD_POS_TRUE_3;
 					else if( state->word == WORD_POS_NULL_1 ) state->word = WORD_POS_NULL_2;
-					else if( state->word == WORD_POS_RESET ) state->word = WORD_POS_UNDEFINED_1;
+					else if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_UNDEFINED_1; }
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -884,7 +942,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					}// fault
 					break;
 				case 'n':
-					if( state->word == WORD_POS_RESET ) state->word = WORD_POS_NULL_1;
+					if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_NULL_1; }
 					else if( state->word == WORD_POS_UNDEFINED_1 ) state->word = WORD_POS_UNDEFINED_2;
 					else if( state->word == WORD_POS_UNDEFINED_6 ) state->word = WORD_POS_UNDEFINED_7;
 					else if( state->word == WORD_POS_INFINITY_1 ) state->word = WORD_POS_INFINITY_2;
@@ -932,7 +990,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					}// fault
 					break;
 				case 'f':
-					if( state->word == WORD_POS_RESET ) state->word = WORD_POS_FALSE_1;
+					if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_FALSE_1; }
 					else if( state->word == WORD_POS_UNDEFINED_4 ) state->word = WORD_POS_UNDEFINED_5;
 					else if( state->word == WORD_POS_INFINITY_2 ) state->word = WORD_POS_INFINITY_3;
 					else {
@@ -962,7 +1020,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					}// fault
 					break;
 				case 'I':
-					if( state->word == WORD_POS_RESET ) state->word = WORD_POS_INFINITY_1;
+					if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_INFINITY_1; }
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -971,7 +1029,7 @@ int json6_parse_add_data( struct json_parse_state *state
 					}// fault
 					break;
 				case 'N':
-					if( state->word == WORD_POS_RESET ) state->word = WORD_POS_NAN_1;
+					if( state->word == WORD_POS_RESET ) { if( state->val.value_type != VALUE_UNSET ) { JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col ); break; } state->word = WORD_POS_NAN_1; }
 					else if( state->word == WORD_POS_NAN_2 ) { state->val.value_type = state->negative ? VALUE_NEG_NAN : VALUE_NAN; state->word = WORD_POS_END; }
 					else {
 						state->status = FALSE;
@@ -992,8 +1050,14 @@ int json6_parse_add_data( struct json_parse_state *state
 					//
 					//----------------------------------------------------------
 				case '-':
-					if( state->word == WORD_POS_RESET )
+					if( state->word == WORD_POS_RESET ) {
+						if( state->val.value_type != VALUE_UNSET ) {
+							JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							break;
+						}
+						state->signPending = TRUE;
 						state->negative = !state->negative;
+					}
 					else {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
@@ -1008,6 +1072,10 @@ int json6_parse_add_data( struct json_parse_state *state
 					{
 						LOGICAL fromDate;
 						const char *_msg_input; // to unwind last character past number.
+						if( !state->gatheringNumber && state->val.value_type != VALUE_UNSET ) {
+							JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							break;
+						}
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
 						if( !state->gatheringNumber ) {
@@ -1068,6 +1136,12 @@ int json6_parse_add_data( struct json_parse_state *state
 									break;
 								}
 							}
+							else if( state->fromHex && ( ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' ) ) )
+							{
+								// hex digits; checked before the exponent branch so 0x1e is not an exponent.
+								// json6_numberIsValid() rejects these after a 0o or 0b prefix.
+								(*output->pos++) = c;
+							}
 							else if( (c == 'e') || (c == 'E') )
 							{
 								if( !state->exponent ) {
@@ -1118,7 +1192,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							else
 							{
 								// in non streaming mode; these would be required to follow
-								if( c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF
+								if( json6_isWhitespace( c )
 									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
 									//lprintf( "Non numeric character received; push the value we have" );
 									(*output->pos) = 0;
@@ -1156,6 +1230,10 @@ int json6_parse_add_data( struct json_parse_state *state
 							state->val.stringLen = (output->pos - state->val.string) - 1;
 							state->gatheringNumber = FALSE;
 							//lprintf( "result with number:%s", state->val.string );
+							if( !json6_numberIsValid( state->val.string ) ) {
+								JSON6_FAULT( "Invalid number '%s' at %" _size_f "  %" _size_f ":%" _size_f, state->val.string, state->n, state->line, state->col );
+								break;
+							}
 
 							if( state->val.float_result )
 							{
@@ -1203,6 +1281,9 @@ int json6_parse_add_data( struct json_parse_state *state
 		if( input ) {
 			if( state->n >= input->size ) {
 				DeleteFromSet( PARSE_BUFFER, jpsd.parseBuffers, input );
+				if( state->complete_at_end && JSON6_PARTIAL_VALUE_PENDING() ) {
+					JSON6_PARTIAL_VALUE_FAULT( "at end of document" );
+				}
 				if( state->gatheringString || state->gatheringNumber || state->parse_context == CONTEXT_OBJECT_FIELD ) {
 					//lprintf( "output is still incomplete? " );
 					PrequeLink( state->outQueue, output );
@@ -1297,6 +1378,7 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 		state->line = 1;
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
+		state->signPending = FALSE;
 		{
 			PDATALIST *result = state->elements;
 			state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
@@ -1408,6 +1490,18 @@ LOGICAL json6_parse_message( const char * msg
 			AddLink( &jpsd.pendingParsers6, pp );
 		}
 		return TRUE;
+	}
+	if( result == 0 && !state->pvtError ) {
+		// nothing completed and no fault was recorded; say why, as the JS finalError() does.
+		state->pvtError = VarTextCreate();
+		if( state->comment == 3 || state->comment == 4 )
+			vtprintf( state->pvtError, "Open comment '/*' is missing close at end of document" );
+		else if( state->comment == 1 )
+			vtprintf( state->pvtError, "Comment began at end of document" );
+		else if( state->gatheringString )
+			vtprintf( state->pvtError, "Incomplete string at end of document" );
+		else
+			vtprintf( state->pvtError, "No value found in document" );
 	}
 	(*_msg_output) = NULL;
 	jpsd.last_parse_state = state;
