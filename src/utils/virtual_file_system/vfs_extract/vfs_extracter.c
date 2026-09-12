@@ -41,16 +41,25 @@ static uintptr_t CPROC SetDefaultPath( uintptr_t psv, arg_list args ) {
 	if( !l.target_path ) { // otherwise it was already set on the commandline
 		l.target_path = ExpandPath( path );
 	}
+	if( l.verbose ) {
+		printf( "set install path %s\n", l.target_path );
+	}	
 	return psv;
 }
 
 static uintptr_t CPROC AddPostInstallCommand( uintptr_t psv, arg_list args ) {
+	if (l.verbose) {
+		printf("adding post install command...\n");
+	}
 	PARAM( args, CTEXTSTR, cmd );
 	PARAM( args, CTEXTSTR, cmd_args );
 	struct command *command = New( struct command );
 	command->cmd = StrDup( cmd );
 	command->args = StrDup( cmd_args );
 	{ char *c = command->cmd; while( c[0] ){ if( c[0]=='/' ) c[0]='\\'; c++; } }
+	if( l.verbose ) {
+		printf( "added post install command... %s\n", cmd );
+	}
 	AddLink( &l.commands, command );
 	return psv;
 }
@@ -64,6 +73,9 @@ static uintptr_t CPROC AddPreInstallCommand( uintptr_t psv, arg_list args ) {
 	command->cmd = StrDup( cmd );
 	command->args = StrDup( cmd_args );
 	{ char *c = command->cmd; while( c[0] ){ if( c[0]=='/' ) c[0]='\\'; c++; } }
+	if( l.verbose ) {
+		printf( "added pre install command... %s\n", cmd );
+	}
 	AddLink( &l.preCommands, command );
 	return psv;
 }
@@ -82,6 +94,7 @@ static LOGICAL CPROC ExtractFile( CTEXTSTR name )
 	FILE *file;
 	size_t sz;
 	POINTER data;
+	if( l.verbose ) printf( "file:%s\n", name );
 	file = sack_fopenEx( 0, name, "rbn", l.rom );
 	if( file )
 	{
@@ -192,6 +205,7 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 	{
 		while ((1 + argofs) < argc) {
 			if (StrCaseCmp(argv[1 + argofs], "-verbose") == 0) {
+				printf("Verbose output enabled.\n");
 				l.verbose = TRUE;
 				argofs++;
 			}
@@ -275,15 +289,16 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 
 
 		FILE *file = sack_fopenEx( 0, ".app.config", "rb", l.rom );
-		//lprintf( "open aoppconfig = %p", file );
 		if( file )
 		{
 			size_t sz = sack_fsize( file );
+			if (l.verbose) printf("open .app.config = %p %zd\n", file, sz);
 			if( sz )
 			{
 				POINTER data = NewArray( uint8_t, sz );
 				sack_fread( data, sz, 1, file );
 				ProcessConfigurationInput( l.pch, data, sz, 0 );
+				if (l.verbose) printf("processed config\n");
 				if( !l.target_path )
 					l.target_path = ".";
 				Deallocate( POINTER, data );
@@ -300,22 +315,25 @@ PRIORITY_PRELOAD( XSaneWinMain, DEFAULT_PRELOAD_PRIORITY + 20 )//( argc, argv )
 			INDEX idx;
 			struct command *command;
 			static TEXTCHAR buf[4096];
+			if (l.verbose) printf("pre-run commands\n");
 			LIST_FORALL( l.preCommands, idx, struct command *, command ) {
 				snprintf( buf, 4096, "%s/%s"
 				        , l.target_path
 				        , command->exists );
+				if (l.verbose) printf("pre-run check:%s\n", buf);
 				if( sack_exists( buf ) ) {
 					snprintf( buf, 4096, "\"%s\\%s\"%s%s"
 					        , l.target_path
 					        , command->cmd
 					        , command->args ? " ":""
 					        , command->args?command->args:"" );
-					lprintf( "pre-run:%s", buf );
+					if (l.verbose) printf( "pre-run:%s\n", buf );
 					System( buf, NULL, 0 );
 				}
 			}
 		}
 
+		if (l.verbose) printf("begin scan files\n" );
 		while( ScanFilesEx( NULL, "*", &info, ShowFile, SFF_SUBCURSE | SFF_SUBPATHONLY
 			, (uintptr_t)0, FALSE, l.rom ) );
 	}
@@ -338,7 +356,7 @@ SaneWinMain(argc,argv)
 		        	, command->cmd
 			        , command->args ? " ":""
 			        , command->args?command->args:"" );
-			//lprintf( "run:%s", buf );
+			if( l.verbose ) printf( "run:%s", buf );
 			System( buf, NULL, 0 );
 		}
 	return l.status;

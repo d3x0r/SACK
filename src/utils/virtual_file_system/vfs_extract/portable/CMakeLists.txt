@@ -311,6 +311,24 @@ add_custom_command(TARGET
 endif( WIN32 AND CMAKE_COMPILER_IS_GNUCC )
 
 
+set( project sack_vfs_extracter_sfx.64.user )
+
+sack_add_executable(${project} ${BASE_SOURCES} )
+SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_DEFINITIONS "STANDALONE_HEADER;${FLAGS};VFS_DISK_DATATYPE=uint64_t" )
+SET_TARGET_PROPERTIES(${project} PROPERTIES
+      FOLDER utils/vfs
+)
+if( MSVC )
+    # 4267 'initializing': conversion from 'size_t' to 'FPI', possible loss of data 
+    # 4244 initializing': conversion from 'uintptr_t' to 'BLOCKINDEX', possible loss of data  
+    # 4197 - top-level volatile in cast is ignored (so?)
+    # 4090 - 'function': different 'volatile' qualifiers (usually don't care)
+    SET_PROPERTY(TARGET ${project} APPEND PROPERTY COMPILE_FLAGS "-wd4267 -wd4244 -wd4197 -wd4090" )
+endif( MSVC )
+target_link_libraries( ${project} ${PLATFORM_LIBRARIES} )
+install_default_dest( ${project} )
+
+
 
 
 set( project sack_vfs_extracter_sfx_win.64 )
