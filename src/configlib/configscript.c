@@ -1756,11 +1756,13 @@ int IsMultiWordVar( PCONFIG_ELEMENT pce, PTEXT *start )
 				multi_match.pce = pce;
 				multi_match.pceEnd = pEnd;
 				{ 
-					PTEXT out;
-					pWords->format.position.offset.spaces = 0;
-					out = BuildLine( pWords );
-					multi_match.matched = StrDup( GetText( out ) ); 
-					LineRelease( out );
+					if( pWords ) {
+						pWords->format.position.offset.spaces = 0;
+						PTEXT out;
+						out = BuildLine( pWords );
+						multi_match.matched = StrDup( GetText( out ) ); 
+						LineRelease(out);
+					} else multi_match.matched = StrDup( "" );
 				}
 				AddDataItem( &new_check.multiWords, &multi_match );
 				//new_check.multiWords = pce;
