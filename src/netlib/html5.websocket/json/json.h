@@ -117,7 +117,8 @@ struct json_parse_context {
 	state->val._contains = NULL;             \
 	state->val.name = NULL;                  \
 	state->val.string = NULL;                \
-	state->negative = FALSE; }
+	state->negative = FALSE;                 \
+	state->signPending = FALSE; }
 
 typedef struct json_parse_context PARSE_CONTEXT, *PPARSE_CONTEXT;
 #define MAXPARSE_CONTEXTSPERSET 128
@@ -156,6 +157,7 @@ struct json_parse_state {
 	enum word_char_states word;
 	LOGICAL status;
 	LOGICAL negative;
+	LOGICAL signPending; // '+' or '-' seen; no number or keyword has followed it yet
 	LOGICAL literalString;
 
 	PLINKSTACK *context_stack;
