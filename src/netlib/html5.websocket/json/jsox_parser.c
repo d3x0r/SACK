@@ -768,7 +768,7 @@ static LOGICAL signedTokenCannotBeText( struct jsox_parse_state *state, int cInt
 // Characters that end a value without beginning another one; everything else arriving where
 // a value is already complete starts a second value.
 static LOGICAL isValueTerminator( int cInt ) {
-	return cInt == ' ' || cInt == '\t' || cInt == '\r' || cInt == '\n'
+	return cInt == ' ' || cInt == '\t' || cInt == '\r' || cInt == '\n' || cInt == '\v' || cInt == '\f'
 	    || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029
 	    || cInt == ',' || cInt == '}' || cInt == ']' || cInt == ':';
 }
@@ -1067,7 +1067,7 @@ int recoverIdent( struct jsox_parse_state *state, struct jsox_output_buffer* out
 #endif
 	} else if( cInt >= 0 ) {
 		// ignore white space.
-		if( cInt == 32/*' '*/ || cInt == 13 || cInt == 10 || cInt == 9 || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029 ) {
+		if( cInt == 32/*' '*/ || cInt == 13 || cInt == 10 || cInt == 9 || cInt == 11/*VT*/ || cInt == 12/*FF*/ || cInt == 0xFEFF || cInt == 0x2028 || cInt == 0x2029 ) {
 			state->word = JSOX_WORD_POS_END;
 			if( !state->completedString ) {
 				state->completedString = TRUE;
@@ -1971,7 +1971,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						state->gatheringStringFirstChar = c;
 						goto gatherStringInput;
 					}
-					if( c == 32/*' '*/ || c == 13 || c == 10 || c == 9 || c == 0xFEFF || c == 0x2028 || c == 0x2029 ) {
+					if( c == 32/*' '*/ || c == 13 || c == 10 || c == 9 || c == 11/*VT*/ || c == 12/*FF*/ || c == 0xFEFF || c == 0x2028 || c == 0x2029 ) {
 						state->word = JSOX_WORD_POS_AFTER_FIELD;
 						break;
 					}
