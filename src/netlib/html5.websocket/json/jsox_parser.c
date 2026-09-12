@@ -2101,6 +2101,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					//case 160 :// case '\xa0': // nbsp
 					case '\t':
 					case '\r':
+					case '\v':
+					case '\f':
 					case 0x2028: // LS (Line separator)
 					case 0x2029: // PS (paragraph separate)
 					case 0xFEFF: // ZWNBS is WS though
@@ -2244,6 +2246,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				case 0x2029: // PS (paragraph separate)
 				case '\t':
 				case '\r':
+				case '\v':
+				case '\f':
 				case 0xFEFF:
 					if( state->word == JSOX_WORD_POS_END ) {
 						state->word = JSOX_WORD_POS_RESET;
@@ -2544,8 +2548,23 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								}
 							} else {
 								// in non streaming mode; these would be required to follow
-								if( c == ' ' || c == 160/*'\xa0'*/ || c == '\t' || c == '\n' || c == '\r' || c == 0xFEFF || c == 0x2028 || c == 0x2029
-									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
+								// U+00A0 is not whitespace in JSOX -- it joins words into a single
+								// identifier -- but a number has no use for it, so it ends the number.
+								// It is consumed here instead of being unwound like the terminators
+								// below, because handing it to the main loop would start an identifier
+								// and make that two values.  (Matches jsox.mjs.)
+								if( c == 160/*NBSP*/ ) {
+									_msg_input = input->pos; // consume character.
+									(*output->pos) = 0;
+									break;
+								}
+								// same terminator set as jsox.mjs: whitespace, comment starters, and
+								// anything that begins or ends another token.
+								if( c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f'
+									|| c == 0xFEFF/*ZWNBS*/ || c == 0x2028/*LS*/ || c == 0x2029/*PS*/
+									|| c == '/' || c == '#'
+									|| c == ',' || c == ']' || c == '}' || c == ':'
+									|| c == '{' || c == '[' || c == '"' || c == '\'' || c == '`' ) {
 									//lprintf( "Non numeric character received; push the value we have" );
 									(*output->pos) = 0;
 									break;
