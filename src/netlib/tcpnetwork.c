@@ -2129,14 +2129,18 @@ LOGICAL doTCPWriteV2( PCLIENT lpClient
 {
 	if( !lpClient || !sack_network_is_active( lpClient ) )
 	{
-//#ifdef VERBOSE_DEBUG
+		// Routine whenever the peer closes first (a scanner that drops the socket
+		// before the 404 goes out); not worth a log line at release verbosity.
+#ifdef VERBOSE_DEBUG
 		_lprintf(DBG_RELAY)( "TCP Write failed - invalid client." );
-//#endif
+#endif
+#ifdef LOG_PENDING_WRITES
 		{	static volatile uint32_t nInactive;
 			fprintf( stderr, "WRITEFAIL-INACTIVE pc=%p flags=%08x len=%d n=%u\n"
 			       , (void*)lpClient, lpClient ? (unsigned)lpClient->dwFlags : 0
 			       , (int)nInLen, (unsigned)LockedIncrement( &nInactive ) );
 		}
+#endif
 		return FALSE;  // cannot process a closed channel. data not sent.
 	}
 
