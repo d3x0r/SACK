@@ -88,7 +88,7 @@ static LOGICAL json6_numberIsValid( CTEXTSTR s ) {
 // sign with nothing after it.  ( WORD_POS_END sorts before the keyword states. )
 #define JSON6_PARTIAL_VALUE_PENDING() \
 	( ( state->word > WORD_POS_END && state->word < WORD_POS_FIELD ) \
-	  || ( state->signPending && state->val.value_type == VALUE_UNSET ) )
+	  || ( state->signSeen && state->val.value_type == VALUE_UNSET ) )
 #define JSON6_PARTIAL_VALUE_FAULT( where ) \
 	if( state->word > WORD_POS_END && state->word < WORD_POS_FIELD ) { \
 		JSON6_FAULT( "Incomplete keyword " where " at %" _size_f "  %" _size_f ":%" _size_f, state->n, state->line, state->col ); \
@@ -1055,7 +1055,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							JSON6_FAULT( "Two values with no separator between them; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
 							break;
 						}
-						state->signPending = TRUE;
+						state->signSeen = TRUE;
 						state->negative = !state->negative;
 					}
 					else {
@@ -1378,7 +1378,7 @@ void json_parse_clear_state( struct json_parse_state *state ) {
 		state->line = 1;
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
-		state->signPending = FALSE;
+		state->signSeen = FALSE;
 		{
 			PDATALIST *result = state->elements;
 			state->elements = GetFromSet( PDATALIST, &jpsd.dataLists );// CreateDataList( sizeof( state->val ) );
