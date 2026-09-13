@@ -6,7 +6,21 @@
 
 #include "vesl.h"
 
-#include "unicode_non_identifiers.h"
+// Characters that end an unquoted identifier.  Identifiers are framed by ASCII
+// punctuation and control characters only; every code point >= 0x80 is identifier
+// text.  (Derived from the ASCII half of the former unicode_non_identifiers.h table,
+// whose Unicode bitmap half was never consulted: its final range test could not be
+// true for any code point above 0xFF.)
+static uint8_t const vesl_identifierTerminators[128] = {
+	1,1,1,1,1,1,1,1,1,0,0,1,1,0,1,1,  // 0x00..0x0f control
+	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  // 0x10..0x1f control
+	0,1,0,1,0,1,1,0,1,1,1,1,1,1,1,1,  // ' '..'/'
+	0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,1,  // '0'..'?'
+	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  // '@'..'O'
+	0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,  // 'P'..'_'
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  // '`'..'o'
+	0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1  // 'p'..'~' DEL
+};
 
 
 #define NUM_VALUE_NAMES  ((sizeof(value_type_names)/sizeof(value_type_names[0])))
@@ -85,6 +99,14 @@ ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace vesl {
 #endif
+
+// %c prints only the low byte of a TEXTRUNE; this renders the code point as
+// UTF-8 into the parse state so error messages can print it with %s.
+static const char *vesl_runeText( struct vesl_parse_state *state, TEXTRUNE c ) {
+	int len = ConvertToUTF8( state->runeText, c );
+	state->runeText[len] = 0;
+	return state->runeText;
+}
 
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,0) 
@@ -317,11 +339,11 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					continue;
 				} else {
 					if( state->hex_char > 255 ) {
-						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%c]%s)"
+						lprintf("(escaped character, parsing octal escape val=%d) fault while parsing; )" " (near %*.*s[%s]%s)"
 							, state->hex_char
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-							, c
+							, vesl_runeText( state, c )
 							, ( *msg_input ) + 1
 						);// fault
 						status = -1;
@@ -346,10 +368,10 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 				else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
-					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character, parsing hex of \\u) fault while parsing; '%s' unexpected at %" _size_f " (near %*.*s[%s]%s)", vesl_runeText( state, c ), n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
-						, c
+						, vesl_runeText( state, c )
 						, ( *msg_input ) + 1
 					);// fault
 					status = -1;
@@ -368,10 +390,10 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					else if( c >= 'A' && c <= 'F' ) state->hex_char += ( c - 'A' ) + 10;
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
-						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+						lprintf("(escaped character, parsing hex of \\x) fault while parsing; '%s' unexpected at %" _size_f " (near %*.*s[%s]%s)", vesl_runeText( state, c ), n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-							, c
+							, vesl_runeText( state, c )
 							, ( *msg_input ) + 1
 						);// fault
 						status = -1;
@@ -451,10 +473,10 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
-					lprintf("(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
+					lprintf("(escaped character) fault while parsing; '%s' unexpected %" _size_f " (near %*.*s[%s]%s)", vesl_runeText( state, c ), n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-						, c
+						, vesl_runeText( state, c )
 						, ( *msg_input ) + 1
 					);// fault
 					status = -1;
@@ -506,25 +528,10 @@ static int gatherIdentifier( struct vesl_parse_state *state, CTEXTSTR msg
 	do
 	{
 		(state->col)++;
-		if( c < 0xFF ) {
-			if( nonIdentifiers8[c] ) {
-				status = 1;
-				(*unused) = c;
-				break;
-			}
-		} else {
-			int n;
-			for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
-				if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
-					(nonIdentifierBits[n].bits[(c - nonIdentifierBits[n].firstChar) / 24]
-						& (1 << ((c - nonIdentifierBits[n].firstChar) % 24))) )
-					break;
-			}
-			if( c < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )) ) {
-				status = 1;
-				(*unused) = c;
-				break;
-			}
+		if( c < 0x80 && vesl_identifierTerminators[c] ) {
+			status = 1;
+			(*unused) = c;
+			break;
 		}
 		if( state->val.value_type == VESL_VALUE_UNSET ) {
 			state->val.value_type = VESL_VALUE_VARIABLE;
@@ -694,7 +701,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c != '/' ) { 
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "Fault while parsing; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "Fault while parsing; unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 						state->status = FALSE;
 					}
 					else state->comment = 2;
@@ -772,7 +779,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 						}
 						while( (_msg_input = input->pos), ((state->n < input->size) && (c = GetUtfChar( &input->pos ))) )
 						{
-							//lprintf( "Number input:%c", c );
+							//lprintf( "Number input:%s", vesl_runeText( state, c ) );
 							state->col++;
 							state->n = (input->pos - input->buf);
 							if( state->n > input->size ) DebugBreak();
@@ -809,7 +816,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -823,7 +830,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -831,7 +838,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 								else {
@@ -842,7 +849,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 										break;
 									}
 								}
@@ -856,7 +863,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -874,7 +881,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 								//else {
 								//	state->status = FALSE;
 								//	if( !state->pvtError ) state->pvtError = VarTextCreate();
-								//	vtprintf( state->pvtError, "fault white parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+								//	vtprintf( state->pvtError, "fault white parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, vesl_runeText( state, c ), state->n, state->line, state->col );
 								//	break;
 								//}
 							}

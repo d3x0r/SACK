@@ -8,7 +8,6 @@
 
 #include "jsox.h"
 
-#include "unicode_non_identifiers.h"
 
 //#define DEBUG_PARSING
 //#define DEBUG_ARRAY_TYPE
@@ -36,6 +35,14 @@ ID_Continue    XID_Continue     All of the above, plus nonspacing marks, spacing
 #ifdef __cplusplus
 SACK_NAMESPACE namespace network { namespace jsox {
 #endif
+
+// %c prints only the low byte of a TEXTRUNE; this renders the code point as
+// UTF-8 into the parse state so error messages can print it with %s.
+static const char *jsox_runeText( struct jsox_parse_state *state, TEXTRUNE c ) {
+	int len = ConvertToUTF8( state->runeText, c );
+	state->runeText[len] = 0;
+	return state->runeText;
+}
 
 PLIST knownArrayTypeNames;
 static void registerKnownArrayTypeNames(void) {
@@ -272,10 +279,10 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 				else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 				else {
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+					vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%s' unexpected at %" _size_f " (near %*.*s[%s]%s)", jsox_runeText( state, c ), n
 						, (int)( ( n > 3 ) ? 3 : n ), (int)( ( n > 3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n > 3 ) ? 3 : n )
-						, c
+						, jsox_runeText( state, c )
 						, ( *msg_input ) + 1
 					);// fault
 					status = -1;
@@ -295,10 +302,10 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					else if( c >= 'a' && c <= 'f' ) state->hex_char += ( c - 'a' ) + 10;
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%c' unexpected at %" _size_f " (near %*.*s[%c]%s)", c, n
+						vtprintf( state->pvtError, "(escaped character, parsing hex of \\u) fault while parsing; '%s' unexpected at %" _size_f " (near %*.*s[%s]%s)", jsox_runeText( state, c ), n
 							, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 							, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-							, c
+							, jsox_runeText( state, c )
 							, ( *msg_input ) + 1
 						);// fault
 						status = -1;
@@ -378,10 +385,10 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "(escaped character) fault while parsing; '%c' unexpected %" _size_f " (near %*.*s[%c]%s)", c, n
+					vtprintf( state->pvtError, "(escaped character) fault while parsing; '%s' unexpected %" _size_f " (near %*.*s[%s]%s)", jsox_runeText( state, c ), n
 						, (int)( ( n>3 ) ? 3 : n ), (int)( ( n>3 ) ? 3 : n )
 						, ( *msg_input ) - ( ( n>3 ) ? 3 : n )
-						, c
+						, jsox_runeText( state, c )
 						, ( *msg_input ) + 1
 					);// fault
 					status = -1;
@@ -533,7 +540,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 					nextObjectMode = JSOX_OBJECT_CONTEXT_CLASS_NORMAL;
 			} else {
 				if( !state->pvtError ) state->pvtError = VarTextCreate();
-				vtprintf( state->pvtError, "Fault while parsing; object open class field definition : (duplicate colon)" " '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+				vtprintf( state->pvtError, "Fault while parsing; object open class field definition : (duplicate colon)" " '%s' at %" _size_f " %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 				state->status = FALSE;
 				return FALSE;
 			}
@@ -563,7 +570,7 @@ static int openObject( struct jsox_parse_state *state, struct jsox_output_buffer
 		nextMode = JSOX_CONTEXT_OBJECT_FIELD;
 	} else if( (state->parse_context == JSOX_CONTEXT_OBJECT_FIELD && state->word == JSOX_WORD_POS_RESET) ) {
 		if( !state->pvtError ) state->pvtError = VarTextCreate();
-		vtprintf( state->pvtError, "Fault while parsing; getting field name unexpected '%c' at %" _size_f " %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+		vtprintf( state->pvtError, "Fault while parsing; getting field name unexpected '%s' at %" _size_f " %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 		state->status = FALSE;
 		return FALSE;
 	}
@@ -626,7 +633,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 	int newArrayType = -1;
 	if( state->word == JSOX_WORD_POS_FIELD ) {
 		if( !state->pvtError ) state->pvtError = VarTextCreate();
-		vtprintf( state->pvtError, "Fault while parsing; colon expected after field name %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+		vtprintf( state->pvtError, "Fault while parsing; colon expected after field name %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 		state->status = FALSE;
 		return FALSE;
         }
@@ -680,7 +687,7 @@ static LOGICAL openArray( struct jsox_parse_state *state, struct jsox_output_buf
 		if( state->objectContext == JSOX_OBJECT_CONTEXT_CLASS_VALUE ) {
 		}else {
 			if( !state->pvtError ) state->pvtError = VarTextCreate();
-			vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+			vtprintf( state->pvtError, "Fault while parsing; while getting field name unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 			vtprintf( state->pvtError, "\nError: word state: %d %d", state->parse_context, state->objectContext );
 			state->status = FALSE;
 			return FALSE;
@@ -759,8 +766,8 @@ static LOGICAL twoValuesNoSeparator( struct jsox_parse_state *state );
 // dropped it because the NAN ones do not.
 static LOGICAL signedTokenCannotBeText( struct jsox_parse_state *state, int cInt ) {
 	if( !state->pvtError ) state->pvtError = VarTextCreate();
-	vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
-	        , cInt, state->n, state->line, state->col );
+	vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f
+	        , jsox_runeText( state, cInt ), state->n, state->line, state->col );
 	state->status = FALSE;
 	return TRUE;
 }
@@ -1197,25 +1204,6 @@ static void pushValue( struct jsox_parse_state *state, PDATALIST *pdl, struct js
 	val->classNameLen = 0;
 }
 
-/*
-static LOGICAL isNonIdentifier( TEXTRUNE c ) {
-	if( c < 0xFF ) {
-		if( nonIdentifiers8[c] ) {
-			return TRUE;
-		}
-	}
-	else {
-		int n;
-		for( n = 0; n < (sizeof( nonIdentifierBits ) / sizeof( nonIdentifierBits[0] )); n++ ) {
-			if( c >= (TEXTRUNE)nonIdentifierBits[n].firstChar && c < (TEXTRUNE)nonIdentifierBits[n].lastChar &&
-				(nonIdentifierBits[n].bits[(c - nonIdentifierBits[n].firstChar) / 24]
-					& (1 << ((c - nonIdentifierBits[n].firstChar) % 24))) )
-				return TRUE;
-		}
-	}
-	return FALSE;
-}
-*/
 
 int jsox_parse_add_data( struct jsox_parse_state *state
                             , const char * msg
@@ -1535,7 +1523,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( GetLinkCount( state->current_class->fields ) != 0 ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 						if( GetLinkCount( state->current_class->fields ) == 0 ) {
@@ -1554,7 +1542,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						// value has already claimed a slot
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+						vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 						break;
 					}
 					state->word = JSOX_WORD_POS_RESET;
@@ -1572,9 +1560,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				{
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
 					if( state->parse_context == JSOX_CONTEXT_IN_ARRAY )
-						vtprintf( state->pvtError, "(in array, got colon out of string):parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "(in array, got colon out of string):parsing fault; unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 					else
-						vtprintf( state->pvtError, "(outside any object, got colon out of string):parsing fault; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "(outside any object, got colon out of string):parsing fault; unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 					state->status = FALSE;
 				}
 				break;
@@ -1622,7 +1610,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 											if( state->elements[0]->Cnt > state->current_class_item ) {
 												state->status = FALSE;
 												if( !state->pvtError ) state->pvtError = VarTextCreate();
-												vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+												vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 												break;
 											}
 											struct jsox_class_field* field = ( struct jsox_class_field* )GetLink( &state->current_class->fields, state->current_class_item++ );
@@ -1634,8 +1622,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 											// it reaches the no-fields branch below instead.
 											if( !field ) {
 												if( !state->pvtError ) state->pvtError = VarTextCreate();
-												vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
-													, c, state->n, state->line, state->col );
+												vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f
+													, jsox_runeText( state, c ), state->n, state->line, state->col );
 												state->status = FALSE;
 												break;
 											}
@@ -1645,8 +1633,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 									}
 									else {
 										if( !state->val.name ) {
-											vtprintf( state->pvtError, "State error; class fields, class has no fields, and one was needed; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
-												, c, state->n, state->line, state->col );
+											vtprintf( state->pvtError, "State error; class fields, class has no fields, and one was needed; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f
+												, jsox_runeText( state, c ), state->n, state->line, state->col );
 											state->status = FALSE;
 											break;
 										}
@@ -1671,7 +1659,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								pushValue( state, state->elements, &state->val );
 							} else {
 								if( !state->pvtError ) state->pvtError = VarTextCreate();
-								vtprintf( state->pvtError, "Fault while parsing no value on field object before closing '}'; unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+								vtprintf( state->pvtError, "Fault while parsing no value on field object before closing '}'; unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 								state->status = FALSE;
 							}
 						}
@@ -1681,7 +1669,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							//pushValue( state, state->elements, &state->val );
 						} else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "Fault while parsing(3); unexpected %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							vtprintf( state->pvtError, "Fault while parsing(3); unexpected %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 							state->status = FALSE;
 							break;
 						}
@@ -1734,7 +1722,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								state->val.value_type = JSOX_VALUE_UNSET;
 							state->val.string = NULL;
 						} else {
-							vtprintf( state->pvtError, "Close } without open: %c at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+							vtprintf( state->pvtError, "Close } without open: %s at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 							state->status = FALSE;
 						}
 					}
@@ -1816,7 +1804,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				else
 				{
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "bad context %d; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
+					vtprintf( state->pvtError, "bad context %d; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 					state->status = FALSE;
 				}
 				break;
@@ -1831,7 +1819,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								if( state->elements[0]->Cnt > state->current_class_item ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+									vtprintf( state->pvtError, "class body mixes named and positional values; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 									break;
 								}
 								struct jsox_class_field *field = (struct jsox_class_field *)GetLink( &state->current_class->fields, state->current_class_item++ );
@@ -1839,8 +1827,8 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								// end of the definition and GetLink hands back NULL
 								if( !field ) {
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f
-										, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f
+										, jsox_runeText( state, c ), state->n, state->line, state->col );
 									state->status = FALSE;
 									break;
 								}
@@ -1853,7 +1841,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								// the format's own: '%c' printed the context as a character and every
 								// position after it shifted by one, so the reported offset was the
 								// character code and the column was dropped.
-								vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+								vtprintf( state->pvtError, "class field has no matching field definitions; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 								state->status = FALSE;
 								break;
 							}
@@ -1881,7 +1869,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 						else {
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "lost class definition; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "lost class definition; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, state->parse_context, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							state->status = FALSE;
 						}
 					}
@@ -1929,7 +1917,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						pushValue( state, state->elements, &state->val );
 					else {
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "missing value for object field; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+						vtprintf( state->pvtError, "missing value for object field; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 						state->status = FALSE;
 						break;
 					}
@@ -1938,7 +1926,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				else {
 					state->status = FALSE;
 					if( !state->pvtError ) state->pvtError = VarTextCreate();
-					vtprintf( state->pvtError, "bad context; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+					vtprintf( state->pvtError, "bad context; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 				}
 				break;
 
@@ -1957,7 +1945,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.className ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 #ifdef DEBUG_CLASS_STATES
@@ -1982,7 +1970,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							// gathering a field name, where two tokens are simply a fault
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "unquoted spaces between stings; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "unquoted spaces between stings; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 						// A new token starts here, and the string already held becomes its class tag.
@@ -1991,7 +1979,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.className ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 						// `tag payload`, both unquoted.  This used to be refused outright unless a class
@@ -2012,7 +2000,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					else output->pos += ConvertToUTF8( output->pos, c );
 					state->val.stringLen = output->pos - state->val.string;
 #ifdef DEBUG_STRING_LENGTH
-					lprintf( "Update stringLen  already an ident %c :%zu", c, state->val.stringLen );
+					lprintf( "Update stringLen  already an ident %s :%zu", jsox_runeText( state, c ), state->val.stringLen );
 #endif
 					break;
 				}
@@ -2021,9 +2009,9 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				) {
 #ifdef DEBUG_PARSING
 					if( state->val.string )
-						lprintf( "gathering object field:%c  %td %.*s", c, ( output->pos - state->val.string ), (int)( output->pos - state->val.string ), state->val.string );
+						lprintf( "gathering object field:%s  %td %.*s", jsox_runeText( state, c ), ( output->pos - state->val.string ), (int)( output->pos - state->val.string ), state->val.string );
 					else
-						lprintf( "Gathering, but no string yet? %c", c );
+						lprintf( "Gathering, but no string yet? %s", jsox_runeText( state, c ) );
 #endif
 					switch( c )
 					{
@@ -2035,7 +2023,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.value_type == JSOX_VALUE_STRING && state->val.className ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 						// At most two strings may be adjacent -- a class tag and its payload. With a tag
@@ -2044,7 +2032,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						if( state->val.value_type == JSOX_VALUE_STRING && state->val.className ) {
 							state->status = FALSE;
 							if( !state->pvtError ) state->pvtError = VarTextCreate();
-							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+							vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 							break;
 						}
 						if( state->word == JSOX_WORD_POS_FIELD
@@ -2186,7 +2174,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					if( state->val.value_type == JSOX_VALUE_STRING && state->val.className ) {
 						state->status = FALSE;
 						if( !state->pvtError ) state->pvtError = VarTextCreate();
-						vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );// fault
+						vtprintf( state->pvtError, "too many strings in a row; fault while parsing; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );// fault
 						break;
 					}
 					if( state->word == JSOX_WORD_POS_FIELD
@@ -2423,7 +2411,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 							}
 							state->n = newN;
 
-							//lprintf( "Number input:%c", c );
+							//lprintf( "Number input:%s", jsox_runeText( state, c ) );
 							state->col++;
 							if( state->n > input->size ) DebugBreak();
 							// leading zeros should be forbidden.
@@ -2441,7 +2429,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								   || ( state->val.string[1] == 'o' && c > '7' ) ) ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 								(*output->pos++) = c;
@@ -2493,7 +2481,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -2507,7 +2495,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							}
@@ -2515,7 +2503,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								if( !state->exponent ) {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 								else {
@@ -2526,7 +2514,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 										break;
 									}
 								}
@@ -2543,7 +2531,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 								else {
 									state->status = FALSE;
 									if( !state->pvtError ) state->pvtError = VarTextCreate();
-									vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+									vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 									break;
 								}
 							} else {
@@ -2577,7 +2565,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 									else {
 										state->status = FALSE;
 										if( !state->pvtError ) state->pvtError = VarTextCreate();
-										vtprintf( state->pvtError, "fault while parsing number; '%c' unexpected at %" _size_f "  %" _size_f ":%" _size_f, c, state->n, state->line, state->col );
+										vtprintf( state->pvtError, "fault while parsing number; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, jsox_runeText( state, c ), state->n, state->line, state->col );
 										break;
 									}
 								}

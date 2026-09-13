@@ -164,6 +164,7 @@ struct vesl_parse_state {
 	LOGICAL stringOct;
 
 	LOGICAL weakSpace;
+	char runeText[8]; // UTF-8 of the code point named in the last error message
 
 	struct vesl_output_buffer *output;
 	PDATALIST root;

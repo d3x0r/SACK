@@ -272,6 +272,7 @@ struct jsox_parse_state {
 	int hex_char_len;
 
 	LOGICAL weakSpace;
+	char runeText[8]; // UTF-8 of the code point named in the last error message
 
 	PDATALIST root;
 	//char *token_begin;
