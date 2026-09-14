@@ -290,6 +290,16 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			case '0':
 				// \0 is NUL.  Legacy octal escapes are not supported: \1..\9 reach the
 				// default below and emit the digit itself, so "\012" is NUL then "12".
+				// A following digit makes this a legacy octal escape, illegal in
+				// ECMAScript strict mode. (Streaming note: not detected when the
+				// digit arrives in a later json6_parse_add_data() call than the '0'.)
+				if( state->esStrictCompatible && n+1 < msglen && msg[n+1] >= '0' && msg[n+1] <= '9' ) {
+					if( !state->pvtError ) state->pvtError = VarTextCreate();
+					vtprintf( state->pvtError, "Legacy octal string escapes are not allowed when the 'esStrictCompatible' option is set at %" _size_f, n );
+					status = -1;
+					state->escape = 0;
+					continue;
+				}
 				( *mOut++ ) = 0;
 				break;
 			case 'x':
@@ -308,6 +318,14 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 					state->escape = FALSE;
 					mOut += ConvertToUTF8(mOut, c);
 				} else {
+					// \1 .. \9 are legacy octal escapes, illegal in ECMAScript strict mode.
+					if( state->esStrictCompatible && c >= '1' && c <= '9' ) {
+						if( !state->pvtError ) state->pvtError = VarTextCreate();
+						vtprintf( state->pvtError, "Legacy octal string escapes are not allowed when the 'esStrictCompatible' option is set at %" _size_f, n );
+						status = -1;
+						state->escape = 0;
+						continue;
+					}
 					// any other escaped character is emitted without the backslash ( "\a" is "a" )
 					mOut += ConvertToUTF8(mOut, c);
 				}
@@ -323,6 +341,14 @@ static int gatherString6(struct json_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 		}
 		else
 		{
+			// U+2028/U+2029 are legal, unescaped, inside string literals since ES2019
+			// (the JSON-superset proposal); only literal \n and \r are illegal here.
+			if( state->esStrictCompatible && start_c != '`' && ( c == '\n' || c == '\r' ) ) {
+				if( !state->pvtError ) state->pvtError = VarTextCreate();
+				vtprintf( state->pvtError, "Literal line terminators inside single- or double-quoted strings require the 'esStrictCompatible' option to be off at %" _size_f, n );
+				status = -1;
+				continue;
+			}
 			if( state->cr_escaped ) {
 				state->cr_escaped = FALSE;
 				if( c == '\n' ) {
@@ -737,7 +763,13 @@ int json6_parse_add_data( struct json_parse_state *state
 					switch( c )
 					{
 					case '`':
-						// this should be a special case that passes continuation to gatherString
+						if( state->esStrictCompatible ) {
+							state->status = FALSE;
+							if( !state->pvtError ) state->pvtError = VarTextCreate();
+							vtprintf( state->pvtError, "Backtick-quoted keys are not allowed when the 'esStrictCompatible' option is set; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
+							break;
+						}
+						// falls through - this should be a special case that passes continuation to gatherString
 						// but gatherString now just gathers all strings
 					case '"':
 					case '\'':
@@ -1038,6 +1070,10 @@ int json6_parse_add_data( struct json_parse_state *state
 							JSON6_FAULT( "Two values with no separator between them; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
 							break;
 						}
+						if( state->esStrictCompatible && state->signSeen ) {
+							JSON6_FAULT( "Multiple consecutive signs are not allowed when the 'esStrictCompatible' option is set; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
+							break;
+						}
 						state->signSeen = TRUE;
 						state->negative = !state->negative;
 					}
@@ -1059,6 +1095,10 @@ int json6_parse_add_data( struct json_parse_state *state
 							JSON6_FAULT( "Two values with no separator between them; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
 							break;
 						}
+						if( !state->gatheringNumber && c == '+' && state->esStrictCompatible && state->signSeen ) {
+							JSON6_FAULT( "Multiple consecutive signs are not allowed when the 'esStrictCompatible' option is set; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
+							break;
+						}
 						// always reset this here....
 						// keep it set to determine what sort of value is ready.
 						if( !state->gatheringNumber ) {
@@ -1069,6 +1109,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							state->fromHex = FALSE;
 							state->val.float_result = (c == '.');
 							state->val.string = output->pos;
+							if( c == '+' ) state->signSeen = TRUE;
 							(*output->pos++) = c;  // terminate the string.
 						}
 						else
@@ -1088,6 +1129,16 @@ int json6_parse_add_data( struct json_parse_state *state
 
 							if( c >= '0' && c <= '9' )
 							{
+								if( state->esStrictCompatible ) {
+									// leading-zero / legacy-octal numbers (0123): a lone '0' so far
+									// (skipping an optional leading '+', which is stored literally),
+									// with another digit immediately following and no '.' yet.
+									size_t signOff = ( state->val.string[0] == '+' ) ? 1 : 0;
+									if( (size_t)(output->pos - state->val.string) == signOff + 1 && state->val.string[signOff] == '0' ) {
+										JSON6_FAULT( "Legacy octal / leading-zero numbers are not allowed when the 'esStrictCompatible' option is set; '%s' unexpected at %" _size_f "  %" _size_f ":%" _size_f, json6_runeText( state, c ), state->n, state->line, state->col );
+										break;
+									}
+								}
 								(*output->pos++) = c;
 								if( state->exponent )
 									state->exponent_digit = TRUE;
@@ -1451,14 +1502,20 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	(*ppState) = NULL;
 }
 
-LOGICAL json6_parse_message( const char * msg
+void json6_parse_set_strict( struct json_parse_state *state, LOGICAL esStrictCompatible ) {
+	state->esStrictCompatible = esStrictCompatible;
+}
+
+static LOGICAL json6_parse_message_common( const char * msg
 	, size_t msglen
-	, PDATALIST *_msg_output ) {
+	, PDATALIST *_msg_output
+	, LOGICAL esStrictCompatible ) {
 	logTick(0);
 	struct json_parse_state *state = json_begin_parse();
 	//logTick(1);
 	//static struct json_parse_state *_state;
 	state->complete_at_end = TRUE;
+	state->esStrictCompatible = esStrictCompatible;
 	logTick(1);
 	int result = json6_parse_add_data( state, msg, msglen );
 	//logTick(3);
@@ -1490,6 +1547,19 @@ LOGICAL json6_parse_message( const char * msg
 	jpsd.last_parse_state = state;
 	//jpsd.json6_state = state;
 	return FALSE;
+}
+
+LOGICAL json6_parse_message( const char * msg
+	, size_t msglen
+	, PDATALIST *_msg_output ) {
+	return json6_parse_message_common( msg, msglen, _msg_output, FALSE );
+}
+
+LOGICAL json6_parse_message_strict( const char * msg
+	, size_t msglen
+	, PDATALIST *_msg_output
+	, LOGICAL esStrictCompatible ) {
+	return json6_parse_message_common( msg, msglen, _msg_output, esStrictCompatible );
 }
 
 void getJson6Ticks( int *tickBuf ) {

@@ -360,6 +360,7 @@ static void json_state_init( struct json_parse_state *state )
 	state->complete_at_end = FALSE;
 	state->gatheringString = FALSE;
 	state->gatheringNumber = FALSE;
+	state->esStrictCompatible = FALSE;
 
 	state->pvtError = NULL;
 }

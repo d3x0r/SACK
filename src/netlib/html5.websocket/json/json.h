@@ -202,6 +202,14 @@ struct json_parse_state {
 	LOGICAL weakSpace;
 	char runeText[8]; // UTF-8 of the code point named in the last error message
 
+	// JSON6 opt-in: reject JSON6 grammar extensions that ECMAScript strict mode
+	// does not accept, so a document that parses can also be pasted into a module
+	// or eval'd unchanged. Off (FALSE) by default; set with json6_parse_set_strict().
+	// Mirrors the `esStrictCompatible` option added to JSON6.parse()/JSON6.begin()
+	// in the JS implementation (JSON6 PR #56). Unused by the other parsers sharing
+	// this struct (json, jsox, vesl).
+	LOGICAL esStrictCompatible;
+
 	PDATALIST root;
 	//char *token_begin;
 };

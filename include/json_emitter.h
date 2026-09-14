@@ -181,6 +181,25 @@ JSON_EMITTER_PROC( LOGICAL, _json6_parse_message )( char * msg
                                                   , size_t msglen
                                                   , PDATALIST *msg_data_out
                                                   );
+// Same as json6_parse_message(), except when esStrictCompatible is TRUE the JSON6
+// grammar extensions that ECMAScript strict mode does not accept are rejected:
+// leading-zero/legacy-octal numbers (0123), legacy octal string escapes ("\012",
+// "\1".."\9"), literal line terminators inside '' / "" strings (backtick strings
+// still allow them), backtick-quoted object keys, and two or more consecutive
+// unary +/- signs (--5). Off by default via json6_parse_message(), so existing
+// callers are unaffected. Mirrors the `esStrictCompatible` option added to
+// JSON6.parse()/JSON6.begin() in the JS implementation (JSON6 PR #56).
+JSON_EMITTER_PROC( LOGICAL, json6_parse_message_strict )( const char * msg
+                                                 , size_t msglen
+                                                 , PDATALIST *msg_data_out
+                                                 , LOGICAL esStrictCompatible
+                                                 );
+// Sets (or clears) the esStrictCompatible option on a parser state returned by
+// json_begin_parse(), before feeding it data via json6_parse_add_data(). See
+// json6_parse_message_strict() for what the option rejects. Off by default.
+JSON_EMITTER_PROC( void, json6_parse_set_strict )( struct json_parse_state *state
+                                                 , LOGICAL esStrictCompatible
+                                                 );
 JSON_EMITTER_PROC( struct json_parse_state *, json6_get_message_parser )( void );
 JSON_EMITTER_PROC( struct json_parse_state *, json_get_message_parser )( void );
 
