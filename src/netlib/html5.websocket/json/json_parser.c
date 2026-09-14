@@ -335,7 +335,7 @@ static void json_state_init( struct json_parse_state *state )
 	
 
 	state->line = 1;
-	state->col = 1;
+	state->col = 0; // json6 counts the column as each character is taken; the first lands on 1
 	state->n = 0; // character index;
 	state->word = WORD_POS_RESET;
 	state->status = TRUE;
