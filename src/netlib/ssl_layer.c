@@ -1243,10 +1243,18 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 								LIST_FORALL( ctxList[0], idx, struct ssl_hostContext*, hostctx ) {
 									char* checkName;
 									char* nextName;
+									size_t maxhosts;
+									// the anonymous default cert carries no names to match against.
+									if( !hostctx->host ) continue;
+									maxhosts = StrLen( hostctx->host );
 									for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
-										int namelen = (int)(nextName ? (nextName - checkName) : strlen);
+										// the trailing name's length is what is left of the list, not the requested
+										// length.  Using the latter made this a prefix compare, so a configured name
+										// that merely starts with the requested one matched.
+										size_t namelen = nextName ? (size_t)( nextName - checkName ) : maxhosts;
 										if( nextName ) nextName++;
-										if( namelen != strlen ) {
+										maxhosts -= namelen + 1;  // the name plus the '~' that follows it
+										if( namelen != (size_t)strlen ) {
 											//lprintf( "%.*s is not %.*s", namelen, checkName, strlen, host );
 											continue;
 										}
@@ -1335,7 +1343,10 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 			//lprintf( "check: %s next: %s %d", checkName, nextName, maxhosts );
 			size_t namelen = nextName ? (nextName - checkName) : maxhosts;
 			if( nextName ) nextName++;
-			maxhosts -= namelen - 1;
+			// a name costs its own length plus the separator that follows it; subtracting
+			// namelen-1 overshot by 2 per separator, so every name after the first in a
+			// tilde list measured too long and the namelen != strlen test below skipped it.
+			maxhosts -= namelen + 1;
 			if( namelen != strlen ) {
 				//lprintf( "%.*s is not %.*s", (int)namelen, checkName, (int)strlen, host );
 				continue;
