@@ -108,6 +108,19 @@ static const char *vesl_runeText( struct vesl_parse_state *state, TEXTRUNE c ) {
 	return state->runeText;
 }
 
+// Line bookkeeping for a character that has just been taken (next points past it).
+// CR, LF, LS and PS each end a line; a CR directly followed by LF counts once, at
+// the LF.  Column resets to 0 so the next character, which is counted as it is
+// taken, lands on column 1.
+static void vesl_countLine( struct vesl_parse_state *state, TEXTRUNE c, CTEXTSTR next, CTEXTSTR end ) {
+	if( c == '\r' ) {
+		if( next < end && next[0] == '\n' ) return;
+	}
+	else if( c != '\n' && c != 0x2028 && c != 0x2029 ) return;
+	state->line++;
+	state->col = 0;
+}
+
 #define _2char(result,from) (((*from) += 2),( ( result & 0x1F ) << 6 ) | ( ( result & 0x3f00 )>>8))
 #define _zero(result,from)  ((*from)++,0) 
 #define _3char(result,from) ( ((*from) += 3),( ( ( result & 0xF ) << 12 ) | ( ( result & 0x3F00 ) >> 2 ) | ( ( result & 0x3f0000 ) >> 16 )) )
@@ -179,7 +192,7 @@ static void vesl_state_init( struct vesl_parse_state *state )
 
 
 	state->line = 1;
-	state->col = 1;
+	state->col = 0; // counted as each character is taken; the first lands on 1
 	state->n = 0; // character index;
 	state->word = VESL_WORD_POS_RESET;
 	state->status = TRUE;
@@ -418,15 +431,15 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 			}
 			switch( c ) {
 			case '\r':
+				// \ CR : a continuation; if LF follows it is counted there
 				state->cr_escaped = TRUE;
+				vesl_countLine( state, c, *msg_input, msg + msglen );
 				continue;
 			case '\n':
-				state->line++;
-				state->col = 1;
-				if( state->cr_escaped ) state->cr_escaped = FALSE;
-				// fall through to clear escape status <CR><LF> support.
-			case 2028: // LS (Line separator)
-			case 2029: // PS (paragraph separate)
+			case 0x2028: // LS (Line separator)  (was written as decimal 2028)
+			case 0x2029: // PS (paragraph separate)
+				state->cr_escaped = FALSE;
+				vesl_countLine( state, c, *msg_input, msg + msglen );
 				// escaped whitespace is nul'ed.
 				state->escape = 0;
 				continue;
@@ -493,15 +506,8 @@ static int gatherString6v(struct vesl_parse_state *state, CTEXTSTR msg, CTEXTSTR
 		}
 		else
 		{
-			if( state->cr_escaped ) {
-				state->cr_escaped = FALSE;
-				if( c == '\n' ) {
-					state->line++;
-					state->col = 1;
-					state->escape = FALSE;
-					continue;
-				}
-			}
+			state->cr_escaped = FALSE;
+			vesl_countLine( state, c, *msg_input, msg + msglen );
 			if( c < 127 )
 				(*mOut++) = (char)c;
 			else
@@ -529,6 +535,7 @@ static int gatherIdentifier( struct vesl_parse_state *state, CTEXTSTR msg
 	{
 		(state->col)++;
 		if( c < 0x80 && vesl_identifierTerminators[c] ) {
+			(state->col)--; // handed back through *unused; the main loop counts it again
 			status = 1;
 			(*unused) = c;
 			break;
@@ -697,6 +704,7 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 				, (int)((c<127)?TESTFLAG(isOp,c):0) );
 			vesl_dump_parse( state->root );
 			if( state->comment ) {
+				vesl_countLine( state, c, input->pos, input->buf + input->size );
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c != '/' ) { 
@@ -743,13 +751,12 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 					state->weakSpace = TRUE;
 					continue;
 				}
-				if( c == '\n' ) {
-					state->line++;
-					state->col = 1;
+				if( c == '\n' || c == '\r' ) {
+					vesl_countLine( state, c, input->pos, input->buf + input->size );
 					state->weakSpace = FALSE;
 					continue;
 				}
-				if( c == ',' || c == ';' || c == '\t' || c == '\r' ) {
+				if( c == ',' || c == ';' || c == '\t' ) {
 					state->weakSpace = FALSE;
 					continue;
 				}
@@ -887,6 +894,9 @@ int vesl_parse_add_data( struct vesl_parse_state *state
 							}
 						}
 						if( input ) {
+							// the character that ended the number was counted here and is handed
+							// back to the main loop, which counts it again.
+							if( input->pos > _msg_input ) state->col--;
 							input->pos = _msg_input;
 							state->n = (input->pos - input->buf);
 							if( state->n > input->size ) DebugBreak();
@@ -1133,7 +1143,7 @@ void vesl_parse_clear_state( struct vesl_parse_state* state ) {
 		state->parse_context = VESL_CONTEXT_UNKNOWN;
 		state->word = VESL_WORD_POS_RESET;
 		state->n = 0;
-		state->col = 1;
+		state->col = 0; // counted as each character is taken; the first lands on 1
 		state->line = 1;
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
