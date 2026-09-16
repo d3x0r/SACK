@@ -1237,6 +1237,7 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 							if( strlen == buflen - 5 ) {
 								INDEX idx;
 								struct ssl_hostContext* hostctx;
+								struct ssl_hostContext* defaultHostctx = NULL;
 								unsigned char const* host = buf + 5;
 								ssl_Accept->hostname = DupCStrLen( (CTEXTSTR)host, strlen );
 								//lprintf( "Have hostchange: %.*s", strlen, host );
@@ -1244,8 +1245,9 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 									char* checkName;
 									char* nextName;
 									size_t maxhosts;
-									// the anonymous default cert carries no names to match against.
-									if( !hostctx->host ) continue;
+									// a host context registered without a name is the explicit match-anything
+									// cert; remember it, but keep looking for a real name match first.
+									if( !hostctx->host ) { defaultHostctx = hostctx; continue; }
 									maxhosts = StrLen( hostctx->host );
 									for( checkName = hostctx->host; checkName ? (nextName = StrChr( checkName, '~' )), 1 : 0; checkName = nextName ) {
 										// the trailing name's length is what is left of the list, not the requested
@@ -1262,11 +1264,27 @@ static int handleServerName( SSL* ssl, int* al, void* param ) {
 										if( StrCaseCmpEx( checkName, (CTEXTSTR)host, strlen ) == 0 ) {
 											SSL_set_SSL_CTX( ssl, hostctx->ctx );
 											//lprintf( "SET CTX, and RETRY?" );
+											OPENSSL_free( type );
 											return SSL_CLIENT_HELLO_SUCCESS;
 										}
 									}
 								}
-								ses->noHost = TRUE;
+								if( defaultHostctx ) {
+									// an explicitly nameless certificate was registered as the catch-all.
+									SSL_set_SSL_CTX( ssl, defaultHostctx->ctx );
+									OPENSSL_free( type );
+									return SSL_CLIENT_HELLO_SUCCESS;
+								}
+								// Nothing matched and no catch-all was registered.  Mark the ACCEPTING
+								// session - `ses` is the listener, which never handshakes, so marking it
+								// left this connection unflagged (and the listener flagged forever).
+								// The flag makes the read path drop the handshake output instead of
+								// answering with whatever certificate the accepting SSL_CTX happens to
+								// carry - which would hand the client a name it never asked for.
+								ssl_Accept->noHost = TRUE;
+								if( ses->errorCallback )
+									ses->errorCallback( ses->psvErrorCallback, ssl_Accept->pc, SACK_NETWORK_ERROR_HOST_NOT_FOUND
+										, (const char*)host, (size_t)strlen );  // size_t through varargs, not the int
 							}
 						}
 					}
