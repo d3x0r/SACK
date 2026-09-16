@@ -44,6 +44,19 @@ static const char *jsox_runeText( struct jsox_parse_state *state, TEXTRUNE c ) {
 	return state->runeText;
 }
 
+// Line bookkeeping for a character that has just been taken (next points past it).
+// CR, LF, LS and PS each end a line; a CR directly followed by LF counts once, at
+// the LF.  Column resets to 0 so the next character, which is counted as it is
+// taken, lands on column 1.
+static void jsox_countLine( struct jsox_parse_state *state, TEXTRUNE c, CTEXTSTR next, CTEXTSTR end ) {
+	if( c == '\r' ) {
+		if( next < end && next[0] == '\n' ) return;
+	}
+	else if( c != '\n' && c != 0x2028 && c != 0x2029 ) return;
+	state->line++;
+	state->col = 0;
+}
+
 PLIST knownArrayTypeNames;
 static void registerKnownArrayTypeNames(void) {
 	AddLink( &knownArrayTypeNames, "ab" );
@@ -103,7 +116,7 @@ static void jsox_state_init( struct jsox_parse_state *state )
 	}
 	DeleteList( &state->classes );
 	state->line = 1;
-	state->col = 1;
+	state->col = 0; // counted as each character is taken; the first lands on 1
 	state->n = 0; // character index;
 	state->word = JSOX_WORD_POS_RESET;
 	state->status = TRUE;
@@ -331,15 +344,15 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 			}
 			switch( c ) {
 			case '\r':
+				// \ CR : a continuation; if LF follows it is counted there
 				state->cr_escaped = TRUE;
+				jsox_countLine( state, c, *msg_input, msg + msglen );
 				continue;
 			case '\n':
-				state->line++;
-				state->col = 1;
-				if( state->cr_escaped ) state->cr_escaped = FALSE;
-				// fall through to clear escape status <CR><LF> support.
 			case 0x2028: // LS (Line separator)
 			case 0x2029: // PS (paragraph separate)
+				state->cr_escaped = FALSE;
+				jsox_countLine( state, c, *msg_input, msg + msglen );
 				// escaped whitespace is nul'ed.
 				state->escape = 0;
 				continue;
@@ -409,15 +422,8 @@ static int gatherStringX(struct jsox_parse_state *state, CTEXTSTR msg, CTEXTSTR 
 		}
 		else
 		{
-			if( state->cr_escaped ) {
-				state->cr_escaped = FALSE;
-				if( c == '\n' ) {
-					state->line++;
-					state->col = 1;
-					state->escape = FALSE;
-					continue;
-				}
-			}
+			state->cr_escaped = FALSE;
+			jsox_countLine( state, c, *msg_input, msg + msglen );
 			mOut += ConvertToUTF8( mOut, c );
 		}
 	}
@@ -1440,6 +1446,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				break;
 			}
 			if( state->comment ) {
+				jsox_countLine( state, c, input->pos, input->buf + input->size );
 				if( state->comment == 1 ) {
 					if( c == '*' ) { state->comment = 3; continue; }
 					if( c == '/' ) { state->comment = 2; continue; }
@@ -2082,9 +2089,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 						}
 						break;
 					case '\n':
-						state->line++;
-						state->col = 1;
-						// fall through to normal space handling - just updated line/col position
 					case ' ':
 					//case 160 :// case '\xa0': // nbsp
 					case '\t':
@@ -2095,6 +2099,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					case 0x2029: // PS (paragraph separate)
 					case 0xFEFF: // ZWNBS is WS though
 					whitespace:
+						jsox_countLine( state, c, input->pos, input->buf + input->size );
 						if( state->word == JSOX_WORD_POS_END ) {
 							state->word = JSOX_WORD_POS_RESET;
 							if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
@@ -2223,9 +2228,6 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 					}
 					break;
 				case '\n':
-					state->line++;
-					state->col = 1;
-					// FALLTHROUGH
 				case ' ':
 				// U+00A0 is deliberately absent: it joins words rather than separating
 				// them, so it is an ordinary identifier character.  It still ends a
@@ -2237,6 +2239,7 @@ int jsox_parse_add_data( struct jsox_parse_state *state
 				case '\v':
 				case '\f':
 				case 0xFEFF:
+					jsox_countLine( state, c, input->pos, input->buf + input->size );
 					if( state->word == JSOX_WORD_POS_END ) {
 						state->word = JSOX_WORD_POS_RESET;
 						if( state->parse_context == JSOX_CONTEXT_UNKNOWN ) {
@@ -2833,7 +2836,7 @@ void jsox_parse_clear_state( struct jsox_parse_state *state ) {
 		state->parse_context = JSOX_CONTEXT_UNKNOWN;
 		state->word = JSOX_WORD_POS_RESET;
 		state->n = 0;
-		state->col = 1;
+		state->col = 0; // counted as each character is taken; the first lands on 1
 		state->line = 1;
 		state->gatheringString = FALSE;
 		state->gatheringNumber = FALSE;
