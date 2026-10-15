@@ -918,6 +918,19 @@ Double quote	"""	222
 #define KEY_LEFT_BRACKET KEY_LEFTBRACE
 #define KEY_RIGHT_BRACKET KEY_RIGHTBRACE
 
+// The kernel spells these without the separating underscore, so the sack names
+// need aliasing like the rest above or they are simply absent on Linux -- which
+// surfaces as "'KEY_NUM_LOCK' was not declared; did you mean 'KEY_NUMLOCK'?",
+// the suggestion being the kernel's own name.
+#define KEY_NUM_LOCK KEY_NUMLOCK
+#define KEY_SCROLL_LOCK KEY_SCROLLLOCK
+
+// Windows numbers its two Meta keys WINDOW_1/WINDOW_2; the kernel names them by
+// side. Paired left-to-1 and right-to-2 to match how they are consumed -- see
+// sack-gui's sack_dom_key_names.h, which reports them as MetaLeft and MetaRight.
+#define KEY_WINDOW_1 KEY_LEFTMETA
+#define KEY_WINDOW_2 KEY_RIGHTMETA
+
 #define KEY_PAD_MULT  KEY_KPASTERISK
 #define KEY_PAD_9   KEY_KP9
 #define KEY_PAD_8   KEY_KP8
