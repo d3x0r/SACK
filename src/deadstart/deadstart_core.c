@@ -685,7 +685,8 @@ LOGICAL IsRootDeadstartComplete( void )
 #        ifdef __cplusplus
 extern "C"
 #        endif
-__declspec(dllexport) 
+//__declspec(dllexport) 
+// I guess DLL Main shouldn't be an export?
 	BOOL WINAPI DllMain(  HINSTANCE hinstDLL,
    DWORD fdwReason,
    LPVOID lpvReserved
