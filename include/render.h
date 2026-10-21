@@ -888,6 +888,19 @@ enum DisplayAttributes {
        y :         y relative to the display to set the mouse          */
     RENDER_PROC( void , SetMousePosition)     ( PRENDERER, int32_t x, int32_t y );
 
+	 // This sets a condition of turning the mouse off while over this display.
+    RENDER_PROC( void, HideMouse)( PRENDERER display );
+
+	 // This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
+    // default mode is 0... 
+    RENDER_PROC( void, ShowMouse)( PRENDERER display, int mode );
+
+	 // This sets the mode of the mouse to generate relative input coordinates,
+    // When enabled, also triggers OwnMouse and HideMouse will set the cursor input as a game-control sort of input.
+    // When disabled, 
+    RENDER_PROC( void, RelativeMouse)( PRENDERER display, LOGICAL enable );
+
+
     /* Test a display to see if it is focused.
        Parameters
        hVideo :  display to check to see if it has focus. (keyboard
@@ -1643,6 +1656,21 @@ struct render_interface_tag
 	//
 	RENDER_PROC_PTR( void, BeginSizeDisplay )(PRENDERER pRenderer, enum sizeDisplayValues sizeFrom );
    RENDER_PROC_PTR( void, WillUpdatePortions)( PRENDERER pRenderer, LOGICAL disableAutoDraw );
+
+	 // This sets a condition of turning the mouse off while over this display.
+	 // if the display is NULL, this can attempt to hide the system cursor regardless of the display
+    RENDER_PROC_PTR( void, HideMouse)( PRENDERER display );
+
+	 // This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
+	 // if the display is NULL, this will simply restore the system corsor, and mode is ignored(?)
+    // default mode is 0... 
+    RENDER_PROC_PTR( void, ShowMouse)( PRENDERER display, int mode );
+
+	 // This sets the mode of the mouse to generate relative input coordinates,
+    // When enabled, also triggers OwnMouse and HideMouse will set the cursor input as a game-control sort of input.
+    // When disabled, 
+    RENDER_PROC_PTR( void, RelativeMouse)( PRENDERER display, LOGICAL enable );
+
 };
 
 #ifdef DEFINE_DEFAULT_RENDER_INTERFACE
@@ -1750,6 +1778,9 @@ typedef int check_this_variable;
 #define KeyDown                   REND_PROC_ALIAS(KeyDown)
 #define DisplayIsValid            REND_PROC_ALIAS(DisplayIsValid)
 #define OwnMouseEx                REND_PROC_ALIAS(OwnMouseEx)
+#define HideMouse(d)              ((USE_RENDER_INTERFACE&&USE_RENDER_INTERFACE->_HideMouse)?USE_RENDER_INTERFACE->_HideMouse(d):(void)0)
+#define ShowMouse(d,m)            ((USE_RENDER_INTERFACE&&USE_RENDER_INTERFACE->_ShowMouse)?USE_RENDER_INTERFACE->_ShowMouse(d,m):(void)0)
+#define RelativeMouse(d,e)        ((USE_RENDER_INTERFACE&&USE_RENDER_INTERFACE->_RelativeMouse)?USE_RENDER_INTERFACE->_RelativeMouse(d,e):(void)0)
 #define BeginCalibration          REND_PROC_ALIAS(BeginCalibration)
 #define SyncRender                REND_PROC_ALIAS(SyncRender)
 #define OkaySyncRender                REND_PROC_ALIAS(OkaySyncRender)
@@ -1791,6 +1822,7 @@ typedef int check_this_variable;
 #define BeginMoveDisplay(r)   ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_BeginMoveDisplay)?((USE_RENDER_INTERFACE)->_BeginMoveDisplay(r),1):0:0)
 #define BeginSizeDisplay(r,m)   ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_BeginSizeDisplay)?((USE_RENDER_INTERFACE)->_BeginSizeDisplay(r,m),1):0:0)
 #define WillUpdatePortions(r,v) ((USE_RENDER_INTERFACE)?((USE_RENDER_INTERFACE)->_WillUpdatePortions)?((USE_RENDER_INTERFACE)->_WillUpdatePortions(r,v),1):0:0)
+
 
 #endif
 

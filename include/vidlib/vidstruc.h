@@ -258,6 +258,7 @@ typedef struct HVIDEO_tag
 	struct {
 		int32_t x, y;
 		uint32_t b;
+		LOGICAL relative; // control flag, if relative, results in +/- x, y instead of an absolute position.
 	} mouse;
 
 	uintptr_t idle_timer_id;

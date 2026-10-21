@@ -331,7 +331,7 @@ void IssueUpdateLayeredEx( PVIDEO hVideo, LOGICAL bContent, int32_t x, int32_t y
 									// no way to specify just the x/y w/h of the portion we want
 									// to update...
 									if( l.flags.bLogWrites )
-										lprintf( "layered... begin update. %d %d %d %d", hVideo->size.cx, hVideo->size.cy, hVideo->topPos.x, hVideo->topPos.y );
+										lprintf( "layered... begin update. %ld %ld %ld %ld", hVideo->size.cx, hVideo->size.cy, hVideo->topPos.x, hVideo->topPos.y );
 									if( bContent
 										&& l.UpdateLayeredWindowIndirect
 										&& ( x || y || w != hVideo->pWindowPos.cx || h != hVideo->pWindowPos.cy ) )
@@ -1237,7 +1237,7 @@ LRESULT CALLBACK
 			  )
 {
 	if( l.flags.bLogKeyEvent )
-		lprintf( "KeyHook %d %08lx %08lx", code, wParam, lParam );
+		lprintf( "KeyHook %d %08llx %08llx", code, wParam, lParam );
 	{
 		int dispatch_handled = 0;
 		PVIDEO hVid;
@@ -1274,8 +1274,8 @@ LRESULT CALLBACK
 		}
 		if( l.flags.bLogKeyEvent )
 		{
-			lprintf( "%x Received key to %p %p", GetCurrentThreadId(), hWndFocus, hWndFore );
-			lprintf( "Received key %d %08x %08x", code, wParam, lParam );
+			lprintf( "%08lx(%ld) Received key to %p %p", GetCurrentThreadId(), GetCurrentThreadId(), hWndFocus, hWndFore );
+			lprintf( "Received key %d %08llx %08llx", code, wParam, lParam );
 		}
 		aThisClass = (ATOM) GetClassLong (hWndFocus, GCW_ATOM);
 		if (aThisClass != l.aClass && hWndFocus != l.hWndInstance )
@@ -3100,8 +3100,13 @@ WM_DROPFILES
 			InvokeSimpleSurfaceInput( l.mouse_x, l.mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
 			if (hVideo->pMouseCallback)
 			{
-				hVideo->pMouseCallback (hVideo->dwMouseData,
-												l.mouse_x, l.mouse_y, l.mouse_b);
+				if( hVideo->mouse.relative ) {
+					hVideo->pMouseCallback (hVideo->dwMouseData,
+													l.mouse_x - l._mouse_x, l.mouse_y - l._mouse_y, l.mouse_b);
+					SetMousePosition( hVideo, hVideo->pWindowPos.cx / 2, hVideo->pWindowPos.cy / 2 );
+				}else
+					hVideo->pMouseCallback (hVideo->dwMouseData,
+													l.mouse_x, l.mouse_y, l.mouse_b);
 				//lprintf("Sent mouse event: %d, %d, %08x", l.mouse_x, l.mouse_y, l.mouse_b);/
 			}
 			if (l.hCaptured)
@@ -3740,18 +3745,36 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 #endif
 						if( !hVideo->flags.event_dispatched )
 						{
-							hVideo->flags.mouse_pending = 0;
-							hVideo->flags.event_dispatched = 1;
-							hVideo->pMouseCallback( hVideo->dwMouseData
-														 , hVideo->mouse.x
-														 , hVideo->mouse.y
-														 , hVideo->mouse.b
-														 );
-							//lprintf( "Resulted..." );
-							hVideo->mouse.x = l.mouse_x;
-							hVideo->mouse.y = l.mouse_y;
-							hVideo->mouse.b = l.mouse_b;
-							hVideo->flags.event_dispatched = 0;
+							if( hVideo->mouse.relative ) {
+								hVideo->flags.mouse_pending = 0;
+								hVideo->flags.event_dispatched = 1;
+								hVideo->pMouseCallback( hVideo->dwMouseData
+															, hVideo->mouse.x - l.mouse_x
+															, hVideo->mouse.y - l.mouse_y
+															, hVideo->mouse.b
+															);
+								//lprintf( "Resulted..." );
+								hVideo->mouse.x = l.mouse_x;
+								hVideo->mouse.y = l.mouse_y;
+								hVideo->mouse.b = l.mouse_b;
+								hVideo->flags.event_dispatched = 0;
+								SetMousePosition( hVideo, hVideo->pWindowPos.cx / 2, hVideo->pWindowPos.cy / 2 );
+								l.mouse_x = hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2;
+								l.mouse_y = hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2;
+							} else {
+								hVideo->flags.mouse_pending = 0;
+								hVideo->flags.event_dispatched = 1;
+								hVideo->pMouseCallback( hVideo->dwMouseData
+															, hVideo->mouse.x
+															, hVideo->mouse.y
+															, hVideo->mouse.b
+															);
+								//lprintf( "Resulted..." );
+								hVideo->mouse.x = l.mouse_x;
+								hVideo->mouse.y = l.mouse_y;
+								hVideo->mouse.b = l.mouse_b;
+								hVideo->flags.event_dispatched = 0;
+							}
 						}
 					}
 				}
@@ -3824,13 +3847,26 @@ int CPROC VideoEventHandler( uint32_t MsgID, uint32_t *params, uint32_t paramlen
 						if( !hVideo->flags.event_dispatched )
 						{
 							hVideo->flags.event_dispatched = 1;
-							InvokeSimpleSurfaceInput( l.mouse_x, l.mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
-							if( hVideo->pMouseCallback )
-								hVideo->pMouseCallback( hVideo->dwMouseData
-															 , hVideo->mouse.x
-															 , hVideo->mouse.y
-															 , hVideo->mouse.b
-															 );
+							if( hVideo->mouse.relative ) {
+								InvokeSimpleSurfaceInput( l.mouse_x - l._mouse_x, l.mouse_y - l._mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
+								if( hVideo->pMouseCallback )
+									hVideo->pMouseCallback( hVideo->dwMouseData
+																, hVideo->mouse.x - l._mouse_x
+																, hVideo->mouse.y - l._mouse_y
+																, hVideo->mouse.b
+																);
+								SetMousePosition( hVideo, hVideo->pWindowPos.cx / 2, hVideo->pWindowPos.cy / 2 );
+								l._mouse_x = hVideo->pWindowPos.x + hVideo->pWindowPos.cx / 2;
+								l._mouse_y = hVideo->pWindowPos.y + hVideo->pWindowPos.cy / 2;
+							} else {
+								InvokeSimpleSurfaceInput( l.mouse_x, l.mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
+								if( hVideo->pMouseCallback )
+									hVideo->pMouseCallback( hVideo->dwMouseData
+																, hVideo->mouse.x
+																, hVideo->mouse.y
+																, hVideo->mouse.b
+																);
+							}
 							hVideo->mouse.x = l.mouse_x;
 							hVideo->mouse.y = l.mouse_y;
 							hVideo->mouse.b = l.mouse_b;
@@ -6069,6 +6105,32 @@ static RENDER_INTERFACE VidInterface = { InitDisplay
 													, NULL /* render allows copy (not remote network render) */
 													, SetDisplayCursor 
 													, IsDisplayRedrawForced
+	, NULL // RENDER_PROC_PTR( void, ReplyCloseDisplay )( void ); // only valid during a headless display event....
+
+		/* Clipboard Callback */
+	, NULL // RENDER_PROC_PTR( void, SetClipboardEventCallback )(PRENDERER pRenderer, ClipboardCallback callback, uintptr_t psv);
+
+	// where ever the current mouse is, lock the mouse to the window, and allow the mouse to move it.
+	//
+	, NULL // RENDER_PROC_PTR( void, BeginMoveDisplay )(PRENDERER pRenderer );
+	// where ever the current mouse is, lock the mouse to the window, and allow the mouse to move it.
+	//
+	, NULL // RENDER_PROC_PTR( void, BeginSizeDisplay )(PRENDERER pRenderer, enum sizeDisplayValues sizeFrom );
+	, NULL // RENDER_PROC_PTR( void, WillUpdatePortions)( PRENDERER pRenderer, LOGICAL disableAutoDraw );
+
+	 // This sets a condition of turning the mouse off while over this display.
+	 // if the display is NULL, this can attempt to hide the system cursor regardless of the display
+	, HideMouse // RENDER_PROC_PTR( void, HideMouse)( PRENDERER display );
+
+	 // This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
+	 // if the display is NULL, this will simply restore the system corsor, and mode is ignored(?)
+    // default mode is 0... 
+    , ShowMouse // RENDER_PROC_PTR( void, ShowMouse)( PRENDERER display, int mode );
+
+	 // This sets the mode of the mouse to generate relative input coordinates,
+    // When enabled, also triggers OwnMouse and HideMouse will set the cursor input as a game-control sort of input.
+    // When disabled, 
+    , RelativeMouse // RENDER_PROC_PTR( void, RelativeMouse)( PRENDERER display, LOGICAL enable );
 };
 
 #undef GetDisplayInterface
@@ -6211,6 +6273,39 @@ void UnlockRenderer( PRENDERER render )
 {
 	LeaveCriticalSec( &render->cs );
 }
+
+// This sets a condition of turning the mouse off while over this display.
+// if the display is NULL, this can attempt to hide the system cursor regardless of the display
+RENDER_PROC( void, HideMouse)( PRENDERER display ){
+	if( display ) {
+	} else {
+	}
+}
+
+// This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
+// if the display is NULL, this will simply restore the system corsor, and mode is ignored(?)
+// default mode is 0... 
+RENDER_PROC( void, ShowMouse)( PRENDERER display, int mode ){
+	if( display ) {
+	} else {
+	}
+}
+
+// This sets the mode of the mouse to generate relative input coordinates,
+// When enabled, also triggers OwnMouse and HideMouse will set the cursor input as a game-control sort of input.
+// When disabled, 
+RENDER_PROC( void, RelativeMouse)( PRENDERER display, LOGICAL enable ){
+	if( display ) {
+		display->mouse.relative = enable;
+		l.mouse_x = l._mouse_x = display->pWindowPos.x + display->pWindowPos.cx / 2;
+		l.mouse_y = l._mouse_y = display->pWindowPos.y + display->pWindowPos.cy / 2;
+		SetMousePosition( display, display->pWindowPos.cx / 2, display->pWindowPos.cy / 2 );
+
+	} else {
+		// relative mouse inputs need to go somewhere?
+	}
+}
+
 
 #ifdef __cplusplus_cli
 // provide a trigger point for onload code

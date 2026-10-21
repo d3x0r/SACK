@@ -234,7 +234,7 @@ RENDER_PROC( int, HandleKeyEvents )( PKEYDEFINE pKeyDefs, uint32_t key )
 #endif
 #ifdef LOG_KEY_EVENTS
    if( l.flags.bLogKeyEvent )
-		lprintf( "Key event for %08lx ... %d %s %s %s"
+		lprintf( "Key event for %08x ... %d %s %s %s"
 				 , key
 				 , keycode
 				 , keymod&1? "SHIFT": "", keymod&2? "CTRL": "", keymod&4? "ALT": "" );

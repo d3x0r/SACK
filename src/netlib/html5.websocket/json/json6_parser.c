@@ -1181,7 +1181,7 @@ int json6_parse_add_data( struct json_parse_state *state
 							{
 								// in non streaming mode; these would be required to follow
 								if( json6_isWhitespace( c )
-									|| c == ',' || c == ']' || c == '}'  || c == ':' ) {
+									|| c == ',' || c == ']' || c == '}'  || c == ':' || c == '/'/* a comment may directly follow a number */ ) {
 									//lprintf( "Non numeric character received; push the value we have" );
 									(*output->pos) = 0;
 									break;
