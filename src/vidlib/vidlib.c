@@ -1425,6 +1425,18 @@ LRESULT CALLBACK
 								// and the repeats queue up, the first is handled, and
 								// the KEYUP behind them is swallowed.
 								dispatch_handled = 0;
+								// Likewise per key. keymod was computed for the key
+								// that opened the drain, and it decides whether the
+								// global KeyDefs get first refusal -- so a queued
+								// key was routed by whichever modifiers were held
+								// when some earlier key arrived. The key value
+								// carries its own modifier bits (set at the same
+								// place keymod is), so recover them from it. For
+								// the first key this reproduces what keymod already
+								// held.
+								keymod = ( ( key & 0x10000000 ) ? 1 : 0 )
+								       | ( ( key & 0x20000000 ) ? 2 : 0 )
+								       | ( ( key & 0x40000000 ) ? 4 : 0 );
 								if( l.flags.bLogKeyEvent )
 									lprintf( "Dispatching key %08lx", key );
 								if( keymod & 6 )
@@ -1687,6 +1699,9 @@ LRESULT CALLBACK
 								// handled key does not suppress delivery of the ones
 								// drained from pInput behind it.
 								dispatch_handled = 0;
+								keymod = ( ( key & 0x10000000 ) ? 1 : 0 )
+								       | ( ( key & 0x20000000 ) ? 2 : 0 )
+								       | ( ( key & 0x40000000 ) ? 4 : 0 );
 								if( (keymod & 6) )
 								{
 									dispatch_handled = HandleKeyEvents( KeyDefs, key );
