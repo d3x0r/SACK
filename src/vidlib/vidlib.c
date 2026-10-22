@@ -1415,6 +1415,16 @@ LRESULT CALLBACK
 							hVideo->flags.key_dispatched = 1;
 							do
 							{
+								// Per key, not per drain. This loop also empties
+								// pInput -- the keys that arrived while a handler
+								// was running -- and every test below that decides
+								// whether to deliver is `if( !dispatch_handled )`.
+								// Carrying a handled result into the next iteration
+								// therefore drops that key entirely. The symptom is
+								// a stuck key: hold a key long enough for auto-repeat
+								// and the repeats queue up, the first is handled, and
+								// the KEYUP behind them is swallowed.
+								dispatch_handled = 0;
 								if( l.flags.bLogKeyEvent )
 									lprintf( "Dispatching key %08lx", key );
 								if( keymod & 6 )
@@ -1673,6 +1683,10 @@ LRESULT CALLBACK
 							hVideo->flags.key_dispatched = 1;
 							do
 							{
+								// See the matching loop above: cleared per key so a
+								// handled key does not suppress delivery of the ones
+								// drained from pInput behind it.
+								dispatch_handled = 0;
 								if( (keymod & 6) )
 								{
 									dispatch_handled = HandleKeyEvents( KeyDefs, key );
