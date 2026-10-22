@@ -891,8 +891,35 @@ enum DisplayAttributes {
 	 // This sets a condition of turning the mouse off while over this display.
     RENDER_PROC( void, HideMouse)( PRENDERER display );
 
+	 /* Platform-neutral cursor shapes for ShowMouse(). Each backend maps these
+	    to its own vocabulary -- Win32 IDC_*, X11 cursor-font glyphs, Wayland
+	    cursor names -- so a caller never has to name a platform's cursor.
+	    This is what SetDisplayCursor(CTEXTSTR) could not be: that one takes a
+	    Win32 resource name and has nowhere to go on X11 or Wayland.
+
+	    The names are the CSS cursor keywords. Not decoration: the Wayland and
+	    freedesktop names *are* the CSS names, making that backend's mapping
+	    the identity, and anything presenting a browser-shaped DOM on top of
+	    this receives `cursor:` values already in this vocabulary.            */
+    enum displayCursorShape {
+		  CURSOR_SHAPE_DEFAULT = 0   // plain arrow; the default mode
+		, CURSOR_SHAPE_TEXT          // I-beam
+		, CURSOR_SHAPE_WAIT
+		, CURSOR_SHAPE_PROGRESS      // busy, but still interactive
+		, CURSOR_SHAPE_CROSSHAIR
+		, CURSOR_SHAPE_POINTER       // the "clickable" hand
+		, CURSOR_SHAPE_MOVE
+		, CURSOR_SHAPE_NOT_ALLOWED
+		, CURSOR_SHAPE_HELP
+		, CURSOR_SHAPE_EW_RESIZE     // horizontal
+		, CURSOR_SHAPE_NS_RESIZE     // vertical
+		, CURSOR_SHAPE_NESW_RESIZE   // diagonal, bottom-left to top-right
+		, CURSOR_SHAPE_NWSE_RESIZE   // diagonal, top-left to bottom-right
+		, CURSOR_SHAPE_COUNT
+	 };
+
 	 // This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
-    // default mode is 0... 
+    // default mode is 0... (a value from enum displayCursorShape)
     RENDER_PROC( void, ShowMouse)( PRENDERER display, int mode );
 
 	 // This sets the mode of the mouse to generate relative input coordinates,

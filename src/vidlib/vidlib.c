@@ -2033,6 +2033,9 @@ static uintptr_t CPROC DoExit( PTHREAD thread )
 	return 0;
 }
 
+// The one cursor shape, for however many displays exist. Whether it is drawn
+// at all is l.flags.bMouseHidden -- keeping shape and visibility apart is what
+// lets ShowMouse() put back the shape that was chosen before a hide.
 static HCURSOR hCursor;
 
 LRESULT CALLBACK
@@ -2341,6 +2344,14 @@ WM_DROPFILES
 				if( hVideo->flags.bFocused )
 				{
 					hVideo->flags.bFocused = 0;
+					// Pointer lock needs no teardown here. Windows drops the
+					// clip rectangle and the capture itself when activation
+					// moves to another window, and that window sets its own
+					// cursor, so there is nothing left holding the pointer.
+					// mouse.relative stays set because it records what the app
+					// asked for, and the recentre is gated on bFocused -- so
+					// the lock simply stops acting until focus returns, with
+					// no state to save or restore.
 					// clear keyboard state...
 					{
 						if( !l.flags.bUseLLKeyhook )
@@ -3080,7 +3091,10 @@ WM_DROPFILES
 #ifdef LOG_MOUSE_HIDE_IDLE
 				lprintf( "cursor count %d %d", x, hCursor );
 #endif
-				SetCursor (hCursor);
+				// The idle hide un-hiding on movement. It must not override an
+				// explicit HideMouse(), so this asks the same question
+				// WM_SETCURSOR does rather than installing hCursor blindly.
+				SetCursor (l.flags.bMouseHidden ? NULL : hCursor);
 				l.flags.mouse_on = 1;
 				hVideo->flags.mouse_on = 1;
 			}
@@ -3100,10 +3114,48 @@ WM_DROPFILES
 			InvokeSimpleSurfaceInput( l.mouse_x, l.mouse_y, (l.mouse_b & ~l._mouse_b ) != 0, (l.mouse_b & l._mouse_b ) != 0 );
 			if (hVideo->pMouseCallback)
 			{
+				// mouse.relative is what was *asked* for; it only acts while
+				// this window has focus. An unfocused window that keeps
+				// warping the pointer back to its centre cannot be alt-tabbed
+				// away from -- the pointer is dragged home before it reaches
+				// anything else.
+				//
+				// Unfocused moves report nothing at all rather than falling
+				// through to the absolute path. The consumer is still in lock
+				// mode and reads whatever arrives as a delta, so an absolute
+				// position would land as a movement of several hundred pixels.
+				// An unfocused window should not be receiving look input in
+				// any case.
 				if( hVideo->mouse.relative ) {
-					hVideo->pMouseCallback (hVideo->dwMouseData,
-													l.mouse_x - l._mouse_x, l.mouse_y - l._mouse_y, l.mouse_b);
-					SetMousePosition( hVideo, hVideo->pWindowPos.cx / 2, hVideo->pWindowPos.cy / 2 );
+				 if( hVideo->flags.bFocused ) {
+					int cx = hVideo->pWindowPos.cx / 2;
+					int cy = hVideo->pWindowPos.cy / 2;
+					int dx = l.mouse_x - cx;
+					int dy = l.mouse_y - cy;
+					// SetCursor is per-thread, and HideMouse() runs on whatever
+					// thread called lockMouse() -- not this one -- so the hide
+					// it applied never reached the window's thread. Re-assert
+					// it here, where a move has just been handled on the right
+					// thread. WM_SETCURSOR cannot be relied on alone while the
+					// mouse is captured.
+					if( l.flags.bMouseHidden )
+						SetCursor( NULL );
+					// The recentre below generates its own WM_MOUSEMOVE, which
+					// arrives here with a zero delta. There is nothing to
+					// report in that case -- but a button change at rest still
+					// has to get through, so it is not purely a motion test.
+					if( dx || dy || ( l.mouse_b != l._mouse_b ) )
+						hVideo->pMouseCallback (hVideo->dwMouseData, dx, dy, l.mouse_b);
+					SetMousePosition( hVideo, cx, cy );
+					// Remember the centre, not where the pointer was before the
+					// warp. l._mouse_x is assigned from l.mouse_x further down,
+					// and the recentre generates its own WM_MOUSEMOVE: leaving
+					// the pre-warp value there makes that synthetic message
+					// report a delta equal and opposite to the real one, so
+					// motion cancels out and the view barely moves.
+					l.mouse_x = cx;
+					l.mouse_y = cy;
+				 }
 				}else
 					hVideo->pMouseCallback (hVideo->dwMouseData,
 													l.mouse_x, l.mouse_y, l.mouse_b);
@@ -3128,7 +3180,16 @@ WM_DROPFILES
 
 			if( l.new_cursor )
 			{
-				SetCursor (LoadCursor (NULL, l.new_cursor) );
+				// Record the requested shape in hCursor rather than installing
+				// it straight from LoadCursor. Going direct bypassed the one
+				// place that knows whether a cursor should be visible, so a
+				// shape change while hidden un-hid the cursor on the next
+				// movement. Now the shape is remembered either way, and only
+				// shown if we are not hidden -- a shape chosen during a hide
+				// takes effect when ShowMouse() is called.
+				hCursor = LoadCursor (NULL, l.new_cursor);
+				if( !l.flags.bMouseHidden )
+					SetCursor (hCursor);
 				l.old_cursor = l.new_cursor;
 				l.new_cursor = 0;
 			}
@@ -3338,6 +3399,15 @@ WM_DROPFILES
 			hVideo = (PVIDEO) GetWindowLongPtr (hWnd, WD_HVIDEO);
 			if( hVideo )
 			{
+				// Apply the current cursor state on *this* thread, which is
+				// the entire reason the message exists: SetCursor only affects
+				// the calling thread, so HideMouse()/ShowMouse() called from
+				// an application thread cannot touch the window's cursor
+				// directly. Unconditional, because the idle logic below only
+				// runs in the narrow case where the mouse had been turned off
+				// -- a plain hide or shape change has to take effect too, and
+				// without this it waits for the next mouse movement.
+				SetCursor( l.flags.bMouseHidden ? NULL : hCursor );
 #ifdef LOG_MOUSE_HIDE_IDLE
 				lprintf( "hVideo..." );
 #endif
@@ -3354,7 +3424,7 @@ WM_DROPFILES
 						lprintf( "Mouse was off... turning on." );
 #endif
 						ShowCursor( TRUE );
-						SetCursor (hCursor);
+						SetCursor (l.flags.bMouseHidden ? NULL : hCursor);
 						l.flags.mouse_on = 1;
 					}
 				}
@@ -3421,6 +3491,22 @@ WM_DROPFILES
 		// this is a special return, it doesn't decrement the counter... cause WM_TIMER is filtered in OTHER_EVENTS logging
 		Return 0;
 		//break;
+	case WM_SETCURSOR:
+		// The only place a cursor choice actually sticks. Windows sends this
+		// before each WM_MOUSEMOVE, and if it is not handled DefWindowProc
+		// resets the cursor to the window class's -- which is why calling
+		// SetCursor( NULL ) from the idle WM_TIMER above does not hold, and why
+		// the ShowCursor counter dance there was needed to compensate.
+		//
+		// Returning TRUE is the load-bearing part: it tells Windows the cursor
+		// has been decided. Restricting to HTCLIENT leaves the borders and
+		// caption with their normal resize/arrow cursors.
+		//
+		if( LOWORD( lParam ) == HTCLIENT ) {
+			SetCursor( l.flags.bMouseHidden ? NULL : hCursor );
+			Return TRUE;
+		}
+		break;
 	case WM_CREATE:
 		{
 			LPCREATESTRUCT pcs;
@@ -6277,18 +6363,58 @@ void UnlockRenderer( PRENDERER render )
 // This sets a condition of turning the mouse off while over this display.
 // if the display is NULL, this can attempt to hide the system cursor regardless of the display
 RENDER_PROC( void, HideMouse)( PRENDERER display ){
-	if( display ) {
-	} else {
-	}
+	// There is one cursor however many displays (or mice) exist, so the state
+	// is global; `display` says who asked -- and which window's thread has to
+	// carry out the change.
+	l.flags.bMouseHidden = 1;
+	// SetCursor only affects the calling thread. A caller on an application
+	// thread (lockMouse from JS, say) cannot touch the window's cursor from
+	// here, which is why a hide used to sit there doing nothing until the next
+	// mouse movement happened to run the window proc. Hand it to the window's
+	// own thread instead.
+	//
+	// Posted rather than sent: the window thread delivers mouse events back to
+	// the caller's thread, so a blocking SendMessage here can deadlock against
+	// it. The post is picked up on the next pump, which is well inside a frame.
+	if( display && display->hWndOutput )
+		PostMessage( display->hWndOutput, WM_USER_MOUSE_CHANGE, 0, 0 );
+	else
+		SetCursor( NULL );   // no window to ask; best effort on this thread
 }
 
 // This sets a condition of turning the mouse on, and selecting a cursor type while over this display.
 // if the display is NULL, this will simply restore the system corsor, and mode is ignored(?)
 // default mode is 0... 
 RENDER_PROC( void, ShowMouse)( PRENDERER display, int mode ){
-	if( display ) {
-	} else {
-	}
+	// `mode` is a displayCursorShape -- a platform-neutral shape that this
+	// backend maps to a Win32 IDC_*. X11 maps the same values to cursor-font
+	// glyphs and Wayland to its cursor names (where the mapping is the
+	// identity, since those names are the CSS ones the enum follows).
+	static const LPCTSTR shapes[ CURSOR_SHAPE_COUNT ] = {
+		  IDC_ARROW        // CURSOR_SHAPE_DEFAULT
+		, IDC_IBEAM        // CURSOR_SHAPE_TEXT
+		, IDC_WAIT         // CURSOR_SHAPE_WAIT
+		, IDC_APPSTARTING  // CURSOR_SHAPE_PROGRESS
+		, IDC_CROSS        // CURSOR_SHAPE_CROSSHAIR
+		, IDC_HAND         // CURSOR_SHAPE_POINTER
+		, IDC_SIZEALL      // CURSOR_SHAPE_MOVE
+		, IDC_NO           // CURSOR_SHAPE_NOT_ALLOWED
+		, IDC_HELP         // CURSOR_SHAPE_HELP
+		, IDC_SIZEWE       // CURSOR_SHAPE_EW_RESIZE
+		, IDC_SIZENS       // CURSOR_SHAPE_NS_RESIZE
+		, IDC_SIZENESW     // CURSOR_SHAPE_NESW_RESIZE
+		, IDC_SIZENWSE     // CURSOR_SHAPE_NWSE_RESIZE
+	};
+	if( mode < 0 || mode >= CURSOR_SHAPE_COUNT )
+		mode = CURSOR_SHAPE_DEFAULT;
+	l.flags.bMouseHidden = 0;
+	hCursor = LoadCursor( NULL, shapes[ mode ] );
+	// Same thread-affinity problem as HideMouse -- let the window's thread
+	// install it, or the new shape waits for a mouse movement.
+	if( display && display->hWndOutput )
+		PostMessage( display->hWndOutput, WM_USER_MOUSE_CHANGE, 0, 0 );
+	else
+		SetCursor( hCursor );
 }
 
 // This sets the mode of the mouse to generate relative input coordinates,
@@ -6296,11 +6422,32 @@ RENDER_PROC( void, ShowMouse)( PRENDERER display, int mode ){
 // When disabled, 
 RENDER_PROC( void, RelativeMouse)( PRENDERER display, LOGICAL enable ){
 	if( display ) {
+		int cx = display->pWindowPos.cx / 2;
+		int cy = display->pWindowPos.cy / 2;
 		display->mouse.relative = enable;
-		l.mouse_x = l._mouse_x = display->pWindowPos.x + display->pWindowPos.cx / 2;
-		l.mouse_y = l._mouse_y = display->pWindowPos.y + display->pWindowPos.cy / 2;
-		SetMousePosition( display, display->pWindowPos.cx / 2, display->pWindowPos.cy / 2 );
+		if( enable ) {
+			// The documented contract of this call: capture and hide come with
+			// it, so a caller asking for relative input gets game-style input
+			// rather than having to assemble three calls and get the order
+			// right. OwnMouse also clips the cursor to the window, which keeps
+			// the pointer inside even in the gap between a move and the
+			// recentre below.
+			OwnMouse( display, TRUE );
+			HideMouse( display );
 
+			// Seed the previous position with the centre, in the same
+			// coordinates WM_MOUSEMOVE stores. l.mouse_x is window-relative
+			// there -- GetCursorPos is screen, but cursor_bias and the window
+			// border are subtracted before it is stored -- so this seeds
+			// cx/cy, not pWindowPos.x + cx. Getting that wrong makes the first
+			// delta after enabling equal the window's screen origin.
+			l.mouse_x = l._mouse_x = cx;
+			l.mouse_y = l._mouse_y = cy;
+			SetMousePosition( display, cx, cy );
+		} else {
+			ShowMouse( display, 0 );
+			OwnMouse( display, FALSE );
+		}
 	} else {
 		// relative mouse inputs need to go somewhere?
 	}

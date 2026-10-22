@@ -28,6 +28,13 @@ extern
 		BIT_FIELD bWhatever : 1;
 		BIT_FIELD bLayeredWindowDefault : 1;
 		BIT_FIELD mouse_on : 1;
+		// Cursor explicitly hidden by HideMouse(). Separate from mouse_on,
+		// which is the *idle* hide: that one is cleared by any mouse movement,
+		// so an explicit hide cannot share it. Separate from hCursor too --
+		// hCursor is which shape to draw, this is whether to draw one, and
+		// keeping them apart is what lets ShowMouse() restore the shape that
+		// was selected before the hide.
+		BIT_FIELD bMouseHidden : 1;
 		BIT_FIELD bOptimizeHide : 1;
 		BIT_FIELD bUseLLKeyhook : 1;
 		BIT_FIELD bLogMouseEvents : 1;
