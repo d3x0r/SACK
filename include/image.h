@@ -1966,6 +1966,7 @@ IMAGE_PROC_PTR( void, ResetImageBuffers )( Image image, LOGICAL image_only );
 	IMAGE_PROC_PTR( void, SetSavePortion )( void (CPROC*_SavePortion )( PSPRITE_METHOD psm, uint32_t x, uint32_t y, uint32_t w, uint32_t h ) );
 
    IMAGE_PROC_PTR( void, FlipImageEx )( Image pif DBG_PASS );
+   int volatile *bGLColorMode;
 
 } IMAGE_INTERFACE, *PIMAGE_INTERFACE;
 

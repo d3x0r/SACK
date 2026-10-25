@@ -14,6 +14,7 @@
 IMAGE_NAMESPACE
 
 extern void CPROC MarkImageUpdated( Image child_image );
+extern int bGLColorMode; // this gets set if we're working with BGR native or RGB native... (low byte is BLUE naturally)
 
 
 static void CPROC Nothing( void )
@@ -156,6 +157,7 @@ static IMAGE_INTERFACE RealImageInterface = {
 												 , BlotSlicedImageEx
 														  , SetSavePortion
                                             , FlipImageEx
+		, &bGLColorMode
 };
 
 #undef GetImageInterface
