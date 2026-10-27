@@ -2941,6 +2941,12 @@ static void* CPROC sack_filesys_open( uintptr_t psv, const char* filename, const
 	char *tmpFilename = StrDup( filename );
 	{ char* tmp; if( LONG_PATHCHAR ) for( tmp = tmpFilename; tmp[0]; tmp++ ) if( tmp[0] == '\\' ) tmp[0] = LONG_PATHCHAR; }
 	result = fopen( tmpFilename, opts );
+	// fopen fails for the ordinary reasons - the path's directory does not exist,
+	// no permission - and glibc's fileno() dereferences its argument, so NULL
+	// here is a segfault, not an error return.  The _WIN32 branch above already
+	// guards this; opening a file under a directory that was never created took
+	// down a whole service for want of the same test.
+	if( result )
 	{
 		int h = fileno( (FILE*)result );
 		if( h >= 0 ) {
