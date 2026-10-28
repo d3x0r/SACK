@@ -1174,12 +1174,15 @@ LOGICAL ssl_BeginClientSession( PCLIENT pc, CPOINTER client_keypair, size_t clie
 	if( rootCert ) {
 		BIO *keybuf = BIO_new( BIO_s_mem() );
 		X509 *cert;
-		cert = X509_new();
-		BIO_write( keybuf, rootCert, (int)rootCertLen );
-		PEM_read_bio_X509( keybuf, &cert, NULL, NULL );
-		BIO_free( keybuf );
 		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
-		X509_STORE_add_cert( store, cert );
+		BIO_write( keybuf, rootCert, (int)rootCertLen );
+		// trust every certificate given (a root, or intermediates + root), not just the first
+		while( ( cert = PEM_read_bio_X509( keybuf, NULL, NULL, NULL ) ) ) {
+			X509_STORE_add_cert( store, cert );
+			X509_free( cert ); // the store holds its own reference
+		}
+		ERR_clear_error(); // the read that ends the loop leaves a "no start line" error
+		BIO_free( keybuf );
 	} else {
 		X509_STORE *store = SSL_CTX_get_cert_store( ses->ctx );
 		loadSystemCerts( store );
