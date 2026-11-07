@@ -227,6 +227,15 @@ struct jsox_parse_state {
 	PLINKSTACK *context_stack;
 
 	PLIST classes;
+	// The same classes, indexed by name, so defining one does not scan every class
+	// already defined -- see jsox_find_class().  Open addressing; a NULL slot ends a
+	// probe and JSOX_CLASS_INDEX_DELETED continues it.  classIndexSize is a power of
+	// two, or 0 before the first class is defined; classIndexUsed counts live entries
+	// and tombstones together, which is what the load factor has to be measured on.
+	PJSOX_CLASS *classIndex;
+	size_t classIndexSize;
+	size_t classIndexUsed;   // live entries plus tombstones -- what the load factor is
+	size_t classIndexLive;   // live entries alone -- what the next table is sized from
 	PJSOX_CLASS current_class;
 	int current_class_item;
 	int arrayType;
