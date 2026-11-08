@@ -9,6 +9,40 @@ namespace sack {
 	namespace network {
 #endif
 
+// Record that `pid` is listening on `port`, as one entry per port.
+//
+// The IPv4 pass used to append an entry per table row, so a port listened on from
+// several processes (SO_REUSEPORT) or from several local addresses came back as
+// repeated entries carrying one pid each; only the IPv6 pass looked for an existing
+// port, and it stopped at the first match, so its pid joined just one of those
+// duplicates.  Both passes come through here now, which is what makes pdlPids a list
+// of every pid owning the port rather than a list of one.
+//
+// A process listening on both 0.0.0.0:p and [::]:p is two rows naming the same pid,
+// so the pid is only added if it is not already recorded for the port.
+static void AddListenerPid( PDATALIST *ppList, uint16_t port, uint32_t pid ) {
+	INDEX idx;
+	struct listener_pid_info* info;
+	DATA_FORALL( ppList[0], idx, struct listener_pid_info*, info ) {
+		if( info->port == port ) {
+			INDEX p;
+			uint32_t* known;
+			DATA_FORALL( info->pdlPids, p, uint32_t*, known ) {
+				if( known[0] == pid ) return;
+			}
+			AddDataItem( &info->pdlPids, &pid );
+			return;
+		}
+	}
+	{
+		struct listener_pid_info l;
+		l.port = port;
+		l.pdlPids = CreateDataList( sizeof( uint32_t ) );
+		AddDataItem( &l.pdlPids, &pid );
+		AddDataItem( ppList, &l );
+	}
+}
+
 void SackNetstat_GetListeners( PDATALIST *ppList ){
 	DWORD dwErr;
 	ppList[0] = CreateDataList( sizeof( struct listener_pid_info ) );
@@ -25,12 +59,8 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	if( dwErr == ERROR_SUCCESS ) {
 		for( int i = 0; i < table->dwNumEntries; i++ ) {
 			if( table->table[i].dwState == MIB_TCP_STATE_LISTEN ) {
-				struct listener_pid_info l;
-				//l.pid = table->table[i].dwOwningPid;
-				l.pdlPids = CreateDataList( sizeof( uint32_t ) );
-				AddDataItem( &l.pdlPids, &table->table[i].dwOwningPid );
-				l.port = ntohs( table->table[i].dwLocalPort );
-				AddDataItem( ppList, &l );
+				AddListenerPid( ppList, ntohs( (uint16_t)table->table[i].dwLocalPort )
+				              , table->table[i].dwOwningPid );
 			}
 		}
 		Release( table );
@@ -53,23 +83,8 @@ void SackNetstat_GetListeners( PDATALIST *ppList ){
 	if( dwErr == ERROR_SUCCESS ) {
 		for( int i = 0; i < table6->dwNumEntries; i++ ) {
 			if( table6->table[i].dwState == MIB_TCP_STATE_LISTEN ) {
-				struct listener_pid_info l;
-				INDEX idx;
-				struct listener_pid_info* info;
-				//l.pid = table->table[i].dwOwningPid;
-				l.pdlPids = NULL;
-				l.port = ntohs( table6->table[i].dwLocalPort );
-				DATA_FORALL( ppList[0], idx, struct listener_pid_info*, info ) {
-					if( info->port == l.port ) {
-						AddDataItem( &info->pdlPids, &table->table[i].dwOwningPid );
-						break;
-					}
-				}
-				if( !info ) {
-					AddDataItem( ppList, &l );
-					l.pdlPids = CreateDataList( sizeof( uint32_t ) );
-					AddDataItem( &l.pdlPids, &table->table[i].dwOwningPid );
-				}
+				AddListenerPid( ppList, ntohs( (uint16_t)table6->table[i].dwLocalPort )
+				              , table6->table[i].dwOwningPid );
 			}
 		}
 		Release( table6 );
