@@ -65,12 +65,43 @@ struct ssh_session {
 	pw_change_cb pw_change;
 	ssh_sftp_open_cb sftp_open;
 
+	// Channel output is queued and written by whichever thread holds csLock (see
+	// ssh_flush_session).  csOut guards the queues and the flush list; it is never
+	// held while calling into libssh2 or a callback.
+	CRITICALSECTION csOut;
+	PDATAQUEUE pdqDeferred;          // API requests made while another thread held csLock
+	struct ssh_channel* flush_head;  // channels with queued output/eof/close/window work
+	struct ssh_channel* flush_tail;
+	volatile uint32_t out_seq;       // bumped whenever work is queued
+	int busy;                        // csLock holder is inside libssh2 or a flush (no nested flush)
+	int block_recv;                  // RecvCallback reports EAGAIN (flushing must not read packets)
+};
+
+// data accepted by sack_ssh_channel_write that the peer's window has not taken yet
+struct ssh_out_buffer {
+	struct ssh_out_buffer* next;
+	int stream;
+	size_t length;
+	size_t used;
+	uint8_t data[1];
 };
 
 struct ssh_channel {
 	LIBSSH2_CHANNEL *channel;
 	uintptr_t psv;
 	struct ssh_session* session;
+
+	struct ssh_out_buffer* out_head;  // guarded by session->csOut
+	struct ssh_out_buffer* out_tail;
+	volatile size_t out_pending;      // bytes queued in out_head..out_tail
+	struct ssh_channel* flush_next;   // link in session->flush_head
+	int flush_listed;
+	volatile int want_hold;           // sack_ssh_channel_pause() state
+	int eof_pending;                  // send EOF once output drains
+	int close_pending;                // user closed: finish output, then close and release
+	int remote_closed;                // peer closed; queued output can't be sent
+	int out_blocked;                  // a write waited on the window; report drain when empty
+	ssh_channel_drain_cb drain;
 
 	ssh_channel_error_cb error;
 	ssh_channel_data_cb channel_data;
