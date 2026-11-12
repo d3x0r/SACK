@@ -385,6 +385,10 @@ static void _readCallback( struct ssh_session* cs, POINTER buffer, size_t length
 		while( 1 ) {
 			if( did_one && cs->pending.state != SSH_STATE_RESET ) break;
 			did_one = 1;
+			// A request that completes below leaves rc alone, so a stale EAGAIN from an
+			// earlier pass would end the loop before the next queued request starts;
+			// it would then wait for unrelated traffic on this session.
+			rc = 0;
 			pass_start = ssh_unconsumed( cs );
 			if( cs->pending.state == SSH_STATE_RESET )
 				DequeData( &cs->pdqStates, &cs->pending );
@@ -881,6 +885,7 @@ struct ssh_session * sack_ssh_session_init(uintptr_t psv){
 	InitializeCriticalSection( &session->csOut );
 
 	session->pdqStates = CreateDataQueue( sizeof( struct pending_state ) );
+	session->pdqDeferred = CreateDataQueue( sizeof( struct pending_state ) );
 	session->psv = psv;
 	session->buffers = CreateDataList( sizeof( struct data_buffer ) );
 
