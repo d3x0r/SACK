@@ -16,7 +16,28 @@ OPTION( NEED_LIBSSH2 "Build internal libssh2 library" ON )
 if( INCLUDE_LIBSSH2 )
 	include_directories( src/contrib/libssh2/include )
 	LINK_DIRECTORIES( ${CMAKE_BINARY_DIR}/libssh2_tmp/lib )
-	
+
+	# Use the bundled LibreSSL as libssh2's "OpenSSL" backend, so libssh2's own
+	# CMakeLists.txt can stay upstream.  Every value FindOpenSSL would search
+	# for is preset, so it never auto-selects a system OpenSSL (e.g. Homebrew
+	# openssl@3 on macOS), which references OSSL_PARAM/EVP_PKEY APIs the
+	# LibreSSL we actually link against does not provide.  On MSVC FindOpenSSL
+	# derives OPENSSL_*_LIBRARY from LIB_EAY_*/SSL_EAY_*, so those are set too.
+	set( LSSL_CRYPTO_LIB ${CMAKE_BINARY_DIR}/lssl_tmp/lib/${CMAKE_STATIC_LIBRARY_PREFIX}crypto${EXTENSION} )
+	set( LSSL_SSL_LIB ${CMAKE_BINARY_DIR}/lssl_tmp/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ssl${EXTENSION} )
+	set( SSH_CRYPTO_OPTS
+		-DCRYPTO_BACKEND=OpenSSL
+		-DOPENSSL_USE_STATIC_LIBS=TRUE
+		-DOPENSSL_ROOT_DIR=${CMAKE_BINARY_DIR}/lssl_tmp
+		-DOPENSSL_INCLUDE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/src/contrib/libressl/${LIBRESSL_VERSION}/include
+		-DOPENSSL_CRYPTO_LIBRARY=${LSSL_CRYPTO_LIB}
+		-DOPENSSL_SSL_LIBRARY=${LSSL_SSL_LIB}
+		-DLIB_EAY_RELEASE=${LSSL_CRYPTO_LIB}
+		-DLIB_EAY_DEBUG=${LSSL_CRYPTO_LIB}
+		-DSSL_EAY_RELEASE=${LSSL_SSL_LIB}
+		-DSSL_EAY_DEBUG=${LSSL_SSL_LIB}
+	)
+
 	ExternalProject_Add( Libssh2_External
 		BUILD_ALWAYS ON
       DEPENDS Libressl_External
@@ -31,12 +52,8 @@ if( INCLUDE_LIBSSH2 )
 			-DLIBSSH2_EXPORT_SYMBOLS=ON
 			-DLIBSSH2_BUILD_OBJECT_LIBRARY=OFF
 			-DLIBSSH2_DISABLE_INSTALL=OFF
-			# Force the bundled LibreSSL crypto backend; otherwise libssh2's
-			# find_package(OpenSSL) auto-selects a system OpenSSL (e.g. Homebrew
-			# openssl@3 on macOS) and ends up referencing OSSL_PARAM/EVP_PKEY
-			# APIs that the LibreSSL we actually link against does not provide.
-			-DCRYPTO_BACKEND=LibreSSL
-			-DLIBRESSL_INSTALL_DIR=${CMAKE_BINARY_DIR}/lssl_tmp
+			# bundled LibreSSL as the OpenSSL backend (see SSH_CRYPTO_OPTS above)
+			${SSH_CRYPTO_OPTS}
 			-DBUILD_SHARED_LIBS=OFF
 			-DBUILD_STATIC_LIBS=ON
 			# libssh2 selects its alias target (LIB_SELECTED) from the
