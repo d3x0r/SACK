@@ -300,6 +300,18 @@ static int gatherString( CTEXTSTR msg, CTEXTSTR *msg_input, size_t msglen, TEXTS
 
 
 
+// A delimiter arrived while a keyword was still being spelled out: 'tru'.  The keyword
+// states sort after WORD_POS_END and before WORD_POS_FIELD, so one range test finds any
+// of them.  Without this, `{"b":tru}` parsed as `{}` -- the field quietly vanished
+// instead of the document being rejected, which is what json6_parser.c does here.
+#define JSON_PARTIAL_KEYWORD_PENDING() ( state->word > WORD_POS_END && state->word < WORD_POS_FIELD )
+
+static void json_partial_keyword_fault( struct json_parse_state *state, const char *where ) {
+	state->status = FALSE;
+	if( !state->pvtError ) state->pvtError = VarTextCreate();
+	vtprintf( state->pvtError, "Incomplete keyword %s at %" _size_f, where, state->n );
+}
+
 static void json_state_init( struct json_parse_state *state )
 {
 	PPDATALIST ppElements;
@@ -480,6 +492,16 @@ int json_parse_add_data( struct json_parse_state *state
 			break;
 
 			case ':':
+				// Every other separator -- '}' ']' ',' and whitespace -- lets a new word
+				// start here, and ':' did not: a quoted field name leaves word at
+				// WORD_POS_END, so the keyword lexer below ('t' of true, 'f' of false,
+				// 'n' of null) saw a non-RESET word and faulted.  `{"b":true}` was
+				// rejected while `{"b": true}` parsed, because the space reset it, and
+				// numbers and strings were fine because neither looks at word.
+				if( state->word == WORD_POS_END ) {
+					// allow starting a new word
+					state->word = WORD_POS_RESET;
+				}
 				if( state->parse_context == CONTEXT_IN_OBJECT )
 				{
 					if( state->val.name ) {
@@ -504,6 +526,10 @@ int json_parse_add_data( struct json_parse_state *state
 				}
 				break;
 			case '}':
+				if( JSON_PARTIAL_KEYWORD_PENDING() ) {
+					json_partial_keyword_fault( state, "before '}'" );
+					break;
+				}
 				if( state->word == WORD_POS_END ) {
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
@@ -541,6 +567,10 @@ int json_parse_add_data( struct json_parse_state *state
 				}
 				break;
 			case ']':
+				if( JSON_PARTIAL_KEYWORD_PENDING() ) {
+					json_partial_keyword_fault( state, "before ']'" );
+					break;
+				}
 				if( state->word == WORD_POS_END ) {
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
@@ -574,6 +604,10 @@ int json_parse_add_data( struct json_parse_state *state
 				}
 				break;
 			case ',':
+				if( JSON_PARTIAL_KEYWORD_PENDING() ) {
+					json_partial_keyword_fault( state, "before ','" );
+					break;
+				}
 				if( state->word == WORD_POS_END ) {
 					// allow starting a new word
 					state->word = WORD_POS_RESET;
@@ -940,14 +974,34 @@ LOGICAL json_parse_message( const char * msg
 	state->complete_at_end = TRUE;
 	int result = json_parse_add_data( state, msg, msglen );
 	if( jpsd.json_state ) json_parse_dispose_state( &jpsd.json_state );
+	// the state a previous failure kept for json_parse_get_error(); the caller has had
+	// its chance to read it by now
+	if( jpsd.last_parse_state ) json_parse_dispose_state( &jpsd.last_parse_state );
 	if( result > 0 ) {
 		(*_msg_output) = json_parse_get_data( state );
 		jpsd.json_state = state;
 		//json6_parse_dispose_state( &state );
 		return TRUE;
 	}
+	if( result == 0 && !state->pvtError ) {
+		// ran out of document with nothing completed and no fault recorded; say why,
+		// rather than leaving the caller to report that no error was posted
+		state->pvtError = VarTextCreate();
+		if( state->gatheringString )
+			vtprintf( state->pvtError, "Incomplete string at end of document" );
+		else if( JSON_PARTIAL_KEYWORD_PENDING() )
+			vtprintf( state->pvtError, "Incomplete keyword at end of document" );
+		else if( state->parse_context != CONTEXT_UNKNOWN )
+			vtprintf( state->pvtError, "Unclosed object or array at end of document" );
+		else
+			vtprintf( state->pvtError, "No value found in document" );
+	}
 	(*_msg_output) = NULL;
-	json_parse_dispose_state( &state );
+	// json_parse_get_error( NULL ) reads jpsd.last_parse_state, so the state has to
+	// outlive this call -- disposing it here is why a rejected document surfaced as
+	// "JSON Error not posted." instead of saying what was wrong.  Freed by the next
+	// parse, as json6_parse_message() does with its own failures.
+	jpsd.last_parse_state = state;
 	return FALSE;
 }
 

@@ -1455,6 +1455,9 @@ void json_parse_dispose_state( struct json_parse_state **ppState ) {
 	if( state->context_stack )
 		DeleteFromSet( PLINKSTACK, jpsd.linkStacks, state->context_stack );
 		//DeleteLinkStack( &state->context_stack );
+	// json_begin_parse() only sets this NULL when it recycles a state, so every parse
+	// that recorded a fault dropped its VARTEXT on the floor
+	if( state->pvtError ) VarTextDestroy( &state->pvtError );
 	DeleteFromSet( PARSE_STATE, jpsd.parseStates, state );
 	//Deallocate( struct json_parse_state *, state );
 	(*ppState) = NULL;
