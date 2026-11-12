@@ -97,7 +97,8 @@ struct ssh_channel {
 	struct ssh_channel* flush_next;   // link in session->flush_head
 	int flush_listed;
 	volatile int want_hold;           // sack_ssh_channel_pause() state
-	int eof_pending;                  // send EOF once output drains
+	int eof_pending;                  // send EOF once output drains (stays set: no writes after)
+	int eof_sent;
 	int close_pending;                // user closed: finish output, then close and release
 	int remote_closed;                // peer closed; queued output can't be sent
 	int out_blocked;                  // a write waited on the window; report drain when empty
